@@ -2,16 +2,29 @@ Describe 'Invoke-AssemblerPipeline validation result handling' {
     It 'returns status ok for a valid solution plan without throwing on planErrors.Count' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $scriptPath = Join-Path $repoRoot 'scripts/Invoke-AssemblerPipeline.ps1'
-        $bundleRoot = Join-Path $repoRoot 'sample/577f2001-d0e6-4ec8-81ac-025c367a0112'
+        $sampleRoot = if (Test-Path -LiteralPath (Join-Path $repoRoot 'samples')) {
+            Join-Path $repoRoot 'samples'
+        }
+        else {
+            Join-Path $repoRoot 'sample'
+        }
+
+        $bundleRoot = Join-Path $sampleRoot 'fc2c8a97-9214-456c-9d2f-4fcaba90e8ef'
         $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
 
-        $output = & pwsh -NoLogo -NoProfile -File $scriptPath -BundleRoot $bundleRoot -ContractsRoot $contractsRoot
+        $output = & $scriptPath -BundleRoot $bundleRoot -ContractsRoot $contractsRoot
         $exitCode = $LASTEXITCODE
 
-        $exitCode | Should -Be 0
-        $output | Should -Not -BeNullOrEmpty
+        if ($exitCode -ne 0) {
+            throw "Expected exit code 0 for valid bundle, got $exitCode"
+        }
+        if ([string]::IsNullOrWhiteSpace([string]$output)) {
+            throw 'Expected non-empty output from Invoke-AssemblerPipeline'
+        }
 
         $report = $output | ConvertFrom-Json -AsHashtable
-        $report.status | Should -Be 'ok'
+        if ($report.status -ne 'ok') {
+            throw "Expected report.status to be 'ok' for valid bundle, got '$($report.status)'"
+        }
     }
 }

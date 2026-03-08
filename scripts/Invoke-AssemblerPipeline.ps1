@@ -169,7 +169,7 @@ function Invoke-AssemblerPipeline {
             bundle        = [ordered]@{
                 root                  = $BundleRoot
                 manifestSchemaVersion = $manifest.schemaVersion
-                objectCount           = $objectIndex.objectCount
+                objectCount           = if ($objectIndex.ContainsKey('objectCount')) { $objectIndex.objectCount } else { @($objectIndex.objects).Count }
                 solutionId            = $solutionPlan.solutionId
                 targetCount           = @($solutionPlan.targets).Count
                 collectorCount        = @($solutionPlan.collectors).Count
