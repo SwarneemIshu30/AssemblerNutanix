@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Confirm export artifacts are delta-only and do not duplicate already-merged repository contracts.",
+  "alreadyMergedAuthoritativeFiles": [
+    ".deps/contracts/standards/solution.plan.schema.v1.json",
+    ".deps/contracts/standards/bundle.manifest.schema.v1.json",
+    ".deps/contracts/standards/objectIndex.schema.v1.json",
+    ".deps/contracts/standards/coverage.schema.v1.json",
+    ".deps/contracts/standards/mapping.dataset-to-sdt.schema.v1.json",
+    ".deps/contracts/standards/architecture.direct-v1.collector-contracts.md",
+    ".deps/contracts/docs/codex.collector-contracts.onboarding.plan.v1.yaml",
+    ".deps/contracts/tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml",
+    ".deps/contracts/tech/Lenovo.DE/sdt_inventory.md",
+    ".deps/contracts/tech/Lenovo.DE/skeleton_blueprint.md"
+  ],
+  "exportDeltaFiles": [
+    "export/repo-ready/contracts/standards/assembler/assembler.runtime.contract.v1.md",
+    "export/repo-ready/contracts/standards/assembler/assembler.input.schema.v1.json",
+    "export/repo-ready/contracts/standards/assembler/assembler.render-report.schema.v1.json",
+    "export/repo-ready/contracts/standards/assembler/assembler.error-model.v1.md",
+    "export/repo-ready/contracts/standards/assembler/assembler.transform-semantics.v1.md",
+    "export/repo-ready/handoff/ASSEMBLER_HANDOFF.md",
+    "export/repo-ready/handoff/assembler-knowledge-pack.schema.v1.json",
+    "export/repo-ready/handoff/assembler-knowledge-pack.v1.json",
+    "export/repo-ready/handoff/duplication-audit.v1.json"
+  ],
+  "conclusion": {
+    "duplicateByPath": false,
+    "duplicateByPurpose": false,
+    "notes": [
+      "Export package intentionally adds Assembler-specific contracts not present in current standards snapshot.",
+      "All existing collector/bundle standards remain authoritative and are referenced, not copied."
+    ]
+  }
+}

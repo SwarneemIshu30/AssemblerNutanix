@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lenovo.example/lnv-asbuiltdoc/schemas/solution.plan.schema.v1.json",
+  "title": "LNV.AsBuiltDoc Solution Plan (Schema v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "solutionId", "targets", "collectors"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "solutionId": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "createdBy": { "type": "string" },
+	
+	"contracts": {
+      "type": ["object", "null"],
+      "required": ["version"],
+      "properties": {
+        "version": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+	
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/target" }
+    },
+
+    "collectors": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/collector" }
+    },
+
+    "auth": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/authRef" }
+    }
+  },
+
+  "$defs": {
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["techId", "kind", "key", "displayName", "endpoints"],
+      "properties": {
+        "techId": { "type": "string", "minLength": 1 },
+        "kind": { "type": "string", "minLength": 1 },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9._-]{2,127}$"
+        },
+        "displayName": { "type": "string", "minLength": 1 },
+
+        "endpoints": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": true
+        },
+
+        "params": {
+          "type": "object",
+          "additionalProperties": true
+        },
+
+        "tags": {
+          "type": "object",
+		  "description": "Arbitrary key/value tags for this target.",
+		  "default": {},
+          "additionalProperties": true
+        }
+      }
+    },
+
+    "collector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["techId", "modulePath", "targetKeys"],
+      "properties": {
+        "techId": { "type": "string", "minLength": 1 },
+        "modulePath": { "type": "string", "minLength": 1 },
+        "entryPoint": { "type": "string", "minLength": 1 },
+        "targetKeys": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "authRef": { "type": "string", "minLength": 1 },
+        "options": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+
+    "authRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "ref"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["pscredential", "tokenfile", "vaultref", "dpapi"]
+        },
+        "ref": { "type": "string", "minLength": 1 },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}

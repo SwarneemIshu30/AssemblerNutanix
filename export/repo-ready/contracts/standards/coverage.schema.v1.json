@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv.asbuiltdoc/contracts/standards/coverage.schema.v1.json",
+  "title": "AsBuiltDoc Coverage",
+  "description": "Per-tech per-target capture coverage summary.",
+  "type": "object",
+  "required": ["schemaVersion", "techId", "targetKey", "status", "collectedUtc"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "techId": { "type": "string" },
+    "targetKey": { "type": "string" },
+    "status": { "type": "string", "enum": ["OK", "PARTIAL", "ERROR", "SKIPPED"] },
+    "collectedUtc": { "type": "string", "format": "date-time" },
+    "datasetsExpected": { "type": "array", "items": { "type": "string" } },
+    "datasetsWritten": { "type": "array", "items": { "type": "string" } },
+    "missing": { "type": "array", "items": { "type": "string" } },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "errors": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv.asbuiltdoc/contracts/standards/finding.schema.v1.json",
+  "title": "AsBuiltDoc Finding",
+  "description": "A single finding record written by a collector.",
+  "type": "object",
+  "required": ["schemaVersion", "id", "title", "severity", "category", "collectedUtc"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "id": { "type": "string" },
+    "title": { "type": "string" },
+    "severity": { "type": "string", "enum": ["Info", "Low", "Medium", "High", "Critical"] },
+    "category": { "type": "string", "enum": ["Config", "Security", "Availability", "Performance", "Compliance", "Other"] },
+    "summary": { "type": ["string", "null"] },
+    "recommendation": { "type": ["string", "null"] },
+    "evidenceRefs": { "type": "array", "items": { "type": "string" } },
+    "collectedUtc": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

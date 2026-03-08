@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv.asbuiltdoc/contracts/standards/bundle.manifest.schema.v1.json",
+  "title": "AsBuiltDoc Bundle Manifest",
+  "description": "Top-level manifest describing bundle content, integrity, and results.",
+  "type": "object",
+  "required": ["schemaVersion", "bundleId", "createdUtc", "files", "results"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "bundleId": { "type": "string" },
+    "createdUtc": { "type": "string", "format": "date-time" },
+    "completedUtc": { "type": ["string", "null"], "format": "date-time" },
+
+    "createdBy": {
+      "type": ["object", "null"],
+      "properties": {
+        "user": { "type": ["string", "null"] },
+        "machine": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+
+    "environment": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+
+    "tech": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": { "type": "string" },
+          "techPath": { "type": ["string", "null"] },
+          "collectorVersion": { "type": ["string", "null"] }
+        },
+        "additionalProperties": true
+      }
+    },
+
+    "targets": { "type": ["array", "null"], "items": { "type": "object" } },
+
+    "dependencies": { "type": ["object", "null"], "additionalProperties": true },
+
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "bytes", "sha256"],
+        "properties": {
+          "path": { "type": "string" },
+          "bytes": { "type": "integer", "minimum": 0 },
+          "sha256": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["techId", "status", "startedUtc", "completedUtc", "errors", "warnings"],
+        "properties": {
+          "techId": { "type": "string" },
+          "status": { "type": "string" },
+          "startedUtc": { "type": "string", "format": "date-time" },
+          "completedUtc": { "type": "string", "format": "date-time" },
+          "errors": { "type": "array", "items": { "type": "string" } },
+          "warnings": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": true
+      }
+    },
+
+    "integrity": {
+      "type": ["object", "null"],
+      "properties": {
+        "hashAlgorithm": { "type": ["string", "null"] },
+        "bundleHash": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+
+    "objectIndex": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "module": {
+    "name": "LNV.AsBuiltDoc.Assembler",
+    "purpose": "Transform Direct-v1 bundle datasets into deterministic SDT-populated document outputs."
+  },
+  "boundaries": {
+    "owns": [
+      "bundle consumption",
+      "mapping resolution",
+      "render orchestration",
+      "render reporting"
+    ],
+    "doesNotOwn": [
+      "collector execution",
+      "solution plan capture",
+      "collector dataset schema authoring"
+    ]
+  },
+  "inputs": [
+    {
+      "id": "bundle-manifest",
+      "pathHint": "<bundle>/manifest.json",
+      "required": true
+    },
+    {
+      "id": "bundle-object-index",
+      "pathHint": "<bundle>/objectIndex.json",
+      "required": true
+    },
+    {
+      "id": "bundle-plan-copy",
+      "pathHint": "<bundle>/config/solution.plan.json",
+      "required": true
+    },
+    {
+      "id": "dataset-envelopes",
+      "pathHint": "<bundle>/datasets/<techId>/**/<dataset>.json",
+      "required": true
+    },
+    {
+      "id": "tech-mapping",
+      "pathHint": "contracts/tech/<techId>/mapping.dataset-to-sdt.v1.yaml",
+      "required": true
+    }
+  ],
+  "contracts": [
+    {
+      "id": "assembler-input",
+      "version": "1",
+      "location": "export/repo-ready/contracts/standards/assembler/assembler.input.schema.v1.json"
+    },
+    {
+      "id": "assembler-render-report",
+      "version": "1",
+      "location": "export/repo-ready/contracts/standards/assembler/assembler.render-report.schema.v1.json"
+    },
+    {
+      "id": "assembler-runtime",
+      "version": "1",
+      "location": "export/repo-ready/contracts/standards/assembler/assembler.runtime.contract.v1.md"
+    }
+  ],
+  "semantics": [
+    "export/repo-ready/contracts/standards/assembler/assembler.transform-semantics.v1.md"
+  ],
+  "outputs": [
+    {
+      "id": "render-report",
+      "schema": "https://lnv.asbuiltdoc/contracts/standards/assembler/assembler.render-report.schema.v1.json"
+    },
+    {
+      "id": "rendered-document",
+      "schema": "profile-defined"
+    }
+  ],
+  "migration": {
+    "sourceRepo": "LNV.AsBuiltDoc.Core",
+    "sourcePath": "/Assembler and /export/repo-ready",
+    "targetRepo": "LNV.AsBuiltDoc.Assembler",
+    "notes": [
+      "Move /Assembler first",
+      "Then promote standards artifacts to Contracts repo",
+      "Keep knowledge pack in Assembler docs for independent onboarding"
+    ],
+    "auditPath": "export/repo-ready/handoff/merged-items-audit.v1.json"
+  },
+  "authoritativeReferences": [
+    ".deps/contracts/standards/solution.plan.schema.v1.json",
+    ".deps/contracts/standards/bundle.manifest.schema.v1.json",
+    ".deps/contracts/standards/objectIndex.schema.v1.json",
+    ".deps/contracts/standards/coverage.schema.v1.json",
+    ".deps/contracts/standards/mapping.dataset-to-sdt.schema.v1.json",
+    ".deps/contracts/standards/architecture.direct-v1.collector-contracts.md",
+    ".deps/contracts/tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml"
+  ]
+}

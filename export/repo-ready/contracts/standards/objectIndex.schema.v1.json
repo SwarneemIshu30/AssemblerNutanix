@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv.asbuiltdoc/contracts/standards/objectIndex.schema.v1.json",
+  "title": "AsBuiltDoc Object Index",
+  "description": "Bundle-level index of plan-defined objects captured in this solution.",
+  "type": "object",
+  "required": ["schemaVersion", "collectedUtc", "objects"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "collectedUtc": { "type": "string", "format": "date-time" },
+    "objects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["techId", "kind", "key", "displayName"],
+        "properties": {
+          "techId": { "type": "string" },
+          "kind": { "type": "string" },
+          "key": { "type": "string" },
+          "displayName": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
