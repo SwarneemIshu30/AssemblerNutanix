@@ -1,3 +1,45 @@
+<#
+.SYNOPSIS
+Bootstrap Assembler ingestion pipeline for Direct-v1 inputs.
+
+.DESCRIPTION
+Loads required bundle artifacts (`manifest.json`, `objectIndex.json`, `config/solution.plan.json`) and
+`solution.plan.schema.v1.json` from the contracts root, performs minimum contract checks, and emits
+a machine-readable JSON report with staged diagnostics.
+
+.PARAMETER BundleRoot
+Path to the Direct-v1 bundle root. Required files under this root are:
+- `manifest.json`
+- `objectIndex.json`
+- `config/solution.plan.json`
+
+.PARAMETER ContractsRoot
+Path to the contracts root containing `standards/solution.plan.schema.v1.json`.
+
+.PARAMETER OutputPath
+Optional output file path for the JSON report. If omitted, report JSON is written to stdout.
+
+.OUTPUTS
+JSON text representing a report object with:
+- `schemaVersion`
+- `status` (`ok` or `error`)
+- optional `bundle` summary block
+- `diagnostics` list
+
+.EXAMPLE
+pwsh ./scripts/Invoke-AssemblerPipeline.ps1 `
+  -BundleRoot ./sample/bundle `
+  -ContractsRoot ./export/repo-ready/contracts
+
+.EXAMPLE
+pwsh ./scripts/Invoke-AssemblerPipeline.ps1 `
+  -BundleRoot ./sample/bundle `
+  -ContractsRoot ./export/repo-ready/contracts `
+  -OutputPath ./out/assembler-bootstrap-report.json
+
+.NOTES
+Exit code is `0` when `status=ok` and `1` when `status=error`.
+#>
 #!/usr/bin/env pwsh
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
