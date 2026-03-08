@@ -120,7 +120,7 @@ function Test-SolutionPlanMinimumContract {
         $errors.Add("ASB-ASM-CONTRACT-SOLUTIONPLAN-COLLECTORS-TYPE: 'collectors' must be an array")
     }
 
-    return $errors
+    return @($errors)
 }
 
 function Invoke-AssemblerPipeline {
@@ -152,7 +152,7 @@ function Invoke-AssemblerPipeline {
         $solutionPlanSchema = Read-JsonFile -Path $solutionPlanSchemaPath
 
         $diagnostics.Add((New-Diagnostic -Stage 'Validate' -Level 'INFO' -Code 'ASB-ASM-CONTRACT-VALIDATE' -Message 'Performing minimum solution plan contract checks'))
-        $planErrors = Test-SolutionPlanMinimumContract -Plan $solutionPlan -Schema $solutionPlanSchema
+        $planErrors = @(Test-SolutionPlanMinimumContract -Plan $solutionPlan -Schema $solutionPlanSchema)
         foreach ($err in $planErrors) {
             $diagnostics.Add((New-Diagnostic -Stage 'Validate' -Level 'ERROR' -Code 'ASB-ASM-CONTRACT-VALIDATE' -Message $err))
         }
@@ -169,7 +169,7 @@ function Invoke-AssemblerPipeline {
             bundle        = [ordered]@{
                 root                  = $BundleRoot
                 manifestSchemaVersion = $manifest.schemaVersion
-                objectCount           = $objectIndex.objectCount
+                objectCount           = if ($objectIndex.ContainsKey('objectCount')) { $objectIndex.objectCount } else { @($objectIndex.objects).Count }
                 solutionId            = $solutionPlan.solutionId
                 targetCount           = @($solutionPlan.targets).Count
                 collectorCount        = @($solutionPlan.collectors).Count
