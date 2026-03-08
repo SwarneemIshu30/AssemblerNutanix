@@ -41,6 +41,12 @@ pwsh ./scripts/Invoke-AssemblerPipeline.ps1 `
 Exit code is `0` when `status=ok` and `1` when `status=error`.
 #>
 #!/usr/bin/env pwsh
+param(
+    [Parameter(Mandatory = $true)][string]$BundleRoot,
+    [Parameter(Mandatory = $true)][string]$ContractsRoot,
+    [Parameter(Mandatory = $false)][string]$OutputPath
+)
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
@@ -197,11 +203,5 @@ function Invoke-AssemblerPipeline {
         exit 1
     }
 }
-
-param(
-    [Parameter(Mandatory = $true)][string]$BundleRoot,
-    [Parameter(Mandatory = $true)][string]$ContractsRoot,
-    [Parameter(Mandatory = $false)][string]$OutputPath
-)
 
 Invoke-AssemblerPipeline -BundleRoot $BundleRoot -ContractsRoot $ContractsRoot -OutputPath $OutputPath
