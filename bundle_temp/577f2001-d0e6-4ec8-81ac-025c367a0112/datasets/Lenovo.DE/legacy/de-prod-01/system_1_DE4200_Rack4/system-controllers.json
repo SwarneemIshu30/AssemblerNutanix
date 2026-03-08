@@ -1,0 +1,48 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.DE",
+    "module": "LNV.AsBuiltDoc.Lenovo.DE",
+    "entry_point": "Invoke-LnvAsBuiltDoc.Lenovo.DE"
+  },
+  "source": {
+    "bundle_id": "de-prod-01",
+    "bundle_root": "C:\\Github\\LNV.AsBuiltDoc.Core\\out\\577f2001-d0e6-4ec8-81ac-025c367a0112\\datasets\\Lenovo.DE\\legacy\\de-prod-01",
+    "file": "system_1_DE4200_Rack4/system-controllers.json"
+  },
+  "dataset": {
+    "key": "system-controllers",
+    "schema_path": "tech/Lenovo.DE/dataset/system-controllers.schema.json"
+  },
+  "item_count": 2,
+  "items": [
+    {
+      "systemId": "1",
+      "controllerRef": "070000000000000000000001",
+      "controllerLabel": "A",
+      "controllerSlot": 1,
+      "status": "optimal",
+      "appVersion": "08.90.09.00",
+      "bootVersion": "08.90.09.00",
+      "bootTime": "2026-01-02T18:40:41",
+      "serialNumber": "952529000086",
+      "manufacturerDate": "2025-11-20",
+      "trayId": 99,
+      "modelName": "DE4200"
+    },
+    {
+      "systemId": "1",
+      "controllerRef": "070000000000000000000002",
+      "controllerLabel": "B",
+      "controllerSlot": 2,
+      "status": "optimal",
+      "appVersion": "08.90.09.00",
+      "bootVersion": "08.90.09.00",
+      "bootTime": "2026-02-06T20:12:31",
+      "serialNumber": "952529000077",
+      "manufacturerDate": "2025-11-20",
+      "trayId": 99,
+      "modelName": "DE4200"
+    }
+  ]
+}
