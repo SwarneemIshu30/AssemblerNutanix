@@ -200,9 +200,17 @@ try {
         $reportPath = Join-Path $techOutputRoot ("$([string]$entry.id).render-report.json")
 
         $json = & $invokeRenderScript -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $effectiveContractsRoot
-        $exitCode = $LASTEXITCODE
 
-        $runStatus = if ($exitCode -eq 0) { 'OK' } else { 'ERROR' }
+        $runStatus = 'OK'
+        try {
+            $rendererReport = $json | ConvertFrom-Json -AsHashtable
+            if ($rendererReport.ContainsKey('status') -and [string]$rendererReport.status -eq 'ERROR') {
+                $runStatus = 'ERROR'
+            }
+        }
+        catch {
+            $runStatus = if ($LASTEXITCODE -eq 0) { 'OK' } else { 'ERROR' }
+        }
         if ($runStatus -eq 'ERROR') {
             $status = 'ERROR'
             $issues.Add([ordered]@{ code = 'ASB-ASM-BUNDLE-ENTRY-FAILED'; severity = 'ERROR'; message = "Entry '$($entry.id)' failed render."; path = $reportPath })
