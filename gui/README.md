@@ -20,7 +20,7 @@ Mandatory inputs for execution are:
 
 Supports mode selection with `-Mode Auto|WinForms|Terminal`:
 - `Auto`: uses WinForms on Windows, falls back to Terminal elsewhere.
-- `WinForms`: launches a Windows WinForms form with **Browse** buttons for bundle, catalog, output, and contracts paths.
+- `WinForms`: launches a Windows WinForms form with **Browse** buttons for bundle, catalog, output, and contracts paths. Includes **Verbose** and **Debug** checkboxes; default output shows concise status/findings summary, **Verbose** adds matched-tag details, and **Debug** includes the full raw render JSON dump.
 - `Terminal`: prompts in shell (showing defaults) and runs bundle render non-graphically.
 
 ## `Start-AssemblerGui.Wpf.ps1` (Windows-only WPF launcher)
@@ -28,7 +28,8 @@ Supports mode selection with `-Mode Auto|WinForms|Terminal`:
 A dedicated WPF launcher for Windows desktop environments. It loads WPF assemblies
 (`PresentationFramework`, `PresentationCore`, `WindowsBase`), renders a native
 WPF window, provides **Browse** buttons for path fields, and invokes
-`Invoke-AssemblerBundleRender.ps1` with the provided inputs.
+`Invoke-AssemblerBundleRender.ps1` with the provided inputs. It also includes a
+**Verbose** and **Debug** checkboxes that provide two-step feedback: concise findings summary by default, matched-tag details in Verbose mode, and full raw render JSON in Debug mode.
 
 ## Quick start
 
