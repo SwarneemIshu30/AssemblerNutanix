@@ -160,6 +160,13 @@ function Format-RenderFindingsSummary {
     $totalMatches = 0
     $issueCounts = @{}
 
+    foreach ($issue in @($bundleReport.issues)) {
+        $severity = [string]$issue.severity
+        if ([string]::IsNullOrWhiteSpace($severity)) { $severity = 'UNKNOWN' }
+        if (-not $issueCounts.ContainsKey($severity)) { $issueCounts[$severity] = 0 }
+        $issueCounts[$severity]++
+    }
+
     foreach ($run in @($bundleReport.runs)) {
         if ($run.ContainsKey('rendererOutput') -and $null -ne $run.rendererOutput) {
             if ($run.rendererOutput.ContainsKey('matches')) {
@@ -189,6 +196,23 @@ function Format-RenderFindingsSummary {
     else {
         $issueSegments = @($issueCounts.Keys | Sort-Object | ForEach-Object { "$_=$($issueCounts[$_])" })
         $summaryLines.Add("  Issues by severity: $($issueSegments -join ', ')")
+
+        $firstIssueMessage = ''
+        if (@($bundleReport.issues).Count -gt 0) {
+            $firstIssueMessage = [string]$bundleReport.issues[0].message
+        }
+        elseif (@($bundleReport.runs).Count -gt 0) {
+            foreach ($run in @($bundleReport.runs)) {
+                if ($run.ContainsKey('rendererOutput') -and $null -ne $run.rendererOutput -and $run.rendererOutput.ContainsKey('issues') -and @($run.rendererOutput.issues).Count -gt 0) {
+                    $firstIssueMessage = [string]$run.rendererOutput.issues[0].message
+                    break
+                }
+            }
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($firstIssueMessage)) {
+            $summaryLines.Add("  First issue: $firstIssueMessage")
+        }
     }
 
     return ($summaryLines -join [Environment]::NewLine)
