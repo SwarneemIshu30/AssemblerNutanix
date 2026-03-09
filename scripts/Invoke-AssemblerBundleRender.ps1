@@ -127,40 +127,53 @@ function Resolve-TechDatasetContext {
     $systems = @(
         Get-ChildItem -LiteralPath $target.FullName -Directory -ErrorAction SilentlyContinue |
             Where-Object { $_.Name -like 'system_*' } |
-            Sort-Object -Property Name
+            Sort-Object -Property Name |
+            ForEach-Object { [string]$_.Name }
     )
-    $systemName = if (@($systems).Count -gt 0) { [string]$systems[0].Name } else { '' }
 
-    return [ordered]@{ target = [string]$target.Name; system = $systemName }
+    return [ordered]@{ target = [string]$target.Name; systems = $systems }
 }
 
-function Resolve-MappingPathForBundle {
+function Resolve-MappingVariantsForBundle {
     param(
         [Parameter(Mandatory = $true)][string]$BundleRoot,
         [Parameter(Mandatory = $true)][string]$MappingPath,
         [Parameter(Mandatory = $true)][string]$TechId,
-        [Parameter(Mandatory = $true)][string]$OutputRoot
+        [Parameter(Mandatory = $true)][string]$OutputRoot,
+        [Parameter(Mandatory = $true)][string]$EntryId
     )
 
     $mappingText = Get-Content -LiteralPath $MappingPath -Raw -Encoding UTF8
     if (($mappingText -notmatch '__TARGET__') -and ($mappingText -notmatch '__SYSTEM__')) {
-        return $MappingPath
+        return @([ordered]@{ mappingPath = $MappingPath; variantName = $null })
     }
 
     $ctx = Resolve-TechDatasetContext -BundleRoot $BundleRoot -TechId $TechId
-    $resolved = $mappingText.Replace('__TARGET__', [string]$ctx.target)
-    if ($resolved -match '__SYSTEM__') {
-        if ([string]::IsNullOrWhiteSpace([string]$ctx.system)) {
-            throw "Mapping '$MappingPath' requires __SYSTEM__ but no system_* directory found under target '$($ctx.target)'."
-        }
-        $resolved = $resolved.Replace('__SYSTEM__', [string]$ctx.system)
-    }
+    $targetResolved = $mappingText.Replace('__TARGET__', [string]$ctx.target)
 
     $tempDir = Join-Path $OutputRoot '.resolved-mappings'
     Ensure-Directory -Path $tempDir
-    $resolvedPath = Join-Path $tempDir (([System.IO.Path]::GetFileNameWithoutExtension($MappingPath)) + '.resolved.json')
-    Set-Content -LiteralPath $resolvedPath -Value $resolved -Encoding UTF8
-    return $resolvedPath
+
+    if ($targetResolved -notmatch '__SYSTEM__') {
+        $resolvedPath = Join-Path $tempDir ("$EntryId.target.$([string]$ctx.target).resolved.json")
+        Set-Content -LiteralPath $resolvedPath -Value $targetResolved -Encoding UTF8
+        return @([ordered]@{ mappingPath = $resolvedPath; variantName = [string]$ctx.target })
+    }
+
+    if (@($ctx.systems).Count -eq 0) {
+        throw "Mapping '$MappingPath' requires __SYSTEM__ but no system_* directory found under target '$($ctx.target)'."
+    }
+
+    $variants = [System.Collections.Generic.List[hashtable]]::new()
+    foreach ($systemName in @($ctx.systems)) {
+        $resolved = $targetResolved.Replace('__SYSTEM__', [string]$systemName)
+        $safeSystem = ([string]$systemName).Replace('/', '_').Replace('\', '_')
+        $resolvedPath = Join-Path $tempDir ("$EntryId.$safeSystem.resolved.json")
+        Set-Content -LiteralPath $resolvedPath -Value $resolved -Encoding UTF8
+        $variants.Add([ordered]@{ mappingPath = $resolvedPath; variantName = [string]$systemName })
+    }
+
+    return @($variants)
 }
 
 function Ensure-Directory {
@@ -269,32 +282,65 @@ try {
         $outputPath = Join-Path $techOutputRoot ([string]$entry.outputFileName)
         $reportPath = Join-Path $techOutputRoot ("$([string]$entry.id).render-report.json")
 
-        $json = & $invokeRenderScript -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $effectiveContractsRoot
-
-        $rendererReport = $null
+        $mappingVariants = Resolve-MappingVariantsForBundle -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TechId ([string]$entry.techId) -OutputRoot $OutputRoot -EntryId ([string]$entry.id)
+        $variantReports = [System.Collections.Generic.List[hashtable]]::new()
+        $sectionTexts = [System.Collections.Generic.List[string]]::new()
         $runStatus = 'OK'
-        try {
-            $rendererReport = $json | ConvertFrom-Json -AsHashtable
-            if ($rendererReport.ContainsKey('status') -and [string]$rendererReport.status -eq 'ERROR') {
-                $runStatus = 'ERROR'
+
+        foreach ($variant in @($mappingVariants)) {
+            $variantName = if ([string]::IsNullOrWhiteSpace([string]$variant.variantName)) { 'default' } else { [string]$variant.variantName }
+            $variantSafe = $variantName.Replace('/', '_').Replace('\', '_')
+            $variantOutputPath = if (@($mappingVariants).Count -gt 1) { Join-Path $techOutputRoot ("$([System.IO.Path]::GetFileNameWithoutExtension([string]$entry.outputFileName)).$variantSafe.rendered.txt") } else { $outputPath }
+            $variantReportPath = if (@($mappingVariants).Count -gt 1) { Join-Path $techOutputRoot ("$([string]$entry.id).$variantSafe.render-report.json") } else { $reportPath }
+
+            $json = & $invokeRenderScript -BundleRoot $effectiveBundleRoot -MappingPath ([string]$variant.mappingPath) -TemplatePath $templatePath -OutputPath $variantOutputPath -ReportPath $variantReportPath -ContractsRoot $effectiveContractsRoot
+
+            $rendererReport = $null
+            $variantStatus = 'OK'
+            try {
+                $rendererReport = $json | ConvertFrom-Json -AsHashtable
+                if ($rendererReport.ContainsKey('status') -and [string]$rendererReport.status -eq 'ERROR') {
+                    $variantStatus = 'ERROR'
+                }
             }
-        }
-        catch {
-            $runStatus = if ($LASTEXITCODE -eq 0) { 'OK' } else { 'ERROR' }
-        }
-        if ($runStatus -eq 'ERROR') {
-            $status = 'ERROR'
-            $issues.Add([ordered]@{ code = 'ASB-ASM-BUNDLE-ENTRY-FAILED'; severity = 'ERROR'; message = "Entry '$($entry.id)' failed render."; path = $reportPath })
+            catch {
+                $variantStatus = if ($LASTEXITCODE -eq 0) { 'OK' } else { 'ERROR' }
+            }
+
+            if ($variantStatus -eq 'ERROR') {
+                $runStatus = 'ERROR'
+                $status = 'ERROR'
+                $issues.Add([ordered]@{ code = 'ASB-ASM-BUNDLE-ENTRY-FAILED'; severity = 'ERROR'; message = "Entry '$($entry.id)' variant '$variantName' failed render."; path = $variantReportPath })
+            }
+
+            if (Test-Path -LiteralPath $variantOutputPath -PathType Leaf) {
+                $sectionTexts.Add((Get-Content -LiteralPath $variantOutputPath -Raw -Encoding UTF8).TrimEnd())
+            }
+
+            $variantReports.Add([ordered]@{
+                variant = $variantName
+                status = $variantStatus
+                outputPath = $variantOutputPath
+                reportPath = $variantReportPath
+                rendererOutput = $rendererReport
+                rendererOutputRaw = $json
+            })
         }
 
+        if (@($mappingVariants).Count -gt 1 -and $sectionTexts.Count -gt 0) {
+            Set-Content -LiteralPath $outputPath -Value (($sectionTexts -join ([Environment]::NewLine + [Environment]::NewLine)) + [Environment]::NewLine) -Encoding UTF8
+        }
+
+        $primaryVariant = if ($variantReports.Count -gt 0) { $variantReports[0] } else { $null }
         $runs.Add([ordered]@{
             entryId = [string]$entry.id
             techId = [string]$entry.techId
             status = $runStatus
             outputPath = $outputPath
             reportPath = $reportPath
-            rendererOutput = $rendererReport
-            rendererOutputRaw = $json
+            rendererOutput = if ($null -ne $primaryVariant) { $primaryVariant.rendererOutput } else { $null }
+            rendererOutputRaw = if ($null -ne $primaryVariant) { $primaryVariant.rendererOutputRaw } else { $null }
+            variants = $variantReports
         })
     }
 }

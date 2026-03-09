@@ -167,6 +167,94 @@ function Convert-CellValueToString {
 }
 
 
+function Format-SizeHuman {
+    param([Parameter(Mandatory = $false)]$Bytes)
+
+    if ($null -eq $Bytes) { return '' }
+    [double]$value = 0
+    if (-not [double]::TryParse([string]$Bytes, [ref]$value)) { return [string]$Bytes }
+
+    $units = @('B', 'KB', 'MB', 'GB', 'TB', 'PB')
+    $idx = 0
+    while ($value -ge 1024 -and $idx -lt ($units.Count - 1)) {
+        $value = $value / 1024
+        $idx++
+    }
+    return ('{0:N2} {1}' -f $value, $units[$idx])
+}
+
+function Convert-TableRowsForTag {
+    param(
+        [Parameter(Mandatory = $true)][string]$Tag,
+        [Parameter(Mandatory = $true)][object[]]$Rows
+    )
+
+    switch ($Tag) {
+        'DE_DRIVES_TABLE_JSON' {
+            return @(
+                $Rows | ForEach-Object {
+                    [pscustomobject][ordered]@{
+                        Slot = $_.slot
+                        'Media Type' = $_.driveMediaType
+                        Raw = Format-SizeHuman -Bytes $_.rawCapacityBytes
+                        Usable = Format-SizeHuman -Bytes $_.usableCapacityBytes
+                        Firmware = $_.firmwareVersion
+                        Status = $_.status
+                        SerialNumber = $_.serialNumber
+                    }
+                }
+            )
+        }
+        'DE_STORAGE_CONTAINERS_TABLE_JSON' {
+            return @(
+                $Rows | ForEach-Object {
+                    [pscustomobject][ordered]@{
+                        Name = $_.name
+                        ContainerType = $_.containerType
+                        RaidLevel = $_.raidLevel
+                        DriveMediaType = $_.driveMediaType
+                        Total = Format-SizeHuman -Bytes $_.totalBytes
+                        Used = Format-SizeHuman -Bytes $_.usedBytes
+                        Free = Format-SizeHuman -Bytes $_.freeBytes
+                        State = $_.state
+                        Status = $_.status
+                    }
+                }
+            )
+        }
+        'DE_VOLUMES_TABLE_JSON' {
+            return @(
+                $Rows | ForEach-Object {
+                    [pscustomobject][ordered]@{
+                        Name = $_.name
+                        Size = Format-SizeHuman -Bytes $_.sizeBytes
+                        Status = $_.status
+                        RaidLevel = $_.raidLevel
+                        Container = $_.containerName
+                    }
+                }
+            )
+        }
+        'DE_CONTROLLERS_TABLE_JSON' {
+            return @(
+                $Rows | ForEach-Object {
+                    [pscustomobject][ordered]@{
+                        Controller = $_.controllerLabel
+                        Slot = $_.controllerSlot
+                        Status = $_.status
+                        AppVersion = $_.appVersion
+                        BootVersion = $_.bootVersion
+                        SerialNumber = $_.serialNumber
+                    }
+                }
+            )
+        }
+        default {
+            return $Rows
+        }
+    }
+}
+
 function Get-DisplayColumnsForTable {
     param([Parameter(Mandatory = $true)][string[]]$Columns)
 
@@ -177,7 +265,8 @@ function Get-DisplayColumnsForTable {
         'volumeref',
         'poolref',
         'trayref',
-        'storagesystemref'
+        'storagesystemref',
+        'id'
     )
 
     $filtered = @(
@@ -189,6 +278,7 @@ function Get-DisplayColumnsForTable {
                 $lower = $name.ToLowerInvariant()
                 if ($excluded -contains $lower) { return $false }
                 if ($lower.EndsWith('ref')) { return $false }
+                if ($lower.EndsWith('id')) { return $false }
 
                 return $true
             }
@@ -199,7 +289,10 @@ function Get-DisplayColumnsForTable {
 }
 
 function Convert-ValueToTableString {
-    param([Parameter(Mandatory = $false)]$Value)
+    param(
+        [Parameter(Mandatory = $false)]$Value,
+        [Parameter(Mandatory = $false)][string]$Tag
+    )
 
     if ($null -eq $Value) { return '' }
 
@@ -230,6 +323,8 @@ function Convert-ValueToTableString {
         return (Convert-CellValueToString -Value $Value)
     }
 
+    $rows = @(Convert-TableRowsForTag -Tag $Tag -Rows $rows)
+
     $allColumns = @($rows[0].PSObject.Properties.Name)
     $displayColumns = Get-DisplayColumnsForTable -Columns $allColumns
 
@@ -250,7 +345,7 @@ function Convert-ValueToString {
         return ''
     }
     if (-not [string]::IsNullOrWhiteSpace($Tag) -and $Tag.EndsWith('_TABLE_JSON')) {
-        return (Convert-ValueToTableString -Value $Value)
+        return (Convert-ValueToTableString -Value $Value -Tag $Tag)
     }
     if ($Value -is [string]) {
         return $Value

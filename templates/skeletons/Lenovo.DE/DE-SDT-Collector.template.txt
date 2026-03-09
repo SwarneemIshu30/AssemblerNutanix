@@ -50,13 +50,10 @@ Tables.Volumes
 <<SDT:DE_VOLUMES_TABLE_JSON>>
 
 
-Tables.Controllers (controllerRef intentionally omitted)
+Tables.Controllers
 ------------------------------------------------------------------------------------------
 
-Controller   Slot   Status   AppVersion      BootVersion     Serial
-----------   ----   ------   ----------      -----------     ------
-<<SDT:DE_CONTROLLER_A_LABEL>>            <<SDT:DE_CONTROLLER_A_SLOT>>      <<SDT:DE_CONTROLLER_A_STATUS>>   <<SDT:DE_CONTROLLER_A_APP>>     <<SDT:DE_CONTROLLER_A_BOOT>>    <<SDT:DE_CONTROLLER_A_SERIAL>>
-<<SDT:DE_CONTROLLER_B_LABEL>>            <<SDT:DE_CONTROLLER_B_SLOT>>      <<SDT:DE_CONTROLLER_B_STATUS>>   <<SDT:DE_CONTROLLER_B_APP>>     <<SDT:DE_CONTROLLER_B_BOOT>>    <<SDT:DE_CONTROLLER_B_SERIAL>>
+<<SDT:DE_CONTROLLERS_TABLE_JSON>>
 
 
 Tables.Trays

@@ -191,98 +191,10 @@
     },
     {
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/__TARGET__/__SYSTEM__/system-controllers.json",
-      "sdtTag": "DE_CONTROLLER_A_LABEL",
+      "sdtTag": "DE_CONTROLLERS_TABLE_JSON",
       "required": true,
       "selectors": [
-        "items.0.controllerLabel"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/_multi/__TARGET__/__SYSTEM__/system-controllers.json",
-      "sdtTag": "DE_CONTROLLER_A_SLOT",
-      "required": true,
-      "selectors": [
-        "items.0.controllerSlot"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/_multi/__TARGET__/__SYSTEM__/system-controllers.json",
-      "sdtTag": "DE_CONTROLLER_A_STATUS",
-      "required": true,
-      "selectors": [
-        "items.0.status"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/_multi/__TARGET__/__SYSTEM__/system-controllers.json",
-      "sdtTag": "DE_CONTROLLER_A_APP",
-      "required": true,
-      "selectors": [
-        "items.0.appVersion"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/_multi/__TARGET__/__SYSTEM__/system-controllers.json",
-      "sdtTag": "DE_CONTROLLER_A_BOOT",
-      "required": true,
-      "selectors": [
-        "items.0.bootVersion"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/_multi/__TARGET__/__SYSTEM__/system-controllers.json",
-      "sdtTag": "DE_CONTROLLER_A_SERIAL",
-      "required": true,
-      "selectors": [
-        "items.0.serialNumber"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/_multi/__TARGET__/__SYSTEM__/system-controllers.json",
-      "sdtTag": "DE_CONTROLLER_B_LABEL",
-      "required": true,
-      "selectors": [
-        "items.1.controllerLabel"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/_multi/__TARGET__/__SYSTEM__/system-controllers.json",
-      "sdtTag": "DE_CONTROLLER_B_SLOT",
-      "required": true,
-      "selectors": [
-        "items.1.controllerSlot"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/_multi/__TARGET__/__SYSTEM__/system-controllers.json",
-      "sdtTag": "DE_CONTROLLER_B_STATUS",
-      "required": true,
-      "selectors": [
-        "items.1.status"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/_multi/__TARGET__/__SYSTEM__/system-controllers.json",
-      "sdtTag": "DE_CONTROLLER_B_APP",
-      "required": true,
-      "selectors": [
-        "items.1.appVersion"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/_multi/__TARGET__/__SYSTEM__/system-controllers.json",
-      "sdtTag": "DE_CONTROLLER_B_BOOT",
-      "required": true,
-      "selectors": [
-        "items.1.bootVersion"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/_multi/__TARGET__/__SYSTEM__/system-controllers.json",
-      "sdtTag": "DE_CONTROLLER_B_SERIAL",
-      "required": true,
-      "selectors": [
-        "items.1.serialNumber"
+        "items"
       ]
     },
     {
