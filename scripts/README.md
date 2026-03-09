@@ -57,11 +57,11 @@ Behavior:
 
 Two supported sync modes:
 
-- **Local export copy (default):** `export/repo-ready/contracts` -> `.deps/contracts`
-  - optional override: `-ExportContractsPath`
-- **Published pack sync:** pull from contracts release zip
+- **Published pack sync (default, no arguments):** resolve latest contracts release from GitHub and download matching zip asset to `.deps/contracts`
   - by version: `-ContractsVersion`
   - or by URL: `-ContractsPackUrl`
+- **Local export copy (when options are provided without pack args):** `export/repo-ready/contracts` -> `.deps/contracts`
+  - optional override: `-ExportContractsPath`
 
 Shared options:
 - `-DepsContractsPath` destination path (default `./.deps/contracts`)
@@ -69,10 +69,17 @@ Shared options:
 
 Each run writes/updates `contracts.snapshot.json` in destination.
 
+Expected contracts layout at destination:
+- required: `standards/`
+- optional: `tech/` (sync continues if absent)
+
 ## Examples
 
 ```powershell
-# Default: local export -> .deps
+# Default: latest published pack -> .deps
+pwsh ./scripts/Sync-AssemblerContractsToRepo.ps1
+
+# Local export -> .deps (explicit local mode trigger)
 pwsh ./scripts/Sync-AssemblerContractsToRepo.ps1 -Clean
 ```
 
