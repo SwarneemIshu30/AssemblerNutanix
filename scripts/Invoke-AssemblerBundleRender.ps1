@@ -277,6 +277,7 @@ try {
         }
 
         $mappingPath = Join-Path $catalogBase ([string]$entry.mappingPath)
+        $mappingPath = Resolve-MappingPathForBundle -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TechId ([string]$entry.techId) -OutputRoot $OutputRoot
         $templatePath = Join-Path $catalogBase ([string]$entry.templatePath)
         $outputPath = Join-Path $techOutputRoot ([string]$entry.outputFileName)
         $reportPath = Join-Path $techOutputRoot ("$([string]$entry.id).render-report.json")
