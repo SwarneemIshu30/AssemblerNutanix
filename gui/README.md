@@ -1,20 +1,33 @@
-# Assembler GUI staging
+# Assembler GUI launchers
 
-PowerShell 7 launcher:
-- `Start-AssemblerGui.ps1`
+This folder contains side-by-side launcher options for bundle rendering via
+`scripts/Invoke-AssemblerBundleRender.ps1`.
 
-Current workflow:
-- prompts for `BundleRoot` and `SkeletonRoot`
-- discovers `*.mapping.json` and `*.template.txt` in the skeleton directory
-- invokes `scripts/Invoke-AssemblerSdtRender.ps1`
-- writes outputs under `./out` by default
+## `Start-AssemblerGui.ps1` (cross-platform launcher)
 
-Contract prerequisite:
-- run `scripts/Sync-AssemblerContractsToRepo.ps1` to hydrate `.deps/contracts`
-- renderer auto-resolves contracts from `-ContractsRoot`, then `.deps/contracts`, then `export/repo-ready/contracts`
+Supports mode selection with `-Mode Auto|WinForms|Terminal`:
+- `Auto`: uses WinForms on Windows, falls back to Terminal elsewhere.
+- `WinForms`: launches a Windows WinForms form.
+- `Terminal`: prompts in the shell and runs bundle render non-graphically.
 
-MVP panels still planned:
-- Bundle selection
-- Contract/mapping validation summary
-- Required vs optional mapping coverage
-- Render execution and report viewer
+## `Start-AssemblerGui.Wpf.ps1` (Windows-only WPF launcher)
+
+A dedicated WPF launcher for Windows desktop environments. It loads WPF assemblies
+(`PresentationFramework`, `PresentationCore`, `WindowsBase`), renders a native
+WPF window, and invokes `Invoke-AssemblerBundleRender.ps1` with the provided inputs.
+
+## Quick start
+
+WinForms/terminal-capable launcher:
+
+```powershell
+pwsh ./gui/Start-AssemblerGui.ps1 -Mode Auto
+pwsh ./gui/Start-AssemblerGui.ps1 -Mode WinForms
+pwsh ./gui/Start-AssemblerGui.ps1 -Mode Terminal
+```
+
+WPF launcher (Windows only):
+
+```powershell
+pwsh ./gui/Start-AssemblerGui.Wpf.ps1
+```
