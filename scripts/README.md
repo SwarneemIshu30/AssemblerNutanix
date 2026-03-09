@@ -2,69 +2,93 @@
 
 Runtime direction is **PowerShell 7**.
 
-Implemented bootstrap script:
-- `Invoke-AssemblerPipeline.ps1` - ingests required Direct-v1 bundle inputs, loads `solution.plan` schema, applies minimum contract checks, and emits JSON diagnostics/report
+## Implemented scripts
 
-## Runtime parameters
+- `Invoke-AssemblerPipeline.ps1` - bootstraps Direct-v1 input ingest and minimum contract checks.
+- `Invoke-AssemblerSdtRender.ps1` - reads a dataset-to-SDT mapping and skeleton template, validates mapping contract shape, resolves dataset selectors, and renders SDT placeholders.
+- `Invoke-AssemblerBundleRender.ps1` - bundle-aware orchestration skeleton that discovers tech in bundle and runs renderer once per TemplateCatalog entry.
+- `New-AssemblerSkeleton.ps1` - copies a built-in skeleton pack (mapping + template) into a local ingest folder.
+- `Sync-AssemblerContractsToRepo.ps1` - syncs contracts into deterministic repo-local ingest path (`.deps/contracts`).
 
-### `-BundleRoot` (required)
-Path to the Direct-v1 bundle root.
+## Contract path resolution (SDT render)
 
-Required files under this root:
-- `manifest.json`
-- `objectIndex.json`
-- `config/solution.plan.json`
+`Invoke-AssemblerSdtRender.ps1` resolves contracts in this order:
+1. explicit `-ContractsRoot`
+2. `./.deps/contracts`
+3. `./export/repo-ready/contracts`
 
-### `-ContractsRoot` (required)
-Path to contracts root containing:
-- `standards/solution.plan.schema.v1.json`
+The script loads `standards/mapping.dataset-to-sdt.schema.v1.json` from the resolved root and performs minimum mapping contract checks before rendering.
 
-### `-OutputPath` (optional)
-Path to write the resulting JSON report.
+## TemplateCatalog contract
+
+Schema file:
+- `export/repo-ready/contracts/standards/assembler/assembler.template-catalog.schema.v1.json`
+
+Purpose:
+- external inventory of which template + mapping pair to run per `techId`
+- deterministic selection and output naming ahead of render time
+
+Current required entry fields:
+- `id`
+- `techId`
+- `mappingPath`
+- `templatePath`
+- `outputFileName`
+
+## `Invoke-AssemblerBundleRender.ps1` (skeleton)
+
+Required parameters:
+- `-BundleRoot`
+- `-CatalogPath`
+- `-OutputRoot`
+
+Optional:
+- `-ContractsRoot`
+- `-TechId` (one or more explicit technologies to render)
 
 Behavior:
-- If supplied: writes JSON report to file.
-- If omitted: writes JSON report to stdout.
+- reads `objectIndex.json` to detect tech present in bundle
+- validates catalog against `assembler.template-catalog` schema
+- filters enabled catalog entries by detected/requested `techId`
+- invokes `Invoke-AssemblerSdtRender.ps1` once per selected entry
+- writes aggregate report to `assembler-bundle-render-report.json`
 
-## Output contract (bootstrap)
+## `Sync-AssemblerContractsToRepo.ps1` modes
 
-Current report shape:
-- `schemaVersion`
-- `status` (`ok` or `error`)
-- `bundle` (present when successful)
-  - `root`
-  - `manifestSchemaVersion`
-  - `objectCount`
-  - `solutionId`
-  - `targetCount`
-  - `collectorCount`
-- `diagnostics[]`
-  - `tsUtc`
-  - `stage`
-  - `level`
-  - `code`
-  - `message`
+Two supported sync modes:
 
-## Exit codes
+- **Local export copy (default):** `export/repo-ready/contracts` -> `.deps/contracts`
+  - optional override: `-ExportContractsPath`
+- **Published pack sync:** pull from contracts release zip
+  - by version: `-ContractsVersion`
+  - or by URL: `-ContractsPackUrl`
 
-- `0`: successful bootstrap ingest (`status=ok`)
-- `1`: failed bootstrap ingest (`status=error`)
+Shared options:
+- `-DepsContractsPath` destination path (default `./.deps/contracts`)
+- `-Clean` remove destination before sync
+
+Each run writes/updates `contracts.snapshot.json` in destination.
 
 ## Examples
 
 ```powershell
-pwsh ./scripts/Invoke-AssemblerPipeline.ps1 \
-  -BundleRoot ./sample/bundle \
-  -ContractsRoot ./export/repo-ready/contracts
+# Default: local export -> .deps
+pwsh ./scripts/Sync-AssemblerContractsToRepo.ps1 -Clean
 ```
 
 ```powershell
-pwsh ./scripts/Invoke-AssemblerPipeline.ps1 \
-  -BundleRoot ./sample/bundle \
-  -ContractsRoot ./export/repo-ready/contracts \
-  -OutputPath ./out/assembler-bootstrap-report.json
+# Run orchestration for all detected tech
+pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
+  -BundleRoot ./sample/66694360-25ba-40de-8fbd-07ebce431c53 \
+  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json \
+  -OutputRoot ./out/bundle-render
 ```
 
-Planned additional scripts:
-- `Test-AssemblerContracts.ps1` - validates input contracts/mappings
-- `New-AssemblerRenderPlan.ps1` - emits normalized render plan JSON
+```powershell
+# Run orchestration only for Lenovo.DE
+pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
+  -BundleRoot ./sample/66694360-25ba-40de-8fbd-07ebce431c53 \
+  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json \
+  -OutputRoot ./out/bundle-render \
+  -TechId Lenovo.DE
+```

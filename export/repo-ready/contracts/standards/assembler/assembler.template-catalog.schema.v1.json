@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/standards/assembler/assembler.template-catalog.schema.v1.json",
+  "title": "Assembler Template Catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schemaVersion", "entries"],
+  "properties": {
+    "schema": { "type": "string", "const": "assembler.template-catalog" },
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "displayName": { "type": "string", "minLength": 1 },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "techId", "mappingPath", "templatePath", "outputFileName"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "techId": { "type": "string", "minLength": 1 },
+        "displayName": { "type": "string", "minLength": 1 },
+        "docType": { "type": "string", "minLength": 1 },
+        "mappingPath": { "type": "string", "minLength": 1 },
+        "templatePath": { "type": "string", "minLength": 1 },
+        "outputFileName": { "type": "string", "minLength": 1 },
+        "enabled": { "type": "boolean", "default": true },
+        "priority": { "type": "integer", "minimum": 0, "default": 100 }
+      }
+    }
+  }
+}
