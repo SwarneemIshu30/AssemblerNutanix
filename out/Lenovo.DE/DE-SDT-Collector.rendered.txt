@@ -1,6 +1,6 @@
 Mode: Blueprint
 
-# System: DE4200_Rack4 (1)
+# System: DE4200_Rack4
 ------------------------------------------------------------------------------------------
 
 Summary
@@ -21,7 +21,7 @@ Volumes    : 3
 Collection
 ------------------------------------------------------------------------------------------
 
-Collected UTC : 03/08/2026 15:07:31
+Collected UTC : 03/08/2026 15:07:36
 Mode          : Cli
 Controller    : 10.240.59.179:8443
 System Count  : 1
@@ -189,14 +189,5 @@ systemId asupCapable onDemandCapable asupEnabled onDemandEnabled remoteDiagsEnab
 Findings
 ------------------------------------------------------------------------------------------
 
-Source: collector datasets in bundle + render-time mapping checks.
-
-Collector info:
-- System 'DE4200_Rack4' status: optimal
-- Inventory counts: drives=24, containers=3, volumes=3
-- Active transport: iscsi (IQN: iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f018000000006949701c)
-
-Note: no collector-provided findings/alerts dataset is currently mapped in this skeleton.
-Any unresolved placeholders or selector errors are emitted by the renderer report JSON.
 
 
