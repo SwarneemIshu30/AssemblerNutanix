@@ -49,6 +49,15 @@ function Resolve-AssemblerContractsRoot {
     throw "Unable to resolve contracts root. Checked: $($candidates -join ', ')."
 }
 
+
+function Ensure-Directory {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Container)) {
+        New-Item -Path $Path -ItemType Directory -Force | Out-Null
+    }
+}
+
 function Test-TemplateCatalogMinimumContract {
     param(
         [Parameter(Mandatory = $true)][hashtable]$Catalog,
@@ -117,9 +126,7 @@ try {
     $detectedTechIds = @($objectIndex.objects | ForEach-Object { [string]$_.techId } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
     $requestedTechIds = if ($TechId -and $TechId.Count -gt 0) { @($TechId) } else { $detectedTechIds }
 
-    if (-not (Test-Path -LiteralPath $OutputRoot -PathType Container)) {
-        New-Item -Path $OutputRoot -ItemType Directory -Force | Out-Null
-    }
+    Ensure-Directory -Path $OutputRoot
 
     $catalogBase = Split-Path -Parent (Resolve-Path -LiteralPath $CatalogPath).Path
     $entries = @($catalog.entries | Where-Object { ($_.enabled -ne $false) -and ($requestedTechIds -contains [string]$_.techId) })
@@ -173,6 +180,7 @@ $report = [ordered]@{
 }
 
 $reportJson = $report | ConvertTo-Json -Depth 12
+Ensure-Directory -Path $OutputRoot
 $bundleReportPath = Join-Path $OutputRoot 'assembler-bundle-render-report.json'
 Set-Content -LiteralPath $bundleReportPath -Value $reportJson -Encoding UTF8
 
