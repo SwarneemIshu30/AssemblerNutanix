@@ -48,7 +48,8 @@ The repository now includes end-to-end PowerShell 7 scaffolding for SDT renderin
 - contract sync to deterministic local path (`scripts/Sync-AssemblerContractsToRepo.ps1`)
 - SDT render invoke script with mapping schema checks (`scripts/Invoke-AssemblerSdtRender.ps1`)
 - skeleton ingest bootstrap (`scripts/New-AssemblerSkeleton.ps1`)
-- interactive launcher (`gui/Start-AssemblerGui.ps1`)
+- interactive launcher (`gui/Start-AssemblerGui.ps1`, supports `-Mode Auto|WinForms|Terminal`)
+- Windows WPF launcher (`gui/Start-AssemblerGui.Wpf.ps1`)
 - built-in dummy Lenovo DE skeleton (`templates/skeletons/Lenovo.DE`)
 
 Current contract source/ingest strategy:

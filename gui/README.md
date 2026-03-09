@@ -1,20 +1,47 @@
-# Assembler GUI staging
+# Assembler GUI launchers
 
-PowerShell 7 launcher:
-- `Start-AssemblerGui.ps1`
+This folder contains side-by-side launcher options for bundle rendering via
+`scripts/Invoke-AssemblerBundleRender.ps1`.
 
-Current workflow:
-- prompts for `BundleRoot` and `SkeletonRoot`
-- discovers `*.mapping.json` and `*.template.txt` in the skeleton directory
-- invokes `scripts/Invoke-AssemblerSdtRender.ps1`
-- writes outputs under `./out` by default
+## Standard GUI input locations
 
-Contract prerequisite:
-- run `scripts/Sync-AssemblerContractsToRepo.ps1` to hydrate `.deps/contracts`
-- renderer auto-resolves contracts from `-ContractsRoot`, then `.deps/contracts`, then `export/repo-ready/contracts`
+Both GUI launchers now initialize with the same canonical defaults:
+- `BundleRoot`: `<repo>/bundle` (if `objectIndex.json` is not directly under this folder, the renderer auto-selects the most recently updated child bundle folder containing `objectIndex.json`)
+- `CatalogPath`: `templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json` (or first `*.catalog.json` under `templates/`)
+- `OutputRoot`: `<repo>/out`
+- `ContractsRoot`: `<repo>/.deps/contracts` (fallback `<repo>/export/repo-ready/contracts` if present)
 
-MVP panels still planned:
-- Bundle selection
-- Contract/mapping validation summary
-- Required vs optional mapping coverage
-- Render execution and report viewer
+Mandatory inputs for execution are:
+- `BundleRoot` (existing folder)
+- `CatalogPath` (existing file)
+- `OutputRoot` (created if missing)
+
+## `Start-AssemblerGui.ps1` (cross-platform launcher)
+
+Supports mode selection with `-Mode Auto|WinForms|Terminal`:
+- `Auto`: uses WinForms on Windows, falls back to Terminal elsewhere.
+- `WinForms`: launches a Windows WinForms form with **Browse** buttons for bundle, catalog, output, and contracts paths.
+- `Terminal`: prompts in shell (showing defaults) and runs bundle render non-graphically.
+
+## `Start-AssemblerGui.Wpf.ps1` (Windows-only WPF launcher)
+
+A dedicated WPF launcher for Windows desktop environments. It loads WPF assemblies
+(`PresentationFramework`, `PresentationCore`, `WindowsBase`), renders a native
+WPF window, provides **Browse** buttons for path fields, and invokes
+`Invoke-AssemblerBundleRender.ps1` with the provided inputs.
+
+## Quick start
+
+WinForms/terminal-capable launcher:
+
+```powershell
+pwsh ./gui/Start-AssemblerGui.ps1 -Mode Auto
+pwsh ./gui/Start-AssemblerGui.ps1 -Mode WinForms
+pwsh ./gui/Start-AssemblerGui.ps1 -Mode Terminal
+```
+
+WPF launcher (Windows only):
+
+```powershell
+pwsh ./gui/Start-AssemblerGui.Wpf.ps1
+```

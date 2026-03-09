@@ -83,7 +83,7 @@ function Test-MappingMinimumContract {
 
     if (-not $Mapping.ContainsKey('mappings') -or -not ($Mapping.mappings -is [System.Collections.IList])) {
         $errors.Add("ASB-ASM-CONTRACT-MAPPING-TYPE: 'mappings' must be an array")
-        return @($errors)
+        return @($errors.ToArray())
     }
 
     if (@($Mapping.mappings).Count -lt 1) {
@@ -103,7 +103,7 @@ function Test-MappingMinimumContract {
         }
     }
 
-    return @($errors)
+    return @($errors.ToArray())
 }
 
 function Resolve-Selector {
@@ -192,7 +192,7 @@ try {
     foreach ($mappingError in $mappingErrors) {
         $issues.Add([ordered]@{ code = 'ASB-ASM-CONTRACT-VALIDATE'; severity = 'ERROR'; message = $mappingError; path = $MappingPath })
     }
-    if ($mappingErrors.Count -gt 0) {
+    if (@($mappingErrors).Count -gt 0) {
         $status = 'ERROR'
         throw 'Mapping contract validation failed.'
     }
@@ -220,7 +220,7 @@ try {
         $dataset = Read-JsonFile -Path $datasetPath
         $resolved = $null
         $selectors = @($entry.selectors)
-        if ($selectors.Count -gt 0) {
+        if (@($selectors).Count -gt 0) {
             foreach ($selector in $selectors) {
                 $candidate = Resolve-Selector -InputObject $dataset -Selector ([string]$selector)
                 if ($null -ne $candidate) {
@@ -266,7 +266,7 @@ catch {
     $stageList.Add([ordered]@{ name = 'Unhandled'; status = 'ERROR'; startedUtc = Get-UtcTimestamp; completedUtc = Get-UtcTimestamp; details = $null })
 }
 
-if ($status -ne 'ERROR' -and ($issues | Where-Object { $_.severity -eq 'WARN' }).Count -gt 0) {
+if ($status -ne 'ERROR' -and @($issues | Where-Object { $_.severity -eq 'WARN' }).Count -gt 0) {
     $status = 'PARTIAL'
 }
 
