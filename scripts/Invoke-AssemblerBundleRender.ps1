@@ -26,6 +26,50 @@ function Read-JsonFile {
     Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
 }
 
+function Resolve-BundleRoot {
+    param([Parameter(Mandatory = $true)][string]$BundleRoot)
+
+    $resolvedInput = (Resolve-Path -LiteralPath $BundleRoot -ErrorAction Stop).Path
+    $directObjectIndex = Join-Path $resolvedInput 'objectIndex.json'
+    if (Test-Path -LiteralPath $directObjectIndex -PathType Leaf) {
+        return [ordered]@{
+            bundleRoot = $resolvedInput
+            objectIndexPath = $directObjectIndex
+            autoSelected = $false
+            candidateCount = 0
+        }
+    }
+
+    $candidates = @(
+        Get-ChildItem -LiteralPath $resolvedInput -Directory -ErrorAction Stop |
+            ForEach-Object {
+                $candidateObjectIndex = Join-Path $_.FullName 'objectIndex.json'
+                if (Test-Path -LiteralPath $candidateObjectIndex -PathType Leaf) {
+                    [pscustomobject]@{
+                        bundleRoot = $_.FullName
+                        objectIndexPath = $candidateObjectIndex
+                        objectIndexWriteTimeUtc = (Get-Item -LiteralPath $candidateObjectIndex).LastWriteTimeUtc
+                    }
+                }
+            }
+    )
+
+    if (@($candidates).Count -eq 0) {
+        throw "Required file not found: $directObjectIndex"
+    }
+
+    $selected = $candidates |
+        Sort-Object -Property @{ Expression = { $_.objectIndexWriteTimeUtc }; Descending = $true }, @{ Expression = { $_.bundleRoot }; Descending = $false } |
+        Select-Object -First 1
+
+    return [ordered]@{
+        bundleRoot = [string]$selected.bundleRoot
+        objectIndexPath = [string]$selected.objectIndexPath
+        autoSelected = $true
+        candidateCount = @($candidates).Count
+    }
+}
+
 function Resolve-AssemblerContractsRoot {
     param(
         [Parameter(Mandatory = $false)][string]$ContractsRoot,
@@ -81,7 +125,7 @@ function Test-TemplateCatalogMinimumContract {
 
     if (-not $Catalog.ContainsKey('entries') -or -not ($Catalog.entries -is [System.Collections.IList])) {
         $errors.Add("ASB-ASM-CATALOG-TYPE: 'entries' must be an array")
-        return @($errors)
+        return @($errors.ToArray())
     }
 
     if (@($Catalog.entries).Count -lt 1) {
@@ -96,13 +140,14 @@ function Test-TemplateCatalogMinimumContract {
         }
     }
 
-    return @($errors)
+    return @($errors.ToArray())
 }
 
 $startedUtc = Get-UtcTimestamp
 $issues = [System.Collections.Generic.List[hashtable]]::new()
 $runs = [System.Collections.Generic.List[hashtable]]::new()
 $status = 'OK'
+$effectiveBundleRoot = $BundleRoot
 
 try {
     $repoRoot = Split-Path -Parent $PSScriptRoot
@@ -113,18 +158,29 @@ try {
 
     $catalog = Read-JsonFile -Path $CatalogPath
     $catalogSchema = Read-JsonFile -Path $catalogSchemaPath
-    $objectIndex = Read-JsonFile -Path (Join-Path $BundleRoot 'objectIndex.json')
+
+    $bundleResolution = Resolve-BundleRoot -BundleRoot $BundleRoot
+    $effectiveBundleRoot = [string]$bundleResolution.bundleRoot
+    $objectIndex = Read-JsonFile -Path ([string]$bundleResolution.objectIndexPath)
+    if ($bundleResolution.autoSelected) {
+        $issues.Add([ordered]@{
+            code = 'ASB-ASM-BUNDLE-AUTOSELECTED'
+            severity = 'WARN'
+            message = "BundleRoot '$BundleRoot' did not contain objectIndex.json. Auto-selected '$effectiveBundleRoot' from $($bundleResolution.candidateCount) child bundle directories."
+            path = [string]$bundleResolution.objectIndexPath
+        })
+    }
 
     $catalogErrors = @(Test-TemplateCatalogMinimumContract -Catalog $catalog -Schema $catalogSchema)
     foreach ($errorText in $catalogErrors) {
         $issues.Add([ordered]@{ code = 'ASB-ASM-CATALOG-VALIDATE'; severity = 'ERROR'; message = $errorText; path = $CatalogPath })
     }
-    if ($catalogErrors.Count -gt 0) {
+    if (@($catalogErrors).Count -gt 0) {
         throw 'Template catalog validation failed.'
     }
 
     $detectedTechIds = @($objectIndex.objects | ForEach-Object { [string]$_.techId } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
-    $requestedTechIds = if ($TechId -and $TechId.Count -gt 0) { @($TechId) } else { $detectedTechIds }
+    $requestedTechIds = if ($TechId -and @($TechId).Count -gt 0) { @($TechId) } else { $detectedTechIds }
 
     Ensure-Directory -Path $OutputRoot
 
@@ -143,7 +199,7 @@ try {
         $outputPath = Join-Path $techOutputRoot ([string]$entry.outputFileName)
         $reportPath = Join-Path $techOutputRoot ("$([string]$entry.id).render-report.json")
 
-        $json = & $invokeRenderScript -BundleRoot $BundleRoot -MappingPath $mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $effectiveContractsRoot
+        $json = & $invokeRenderScript -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $effectiveContractsRoot
         $exitCode = $LASTEXITCODE
 
         $runStatus = if ($exitCode -eq 0) { 'OK' } else { 'ERROR' }
@@ -172,7 +228,7 @@ $report = [ordered]@{
     status = $status
     startedUtc = $startedUtc
     completedUtc = Get-UtcTimestamp
-    bundleRoot = $BundleRoot
+    bundleRoot = $effectiveBundleRoot
     catalogPath = $CatalogPath
     outputRoot = $OutputRoot
     runs = $runs

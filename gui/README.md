@@ -6,7 +6,7 @@ This folder contains side-by-side launcher options for bundle rendering via
 ## Standard GUI input locations
 
 Both GUI launchers now initialize with the same canonical defaults:
-- `BundleRoot`: `<repo>/bundle`
+- `BundleRoot`: `<repo>/bundle` (if `objectIndex.json` is not directly under this folder, the renderer auto-selects the most recently updated child bundle folder containing `objectIndex.json`)
 - `CatalogPath`: `templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json` (or first `*.catalog.json` under `templates/`)
 - `OutputRoot`: `<repo>/out`
 - `ContractsRoot`: `<repo>/.deps/contracts` (fallback `<repo>/export/repo-ready/contracts` if present)
