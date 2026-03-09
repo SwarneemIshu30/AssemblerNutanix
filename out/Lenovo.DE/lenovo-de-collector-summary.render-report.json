@@ -1,39 +1,39 @@
 {
   "schemaVersion": 1,
   "status": "ERROR",
-  "startedUtc": "2026-03-09T21:40:40.4378427Z",
-  "completedUtc": "2026-03-09T21:40:40.7907085Z",
+  "startedUtc": "2026-03-09T22:02:06.9974052Z",
+  "completedUtc": "2026-03-09T22:02:07.6878823Z",
   "bundleId": "fc2c8a97-9214-456c-9d2f-4fcaba90e8ef",
   "stages": [
     {
       "status": "OK",
       "name": "LoadInputs",
-      "completedUtc": "2026-03-09T21:40:40.4458689Z",
+      "completedUtc": "2026-03-09T22:02:07.0066182Z",
       "details": {
         "mappingPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.mapping.json",
         "templatePath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
         "contractsRoot": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts",
         "mappingSchemaPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts\\standards\\mapping.dataset-to-sdt.schema.v1.json"
       },
-      "startedUtc": "2026-03-09T21:40:40.4405244Z"
+      "startedUtc": "2026-03-09T22:02:07.0013490Z"
     },
     {
       "status": "OK",
       "name": "ValidateContract",
-      "completedUtc": "2026-03-09T21:40:40.4482907Z",
+      "completedUtc": "2026-03-09T22:02:07.0073671Z",
       "details": {
         "mappingSchemaPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts\\standards\\mapping.dataset-to-sdt.schema.v1.json"
       },
-      "startedUtc": "2026-03-09T21:40:40.4459342Z"
+      "startedUtc": "2026-03-09T22:02:07.0067136Z"
     },
     {
       "status": "ERROR",
       "name": "RenderSdt",
-      "completedUtc": "2026-03-09T21:40:40.7906358Z",
+      "completedUtc": "2026-03-09T22:02:07.6877736Z",
       "details": {
         "tagsPopulated": 179
       },
-      "startedUtc": "2026-03-09T21:40:40.7813754Z"
+      "startedUtc": "2026-03-09T22:02:07.6771649Z"
     }
   ],
   "issues": [
