@@ -146,6 +146,123 @@ function Format-MatchedTagsSummary {
     return (($lines -join [Environment]::NewLine) + [Environment]::NewLine)
 }
 
+function Format-RenderFindingsSummary {
+    param([Parameter(Mandatory = $true)][string]$BundleResultJson)
+
+    try {
+        $bundleReport = $BundleResultJson | ConvertFrom-Json -AsHashtable
+    }
+    catch {
+        return 'Findings summary unavailable: unable to parse render output JSON.'
+    }
+
+    $runCount = @($bundleReport.runs).Count
+    $totalMatches = 0
+    $issueCounts = @{}
+
+    foreach ($issue in @($bundleReport.issues)) {
+        $severity = [string]$issue.severity
+        if ([string]::IsNullOrWhiteSpace($severity)) { $severity = 'UNKNOWN' }
+        if (-not $issueCounts.ContainsKey($severity)) { $issueCounts[$severity] = 0 }
+        $issueCounts[$severity]++
+    }
+
+    foreach ($run in @($bundleReport.runs)) {
+        if ($run.ContainsKey('rendererOutput') -and $null -ne $run.rendererOutput) {
+            if ($run.rendererOutput.ContainsKey('matches')) {
+                $totalMatches += @($run.rendererOutput.matches).Count
+            }
+
+            if ($run.rendererOutput.ContainsKey('issues')) {
+                foreach ($issue in @($run.rendererOutput.issues)) {
+                    $severity = [string]$issue.severity
+                    if ([string]::IsNullOrWhiteSpace($severity)) { $severity = 'UNKNOWN' }
+                    if (-not $issueCounts.ContainsKey($severity)) { $issueCounts[$severity] = 0 }
+                    $issueCounts[$severity]++
+                }
+            }
+        }
+    }
+
+    $summaryLines = [System.Collections.Generic.List[string]]::new()
+    $summaryLines.Add('Findings summary:')
+    $summaryLines.Add("  Overall status: $($bundleReport.status)")
+    $summaryLines.Add("  Runs: $runCount")
+    $summaryLines.Add("  Matched tags: $totalMatches")
+
+    if ($issueCounts.Count -eq 0) {
+        $summaryLines.Add('  Issues: none')
+    }
+    else {
+        $issueSegments = @($issueCounts.Keys | Sort-Object | ForEach-Object { "$_=$($issueCounts[$_])" })
+        $summaryLines.Add("  Issues by severity: $($issueSegments -join ', ')")
+
+        $firstIssueMessage = ''
+        $firstError = @($bundleReport.issues | Where-Object { [string]$_.severity -eq 'ERROR' } | Select-Object -First 1)
+        if (@($firstError).Count -gt 0) {
+            $firstIssueMessage = [string]$firstError[0].message
+        }
+        elseif (@($bundleReport.issues).Count -gt 0) {
+            $firstIssueMessage = [string]$bundleReport.issues[0].message
+        }
+        elseif (@($bundleReport.runs).Count -gt 0) {
+            foreach ($run in @($bundleReport.runs)) {
+                if ($run.ContainsKey('rendererOutput') -and $null -ne $run.rendererOutput -and $run.rendererOutput.ContainsKey('issues') -and @($run.rendererOutput.issues).Count -gt 0) {
+                    $runFirstError = @($run.rendererOutput.issues | Where-Object { [string]$_.severity -eq 'ERROR' } | Select-Object -First 1)
+                    if (@($runFirstError).Count -gt 0) {
+                        $firstIssueMessage = [string]$runFirstError[0].message
+                    }
+                    else {
+                        $firstIssueMessage = [string]$run.rendererOutput.issues[0].message
+                    }
+                    break
+                }
+            }
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($firstIssueMessage)) {
+            $summaryLines.Add("  First issue: $firstIssueMessage")
+        }
+    }
+
+    return ($summaryLines -join [Environment]::NewLine)
+}
+
+function Format-VerboseFindingsOutput {
+    param([Parameter(Mandatory = $true)][string]$BundleResultJson)
+
+    $summary = Format-RenderFindingsSummary -BundleResultJson $BundleResultJson
+    $matchSummary = Format-MatchedTagsSummary -BundleResultJson $BundleResultJson
+    if ([string]::IsNullOrWhiteSpace($matchSummary)) { return $summary }
+
+    return @(
+        $summary
+        ''
+        $matchSummary.TrimEnd()
+    ) -join [Environment]::NewLine
+}
+
+function Format-DebugBundleOutput {
+    param([Parameter(Mandatory = $true)][string]$BundleResultJson)
+
+    $prettyJson = $BundleResultJson
+    try {
+        $prettyJson = ($BundleResultJson | ConvertFrom-Json | ConvertTo-Json -Depth 100)
+    }
+    catch {
+        # Keep raw output when conversion fails.
+    }
+
+    $verbose = Format-VerboseFindingsOutput -BundleResultJson $BundleResultJson
+
+    return @(
+        $verbose
+        ''
+        'Raw JSON:'
+        $prettyJson
+    ) -join [Environment]::NewLine
+}
+
 function Invoke-TerminalMode {
     param(
         [string]$BundleRoot,
@@ -275,13 +392,34 @@ function Invoke-WinFormsMode {
     $statusLabel.Width = 670
     $statusLabel.Text = 'Ready'
 
+    $verboseCheckBox = New-Object System.Windows.Forms.CheckBox
+    $verboseCheckBox.Left = 20
+    $verboseCheckBox.Top = 330
+    $verboseCheckBox.Width = 280
+    $verboseCheckBox.Text = 'Verbose (include matched tags)'
+    $verboseCheckBox.Checked = $false
+
+    $debugCheckBox = New-Object System.Windows.Forms.CheckBox
+    $debugCheckBox.Left = 320
+    $debugCheckBox.Top = 330
+    $debugCheckBox.Width = 280
+    $debugCheckBox.Text = 'Debug (include raw render JSON)'
+    $debugCheckBox.Checked = $false
+
     $runButton.Add_Click({
         try {
             $techSelection = @($techTextBox.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
             $resultJson = Invoke-BundleRender -BundleRoot $bundleTextBox.Text -CatalogPath $catalogTextBox.Text -OutputRoot $outputTextBox.Text -ContractsRoot $contractsTextBox.Text -TechId $techSelection
             $statusLabel.Text = 'Render completed successfully.'
-            $matchSummary = Format-MatchedTagsSummary -BundleResultJson $resultJson
-            $dialogText = ($resultJson | Out-String) + [Environment]::NewLine + $matchSummary
+            $dialogText = if ($debugCheckBox.Checked) {
+                Format-DebugBundleOutput -BundleResultJson $resultJson
+            }
+            elseif ($verboseCheckBox.Checked) {
+                Format-VerboseFindingsOutput -BundleResultJson $resultJson
+            }
+            else {
+                Format-RenderFindingsSummary -BundleResultJson $resultJson
+            }
             [System.Windows.Forms.MessageBox]::Show($dialogText, 'Assembler Result') | Out-Null
         }
         catch {
@@ -290,7 +428,7 @@ function Invoke-WinFormsMode {
         }
     })
 
-    foreach ($control in @($bundleTextBox, $catalogTextBox, $outputTextBox, $contractsTextBox, $techTextBox, $bundleBrowse, $catalogBrowse, $outputBrowse, $contractsBrowse, $runButton, $statusLabel)) {
+    foreach ($control in @($bundleTextBox, $catalogTextBox, $outputTextBox, $contractsTextBox, $techTextBox, $bundleBrowse, $catalogBrowse, $outputBrowse, $contractsBrowse, $runButton, $statusLabel, $verboseCheckBox, $debugCheckBox)) {
         $form.Controls.Add($control)
     }
 
