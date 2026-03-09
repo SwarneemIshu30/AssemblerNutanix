@@ -1,39 +1,39 @@
 {
   "schemaVersion": 1,
   "status": "ERROR",
-  "startedUtc": "2026-03-09T22:02:06.9974052Z",
-  "completedUtc": "2026-03-09T22:02:07.6878823Z",
+  "startedUtc": "2026-03-09T22:24:30.1223611Z",
+  "completedUtc": "2026-03-09T22:24:30.4970884Z",
   "bundleId": "fc2c8a97-9214-456c-9d2f-4fcaba90e8ef",
   "stages": [
     {
       "status": "OK",
       "name": "LoadInputs",
-      "completedUtc": "2026-03-09T22:02:07.0066182Z",
+      "completedUtc": "2026-03-09T22:24:30.1373873Z",
       "details": {
         "mappingPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.mapping.json",
         "templatePath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
         "contractsRoot": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts",
         "mappingSchemaPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts\\standards\\mapping.dataset-to-sdt.schema.v1.json"
       },
-      "startedUtc": "2026-03-09T22:02:07.0013490Z"
+      "startedUtc": "2026-03-09T22:24:30.1251692Z"
     },
     {
       "status": "OK",
       "name": "ValidateContract",
-      "completedUtc": "2026-03-09T22:02:07.0073671Z",
+      "completedUtc": "2026-03-09T22:24:30.1386039Z",
       "details": {
         "mappingSchemaPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts\\standards\\mapping.dataset-to-sdt.schema.v1.json"
       },
-      "startedUtc": "2026-03-09T22:02:07.0067136Z"
+      "startedUtc": "2026-03-09T22:24:30.1374473Z"
     },
     {
       "status": "ERROR",
       "name": "RenderSdt",
-      "completedUtc": "2026-03-09T22:02:07.6877736Z",
+      "completedUtc": "2026-03-09T22:24:30.4970280Z",
       "details": {
-        "tagsPopulated": 179
+        "tagsPopulated": 184
       },
-      "startedUtc": "2026-03-09T22:02:07.6771649Z"
+      "startedUtc": "2026-03-09T22:24:30.4895215Z"
     }
   ],
   "issues": [
@@ -148,25 +148,55 @@
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/volumes.json"
     },
     {
-      "valuePreview": "{\"id\":\"1\",\"name\":\"DE4200_Rack4\",\"model\":\"DE4200\",\"status\":\"optimal\",\"fwVersion\":...",
+      "valuePreview": "03/08/2026 15:07:31",
+      "tag": "DE_COLLECTION_COLLECTED_UTC",
+      "selector": "collectedUtc",
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/run_summary.json"
+    },
+    {
+      "valuePreview": "Cli",
+      "tag": "DE_COLLECTION_MODE",
+      "selector": "mode",
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/run_summary.json"
+    },
+    {
+      "valuePreview": "10.240.59.179",
+      "tag": "DE_COLLECTION_CONTROLLER",
+      "selector": "controller",
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/run_summary.json"
+    },
+    {
+      "valuePreview": "8443",
+      "tag": "DE_COLLECTION_PORT",
+      "selector": "port",
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/run_summary.json"
+    },
+    {
+      "valuePreview": "1",
+      "tag": "DE_COLLECTION_SYSTEM_COUNT",
+      "selector": "systemCount",
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/run_summary.json"
+    },
+    {
+      "valuePreview": "\r\nid name         model  status  fwVersion   appVersion  bootVersion nvsramVersi...",
       "tag": "DE_SYSTEMS_TABLE_JSON",
       "selector": "items",
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json"
     },
     {
-      "valuePreview": "[{\"systemId\":\"1\",\"driveRef\":\"010000005000C500F53DB2870000000000000000\",\"id\":\"010...",
+      "valuePreview": "\r\nsystemId driveRef                                 id                          ...",
       "tag": "DE_DRIVES_TABLE_JSON",
       "selector": "items",
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/drives.json"
     },
     {
-      "valuePreview": "[{\"systemId\":\"1\",\"id\":\"040000006D039EA000D9F0180000012769894EB2\",\"name\":\"SampleV...",
+      "valuePreview": "\r\nsystemId id                                       name       containerType dis...",
       "tag": "DE_STORAGE_CONTAINERS_TABLE_JSON",
       "selector": "items",
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/storage-containers.json"
     },
     {
-      "valuePreview": "[{\"systemId\":\"1\",\"id\":\"020000006D039EA000D9EFC20000014169894F3A\",\"volumeRef\":\"02...",
+      "valuePreview": "\r\nsystemId id                                       volumeRef                   ...",
       "tag": "DE_VOLUMES_TABLE_JSON",
       "selector": "items",
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/volumes.json"
@@ -244,7 +274,7 @@
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json"
     },
     {
-      "valuePreview": "{\"systemId\":\"1\",\"trayId\":99,\"trayType\":\"de224c\",\"trayRole\":\"controller-tray\",\"co...",
+      "valuePreview": "\r\nsystemId trayId trayType trayRole        controllerModelName status serialNumb...",
       "tag": "DE_TRAYS_TABLE_JSON",
       "selector": "items",
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/trays.json"
@@ -1144,7 +1174,7 @@
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json"
     },
     {
-      "valuePreview": "{\"systemId\":\"1\",\"asupCapable\":true,\"onDemandCapable\":true,\"asupEnabled\":true,\"on...",
+      "valuePreview": "\r\nsystemId asupCapable onDemandCapable asupEnabled onDemandEnabled remoteDiagsEn...",
       "tag": "DE_SYSTEM_ASUP_TABLE_JSON",
       "selector": "items",
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-asup.json"
