@@ -127,6 +127,76 @@ function Format-MatchedTagsSummary {
     return (($lines -join [Environment]::NewLine) + [Environment]::NewLine)
 }
 
+
+function Format-RenderFindingsSummary {
+    param([Parameter(Mandatory = $true)][string]$BundleResultJson)
+
+    try {
+        $bundleReport = $BundleResultJson | ConvertFrom-Json -AsHashtable
+    }
+    catch {
+        return 'Findings summary unavailable: unable to parse render output JSON.'
+    }
+
+    $runCount = @($bundleReport.runs).Count
+    $totalMatches = 0
+    $issueCounts = @{}
+
+    foreach ($run in @($bundleReport.runs)) {
+        if ($run.ContainsKey('rendererOutput') -and $null -ne $run.rendererOutput) {
+            if ($run.rendererOutput.ContainsKey('matches')) {
+                $totalMatches += @($run.rendererOutput.matches).Count
+            }
+
+            if ($run.rendererOutput.ContainsKey('issues')) {
+                foreach ($issue in @($run.rendererOutput.issues)) {
+                    $severity = [string]$issue.severity
+                    if ([string]::IsNullOrWhiteSpace($severity)) { $severity = 'UNKNOWN' }
+                    if (-not $issueCounts.ContainsKey($severity)) { $issueCounts[$severity] = 0 }
+                    $issueCounts[$severity]++
+                }
+            }
+        }
+    }
+
+    $summaryLines = [System.Collections.Generic.List[string]]::new()
+    $summaryLines.Add('Findings summary:')
+    $summaryLines.Add("  Overall status: $($bundleReport.status)")
+    $summaryLines.Add("  Runs: $runCount")
+    $summaryLines.Add("  Matched tags: $totalMatches")
+
+    if ($issueCounts.Count -eq 0) {
+        $summaryLines.Add('  Issues: none')
+    }
+    else {
+        $issueSegments = @($issueCounts.Keys | Sort-Object | ForEach-Object { "$_=$($issueCounts[$_])" })
+        $summaryLines.Add("  Issues by severity: $($issueSegments -join ', ')")
+    }
+
+    return ($summaryLines -join [Environment]::NewLine)
+}
+
+function Format-VerboseBundleOutput {
+    param([Parameter(Mandatory = $true)][string]$BundleResultJson)
+
+    $prettyJson = $BundleResultJson
+    try {
+        $prettyJson = ($BundleResultJson | ConvertFrom-Json | ConvertTo-Json -Depth 100)
+    }
+    catch {
+        # Keep raw output when conversion fails.
+    }
+
+    $matchSummary = Format-MatchedTagsSummary -BundleResultJson $BundleResultJson
+    if ([string]::IsNullOrWhiteSpace($matchSummary)) { return $prettyJson }
+
+    return @(
+        $prettyJson
+        ''
+        $matchSummary.TrimEnd()
+    ) -join [Environment]::NewLine
+}
+
 $xaml = @"
 <Window xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
         xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'
@@ -168,6 +238,7 @@ $xaml = @"
 
     <StackPanel Grid.Row='5' Grid.Column='1' Grid.ColumnSpan='2' Orientation='Horizontal' HorizontalAlignment='Left'>
       <Button Name='RunButton' Width='140' Margin='0,6,10,6'>Run Render</Button>
+      <CheckBox Name='VerboseCheckBox' Margin='0,6,10,6' VerticalAlignment='Center'>Verbose (show full JSON + match dump)</CheckBox>
       <TextBlock Name='StatusText' VerticalAlignment='Center'>Ready</TextBlock>
     </StackPanel>
 
@@ -190,6 +261,7 @@ $outputBrowseButton = $window.FindName('OutputBrowseButton')
 $contractsBrowseButton = $window.FindName('ContractsBrowseButton')
 $runButton = $window.FindName('RunButton')
 $statusText = $window.FindName('StatusText')
+$verboseCheckBox = $window.FindName('VerboseCheckBox')
 $outputText = $window.FindName('OutputText')
 
 $bundleRootText.Text = $BundleRoot
@@ -221,8 +293,12 @@ $runButton.Add_Click({
         $techSelection = @($techIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
         $resultJson = Invoke-BundleRender -BundleRoot $bundleRootText.Text -CatalogPath $catalogPathText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text -TechId $techSelection
         $statusText.Text = 'Render completed successfully.'
-        $matchSummary = Format-MatchedTagsSummary -BundleResultJson $resultJson
-        $outputText.Text = ($resultJson | Out-String) + [Environment]::NewLine + $matchSummary
+        $outputText.Text = if ($verboseCheckBox.IsChecked) {
+            Format-VerboseBundleOutput -BundleResultJson $resultJson
+        }
+        else {
+            Format-RenderFindingsSummary -BundleResultJson $resultJson
+        }
     }
     catch {
         $statusText.Text = 'Render failed.'
