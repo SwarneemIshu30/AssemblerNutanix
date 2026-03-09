@@ -1,39 +1,39 @@
 {
   "schemaVersion": 1,
   "status": "ERROR",
-  "startedUtc": "2026-03-09T22:53:12.5348185Z",
-  "completedUtc": "2026-03-09T22:53:12.8384606Z",
+  "startedUtc": "2026-03-09T23:03:01.5170201Z",
+  "completedUtc": "2026-03-09T23:03:01.7890183Z",
   "bundleId": "fc2c8a97-9214-456c-9d2f-4fcaba90e8ef",
   "stages": [
     {
       "status": "OK",
       "name": "LoadInputs",
-      "completedUtc": "2026-03-09T22:53:12.5485023Z",
+      "completedUtc": "2026-03-09T23:03:01.5252662Z",
       "details": {
         "mappingPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\.resolved-mappings\\DE-SDT-Collector.mapping.resolved.json",
         "templatePath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
         "contractsRoot": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts",
         "mappingSchemaPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts\\standards\\mapping.dataset-to-sdt.schema.v1.json"
       },
-      "startedUtc": "2026-03-09T22:53:12.5378320Z"
+      "startedUtc": "2026-03-09T23:03:01.5194093Z"
     },
     {
       "status": "OK",
       "name": "ValidateContract",
-      "completedUtc": "2026-03-09T22:53:12.5496868Z",
+      "completedUtc": "2026-03-09T23:03:01.5256865Z",
       "details": {
         "mappingSchemaPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts\\standards\\mapping.dataset-to-sdt.schema.v1.json"
       },
-      "startedUtc": "2026-03-09T22:53:12.5485594Z"
+      "startedUtc": "2026-03-09T23:03:01.5253198Z"
     },
     {
       "status": "ERROR",
       "name": "RenderSdt",
-      "completedUtc": "2026-03-09T22:53:12.8383488Z",
+      "completedUtc": "2026-03-09T23:03:01.7889600Z",
       "details": {
         "tagsPopulated": 185
       },
-      "startedUtc": "2026-03-09T22:53:12.8319806Z"
+      "startedUtc": "2026-03-09T23:03:01.7836489Z"
     }
   ],
   "issues": [
@@ -190,19 +190,19 @@
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-02/systems.json"
     },
     {
-      "valuePreview": "\r\nsystemId driveRef                                 id                          ...",
+      "valuePreview": "\r\nid                                       serialNumber         worldWideName   ...",
       "tag": "DE_DRIVES_TABLE_JSON",
       "selector": "items",
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-02/system_1_DE4200_Rack4/drives.json"
     },
     {
-      "valuePreview": "\r\nsystemId id                                       name       containerType dis...",
+      "valuePreview": "\r\nid                                       name       containerType diskPool rai...",
       "tag": "DE_STORAGE_CONTAINERS_TABLE_JSON",
       "selector": "items",
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-02/system_1_DE4200_Rack4/storage-containers.json"
     },
     {
-      "valuePreview": "\r\nsystemId id                                       volumeRef                   ...",
+      "valuePreview": "\r\nid                                       name          status  raidLevel conta...",
       "tag": "DE_VOLUMES_TABLE_JSON",
       "selector": "items",
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-02/system_1_DE4200_Rack4/volumes.json"
@@ -280,7 +280,7 @@
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-02/system_1_DE4200_Rack4/system-controllers.json"
     },
     {
-      "valuePreview": "\r\nsystemId trayId trayType trayRole        controllerModelName status serialNumb...",
+      "valuePreview": "\r\ntrayId trayType trayRole        controllerModelName status serialNumber partNu...",
       "tag": "DE_TRAYS_TABLE_JSON",
       "selector": "items",
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-02/system_1_DE4200_Rack4/trays.json"
@@ -1180,7 +1180,7 @@
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-02/system_1_DE4200_Rack4/system-dns.json"
     },
     {
-      "valuePreview": "\r\nsystemId asupCapable onDemandCapable asupEnabled onDemandEnabled remoteDiagsEn...",
+      "valuePreview": "\r\nasupCapable onDemandCapable asupEnabled onDemandEnabled remoteDiagsEnabled del...",
       "tag": "DE_SYSTEM_ASUP_TABLE_JSON",
       "selector": "items",
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-02/system_1_DE4200_Rack4/system-asup.json"
