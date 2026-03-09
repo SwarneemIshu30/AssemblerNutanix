@@ -169,7 +169,7 @@ function Resolve-MappingVariantsForBundle {
 
     $mappingText = Get-Content -LiteralPath $MappingPath -Raw -Encoding UTF8
     if (($mappingText -notmatch '__TARGET__') -and ($mappingText -notmatch '__SYSTEM__')) {
-        return @([ordered]@{ mappingPath = $MappingPath; variantName = $null })
+        return @([pscustomobject]@{ mappingPath = $MappingPath; variantName = $null })
     }
 
     $ctx = Resolve-TechDatasetContext -BundleRoot $BundleRoot -TechId $TechId
@@ -181,20 +181,20 @@ function Resolve-MappingVariantsForBundle {
     if ($targetResolved -notmatch '__SYSTEM__') {
         $resolvedPath = Join-Path $tempDir ("$EntryId.target.$([string]$ctx.target).resolved.json")
         Set-Content -LiteralPath $resolvedPath -Value $targetResolved -Encoding UTF8
-        return @([ordered]@{ mappingPath = $resolvedPath; variantName = [string]$ctx.target })
+        return @([pscustomobject]@{ mappingPath = $resolvedPath; variantName = [string]$ctx.target })
     }
 
     if (@($ctx.systems).Count -eq 0) {
         throw "Mapping '$MappingPath' requires __SYSTEM__ but no system_* directory found under target '$($ctx.target)'."
     }
 
-    $variants = [System.Collections.Generic.List[hashtable]]::new()
+    $variants = [System.Collections.Generic.List[psobject]]::new()
     foreach ($systemName in @($ctx.systems)) {
         $resolved = $targetResolved.Replace('__SYSTEM__', [string]$systemName)
         $safeSystem = ([string]$systemName).Replace('/', '_').Replace('\', '_')
         $resolvedPath = Join-Path $tempDir ("$EntryId.$safeSystem.resolved.json")
         Set-Content -LiteralPath $resolvedPath -Value $resolved -Encoding UTF8
-        $variants.Add([ordered]@{ mappingPath = $resolvedPath; variantName = [string]$systemName })
+        $variants.Add([pscustomobject]@{ mappingPath = $resolvedPath; variantName = [string]$systemName })
     }
 
     return @($variants)
