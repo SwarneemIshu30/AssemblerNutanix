@@ -1,0 +1,47 @@
+{
+  "schema": "mapping.dataset-to-sdt",
+  "schemaVersion": 1,
+  "techId": "Lenovo.DE",
+  "displayName": "Dummy Lenovo DE SDT mapping",
+  "compatibility": {
+    "contracts": {
+      "version": "v1"
+    }
+  },
+  "strictContracts": {
+    "enabled": true,
+    "requireAllMappings": true
+  },
+  "mappings": [
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
+      "sdtTag": "DE_SYSTEM_NAME",
+      "required": true,
+      "selectors": ["items.0.name"]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
+      "sdtTag": "DE_SYSTEM_MODEL",
+      "required": true,
+      "selectors": ["items.0.model"]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
+      "sdtTag": "DE_SYSTEM_STATUS",
+      "required": true,
+      "selectors": ["items.0.status"]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
+      "sdtTag": "DE_MANAGEMENT_IP",
+      "required": true,
+      "selectors": ["items.0.ip2"]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
+      "sdtTag": "DE_DRIVE_COUNT",
+      "required": true,
+      "selectors": ["items.0.driveCount"]
+    }
+  ]
+}

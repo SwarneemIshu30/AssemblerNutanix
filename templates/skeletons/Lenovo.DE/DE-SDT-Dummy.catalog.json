@@ -1,0 +1,18 @@
+{
+  "schema": "assembler.template-catalog",
+  "schemaVersion": 1,
+  "displayName": "Dummy Lenovo.DE template catalog",
+  "entries": [
+    {
+      "id": "lenovo-de-dummy",
+      "techId": "Lenovo.DE",
+      "displayName": "Lenovo DE Dummy SDT Output",
+      "docType": "dummy",
+      "mappingPath": "DE-SDT-Dummy.mapping.json",
+      "templatePath": "DE-SDT-Dummy.template.txt",
+      "outputFileName": "DE-SDT-Dummy.rendered.txt",
+      "enabled": true,
+      "priority": 100
+    }
+  ]
+}
