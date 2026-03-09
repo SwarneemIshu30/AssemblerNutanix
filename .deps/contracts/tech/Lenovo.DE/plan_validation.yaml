@@ -1,0 +1,133 @@
+schemaVersion: 1
+techId: Lenovo.DE
+appliesTo:
+  targetKind: Lenovo.DE
+
+defaults:
+  params:
+    port: 8443
+    apiBasePath: /devmgr
+    skipTlsVerify: false
+    timeoutSec: 60
+
+validation:
+  # -------------------------
+  # Offline / semantic checks
+  # -------------------------
+  required:
+    - path: targets[].endpoints.mgmt
+      type: string
+      minLength: 1
+      message: "Lenovo.DE requires targets[].endpoints.mgmt (controller management IP/FQDN)."
+
+  fields:
+    - path: targets[].endpoints.mgmt
+      type: string
+      rules:
+        - name: not_blank
+        - name: hostname_or_ip
+      message: "endpoints.mgmt must be a valid hostname or IP (controller management interface, not data/iSCSI)."
+
+    - path: targets[].params.port
+      type: integer
+      rules:
+        - name: range
+          min: 1
+          max: 65535
+      message: "params.port must be 1..65535 (default: 8443)."
+
+    - path: targets[].params.apiBasePath
+      type: string
+      rules:
+        - name: starts_with
+          value: "/"
+      message: "params.apiBasePath must start with '/' (default: /devmgr)."
+
+    - path: targets[].params.skipTlsVerify
+      type: boolean
+      message: "params.skipTlsVerify must be true/false."
+
+    - path: targets[].params.timeoutSec
+      type: integer
+      rules:
+        - name: range
+          min: 5
+          max: 600
+      message: "params.timeoutSec must be 5..600 seconds."
+
+  # Strongly recommended semantic linkages (not expressible in JSON Schema cleanly)
+  links:
+    - description: "collectors[].authRef must refer to a key under plan.auth"
+      fromPath: collectors[].authRef
+      toObjectPath: auth
+      mode: error
+      message: "collector authRef '{value}' must exist in plan.auth."
+
+    - description: "collectors with techId Lenovo.DE should reference targets of kind Lenovo.DE"
+      collectorFilter:
+        path: collectors[].techId
+        equals: Lenovo.DE
+      targetKeyPath: collectors[].targetKeys[]
+      targetLookup:
+        byKeyPath: targets[].key
+      requireTargetField:
+        path: targets[].kind
+        equals: Lenovo.DE
+      mode: error
+      message: "collector targetKeys must reference targets with kind Lenovo.DE."
+
+  unknownFieldPolicy:
+    endpoints: warn   # warn | error | ignore
+    params: warn      # warn | error | ignore
+
+  warnings:
+    - when:
+        path: targets[].params.skipTlsVerify
+        equals: true
+      message: "skipTlsVerify=true is diagnostic-only. Prefer installing a trusted certificate."
+
+    - when:
+        path: targets[].params.port
+        equals: 443
+      message: "port=443 is common in some environments; ensure it matches your array configuration."
+
+authRefHints:
+  requiredFields:
+    - username
+    - password
+  notes:
+    - "authRef must resolve outside the plan (secrets are never stored in plans)."
+
+# --------------------------------
+# Online / preflight (optional run)
+# --------------------------------
+preflight:
+  - id: tcp_connect
+    description: "TCP connectivity to mgmt:port"
+    inputs:
+      hostPath: targets[].endpoints.mgmt
+      portPath: targets[].params.port
+
+  - id: https_probe
+    description: "Probe embedded REST endpoint (pre-auth acceptable)"
+    request:
+      method: GET
+      urlTemplate: "https://{mgmt}:{port}{apiBasePath}/v2/storage-systems"
+      successStatusCodes: [200, 401, 403]
+      timeoutSecPath: targets[].params.timeoutSec
+      tls:
+        skipVerifyPath: targets[].params.skipTlsVerify
+    notes:
+      - "401/403 indicates endpoint exists and auth is required (acceptable)."
+
+  - id: login
+    description: "Login (cookie session)"
+    request:
+      method: POST
+      urlTemplate: "https://{mgmt}:{port}{apiBasePath}/utils/login"
+      usesAuthRef: true
+      timeoutSecPath: targets[].params.timeoutSec
+      tls:
+        skipVerifyPath: targets[].params.skipTlsVerify
+    expected:
+      setsCookie: true

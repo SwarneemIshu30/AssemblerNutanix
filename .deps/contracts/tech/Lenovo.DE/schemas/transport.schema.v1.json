@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://levindevelopment.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/schemas/transport.schema.v1.json",
+  "title": "Lenovo.DE transport dataset schema (v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "items"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "systemId",
+          "activeTransport"
+        ],
+        "properties": {
+          "systemId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "activeTransport": {
+            "type": "string",
+            "enum": [
+              "iscsi",
+              "fc"
+            ]
+          },
+          "iscsiIqn": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

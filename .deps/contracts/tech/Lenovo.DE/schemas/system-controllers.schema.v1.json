@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/schemas/system-controllers.schema.v1.json",
+  "title": "Lenovo.DE system controllers dataset schema (v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "items"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "patternProperties": { "^x-": {} },
+        "required": [
+          "systemId",
+          "controllerRef",
+          "controllerLabel",
+          "controllerSlot",
+          "status",
+          "appVersion",
+          "bootVersion",
+          "serialNumber",
+          "trayId"
+        ],
+        "properties": {
+          "systemId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "controllerRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "controllerLabel": {
+            "type": "string",
+            "minLength": 1
+          },
+          "controllerSlot": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "status": {
+            "type": "string",
+            "minLength": 1
+          },
+          "appVersion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "bootVersion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "bootTime": {
+            "type": ["string", "null"],
+            "description": "Controller boot time in UTC, formatted as YYYY-MM-DDTHH:MM:SS (no fractional seconds)."
+          },
+          "serialNumber": {
+            "type": "string",
+            "minLength": 1
+          },
+          "manufacturerDate": {
+            "type": ["string", "null"],
+            "description": "Controller manufacturing date formatted as YYYY-MM-DD."
+          },
+          "trayId": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 99
+          },
+          "modelName": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

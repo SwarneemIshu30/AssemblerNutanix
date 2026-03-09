@@ -1,0 +1,78 @@
+schema: mapping.dataset-to-sdt
+schemaVersion: 1
+techId: Nutanix.PrismElement
+displayName: Nutanix Prism Element dataset-to-SDT mapping v1
+compatibility:
+  contracts:
+    version: 1.0.5
+  coreValidation: strict
+strictContracts:
+  enabled: true
+  requireAllMappings: false
+  forbidUnmappedDatasets: false
+  requireSelectors: false
+mappings:
+  - dataset: cluster
+    sdtTag: LNV.Nutanix.PrismElement.Cluster[<ClusterKey>].Summary
+    required: true
+    notes: Cluster summary narrative in main body.
+  - dataset: cluster
+    sdtTag: LNV.Nutanix.PrismElement.Cluster[<ClusterKey>].Tables.ClusterConfig
+    required: true
+    notes: Cluster configuration table for the core section.
+  - dataset: cluster
+    sdtTag: LNV.Nutanix.PrismElement.Cluster[<ClusterKey>].Tables.FaultTolerance
+    required: true
+    notes: RF/FT posture table from cluster metadata.
+  - dataset: license
+    sdtTag: LNV.Nutanix.PrismElement.Licensing[<ClusterKey>].Tables.Licenses
+    required: true
+    notes: Cluster license inventory and status.
+  - dataset: hosts
+    sdtTag: LNV.Nutanix.PrismElement.Cluster[<ClusterKey>].Tables.Hosts
+    required: true
+    notes: Host inventory table for main body.
+  - dataset: networks
+    sdtTag: LNV.Nutanix.PrismElement.Cluster[<ClusterKey>].Tables.Networks
+    required: true
+    notes: Network inventory table for main body.
+  - dataset: storage_containers
+    sdtTag: LNV.Nutanix.PrismElement.Cluster[<ClusterKey>].Tables.StorageContainers
+    required: true
+    notes: Storage container summary table.
+  - dataset: storage_pools
+    sdtTag: LNV.Nutanix.PrismElement.Cluster[<ClusterKey>].Tables.StoragePools
+    required: true
+    notes: Storage pool inventory table.
+  - dataset: vms
+    sdtTag: LNV.Nutanix.PrismElement.Cluster[<ClusterKey>].Tables.VMs
+    required: true
+    notes: VM inventory table.
+  - dataset: protection_domains
+    sdtTag: LNV.Nutanix.PrismElement.Cluster[<ClusterKey>].Tables.ProtectionDomains
+    required: true
+    notes: Protection domain status and configuration.
+  - dataset: remote_sites
+    sdtTag: LNV.Nutanix.PrismElement.Cluster[<ClusterKey>].Tables.RemoteSites
+    required: true
+    notes: DR remote site relationship table.
+  - dataset: volume_groups
+    sdtTag: LNV.Nutanix.PrismElement.Cluster[<ClusterKey>].Tables.VolumeGroups
+    required: false
+    notes: Appendix volume group table.
+  - dataset: disks
+    sdtTag: LNV.Nutanix.PrismElement.Cluster[<ClusterKey>].Tables.Disks
+    required: false
+    notes: Appendix disk inventory table.
+  - dataset: health_checks
+    sdtTag: LNV.Nutanix.PrismElement.Health[<ClusterKey>].Tables.HealthChecks
+    required: false
+    notes: Health check evidence table in appendix.
+  - dataset: snmp
+    sdtTag: LNV.Nutanix.PrismElement.Snmp[<ClusterKey>].Tables.SnmpConfig
+    required: false
+    notes: SNMP notification configuration evidence.
+  - dataset: authconfig
+    sdtTag: LNV.Nutanix.PrismElement.Auth[<ClusterKey>].Tables.AuthConfig
+    required: false
+    notes: Authentication configuration evidence.

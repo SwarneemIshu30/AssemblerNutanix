@@ -1,0 +1,6 @@
+techId: Echo
+name: Echo (Harness)
+kind: harness
+contracts:
+  plan_validation: plan_validation.yaml
+  collector_spec: collector_spec.md

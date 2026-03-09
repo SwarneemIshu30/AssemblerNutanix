@@ -1,0 +1,51 @@
+apiVersion: lnv.asbuiltdoc/v1
+kind: PlanValidation
+metadata:
+  tech: Nutanix.PrismElement
+spec:
+  requiredPlanSteps:
+    - name: cluster
+      version: 2
+      uri: /cluster
+    - name: vms
+      version: 1
+      uri: /vms
+    - name: hosts
+      version: 2
+      uri: /hosts
+    - name: networks
+      version: 2
+      uri: /networks
+    - name: storage_containers
+      version: 2
+      uri: /storage_containers
+    - name: storage_pools
+      version: 1
+      uri: /storage_pools
+    - name: disks
+      version: 2
+      uri: /disks
+    - name: volume_groups
+      version: 2
+      uri: /volume_groups
+    - name: protection_domains
+      version: 2
+      uri: /protection_domains
+    - name: remote_sites
+      version: 1
+      uri: /remote_sites
+    - name: images
+      version: 2
+      uri: /images
+    - name: health_checks
+      version: 2
+      uri: /health_checks
+    - name: snmp
+      version: 2
+      uri: /snmp
+    - name: authconfig
+      version: 2
+      uri: /authconfig
+    - name: license
+      version: 1
+      uri: /license/

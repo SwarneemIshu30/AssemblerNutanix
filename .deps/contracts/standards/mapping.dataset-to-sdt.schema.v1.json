@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv.asbuiltdoc/contracts/standards/mapping.dataset-to-sdt.schema.v1.json",
+  "title": "AsBuiltDoc Dataset-to-SDT Mapping",
+  "description": "Contract for mapping collected datasets to SDT template targets.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schemaVersion", "techId", "compatibility", "mappings"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "mapping.dataset-to-sdt"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "techId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "compatibility": {
+      "$ref": "#/$defs/compatibility"
+    },
+    "mappings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/mapping"
+      }
+    },
+    "strictContracts": {
+      "$ref": "#/$defs/strictContracts"
+    }
+  },
+  "$defs": {
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contracts"],
+      "properties": {
+        "contracts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version"],
+          "properties": {
+            "version": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "coreValidation": {
+          "type": "string",
+          "enum": ["standard", "strict"]
+        }
+      }
+    },
+    "mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dataset"],
+      "properties": {
+        "dataset": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sdtTag": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "$ref": "#/$defs/mappingTarget"
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "selectors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "anyOf": [
+        {
+          "required": ["sdtTag"]
+        },
+        {
+          "required": ["target"]
+        }
+      ]
+    },
+    "mappingTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sdtTag": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "anyOf": [
+        {
+          "required": ["sdtTag"]
+        },
+        {
+          "required": ["kind", "path"]
+        }
+      ]
+    },
+    "strictContracts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "requireAllMappings": {
+          "type": "boolean"
+        },
+        "forbidUnmappedDatasets": {
+          "type": "boolean"
+        },
+        "requireSelectors": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

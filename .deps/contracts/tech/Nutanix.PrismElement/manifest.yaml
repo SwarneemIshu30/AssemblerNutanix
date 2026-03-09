@@ -1,0 +1,37 @@
+apiVersion: lnv.asbuiltdoc/v1
+kind: CollectorContractManifest
+metadata:
+  tech: Nutanix.PrismElement
+  collector: LNV.AsBuiltDoc.Nutanix.PrismElement
+spec:
+  entrypoint: Invoke-LnvAsBuiltDoc.Nutanix.PrismElement
+  bundleSchemas:
+    manifest: lnv.bundle.manifest.v1
+    configUsed: lnv.bundle.config_used.v1
+    dataset: lnv.collector.dataset.v1
+  planValidation: plan_validation.yaml
+  datasetSchemaPath: dataset
+  datasetToSdtMapping: mapping.dataset-to-sdt.v1.yaml
+  apiSupport:
+    stable: v2
+    fallback:
+      - v1
+    preview:
+      - v4
+    v4Gated: true
+  datasets:
+    - cluster
+    - vms
+    - hosts
+    - networks
+    - storage_containers
+    - storage_pools
+    - disks
+    - volume_groups
+    - protection_domains
+    - remote_sites
+    - images
+    - health_checks
+    - snmp
+    - authconfig
+    - license

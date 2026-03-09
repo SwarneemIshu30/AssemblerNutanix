@@ -1,0 +1,104 @@
+schemaVersion: 1
+techId: Lenovo.DE
+mappingVersion: dataset-to-sdt.v1
+
+mappings:
+  - datasetKey: systems
+    dataset: systems.json
+    objects:
+      - key: System
+        sdtTag: LNV.Lenovo.DE.System.Summary
+        placement: Main
+        minInfoLevel: 1
+
+  - datasetKey: system-controllers
+    dataset: system-controllers.json
+    objects:
+      - key: Controllers
+        sdtTag: LNV.Lenovo.DE.Controllers.Table
+        placement: Main
+        minInfoLevel: 1
+
+  - datasetKey: management-interfaces
+    dataset: management-interfaces.json
+    objects:
+      - key: ManagementInterfaces
+        sdtTag: LNV.Lenovo.DE.Network.ManagementInterfaces.Table
+        placement: Main
+        minInfoLevel: 1
+
+  - datasetKey: transport
+    dataset: transport.json
+    objects:
+      - key: ActiveTransport
+        sdtTag: LNV.Lenovo.DE.Network.Transport.Table
+        placement: Main
+        minInfoLevel: 1
+
+  - datasetKey: system-dns
+    dataset: system-dns.json
+    objects:
+      - key: DNS
+        sdtTag: LNV.Lenovo.DE.Network.DNS.Table
+        placement: Main
+        minInfoLevel: 1
+
+  - datasetKey: system-time
+    dataset: system-time.json
+    objects:
+      - key: NTP
+        sdtTag: LNV.Lenovo.DE.Network.Time.Table
+        placement: Main
+        minInfoLevel: 1
+
+  - datasetKey: trays
+    dataset: trays.json
+    objects:
+      - key: Trays
+        sdtTag: LNV.Lenovo.DE.Trays.Table
+        placement: Appendix
+        minInfoLevel: 2
+
+  - datasetKey: host-ports
+    dataset: host-ports.json
+    objects:
+      - key: iSCSI
+        sdtTag: LNV.Lenovo.DE.HostPorts.iSCSI.Table
+        placement: Main
+        minInfoLevel: 2
+      - key: FibreChannel
+        sdtTag: LNV.Lenovo.DE.HostPorts.FC.Table
+        placement: Main
+        minInfoLevel: 2
+
+  - datasetKey: drives
+    dataset: drives.json
+    objects:
+      - key: Drives
+        sdtTag: LNV.Lenovo.DE.Drives.Table
+        placement: Appendix
+        minInfoLevel: 2
+
+  - datasetKey: storage-containers
+    dataset: storage-containers.json
+    objects:
+      - key: VolumeGroups
+        sdtTag: LNV.Lenovo.DE.Containers.Table
+        placement: Main
+        minInfoLevel: 1
+
+  - datasetKey: volumes
+    dataset: volumes.json
+    objects:
+      - key: Volumes
+        sdtTag: LNV.Lenovo.DE.Volumes.Table
+        placement: Main
+        minInfoLevel: 1
+
+  - datasetKey: system-asup
+    dataset: system-asup.json
+    objects:
+      - key: ASUP
+        sdtTag: LNV.Lenovo.DE.ASUP.Table
+        placement: Appendix
+        minInfoLevel: 1

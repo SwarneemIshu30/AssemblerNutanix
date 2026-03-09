@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/schemas/system-time.schema.v1.json",
+  "title": "Lenovo.DE system time dataset schema (v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "items"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "patternProperties": { "^x-": {} },
+        "required": [
+          "systemId",
+          "controllerRef",
+          "ntpAcquisitionType",
+          "ntpServers",
+          "dhcpAcquiredServers",
+          "ipv4DefaultRouter"
+        ],
+        "properties": {
+          "systemId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "controllerRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "ntpAcquisitionType": {
+            "type": "string",
+            "minLength": 1
+          },
+          "ntpServers": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "dhcpAcquiredServers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ipv4DefaultRouter": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/schemas/system-dns.schema.v1.json",
+  "title": "Lenovo.DE system DNS dataset schema (v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "items"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "patternProperties": { "^x-": {} },
+        "required": [
+          "systemId",
+          "controllerRef",
+          "dnsAcquisitionType",
+          "dnsServers",
+          "dhcpAcquiredServers"
+        ],
+        "properties": {
+          "systemId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "controllerRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dnsAcquisitionType": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dnsServers": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "dhcpAcquiredServers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
