@@ -176,7 +176,21 @@ function Format-RenderFindingsSummary {
     return ($summaryLines -join [Environment]::NewLine)
 }
 
-function Format-VerboseBundleOutput {
+function Format-VerboseFindingsOutput {
+    param([Parameter(Mandatory = $true)][string]$BundleResultJson)
+
+    $summary = Format-RenderFindingsSummary -BundleResultJson $BundleResultJson
+    $matchSummary = Format-MatchedTagsSummary -BundleResultJson $BundleResultJson
+    if ([string]::IsNullOrWhiteSpace($matchSummary)) { return $summary }
+
+    return @(
+        $summary
+        ''
+        $matchSummary.TrimEnd()
+    ) -join [Environment]::NewLine
+}
+
+function Format-DebugBundleOutput {
     param([Parameter(Mandatory = $true)][string]$BundleResultJson)
 
     $prettyJson = $BundleResultJson
@@ -187,13 +201,13 @@ function Format-VerboseBundleOutput {
         # Keep raw output when conversion fails.
     }
 
-    $matchSummary = Format-MatchedTagsSummary -BundleResultJson $BundleResultJson
-    if ([string]::IsNullOrWhiteSpace($matchSummary)) { return $prettyJson }
+    $verbose = Format-VerboseFindingsOutput -BundleResultJson $BundleResultJson
 
     return @(
-        $prettyJson
+        $verbose
         ''
-        $matchSummary.TrimEnd()
+        'Raw JSON:'
+        $prettyJson
     ) -join [Environment]::NewLine
 }
 
@@ -238,7 +252,8 @@ $xaml = @"
 
     <StackPanel Grid.Row='5' Grid.Column='1' Grid.ColumnSpan='2' Orientation='Horizontal' HorizontalAlignment='Left'>
       <Button Name='RunButton' Width='140' Margin='0,6,10,6'>Run Render</Button>
-      <CheckBox Name='VerboseCheckBox' Margin='0,6,10,6' VerticalAlignment='Center'>Verbose (show full JSON + match dump)</CheckBox>
+      <CheckBox Name='VerboseCheckBox' Margin='0,6,10,6' VerticalAlignment='Center'>Verbose (include matched tags)</CheckBox>
+      <CheckBox Name='DebugCheckBox' Margin='0,6,10,6' VerticalAlignment='Center'>Debug (include raw render JSON)</CheckBox>
       <TextBlock Name='StatusText' VerticalAlignment='Center'>Ready</TextBlock>
     </StackPanel>
 
@@ -262,6 +277,7 @@ $contractsBrowseButton = $window.FindName('ContractsBrowseButton')
 $runButton = $window.FindName('RunButton')
 $statusText = $window.FindName('StatusText')
 $verboseCheckBox = $window.FindName('VerboseCheckBox')
+$debugCheckBox = $window.FindName('DebugCheckBox')
 $outputText = $window.FindName('OutputText')
 
 $bundleRootText.Text = $BundleRoot
@@ -293,8 +309,11 @@ $runButton.Add_Click({
         $techSelection = @($techIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
         $resultJson = Invoke-BundleRender -BundleRoot $bundleRootText.Text -CatalogPath $catalogPathText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text -TechId $techSelection
         $statusText.Text = 'Render completed successfully.'
-        $outputText.Text = if ($verboseCheckBox.IsChecked) {
-            Format-VerboseBundleOutput -BundleResultJson $resultJson
+        $outputText.Text = if ($debugCheckBox.IsChecked) {
+            Format-DebugBundleOutput -BundleResultJson $resultJson
+        }
+        elseif ($verboseCheckBox.IsChecked) {
+            Format-VerboseFindingsOutput -BundleResultJson $resultJson
         }
         else {
             Format-RenderFindingsSummary -BundleResultJson $resultJson

@@ -194,7 +194,21 @@ function Format-RenderFindingsSummary {
     return ($summaryLines -join [Environment]::NewLine)
 }
 
-function Format-VerboseBundleOutput {
+function Format-VerboseFindingsOutput {
+    param([Parameter(Mandatory = $true)][string]$BundleResultJson)
+
+    $summary = Format-RenderFindingsSummary -BundleResultJson $BundleResultJson
+    $matchSummary = Format-MatchedTagsSummary -BundleResultJson $BundleResultJson
+    if ([string]::IsNullOrWhiteSpace($matchSummary)) { return $summary }
+
+    return @(
+        $summary
+        ''
+        $matchSummary.TrimEnd()
+    ) -join [Environment]::NewLine
+}
+
+function Format-DebugBundleOutput {
     param([Parameter(Mandatory = $true)][string]$BundleResultJson)
 
     $prettyJson = $BundleResultJson
@@ -205,13 +219,13 @@ function Format-VerboseBundleOutput {
         # Keep raw output when conversion fails.
     }
 
-    $matchSummary = Format-MatchedTagsSummary -BundleResultJson $BundleResultJson
-    if ([string]::IsNullOrWhiteSpace($matchSummary)) { return $prettyJson }
+    $verbose = Format-VerboseFindingsOutput -BundleResultJson $BundleResultJson
 
     return @(
-        $prettyJson
+        $verbose
         ''
-        $matchSummary.TrimEnd()
+        'Raw JSON:'
+        $prettyJson
     ) -join [Environment]::NewLine
 }
 
@@ -347,17 +361,27 @@ function Invoke-WinFormsMode {
     $verboseCheckBox = New-Object System.Windows.Forms.CheckBox
     $verboseCheckBox.Left = 20
     $verboseCheckBox.Top = 330
-    $verboseCheckBox.Width = 300
-    $verboseCheckBox.Text = 'Verbose (show full JSON + match dump)'
+    $verboseCheckBox.Width = 280
+    $verboseCheckBox.Text = 'Verbose (include matched tags)'
     $verboseCheckBox.Checked = $false
+
+    $debugCheckBox = New-Object System.Windows.Forms.CheckBox
+    $debugCheckBox.Left = 320
+    $debugCheckBox.Top = 330
+    $debugCheckBox.Width = 280
+    $debugCheckBox.Text = 'Debug (include raw render JSON)'
+    $debugCheckBox.Checked = $false
 
     $runButton.Add_Click({
         try {
             $techSelection = @($techTextBox.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
             $resultJson = Invoke-BundleRender -BundleRoot $bundleTextBox.Text -CatalogPath $catalogTextBox.Text -OutputRoot $outputTextBox.Text -ContractsRoot $contractsTextBox.Text -TechId $techSelection
             $statusLabel.Text = 'Render completed successfully.'
-            $dialogText = if ($verboseCheckBox.Checked) {
-                Format-VerboseBundleOutput -BundleResultJson $resultJson
+            $dialogText = if ($debugCheckBox.Checked) {
+                Format-DebugBundleOutput -BundleResultJson $resultJson
+            }
+            elseif ($verboseCheckBox.Checked) {
+                Format-VerboseFindingsOutput -BundleResultJson $resultJson
             }
             else {
                 Format-RenderFindingsSummary -BundleResultJson $resultJson
@@ -370,7 +394,7 @@ function Invoke-WinFormsMode {
         }
     })
 
-    foreach ($control in @($bundleTextBox, $catalogTextBox, $outputTextBox, $contractsTextBox, $techTextBox, $bundleBrowse, $catalogBrowse, $outputBrowse, $contractsBrowse, $runButton, $statusLabel, $verboseCheckBox)) {
+    foreach ($control in @($bundleTextBox, $catalogTextBox, $outputTextBox, $contractsTextBox, $techTextBox, $bundleBrowse, $catalogBrowse, $outputBrowse, $contractsBrowse, $runButton, $statusLabel, $verboseCheckBox, $debugCheckBox)) {
         $form.Controls.Add($control)
     }
 
