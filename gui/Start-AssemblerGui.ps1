@@ -198,13 +198,23 @@ function Format-RenderFindingsSummary {
         $summaryLines.Add("  Issues by severity: $($issueSegments -join ', ')")
 
         $firstIssueMessage = ''
-        if (@($bundleReport.issues).Count -gt 0) {
+        $firstError = @($bundleReport.issues | Where-Object { [string]$_.severity -eq 'ERROR' } | Select-Object -First 1)
+        if (@($firstError).Count -gt 0) {
+            $firstIssueMessage = [string]$firstError[0].message
+        }
+        elseif (@($bundleReport.issues).Count -gt 0) {
             $firstIssueMessage = [string]$bundleReport.issues[0].message
         }
         elseif (@($bundleReport.runs).Count -gt 0) {
             foreach ($run in @($bundleReport.runs)) {
                 if ($run.ContainsKey('rendererOutput') -and $null -ne $run.rendererOutput -and $run.rendererOutput.ContainsKey('issues') -and @($run.rendererOutput.issues).Count -gt 0) {
-                    $firstIssueMessage = [string]$run.rendererOutput.issues[0].message
+                    $runFirstError = @($run.rendererOutput.issues | Where-Object { [string]$_.severity -eq 'ERROR' } | Select-Object -First 1)
+                    if (@($runFirstError).Count -gt 0) {
+                        $firstIssueMessage = [string]$runFirstError[0].message
+                    }
+                    else {
+                        $firstIssueMessage = [string]$run.rendererOutput.issues[0].message
+                    }
                     break
                 }
             }

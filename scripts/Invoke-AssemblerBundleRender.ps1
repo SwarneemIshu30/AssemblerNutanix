@@ -134,6 +134,30 @@ function Resolve-TechDatasetContext {
     return [ordered]@{ target = [string]$target.Name; systems = $systems }
 }
 
+function Resolve-MappingPathForBundle {
+    param(
+        [Parameter(Mandatory = $true)][string]$BundleRoot,
+        [Parameter(Mandatory = $true)][string]$MappingPath,
+        [Parameter(Mandatory = $true)][string]$TechId,
+        [Parameter(Mandatory = $true)][string]$OutputRoot,
+        [Parameter(Mandatory = $false)][string]$EntryId
+    )
+
+    $effectiveEntryId = if ([string]::IsNullOrWhiteSpace($EntryId)) {
+        [System.IO.Path]::GetFileNameWithoutExtension($MappingPath)
+    }
+    else {
+        $EntryId
+    }
+
+    $variants = Resolve-MappingVariantsForBundle -BundleRoot $BundleRoot -MappingPath $MappingPath -TechId $TechId -OutputRoot $OutputRoot -EntryId $effectiveEntryId
+    if (@($variants).Count -lt 1) {
+        throw "Failed to resolve mapping variants for '$MappingPath'."
+    }
+
+    return [string]$variants[0].mappingPath
+}
+
 function Resolve-MappingVariantsForBundle {
     param(
         [Parameter(Mandatory = $true)][string]$BundleRoot,
