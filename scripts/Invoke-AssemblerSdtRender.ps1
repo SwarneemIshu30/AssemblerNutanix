@@ -166,6 +166,38 @@ function Convert-CellValueToString {
     return ($Value | ConvertTo-Json -Depth 10 -Compress)
 }
 
+
+function Get-DisplayColumnsForTable {
+    param([Parameter(Mandatory = $true)][string[]]$Columns)
+
+    $excluded = @(
+        'systemid',
+        'controllerref',
+        'driveref',
+        'volumeref',
+        'poolref',
+        'trayref',
+        'storagesystemref'
+    )
+
+    $filtered = @(
+        $Columns |
+            Where-Object {
+                $name = [string]$_
+                if ([string]::IsNullOrWhiteSpace($name)) { return $false }
+
+                $lower = $name.ToLowerInvariant()
+                if ($excluded -contains $lower) { return $false }
+                if ($lower.EndsWith('ref')) { return $false }
+
+                return $true
+            }
+    )
+
+    if (@($filtered).Count -gt 0) { return $filtered }
+    return $Columns
+}
+
 function Convert-ValueToTableString {
     param([Parameter(Mandatory = $false)]$Value)
 
@@ -198,42 +230,11 @@ function Convert-ValueToTableString {
         return (Convert-CellValueToString -Value $Value)
     }
 
-    return (($rows | Format-Table -AutoSize | Out-String).TrimEnd())
-}
+    $allColumns = @($rows[0].PSObject.Properties.Name)
+    $displayColumns = Get-DisplayColumnsForTable -Columns $allColumns
 
-function Convert-ValueToString {
-    param(
-        [Parameter(Mandatory = $false)]$Value,
-        [Parameter(Mandatory = $false)][string]$Tag
-    )
-
-    if ($null -eq $Value) { return '' }
-
-    $rows = @()
-    if ($Value -is [System.Collections.IList]) {
-        foreach ($item in $Value) {
-            if ($item -is [hashtable]) {
-                $row = [ordered]@{}
-                foreach ($key in $item.Keys) {
-                    $row[[string]$key] = Convert-CellValueToString -Value $item[$key]
-                }
-                $rows += [pscustomobject]$row
-            }
-            else {
-                $rows += [pscustomobject]([ordered]@{ value = Convert-CellValueToString -Value $item })
-            }
-        }
-    }
-    elseif ($Value -is [hashtable]) {
-        $row = [ordered]@{}
-        foreach ($key in $Value.Keys) {
-            $row[[string]$key] = Convert-CellValueToString -Value $Value[$key]
-        }
-        $rows = @([pscustomobject]$row)
-    }
-
-    if (@($rows).Count -eq 0) {
-        return (Convert-CellValueToString -Value $Value)
+    if (@($displayColumns).Count -gt 0) {
+        return (($rows | Select-Object -Property $displayColumns | Format-Table -AutoSize | Out-String).TrimEnd())
     }
 
     return (($rows | Format-Table -AutoSize | Out-String).TrimEnd())
