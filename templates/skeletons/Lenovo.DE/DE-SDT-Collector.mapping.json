@@ -2,7 +2,7 @@
   "schema": "mapping.dataset-to-sdt",
   "schemaVersion": 1,
   "techId": "Lenovo.DE",
-  "displayName": "Lenovo DE collector summary mapping",
+  "displayName": "Lenovo DE collector blueprint mapping",
   "compatibility": {
     "contracts": {
       "version": "v1"
@@ -15,51 +15,1483 @@
   "mappings": [
     {
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
+      "sdtTag": "DE_SYSTEM_ID",
+      "required": true,
+      "selectors": [
+        "items.0.id"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
       "sdtTag": "DE_SYSTEM_NAME",
       "required": true,
-      "selectors": ["items.0.name"]
+      "selectors": [
+        "items.0.name"
+      ]
     },
     {
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
       "sdtTag": "DE_SYSTEM_MODEL",
       "required": true,
-      "selectors": ["items.0.model"]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
-      "sdtTag": "DE_FIRMWARE_VERSION",
-      "required": true,
-      "selectors": ["items.0.fwVersion"]
+      "selectors": [
+        "items.0.model"
+      ]
     },
     {
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
       "sdtTag": "DE_SYSTEM_STATUS",
       "required": true,
-      "selectors": ["items.0.status"]
+      "selectors": [
+        "items.0.status"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
+      "sdtTag": "DE_FIRMWARE_VERSION",
+      "required": true,
+      "selectors": [
+        "items.0.fwVersion"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
+      "sdtTag": "DE_APP_VERSION",
+      "required": true,
+      "selectors": [
+        "items.0.appVersion"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
+      "sdtTag": "DE_BOOT_VERSION",
+      "required": true,
+      "selectors": [
+        "items.0.bootVersion"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
+      "sdtTag": "DE_NVSRAM_VERSION",
+      "required": true,
+      "selectors": [
+        "items.0.nvsramVersion"
+      ]
     },
     {
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
       "sdtTag": "DE_MANAGEMENT_IP",
       "required": true,
-      "selectors": ["items.0.ip2"]
+      "selectors": [
+        "items.0.ip2"
+      ]
     },
     {
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
       "sdtTag": "DE_DRIVE_COUNT",
       "required": true,
-      "selectors": ["items.0.driveCount"]
+      "selectors": [
+        "items.0.driveCount"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/storage-containers.json",
+      "sdtTag": "DE_CONTAINER_COUNT",
+      "required": true,
+      "selectors": [
+        "item_count"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/volumes.json",
+      "sdtTag": "DE_VOLUME_COUNT",
+      "required": true,
+      "selectors": [
+        "item_count"
+      ]
     },
     {
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
-      "sdtTag": "DE_TRAY_COUNT",
+      "sdtTag": "DE_SYSTEMS_TABLE_JSON",
       "required": true,
-      "selectors": ["items.0.trayCount"]
+      "selectors": [
+        "items"
+      ]
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
-      "sdtTag": "DE_BOOT_TIME",
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/drives.json",
+      "sdtTag": "DE_DRIVES_TABLE_JSON",
       "required": true,
-      "selectors": ["items.0.bootTime"]
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/storage-containers.json",
+      "sdtTag": "DE_STORAGE_CONTAINERS_TABLE_JSON",
+      "required": true,
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/volumes.json",
+      "sdtTag": "DE_VOLUMES_TABLE_JSON",
+      "required": true,
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json",
+      "sdtTag": "DE_CONTROLLER_A_LABEL",
+      "required": true,
+      "selectors": [
+        "items.0.controllerLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json",
+      "sdtTag": "DE_CONTROLLER_A_SLOT",
+      "required": true,
+      "selectors": [
+        "items.0.controllerSlot"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json",
+      "sdtTag": "DE_CONTROLLER_A_STATUS",
+      "required": true,
+      "selectors": [
+        "items.0.status"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json",
+      "sdtTag": "DE_CONTROLLER_A_APP",
+      "required": true,
+      "selectors": [
+        "items.0.appVersion"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json",
+      "sdtTag": "DE_CONTROLLER_A_BOOT",
+      "required": true,
+      "selectors": [
+        "items.0.bootVersion"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json",
+      "sdtTag": "DE_CONTROLLER_A_SERIAL",
+      "required": true,
+      "selectors": [
+        "items.0.serialNumber"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json",
+      "sdtTag": "DE_CONTROLLER_B_LABEL",
+      "required": true,
+      "selectors": [
+        "items.1.controllerLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json",
+      "sdtTag": "DE_CONTROLLER_B_SLOT",
+      "required": true,
+      "selectors": [
+        "items.1.controllerSlot"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json",
+      "sdtTag": "DE_CONTROLLER_B_STATUS",
+      "required": true,
+      "selectors": [
+        "items.1.status"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json",
+      "sdtTag": "DE_CONTROLLER_B_APP",
+      "required": true,
+      "selectors": [
+        "items.1.appVersion"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json",
+      "sdtTag": "DE_CONTROLLER_B_BOOT",
+      "required": true,
+      "selectors": [
+        "items.1.bootVersion"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json",
+      "sdtTag": "DE_CONTROLLER_B_SERIAL",
+      "required": true,
+      "selectors": [
+        "items.1.serialNumber"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/trays.json",
+      "sdtTag": "DE_TRAYS_TABLE_JSON",
+      "required": true,
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/transport.json",
+      "sdtTag": "DE_TRANSPORT_SYSTEM_ID",
+      "required": true,
+      "selectors": [
+        "items.0.systemId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/transport.json",
+      "sdtTag": "DE_TRANSPORT_ACTIVE",
+      "required": true,
+      "selectors": [
+        "items.0.activeTransport"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/transport.json",
+      "sdtTag": "DE_TRANSPORT_ISCSI_IQN",
+      "required": true,
+      "selectors": [
+        "items.0.iscsiIqn"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "sdtTag": "DE_MGMT_1_CONTROLLER_LABEL",
+      "required": true,
+      "selectors": [
+        "items.0.controllerLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "sdtTag": "DE_MGMT_1_CONTROLLER_SLOT",
+      "required": true,
+      "selectors": [
+        "items.0.controllerSlot"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "sdtTag": "DE_MGMT_1_PORT_LABEL",
+      "required": true,
+      "selectors": [
+        "items.0.portLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "sdtTag": "DE_MGMT_1_INTERFACE_NAME",
+      "required": true,
+      "selectors": [
+        "items.0.interfaceName"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "sdtTag": "DE_MGMT_1_LINK_STATUS",
+      "required": true,
+      "selectors": [
+        "items.0.linkStatus"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "sdtTag": "DE_MGMT_1_IPV4_ADDRESS",
+      "required": true,
+      "selectors": [
+        "items.0.ipv4Address"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "sdtTag": "DE_MGMT_1_IPV4_SUBNET_MASK",
+      "required": true,
+      "selectors": [
+        "items.0.ipv4SubnetMask"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "sdtTag": "DE_MGMT_2_CONTROLLER_LABEL",
+      "required": true,
+      "selectors": [
+        "items.1.controllerLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "sdtTag": "DE_MGMT_2_CONTROLLER_SLOT",
+      "required": true,
+      "selectors": [
+        "items.1.controllerSlot"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "sdtTag": "DE_MGMT_2_PORT_LABEL",
+      "required": true,
+      "selectors": [
+        "items.1.portLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "sdtTag": "DE_MGMT_2_INTERFACE_NAME",
+      "required": true,
+      "selectors": [
+        "items.1.interfaceName"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "sdtTag": "DE_MGMT_2_LINK_STATUS",
+      "required": true,
+      "selectors": [
+        "items.1.linkStatus"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "sdtTag": "DE_MGMT_2_IPV4_ADDRESS",
+      "required": true,
+      "selectors": [
+        "items.1.ipv4Address"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "sdtTag": "DE_MGMT_2_IPV4_SUBNET_MASK",
+      "required": true,
+      "selectors": [
+        "items.1.ipv4SubnetMask"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_1_TRAY_ID",
+      "required": true,
+      "selectors": [
+        "items.0.trayId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_1_CONTROLLER_LABEL",
+      "required": true,
+      "selectors": [
+        "items.0.controllerLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_1_CONTROLLER_SLOT",
+      "required": true,
+      "selectors": [
+        "items.0.controllerSlot"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_1_PORT_LABEL",
+      "required": true,
+      "selectors": [
+        "items.0.portLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_1_CHANNEL",
+      "required": true,
+      "selectors": [
+        "items.0.channel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_1_IPV4_ADDRESS",
+      "required": true,
+      "selectors": [
+        "items.0.ipv4Address"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_1_IPV4_SUBNET_MASK",
+      "required": true,
+      "selectors": [
+        "items.0.ipv4SubnetMask"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_1_IPV4_GATEWAY",
+      "required": true,
+      "selectors": [
+        "items.0.ipv4Gateway"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_1_VLAN_ENABLED",
+      "required": true,
+      "selectors": [
+        "items.0.vlanEnabled"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_1_VLAN_ID",
+      "required": true,
+      "selectors": [
+        "items.0.vlanId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_2_TRAY_ID",
+      "required": true,
+      "selectors": [
+        "items.1.trayId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_2_CONTROLLER_LABEL",
+      "required": true,
+      "selectors": [
+        "items.1.controllerLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_2_CONTROLLER_SLOT",
+      "required": true,
+      "selectors": [
+        "items.1.controllerSlot"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_2_PORT_LABEL",
+      "required": true,
+      "selectors": [
+        "items.1.portLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_2_CHANNEL",
+      "required": true,
+      "selectors": [
+        "items.1.channel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_2_IPV4_ADDRESS",
+      "required": true,
+      "selectors": [
+        "items.1.ipv4Address"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_2_IPV4_SUBNET_MASK",
+      "required": true,
+      "selectors": [
+        "items.1.ipv4SubnetMask"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_2_IPV4_GATEWAY",
+      "required": true,
+      "selectors": [
+        "items.1.ipv4Gateway"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_2_VLAN_ENABLED",
+      "required": true,
+      "selectors": [
+        "items.1.vlanEnabled"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_2_VLAN_ID",
+      "required": true,
+      "selectors": [
+        "items.1.vlanId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_3_TRAY_ID",
+      "required": true,
+      "selectors": [
+        "items.2.trayId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_3_CONTROLLER_LABEL",
+      "required": true,
+      "selectors": [
+        "items.2.controllerLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_3_CONTROLLER_SLOT",
+      "required": true,
+      "selectors": [
+        "items.2.controllerSlot"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_3_PORT_LABEL",
+      "required": true,
+      "selectors": [
+        "items.2.portLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_3_CHANNEL",
+      "required": true,
+      "selectors": [
+        "items.2.channel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_3_IPV4_ADDRESS",
+      "required": true,
+      "selectors": [
+        "items.2.ipv4Address"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_3_IPV4_SUBNET_MASK",
+      "required": true,
+      "selectors": [
+        "items.2.ipv4SubnetMask"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_3_IPV4_GATEWAY",
+      "required": true,
+      "selectors": [
+        "items.2.ipv4Gateway"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_3_VLAN_ENABLED",
+      "required": true,
+      "selectors": [
+        "items.2.vlanEnabled"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_3_VLAN_ID",
+      "required": true,
+      "selectors": [
+        "items.2.vlanId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_4_TRAY_ID",
+      "required": true,
+      "selectors": [
+        "items.3.trayId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_4_CONTROLLER_LABEL",
+      "required": true,
+      "selectors": [
+        "items.3.controllerLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_4_CONTROLLER_SLOT",
+      "required": true,
+      "selectors": [
+        "items.3.controllerSlot"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_4_PORT_LABEL",
+      "required": true,
+      "selectors": [
+        "items.3.portLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_4_CHANNEL",
+      "required": true,
+      "selectors": [
+        "items.3.channel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_4_IPV4_ADDRESS",
+      "required": true,
+      "selectors": [
+        "items.3.ipv4Address"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_4_IPV4_SUBNET_MASK",
+      "required": true,
+      "selectors": [
+        "items.3.ipv4SubnetMask"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_4_IPV4_GATEWAY",
+      "required": true,
+      "selectors": [
+        "items.3.ipv4Gateway"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_4_VLAN_ENABLED",
+      "required": true,
+      "selectors": [
+        "items.3.vlanEnabled"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_4_VLAN_ID",
+      "required": true,
+      "selectors": [
+        "items.3.vlanId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_5_TRAY_ID",
+      "required": true,
+      "selectors": [
+        "items.4.trayId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_5_CONTROLLER_LABEL",
+      "required": true,
+      "selectors": [
+        "items.4.controllerLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_5_CONTROLLER_SLOT",
+      "required": true,
+      "selectors": [
+        "items.4.controllerSlot"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_5_PORT_LABEL",
+      "required": true,
+      "selectors": [
+        "items.4.portLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_5_CHANNEL",
+      "required": true,
+      "selectors": [
+        "items.4.channel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_5_IPV4_ADDRESS",
+      "required": true,
+      "selectors": [
+        "items.4.ipv4Address"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_5_IPV4_SUBNET_MASK",
+      "required": true,
+      "selectors": [
+        "items.4.ipv4SubnetMask"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_5_IPV4_GATEWAY",
+      "required": true,
+      "selectors": [
+        "items.4.ipv4Gateway"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_5_VLAN_ENABLED",
+      "required": true,
+      "selectors": [
+        "items.4.vlanEnabled"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_5_VLAN_ID",
+      "required": true,
+      "selectors": [
+        "items.4.vlanId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_6_TRAY_ID",
+      "required": true,
+      "selectors": [
+        "items.5.trayId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_6_CONTROLLER_LABEL",
+      "required": true,
+      "selectors": [
+        "items.5.controllerLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_6_CONTROLLER_SLOT",
+      "required": true,
+      "selectors": [
+        "items.5.controllerSlot"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_6_PORT_LABEL",
+      "required": true,
+      "selectors": [
+        "items.5.portLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_6_CHANNEL",
+      "required": true,
+      "selectors": [
+        "items.5.channel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_6_IPV4_ADDRESS",
+      "required": true,
+      "selectors": [
+        "items.5.ipv4Address"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_6_IPV4_SUBNET_MASK",
+      "required": true,
+      "selectors": [
+        "items.5.ipv4SubnetMask"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_6_IPV4_GATEWAY",
+      "required": true,
+      "selectors": [
+        "items.5.ipv4Gateway"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_6_VLAN_ENABLED",
+      "required": true,
+      "selectors": [
+        "items.5.vlanEnabled"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_6_VLAN_ID",
+      "required": true,
+      "selectors": [
+        "items.5.vlanId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_7_TRAY_ID",
+      "required": true,
+      "selectors": [
+        "items.6.trayId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_7_CONTROLLER_LABEL",
+      "required": true,
+      "selectors": [
+        "items.6.controllerLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_7_CONTROLLER_SLOT",
+      "required": true,
+      "selectors": [
+        "items.6.controllerSlot"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_7_PORT_LABEL",
+      "required": true,
+      "selectors": [
+        "items.6.portLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_7_CHANNEL",
+      "required": true,
+      "selectors": [
+        "items.6.channel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_7_IPV4_ADDRESS",
+      "required": true,
+      "selectors": [
+        "items.6.ipv4Address"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_7_IPV4_SUBNET_MASK",
+      "required": true,
+      "selectors": [
+        "items.6.ipv4SubnetMask"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_7_IPV4_GATEWAY",
+      "required": true,
+      "selectors": [
+        "items.6.ipv4Gateway"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_7_VLAN_ENABLED",
+      "required": true,
+      "selectors": [
+        "items.6.vlanEnabled"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_7_VLAN_ID",
+      "required": true,
+      "selectors": [
+        "items.6.vlanId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_8_TRAY_ID",
+      "required": true,
+      "selectors": [
+        "items.7.trayId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_8_CONTROLLER_LABEL",
+      "required": true,
+      "selectors": [
+        "items.7.controllerLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_8_CONTROLLER_SLOT",
+      "required": true,
+      "selectors": [
+        "items.7.controllerSlot"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_8_PORT_LABEL",
+      "required": true,
+      "selectors": [
+        "items.7.portLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_8_CHANNEL",
+      "required": true,
+      "selectors": [
+        "items.7.channel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_8_IPV4_ADDRESS",
+      "required": true,
+      "selectors": [
+        "items.7.ipv4Address"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_8_IPV4_SUBNET_MASK",
+      "required": true,
+      "selectors": [
+        "items.7.ipv4SubnetMask"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_8_IPV4_GATEWAY",
+      "required": true,
+      "selectors": [
+        "items.7.ipv4Gateway"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_8_VLAN_ENABLED",
+      "required": true,
+      "selectors": [
+        "items.7.vlanEnabled"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_8_VLAN_ID",
+      "required": true,
+      "selectors": [
+        "items.7.vlanId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_9_TRAY_ID",
+      "required": true,
+      "selectors": [
+        "items.8.trayId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_9_CONTROLLER_LABEL",
+      "required": true,
+      "selectors": [
+        "items.8.controllerLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_9_CONTROLLER_SLOT",
+      "required": true,
+      "selectors": [
+        "items.8.controllerSlot"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_9_PORT_LABEL",
+      "required": true,
+      "selectors": [
+        "items.8.portLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_9_CHANNEL",
+      "required": true,
+      "selectors": [
+        "items.8.channel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_9_IPV4_ADDRESS",
+      "required": true,
+      "selectors": [
+        "items.8.ipv4Address"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_9_IPV4_SUBNET_MASK",
+      "required": true,
+      "selectors": [
+        "items.8.ipv4SubnetMask"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_9_IPV4_GATEWAY",
+      "required": true,
+      "selectors": [
+        "items.8.ipv4Gateway"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_9_VLAN_ENABLED",
+      "required": true,
+      "selectors": [
+        "items.8.vlanEnabled"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_9_VLAN_ID",
+      "required": true,
+      "selectors": [
+        "items.8.vlanId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_10_TRAY_ID",
+      "required": true,
+      "selectors": [
+        "items.9.trayId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_10_CONTROLLER_LABEL",
+      "required": true,
+      "selectors": [
+        "items.9.controllerLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_10_CONTROLLER_SLOT",
+      "required": true,
+      "selectors": [
+        "items.9.controllerSlot"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_10_PORT_LABEL",
+      "required": true,
+      "selectors": [
+        "items.9.portLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_10_CHANNEL",
+      "required": true,
+      "selectors": [
+        "items.9.channel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_10_IPV4_ADDRESS",
+      "required": true,
+      "selectors": [
+        "items.9.ipv4Address"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_10_IPV4_SUBNET_MASK",
+      "required": true,
+      "selectors": [
+        "items.9.ipv4SubnetMask"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_10_IPV4_GATEWAY",
+      "required": true,
+      "selectors": [
+        "items.9.ipv4Gateway"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_10_VLAN_ENABLED",
+      "required": true,
+      "selectors": [
+        "items.9.vlanEnabled"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_10_VLAN_ID",
+      "required": true,
+      "selectors": [
+        "items.9.vlanId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_11_TRAY_ID",
+      "required": true,
+      "selectors": [
+        "items.10.trayId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_11_CONTROLLER_LABEL",
+      "required": true,
+      "selectors": [
+        "items.10.controllerLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_11_CONTROLLER_SLOT",
+      "required": true,
+      "selectors": [
+        "items.10.controllerSlot"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_11_PORT_LABEL",
+      "required": true,
+      "selectors": [
+        "items.10.portLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_11_CHANNEL",
+      "required": true,
+      "selectors": [
+        "items.10.channel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_11_IPV4_ADDRESS",
+      "required": true,
+      "selectors": [
+        "items.10.ipv4Address"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_11_IPV4_SUBNET_MASK",
+      "required": true,
+      "selectors": [
+        "items.10.ipv4SubnetMask"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_11_IPV4_GATEWAY",
+      "required": true,
+      "selectors": [
+        "items.10.ipv4Gateway"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_11_VLAN_ENABLED",
+      "required": true,
+      "selectors": [
+        "items.10.vlanEnabled"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_11_VLAN_ID",
+      "required": true,
+      "selectors": [
+        "items.10.vlanId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_12_TRAY_ID",
+      "required": true,
+      "selectors": [
+        "items.11.trayId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_12_CONTROLLER_LABEL",
+      "required": true,
+      "selectors": [
+        "items.11.controllerLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_12_CONTROLLER_SLOT",
+      "required": true,
+      "selectors": [
+        "items.11.controllerSlot"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_12_PORT_LABEL",
+      "required": true,
+      "selectors": [
+        "items.11.portLabel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_12_CHANNEL",
+      "required": true,
+      "selectors": [
+        "items.11.channel"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_12_IPV4_ADDRESS",
+      "required": true,
+      "selectors": [
+        "items.11.ipv4Address"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_12_IPV4_SUBNET_MASK",
+      "required": true,
+      "selectors": [
+        "items.11.ipv4SubnetMask"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_12_IPV4_GATEWAY",
+      "required": true,
+      "selectors": [
+        "items.11.ipv4Gateway"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_12_VLAN_ENABLED",
+      "required": true,
+      "selectors": [
+        "items.11.vlanEnabled"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "sdtTag": "DE_HOSTPORT_12_VLAN_ID",
+      "required": true,
+      "selectors": [
+        "items.11.vlanId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "sdtTag": "DE_SYSTIME_1_SYSTEM_ID",
+      "required": true,
+      "selectors": [
+        "items.0.systemId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "sdtTag": "DE_SYSTIME_1_NTP_ACQ_TYPE",
+      "required": true,
+      "selectors": [
+        "items.0.ntpAcquisitionType"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "sdtTag": "DE_SYSTIME_1_NTP_SERVERS",
+      "required": true,
+      "selectors": [
+        "items.0.ntpServers"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "sdtTag": "DE_SYSTIME_1_DHCP_ACQUIRED_SERVERS",
+      "required": true,
+      "selectors": [
+        "items.0.dhcpAcquiredServers"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "sdtTag": "DE_SYSTIME_1_IPV4_DEFAULT_ROUTER",
+      "required": true,
+      "selectors": [
+        "items.0.ipv4DefaultRouter"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "sdtTag": "DE_SYSDNS_1_SYSTEM_ID",
+      "required": true,
+      "selectors": [
+        "items.0.systemId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "sdtTag": "DE_SYSDNS_1_DNS_ACQ_TYPE",
+      "required": true,
+      "selectors": [
+        "items.0.dnsAcquisitionType"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "sdtTag": "DE_SYSDNS_1_DNS_SERVERS",
+      "required": true,
+      "selectors": [
+        "items.0.dnsServers"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "sdtTag": "DE_SYSDNS_1_DHCP_ACQUIRED_SERVERS",
+      "required": true,
+      "selectors": [
+        "items.0.dhcpAcquiredServers"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "sdtTag": "DE_SYSTIME_2_SYSTEM_ID",
+      "required": true,
+      "selectors": [
+        "items.1.systemId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "sdtTag": "DE_SYSTIME_2_NTP_ACQ_TYPE",
+      "required": true,
+      "selectors": [
+        "items.1.ntpAcquisitionType"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "sdtTag": "DE_SYSTIME_2_NTP_SERVERS",
+      "required": true,
+      "selectors": [
+        "items.1.ntpServers"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "sdtTag": "DE_SYSTIME_2_DHCP_ACQUIRED_SERVERS",
+      "required": true,
+      "selectors": [
+        "items.1.dhcpAcquiredServers"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "sdtTag": "DE_SYSTIME_2_IPV4_DEFAULT_ROUTER",
+      "required": true,
+      "selectors": [
+        "items.1.ipv4DefaultRouter"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "sdtTag": "DE_SYSDNS_2_SYSTEM_ID",
+      "required": true,
+      "selectors": [
+        "items.1.systemId"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "sdtTag": "DE_SYSDNS_2_DNS_ACQ_TYPE",
+      "required": true,
+      "selectors": [
+        "items.1.dnsAcquisitionType"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "sdtTag": "DE_SYSDNS_2_DNS_SERVERS",
+      "required": true,
+      "selectors": [
+        "items.1.dnsServers"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "sdtTag": "DE_SYSDNS_2_DHCP_ACQUIRED_SERVERS",
+      "required": true,
+      "selectors": [
+        "items.1.dhcpAcquiredServers"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/system_1_DE4200_Rack4/system-asup.json",
+      "sdtTag": "DE_SYSTEM_ASUP_TABLE_JSON",
+      "required": true,
+      "selectors": [
+        "items"
+      ]
     }
   ]
 }

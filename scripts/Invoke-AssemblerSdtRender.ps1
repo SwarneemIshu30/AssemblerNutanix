@@ -144,6 +144,60 @@ function Resolve-Selector {
     return $current
 }
 
+
+function Resolve-DatasetFilePath {
+    param(
+        [Parameter(Mandatory = $true)][string]$BundleRoot,
+        [Parameter(Mandatory = $true)][string]$DatasetRelativePath,
+        [Parameter(Mandatory = $false)][string]$TechId
+    )
+
+    $exactPath = Join-Path $BundleRoot $DatasetRelativePath
+    if (Test-Path -LiteralPath $exactPath -PathType Leaf) {
+        return [ordered]@{ path = $exactPath; autoResolved = $false; reason = $null }
+    }
+
+    $leafName = [System.IO.Path]::GetFileName($DatasetRelativePath)
+    if ([string]::IsNullOrWhiteSpace($leafName)) {
+        return [ordered]@{ path = $exactPath; autoResolved = $false; reason = 'missing leaf filename in dataset path' }
+    }
+
+    $searchRoot = if (-not [string]::IsNullOrWhiteSpace($TechId)) {
+        Join-Path (Join-Path $BundleRoot 'datasets') $TechId
+    }
+    else {
+        Join-Path $BundleRoot 'datasets'
+    }
+
+    if (-not (Test-Path -LiteralPath $searchRoot -PathType Container)) {
+        return [ordered]@{ path = $exactPath; autoResolved = $false; reason = "search root '$searchRoot' does not exist" }
+    }
+
+    $matches = @(
+        Get-ChildItem -LiteralPath $searchRoot -Recurse -File -Filter $leafName -ErrorAction SilentlyContinue |
+            Select-Object -ExpandProperty FullName
+    )
+
+    if (@($matches).Count -eq 0) {
+        return [ordered]@{ path = $exactPath; autoResolved = $false; reason = "no '$leafName' found under '$searchRoot'" }
+    }
+
+    $normalizedRelative = $DatasetRelativePath.Replace('\', '/').ToLowerInvariant()
+    $sorted = @(
+        $matches |
+            Sort-Object -Property @{ Expression = {
+                $candidate = [string]$_
+                $candidateNorm = $candidate.Replace('\', '/').ToLowerInvariant()
+                if ($candidateNorm.EndsWith($normalizedRelative)) { return 0 }
+                if ($candidateNorm.Contains('/_multi/')) { return 1 }
+                return 2
+            } }, @{ Expression = { [string]$_ } }
+    )
+
+    $selected = [string]$sorted[0]
+    return [ordered]@{ path = $selected; autoResolved = $true; reason = "resolved missing dataset path '$DatasetRelativePath' to '$selected' from $(@($matches).Count) candidate(s)" }
+}
+
 function Convert-ValueToString {
     param([Parameter(Mandatory = $false)]$Value)
 
@@ -164,6 +218,7 @@ $startedUtc = Get-UtcTimestamp
 $issues = [System.Collections.Generic.List[hashtable]]::new()
 $stageList = [System.Collections.Generic.List[hashtable]]::new()
 $outputs = [System.Collections.Generic.List[hashtable]]::new()
+$matches = [System.Collections.Generic.List[hashtable]]::new()
 $status = 'OK'
 $bundleId = $null
 
@@ -209,12 +264,16 @@ try {
             continue
         }
 
-        $datasetPath = Join-Path $BundleRoot ([string]$entry.dataset)
+        $datasetResolution = Resolve-DatasetFilePath -BundleRoot $BundleRoot -DatasetRelativePath ([string]$entry.dataset) -TechId ([string]$mapping.techId)
+        $datasetPath = [string]$datasetResolution.path
         if (-not (Test-Path -LiteralPath $datasetPath -PathType Leaf)) {
             $severity = if ($entry.required) { 'ERROR' } else { 'WARN' }
             $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-DATASET-MISSING'; severity = $severity; message = "Dataset '$($entry.dataset)' not found for tag '$tag'"; path = $datasetPath })
             if ($severity -eq 'ERROR') { $status = 'ERROR' }
             continue
+        }
+        if ($datasetResolution.autoResolved) {
+            $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-DATASET-AUTORESOLVED'; severity = 'WARN'; message = [string]$datasetResolution.reason; path = $datasetPath })
         }
 
         $dataset = Read-JsonFile -Path $datasetPath
@@ -239,7 +298,10 @@ try {
             continue
         }
 
-        $replaceByTag[$tag] = Convert-ValueToString -Value $resolved
+        $resolvedText = Convert-ValueToString -Value $resolved
+        $replaceByTag[$tag] = $resolvedText
+        $valuePreview = if ($resolvedText.Length -gt 80) { $resolvedText.Substring(0, 80) + '...' } else { $resolvedText }
+        $matches.Add([ordered]@{ tag = $tag; dataset = [string]$entry.dataset; selector = if (@($selectors).Count -gt 0) { [string]$selectors[0] } else { '' }; valuePreview = $valuePreview })
     }
 
     $renderStart = Get-UtcTimestamp
@@ -278,6 +340,7 @@ $report = [ordered]@{
     bundleId = $bundleId
     stages = $stageList
     issues = $issues
+    matches = $matches
     outputs = $outputs
 }
 
