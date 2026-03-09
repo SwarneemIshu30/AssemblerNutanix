@@ -1,2 +1,0 @@
-"systemId","asupCapable","onDemandCapable","asupEnabled","onDemandEnabled","remoteDiagsEnabled","deliveryMethod","routingType","proxyHost","proxyPort","proxyScript","mailRelayServer","mailSenderAddress","destinationAddressList","maxSizeLimitHttps","maxSizeLimitSmtp"
-"1","True","True","True","True","True","https","direct",,,,,,"System.Object[]","52428800","5242880"
