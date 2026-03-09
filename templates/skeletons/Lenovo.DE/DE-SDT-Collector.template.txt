@@ -1,6 +1,6 @@
 Mode: Blueprint
 
-# System: <<SDT:DE_SYSTEM_NAME>> (<<SDT:DE_SYSTEM_ID>>)
+# System: <<SDT:DE_SYSTEM_NAME>>
 ------------------------------------------------------------------------------------------
 
 Summary
@@ -18,6 +18,13 @@ Drives     : <<SDT:DE_DRIVE_COUNT>>
 Containers : <<SDT:DE_CONTAINER_COUNT>>
 Volumes    : <<SDT:DE_VOLUME_COUNT>>
 
+Collection
+------------------------------------------------------------------------------------------
+
+Collected UTC : <<SDT:DE_COLLECTION_COLLECTED_UTC>>
+Mode          : <<SDT:DE_COLLECTION_MODE>>
+Controller    : <<SDT:DE_COLLECTION_CONTROLLER>>:<<SDT:DE_COLLECTION_PORT>>
+System Count  : <<SDT:DE_COLLECTION_SYSTEM_COUNT>>
 
 Tables.Systems
 ------------------------------------------------------------------------------------------
@@ -134,15 +141,4 @@ Tables.SystemASUP
 Findings
 ------------------------------------------------------------------------------------------
 
-[INFO] ----------------------------------------------------------------------
-- HEALTH.SYSTEM.STATUS :: System status snapshot
-  System '<<SDT:DE_SYSTEM_NAME>>' reports status '<<SDT:DE_SYSTEM_STATUS>>'.
-- INVENTORY.COUNTS :: Collector inventory snapshot
-  Drives: <<SDT:DE_DRIVE_COUNT>>, Containers: <<SDT:DE_CONTAINER_COUNT>>, Volumes: <<SDT:DE_VOLUME_COUNT>>.
-- TRANSPORT.ACTIVE :: Active host transport
-  Active transport is '<<SDT:DE_TRANSPORT_ACTIVE>>' with iSCSI IQN '<<SDT:DE_TRANSPORT_ISCSI_IQN>>'.
-
-[WARNING] ----------------------------------------------------------------------
-- FINDINGS.RULE_ENGINE.NOT_INCLUDED :: Rule-engine findings not yet wired
-  This skeleton includes collector blueprint data, but rule-evaluated warning/finding objects are not currently emitted by the collector datasets consumed here.
-
+<<SDT:DE_COLLECTOR_FINDINGS>>
