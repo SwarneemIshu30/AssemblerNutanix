@@ -201,6 +201,7 @@ try {
 
         $json = & $invokeRenderScript -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $effectiveContractsRoot
 
+        $rendererReport = $null
         $runStatus = 'OK'
         try {
             $rendererReport = $json | ConvertFrom-Json -AsHashtable
@@ -222,7 +223,8 @@ try {
             status = $runStatus
             outputPath = $outputPath
             reportPath = $reportPath
-            rendererOutputJson = $json
+            rendererOutput = $rendererReport
+            rendererOutputRaw = $json
         })
     }
 }
