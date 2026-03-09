@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "status": "ERROR",
+  "startedUtc": "2026-03-09T06:49:05.3868199Z",
+  "completedUtc": "2026-03-09T06:49:05.4364683Z",
+  "bundleRoot": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\bundle",
+  "catalogPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Dummy.catalog.json",
+  "outputRoot": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out",
+  "runs": [],
+  "issues": [
+    {
+      "severity": "ERROR",
+      "path": null,
+      "message": "Cannot find path 'C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts' because it does not exist.",
+      "code": "ASB-ASM-BUNDLE-UNHANDLED"
+    }
+  ]
+}
