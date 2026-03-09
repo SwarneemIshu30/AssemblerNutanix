@@ -18,6 +18,13 @@ Drives     : <<SDT:DE_DRIVE_COUNT>>
 Containers : <<SDT:DE_CONTAINER_COUNT>>
 Volumes    : <<SDT:DE_VOLUME_COUNT>>
 
+Collection
+------------------------------------------------------------------------------------------
+
+Collected UTC : <<SDT:DE_COLLECTION_COLLECTED_UTC>>
+Mode          : <<SDT:DE_COLLECTION_MODE>>
+Controller    : <<SDT:DE_COLLECTION_CONTROLLER>>:<<SDT:DE_COLLECTION_PORT>>
+System Count  : <<SDT:DE_COLLECTION_SYSTEM_COUNT>>
 
 Tables.Systems
 ------------------------------------------------------------------------------------------
@@ -134,15 +141,13 @@ Tables.SystemASUP
 Findings
 ------------------------------------------------------------------------------------------
 
-[INFO] ----------------------------------------------------------------------
-- HEALTH.SYSTEM.STATUS :: System status snapshot
-  System '<<SDT:DE_SYSTEM_NAME>>' reports status '<<SDT:DE_SYSTEM_STATUS>>'.
-- INVENTORY.COUNTS :: Collector inventory snapshot
-  Drives: <<SDT:DE_DRIVE_COUNT>>, Containers: <<SDT:DE_CONTAINER_COUNT>>, Volumes: <<SDT:DE_VOLUME_COUNT>>.
-- TRANSPORT.ACTIVE :: Active host transport
-  Active transport is '<<SDT:DE_TRANSPORT_ACTIVE>>' with iSCSI IQN '<<SDT:DE_TRANSPORT_ISCSI_IQN>>'.
+Source: collector datasets in bundle + render-time mapping checks.
 
-[WARNING] ----------------------------------------------------------------------
-- FINDINGS.RULE_ENGINE.NOT_INCLUDED :: Rule-engine findings not yet wired
-  This skeleton includes collector blueprint data, but rule-evaluated warning/finding objects are not currently emitted by the collector datasets consumed here.
+Collector info:
+- System '<<SDT:DE_SYSTEM_NAME>>' status: <<SDT:DE_SYSTEM_STATUS>>
+- Inventory counts: drives=<<SDT:DE_DRIVE_COUNT>>, containers=<<SDT:DE_CONTAINER_COUNT>>, volumes=<<SDT:DE_VOLUME_COUNT>>
+- Active transport: <<SDT:DE_TRANSPORT_ACTIVE>> (IQN: <<SDT:DE_TRANSPORT_ISCSI_IQN>>)
+
+Note: no collector-provided findings/alerts dataset is currently mapped in this skeleton.
+Any unresolved placeholders or selector errors are emitted by the renderer report JSON.
 

@@ -146,6 +146,75 @@ function Format-MatchedTagsSummary {
     return (($lines -join [Environment]::NewLine) + [Environment]::NewLine)
 }
 
+function Format-RenderFindingsSummary {
+    param([Parameter(Mandatory = $true)][string]$BundleResultJson)
+
+    try {
+        $bundleReport = $BundleResultJson | ConvertFrom-Json -AsHashtable
+    }
+    catch {
+        return 'Findings summary unavailable: unable to parse render output JSON.'
+    }
+
+    $runCount = @($bundleReport.runs).Count
+    $totalMatches = 0
+    $issueCounts = @{}
+
+    foreach ($run in @($bundleReport.runs)) {
+        if ($run.ContainsKey('rendererOutput') -and $null -ne $run.rendererOutput) {
+            if ($run.rendererOutput.ContainsKey('matches')) {
+                $totalMatches += @($run.rendererOutput.matches).Count
+            }
+
+            if ($run.rendererOutput.ContainsKey('issues')) {
+                foreach ($issue in @($run.rendererOutput.issues)) {
+                    $severity = [string]$issue.severity
+                    if ([string]::IsNullOrWhiteSpace($severity)) { $severity = 'UNKNOWN' }
+                    if (-not $issueCounts.ContainsKey($severity)) { $issueCounts[$severity] = 0 }
+                    $issueCounts[$severity]++
+                }
+            }
+        }
+    }
+
+    $summaryLines = [System.Collections.Generic.List[string]]::new()
+    $summaryLines.Add('Findings summary:')
+    $summaryLines.Add("  Overall status: $($bundleReport.status)")
+    $summaryLines.Add("  Runs: $runCount")
+    $summaryLines.Add("  Matched tags: $totalMatches")
+
+    if ($issueCounts.Count -eq 0) {
+        $summaryLines.Add('  Issues: none')
+    }
+    else {
+        $issueSegments = @($issueCounts.Keys | Sort-Object | ForEach-Object { "$_=$($issueCounts[$_])" })
+        $summaryLines.Add("  Issues by severity: $($issueSegments -join ', ')")
+    }
+
+    return ($summaryLines -join [Environment]::NewLine)
+}
+
+function Format-VerboseBundleOutput {
+    param([Parameter(Mandatory = $true)][string]$BundleResultJson)
+
+    $prettyJson = $BundleResultJson
+    try {
+        $prettyJson = ($BundleResultJson | ConvertFrom-Json | ConvertTo-Json -Depth 100)
+    }
+    catch {
+        # Keep raw output when conversion fails.
+    }
+
+    $matchSummary = Format-MatchedTagsSummary -BundleResultJson $BundleResultJson
+    if ([string]::IsNullOrWhiteSpace($matchSummary)) { return $prettyJson }
+
+    return @(
+        $prettyJson
+        ''
+        $matchSummary.TrimEnd()
+    ) -join [Environment]::NewLine
+}
+
 function Invoke-TerminalMode {
     param(
         [string]$BundleRoot,
@@ -275,13 +344,24 @@ function Invoke-WinFormsMode {
     $statusLabel.Width = 670
     $statusLabel.Text = 'Ready'
 
+    $verboseCheckBox = New-Object System.Windows.Forms.CheckBox
+    $verboseCheckBox.Left = 20
+    $verboseCheckBox.Top = 330
+    $verboseCheckBox.Width = 300
+    $verboseCheckBox.Text = 'Verbose (show full JSON + match dump)'
+    $verboseCheckBox.Checked = $false
+
     $runButton.Add_Click({
         try {
             $techSelection = @($techTextBox.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
             $resultJson = Invoke-BundleRender -BundleRoot $bundleTextBox.Text -CatalogPath $catalogTextBox.Text -OutputRoot $outputTextBox.Text -ContractsRoot $contractsTextBox.Text -TechId $techSelection
             $statusLabel.Text = 'Render completed successfully.'
-            $matchSummary = Format-MatchedTagsSummary -BundleResultJson $resultJson
-            $dialogText = ($resultJson | Out-String) + [Environment]::NewLine + $matchSummary
+            $dialogText = if ($verboseCheckBox.Checked) {
+                Format-VerboseBundleOutput -BundleResultJson $resultJson
+            }
+            else {
+                Format-RenderFindingsSummary -BundleResultJson $resultJson
+            }
             [System.Windows.Forms.MessageBox]::Show($dialogText, 'Assembler Result') | Out-Null
         }
         catch {
@@ -290,7 +370,7 @@ function Invoke-WinFormsMode {
         }
     })
 
-    foreach ($control in @($bundleTextBox, $catalogTextBox, $outputTextBox, $contractsTextBox, $techTextBox, $bundleBrowse, $catalogBrowse, $outputBrowse, $contractsBrowse, $runButton, $statusLabel)) {
+    foreach ($control in @($bundleTextBox, $catalogTextBox, $outputTextBox, $contractsTextBox, $techTextBox, $bundleBrowse, $catalogBrowse, $outputBrowse, $contractsBrowse, $runButton, $statusLabel, $verboseCheckBox)) {
         $form.Controls.Add($control)
     }
 

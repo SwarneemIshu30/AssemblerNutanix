@@ -110,6 +110,46 @@
       ]
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/run_summary.json",
+      "sdtTag": "DE_COLLECTION_COLLECTED_UTC",
+      "required": true,
+      "selectors": [
+        "collectedUtc"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/run_summary.json",
+      "sdtTag": "DE_COLLECTION_MODE",
+      "required": true,
+      "selectors": [
+        "mode"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/run_summary.json",
+      "sdtTag": "DE_COLLECTION_CONTROLLER",
+      "required": true,
+      "selectors": [
+        "controller"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/run_summary.json",
+      "sdtTag": "DE_COLLECTION_PORT",
+      "required": true,
+      "selectors": [
+        "port"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/run_summary.json",
+      "sdtTag": "DE_COLLECTION_SYSTEM_COUNT",
+      "required": true,
+      "selectors": [
+        "systemCount"
+      ]
+    },
+    {
       "dataset": "datasets/Lenovo.DE/collector-out/_multi/target_de-prod-01/systems.json",
       "sdtTag": "DE_SYSTEMS_TABLE_JSON",
       "required": true,

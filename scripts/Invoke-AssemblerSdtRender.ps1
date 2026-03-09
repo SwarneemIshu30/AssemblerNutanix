@@ -198,11 +198,62 @@ function Resolve-DatasetFilePath {
     return [ordered]@{ path = $selected; autoResolved = $true; reason = "resolved missing dataset path '$DatasetRelativePath' to '$selected' from $(@($matches).Count) candidate(s)" }
 }
 
-function Convert-ValueToString {
+function Convert-CellValueToString {
     param([Parameter(Mandatory = $false)]$Value)
+
+    if ($null -eq $Value) { return '' }
+    if ($Value -is [string]) { return $Value }
+    if ($Value -is [ValueType]) { return [string]$Value }
+
+    return ($Value | ConvertTo-Json -Depth 10 -Compress)
+}
+
+function Convert-ValueToTableString {
+    param([Parameter(Mandatory = $false)]$Value)
+
+    if ($null -eq $Value) { return '' }
+
+    $rows = @()
+    if ($Value -is [System.Collections.IList]) {
+        foreach ($item in $Value) {
+            if ($item -is [hashtable]) {
+                $row = [ordered]@{}
+                foreach ($key in $item.Keys) {
+                    $row[[string]$key] = Convert-CellValueToString -Value $item[$key]
+                }
+                $rows += [pscustomobject]$row
+            }
+            else {
+                $rows += [pscustomobject]([ordered]@{ value = Convert-CellValueToString -Value $item })
+            }
+        }
+    }
+    elseif ($Value -is [hashtable]) {
+        $row = [ordered]@{}
+        foreach ($key in $Value.Keys) {
+            $row[[string]$key] = Convert-CellValueToString -Value $Value[$key]
+        }
+        $rows = @([pscustomobject]$row)
+    }
+
+    if (@($rows).Count -eq 0) {
+        return (Convert-CellValueToString -Value $Value)
+    }
+
+    return (($rows | Format-Table -AutoSize | Out-String).TrimEnd())
+}
+
+function Convert-ValueToString {
+    param(
+        [Parameter(Mandatory = $false)]$Value,
+        [Parameter(Mandatory = $false)][string]$Tag
+    )
 
     if ($null -eq $Value) {
         return ''
+    }
+    if (-not [string]::IsNullOrWhiteSpace($Tag) -and $Tag.EndsWith('_TABLE_JSON')) {
+        return (Convert-ValueToTableString -Value $Value)
     }
     if ($Value -is [string]) {
         return $Value
@@ -298,7 +349,7 @@ try {
             continue
         }
 
-        $resolvedText = Convert-ValueToString -Value $resolved
+        $resolvedText = Convert-ValueToString -Value $resolved -Tag $tag
         $replaceByTag[$tag] = $resolvedText
         $valuePreview = if ($resolvedText.Length -gt 80) { $resolvedText.Substring(0, 80) + '...' } else { $resolvedText }
         $matches.Add([ordered]@{ tag = $tag; dataset = [string]$entry.dataset; selector = if (@($selectors).Count -gt 0) { [string]$selectors[0] } else { '' }; valuePreview = $valuePreview })
