@@ -31,8 +31,14 @@ function Resolve-DefaultBundleRoot {
 
 function Resolve-DefaultCatalogPath {
     param([Parameter(Mandatory = $true)][string]$RepoRoot)
-    $preferred = Join-Path $RepoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json'
-    if (Test-Path -LiteralPath $preferred -PathType Leaf) { return $preferred }
+    $preferredCatalogs = @(
+        (Join-Path $RepoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json'),
+        (Join-Path $RepoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json')
+    )
+
+    foreach ($preferred in $preferredCatalogs) {
+        if (Test-Path -LiteralPath $preferred -PathType Leaf) { return $preferred }
+    }
     $firstCatalog = Get-ChildItem -LiteralPath (Join-Path $RepoRoot 'templates') -Recurse -Filter '*.catalog.json' -File -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($null -ne $firstCatalog) { return $firstCatalog.FullName }
     return $null
