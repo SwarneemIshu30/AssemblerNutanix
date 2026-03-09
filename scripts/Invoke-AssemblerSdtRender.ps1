@@ -153,49 +153,7 @@ function Resolve-DatasetFilePath {
     )
 
     $exactPath = Join-Path $BundleRoot $DatasetRelativePath
-    if (Test-Path -LiteralPath $exactPath -PathType Leaf) {
-        return [ordered]@{ path = $exactPath; autoResolved = $false; reason = $null }
-    }
-
-    $leafName = [System.IO.Path]::GetFileName($DatasetRelativePath)
-    if ([string]::IsNullOrWhiteSpace($leafName)) {
-        return [ordered]@{ path = $exactPath; autoResolved = $false; reason = 'missing leaf filename in dataset path' }
-    }
-
-    $searchRoot = if (-not [string]::IsNullOrWhiteSpace($TechId)) {
-        Join-Path (Join-Path $BundleRoot 'datasets') $TechId
-    }
-    else {
-        Join-Path $BundleRoot 'datasets'
-    }
-
-    if (-not (Test-Path -LiteralPath $searchRoot -PathType Container)) {
-        return [ordered]@{ path = $exactPath; autoResolved = $false; reason = "search root '$searchRoot' does not exist" }
-    }
-
-    $matches = @(
-        Get-ChildItem -LiteralPath $searchRoot -Recurse -File -Filter $leafName -ErrorAction SilentlyContinue |
-            Select-Object -ExpandProperty FullName
-    )
-
-    if (@($matches).Count -eq 0) {
-        return [ordered]@{ path = $exactPath; autoResolved = $false; reason = "no '$leafName' found under '$searchRoot'" }
-    }
-
-    $normalizedRelative = $DatasetRelativePath.Replace('\', '/').ToLowerInvariant()
-    $sorted = @(
-        $matches |
-            Sort-Object -Property @{ Expression = {
-                $candidate = [string]$_
-                $candidateNorm = $candidate.Replace('\', '/').ToLowerInvariant()
-                if ($candidateNorm.EndsWith($normalizedRelative)) { return 0 }
-                if ($candidateNorm.Contains('/_multi/')) { return 1 }
-                return 2
-            } }, @{ Expression = { [string]$_ } }
-    )
-
-    $selected = [string]$sorted[0]
-    return [ordered]@{ path = $selected; autoResolved = $true; reason = "resolved missing dataset path '$DatasetRelativePath' to '$selected' from $(@($matches).Count) candidate(s)" }
+    return [ordered]@{ path = $exactPath; autoResolved = $false; reason = $null }
 }
 
 function Convert-CellValueToString {
@@ -210,6 +168,44 @@ function Convert-CellValueToString {
 
 function Convert-ValueToTableString {
     param([Parameter(Mandatory = $false)]$Value)
+
+    if ($null -eq $Value) { return '' }
+
+    $rows = @()
+    if ($Value -is [System.Collections.IList]) {
+        foreach ($item in $Value) {
+            if ($item -is [hashtable]) {
+                $row = [ordered]@{}
+                foreach ($key in $item.Keys) {
+                    $row[[string]$key] = Convert-CellValueToString -Value $item[$key]
+                }
+                $rows += [pscustomobject]$row
+            }
+            else {
+                $rows += [pscustomobject]([ordered]@{ value = Convert-CellValueToString -Value $item })
+            }
+        }
+    }
+    elseif ($Value -is [hashtable]) {
+        $row = [ordered]@{}
+        foreach ($key in $Value.Keys) {
+            $row[[string]$key] = Convert-CellValueToString -Value $Value[$key]
+        }
+        $rows = @([pscustomobject]$row)
+    }
+
+    if (@($rows).Count -eq 0) {
+        return (Convert-CellValueToString -Value $Value)
+    }
+
+    return (($rows | Format-Table -AutoSize | Out-String).TrimEnd())
+}
+
+function Convert-ValueToString {
+    param(
+        [Parameter(Mandatory = $false)]$Value,
+        [Parameter(Mandatory = $false)][string]$Tag
+    )
 
     if ($null -eq $Value) { return '' }
 

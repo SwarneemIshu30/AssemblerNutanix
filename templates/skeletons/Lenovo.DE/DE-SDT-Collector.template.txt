@@ -1,6 +1,6 @@
 Mode: Blueprint
 
-# System: <<SDT:DE_SYSTEM_NAME>> (<<SDT:DE_SYSTEM_ID>>)
+# System: <<SDT:DE_SYSTEM_NAME>>
 ------------------------------------------------------------------------------------------
 
 Summary
@@ -141,13 +141,4 @@ Tables.SystemASUP
 Findings
 ------------------------------------------------------------------------------------------
 
-Source: collector datasets in bundle + render-time mapping checks.
-
-Collector info:
-- System '<<SDT:DE_SYSTEM_NAME>>' status: <<SDT:DE_SYSTEM_STATUS>>
-- Inventory counts: drives=<<SDT:DE_DRIVE_COUNT>>, containers=<<SDT:DE_CONTAINER_COUNT>>, volumes=<<SDT:DE_VOLUME_COUNT>>
-- Active transport: <<SDT:DE_TRANSPORT_ACTIVE>> (IQN: <<SDT:DE_TRANSPORT_ISCSI_IQN>>)
-
-Note: no collector-provided findings/alerts dataset is currently mapped in this skeleton.
-Any unresolved placeholders or selector errors are emitted by the renderer report JSON.
-
+<<SDT:DE_COLLECTOR_FINDINGS>>

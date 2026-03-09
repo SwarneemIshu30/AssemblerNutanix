@@ -94,6 +94,75 @@ function Resolve-AssemblerContractsRoot {
 }
 
 
+
+function Resolve-TechDatasetContext {
+    param(
+        [Parameter(Mandatory = $true)][string]$BundleRoot,
+        [Parameter(Mandatory = $true)][string]$TechId
+    )
+
+    $multiRoot = Join-Path (Join-Path (Join-Path $BundleRoot 'datasets') $TechId) 'collector-out/_multi'
+    if (-not (Test-Path -LiteralPath $multiRoot -PathType Container)) {
+        throw "Expected collector dataset root not found: $multiRoot"
+    }
+
+    $targets = @(
+        Get-ChildItem -LiteralPath $multiRoot -Directory -ErrorAction Stop |
+            Where-Object { $_.Name -like 'target_*' } |
+            ForEach-Object {
+                $summary = Join-Path $_.FullName 'run_summary.json'
+                [pscustomobject]@{
+                    Name = $_.Name
+                    FullName = $_.FullName
+                    Rank = if (Test-Path -LiteralPath $summary -PathType Leaf) { (Get-Item -LiteralPath $summary).LastWriteTimeUtc.Ticks } else { 0 }
+                }
+            }
+    )
+    if (@($targets).Count -eq 0) {
+        throw "No target_* folders found in: $multiRoot"
+    }
+
+    $target = $targets | Sort-Object -Property @{Expression={$_.Rank};Descending=$true}, @{Expression={$_.Name}} | Select-Object -First 1
+
+    $systems = @(
+        Get-ChildItem -LiteralPath $target.FullName -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like 'system_*' } |
+            Sort-Object -Property Name
+    )
+    $systemName = if (@($systems).Count -gt 0) { [string]$systems[0].Name } else { '' }
+
+    return [ordered]@{ target = [string]$target.Name; system = $systemName }
+}
+
+function Resolve-MappingPathForBundle {
+    param(
+        [Parameter(Mandatory = $true)][string]$BundleRoot,
+        [Parameter(Mandatory = $true)][string]$MappingPath,
+        [Parameter(Mandatory = $true)][string]$TechId,
+        [Parameter(Mandatory = $true)][string]$OutputRoot
+    )
+
+    $mappingText = Get-Content -LiteralPath $MappingPath -Raw -Encoding UTF8
+    if (($mappingText -notmatch '__TARGET__') -and ($mappingText -notmatch '__SYSTEM__')) {
+        return $MappingPath
+    }
+
+    $ctx = Resolve-TechDatasetContext -BundleRoot $BundleRoot -TechId $TechId
+    $resolved = $mappingText.Replace('__TARGET__', [string]$ctx.target)
+    if ($resolved -match '__SYSTEM__') {
+        if ([string]::IsNullOrWhiteSpace([string]$ctx.system)) {
+            throw "Mapping '$MappingPath' requires __SYSTEM__ but no system_* directory found under target '$($ctx.target)'."
+        }
+        $resolved = $resolved.Replace('__SYSTEM__', [string]$ctx.system)
+    }
+
+    $tempDir = Join-Path $OutputRoot '.resolved-mappings'
+    Ensure-Directory -Path $tempDir
+    $resolvedPath = Join-Path $tempDir (([System.IO.Path]::GetFileNameWithoutExtension($MappingPath)) + '.resolved.json')
+    Set-Content -LiteralPath $resolvedPath -Value $resolved -Encoding UTF8
+    return $resolvedPath
+}
+
 function Ensure-Directory {
     param([Parameter(Mandatory = $true)][string]$Path)
 
@@ -195,6 +264,7 @@ try {
         }
 
         $mappingPath = Join-Path $catalogBase ([string]$entry.mappingPath)
+        $mappingPath = Resolve-MappingPathForBundle -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TechId ([string]$entry.techId) -OutputRoot $OutputRoot
         $templatePath = Join-Path $catalogBase ([string]$entry.templatePath)
         $outputPath = Join-Path $techOutputRoot ([string]$entry.outputFileName)
         $reportPath = Join-Path $techOutputRoot ("$([string]$entry.id).render-report.json")
