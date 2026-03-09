@@ -1,0 +1,18 @@
+{
+  "schema": "assembler.template-catalog",
+  "schemaVersion": 1,
+  "displayName": "Lenovo.DE collector blueprint catalog",
+  "entries": [
+    {
+      "id": "lenovo-de-collector-summary",
+      "techId": "Lenovo.DE",
+      "displayName": "Lenovo DE Collector Blueprint Skeleton",
+      "docType": "collector-blueprint",
+      "mappingPath": "DE-SDT-Collector.mapping.json",
+      "templatePath": "DE-SDT-Collector.template.txt",
+      "outputFileName": "DE-SDT-Collector.rendered.txt",
+      "enabled": true,
+      "priority": 10
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+Mode: Blueprint
+
+# System: <<SDT:DE_SYSTEM_NAME>> (<<SDT:DE_SYSTEM_ID>>)
+------------------------------------------------------------------------------------------
+
+Summary
+------------------------------------------------------------------------------------------
+
+Name       : <<SDT:DE_SYSTEM_NAME>>
+Model      : <<SDT:DE_SYSTEM_MODEL>>
+Status     : <<SDT:DE_SYSTEM_STATUS>>
+Firmware   : <<SDT:DE_FIRMWARE_VERSION>>
+AppVersion : <<SDT:DE_APP_VERSION>>
+Boot       : <<SDT:DE_BOOT_VERSION>>
+Nvsram     : <<SDT:DE_NVSRAM_VERSION>>
+Mgmt IP    : <<SDT:DE_MANAGEMENT_IP>>
+Drives     : <<SDT:DE_DRIVE_COUNT>>
+Containers : <<SDT:DE_CONTAINER_COUNT>>
+Volumes    : <<SDT:DE_VOLUME_COUNT>>
+
+
+Tables.Systems
+------------------------------------------------------------------------------------------
+
+<<SDT:DE_SYSTEMS_TABLE_JSON>>
+
+
+Tables.Drives
+------------------------------------------------------------------------------------------
+
+<<SDT:DE_DRIVES_TABLE_JSON>>
+
+
+Tables.StorageContainers
+------------------------------------------------------------------------------------------
+
+<<SDT:DE_STORAGE_CONTAINERS_TABLE_JSON>>
+
+
+Tables.Volumes
+------------------------------------------------------------------------------------------
+
+<<SDT:DE_VOLUMES_TABLE_JSON>>
+
+
+Tables.Controllers (controllerRef intentionally omitted)
+------------------------------------------------------------------------------------------
+
+Controller   Slot   Status   AppVersion      BootVersion     Serial
+----------   ----   ------   ----------      -----------     ------
+<<SDT:DE_CONTROLLER_A_LABEL>>            <<SDT:DE_CONTROLLER_A_SLOT>>      <<SDT:DE_CONTROLLER_A_STATUS>>   <<SDT:DE_CONTROLLER_A_APP>>     <<SDT:DE_CONTROLLER_A_BOOT>>    <<SDT:DE_CONTROLLER_A_SERIAL>>
+<<SDT:DE_CONTROLLER_B_LABEL>>            <<SDT:DE_CONTROLLER_B_SLOT>>      <<SDT:DE_CONTROLLER_B_STATUS>>   <<SDT:DE_CONTROLLER_B_APP>>     <<SDT:DE_CONTROLLER_B_BOOT>>    <<SDT:DE_CONTROLLER_B_SERIAL>>
+
+
+Tables.Trays
+------------------------------------------------------------------------------------------
+
+<<SDT:DE_TRAYS_TABLE_JSON>>
+
+
+Tables.Transport
+------------------------------------------------------------------------------------------
+
+systemId        : <<SDT:DE_TRANSPORT_SYSTEM_ID>>
+activeTransport : <<SDT:DE_TRANSPORT_ACTIVE>>
+iscsiIqn        : <<SDT:DE_TRANSPORT_ISCSI_IQN>>
+
+
+Tables.ManagementInterfaces (controllerRef intentionally omitted)
+------------------------------------------------------------------------------------------
+
+controllerLabel controllerSlot portLabel interfaceName linkStatus ipv4Address   ipv4SubnetMask
+--------------- -------------- --------- ------------- ---------- -----------   --------------
+<<SDT:DE_MGMT_1_CONTROLLER_LABEL>>                            <<SDT:DE_MGMT_1_CONTROLLER_SLOT>> <<SDT:DE_MGMT_1_PORT_LABEL>>        <<SDT:DE_MGMT_1_INTERFACE_NAME>>          <<SDT:DE_MGMT_1_LINK_STATUS>>         <<SDT:DE_MGMT_1_IPV4_ADDRESS>>  <<SDT:DE_MGMT_1_IPV4_SUBNET_MASK>>
+<<SDT:DE_MGMT_2_CONTROLLER_LABEL>>                            <<SDT:DE_MGMT_2_CONTROLLER_SLOT>> <<SDT:DE_MGMT_2_PORT_LABEL>>        <<SDT:DE_MGMT_2_INTERFACE_NAME>>          <<SDT:DE_MGMT_2_LINK_STATUS>>         <<SDT:DE_MGMT_2_IPV4_ADDRESS>>  <<SDT:DE_MGMT_2_IPV4_SUBNET_MASK>>
+
+
+Tables.HostPorts.iSCSI (controllerRef intentionally omitted)
+------------------------------------------------------------------------------------------
+
+trayId controllerLabel controllerSlot portLabel channel ipv4Address     ipv4SubnetMask ipv4Gateway vlanEnabled vlanId
+------ --------------- -------------- --------- ------- -----------     -------------- ----------- ----------- ------
+<<SDT:DE_HOSTPORT_1_TRAY_ID>>    <<SDT:DE_HOSTPORT_1_CONTROLLER_LABEL>>                            <<SDT:DE_HOSTPORT_1_CONTROLLER_SLOT>> <<SDT:DE_HOSTPORT_1_PORT_LABEL>>             <<SDT:DE_HOSTPORT_1_CHANNEL>> <<SDT:DE_HOSTPORT_1_IPV4_ADDRESS>> <<SDT:DE_HOSTPORT_1_IPV4_SUBNET_MASK>>  <<SDT:DE_HOSTPORT_1_IPV4_GATEWAY>>           <<SDT:DE_HOSTPORT_1_VLAN_ENABLED>> <<SDT:DE_HOSTPORT_1_VLAN_ID>>
+<<SDT:DE_HOSTPORT_2_TRAY_ID>>    <<SDT:DE_HOSTPORT_2_CONTROLLER_LABEL>>                            <<SDT:DE_HOSTPORT_2_CONTROLLER_SLOT>> <<SDT:DE_HOSTPORT_2_PORT_LABEL>>             <<SDT:DE_HOSTPORT_2_CHANNEL>> <<SDT:DE_HOSTPORT_2_IPV4_ADDRESS>> <<SDT:DE_HOSTPORT_2_IPV4_SUBNET_MASK>>  <<SDT:DE_HOSTPORT_2_IPV4_GATEWAY>>           <<SDT:DE_HOSTPORT_2_VLAN_ENABLED>> <<SDT:DE_HOSTPORT_2_VLAN_ID>>
+<<SDT:DE_HOSTPORT_3_TRAY_ID>>    <<SDT:DE_HOSTPORT_3_CONTROLLER_LABEL>>                            <<SDT:DE_HOSTPORT_3_CONTROLLER_SLOT>> <<SDT:DE_HOSTPORT_3_PORT_LABEL>>             <<SDT:DE_HOSTPORT_3_CHANNEL>> <<SDT:DE_HOSTPORT_3_IPV4_ADDRESS>> <<SDT:DE_HOSTPORT_3_IPV4_SUBNET_MASK>>  <<SDT:DE_HOSTPORT_3_IPV4_GATEWAY>>           <<SDT:DE_HOSTPORT_3_VLAN_ENABLED>> <<SDT:DE_HOSTPORT_3_VLAN_ID>>
+<<SDT:DE_HOSTPORT_4_TRAY_ID>>    <<SDT:DE_HOSTPORT_4_CONTROLLER_LABEL>>                            <<SDT:DE_HOSTPORT_4_CONTROLLER_SLOT>> <<SDT:DE_HOSTPORT_4_PORT_LABEL>>             <<SDT:DE_HOSTPORT_4_CHANNEL>> <<SDT:DE_HOSTPORT_4_IPV4_ADDRESS>> <<SDT:DE_HOSTPORT_4_IPV4_SUBNET_MASK>>  <<SDT:DE_HOSTPORT_4_IPV4_GATEWAY>>           <<SDT:DE_HOSTPORT_4_VLAN_ENABLED>> <<SDT:DE_HOSTPORT_4_VLAN_ID>>
+<<SDT:DE_HOSTPORT_5_TRAY_ID>>    <<SDT:DE_HOSTPORT_5_CONTROLLER_LABEL>>                            <<SDT:DE_HOSTPORT_5_CONTROLLER_SLOT>> <<SDT:DE_HOSTPORT_5_PORT_LABEL>>             <<SDT:DE_HOSTPORT_5_CHANNEL>> <<SDT:DE_HOSTPORT_5_IPV4_ADDRESS>> <<SDT:DE_HOSTPORT_5_IPV4_SUBNET_MASK>>  <<SDT:DE_HOSTPORT_5_IPV4_GATEWAY>>           <<SDT:DE_HOSTPORT_5_VLAN_ENABLED>> <<SDT:DE_HOSTPORT_5_VLAN_ID>>
+<<SDT:DE_HOSTPORT_6_TRAY_ID>>    <<SDT:DE_HOSTPORT_6_CONTROLLER_LABEL>>                            <<SDT:DE_HOSTPORT_6_CONTROLLER_SLOT>> <<SDT:DE_HOSTPORT_6_PORT_LABEL>>             <<SDT:DE_HOSTPORT_6_CHANNEL>> <<SDT:DE_HOSTPORT_6_IPV4_ADDRESS>> <<SDT:DE_HOSTPORT_6_IPV4_SUBNET_MASK>>  <<SDT:DE_HOSTPORT_6_IPV4_GATEWAY>>           <<SDT:DE_HOSTPORT_6_VLAN_ENABLED>> <<SDT:DE_HOSTPORT_6_VLAN_ID>>
+<<SDT:DE_HOSTPORT_7_TRAY_ID>>    <<SDT:DE_HOSTPORT_7_CONTROLLER_LABEL>>                            <<SDT:DE_HOSTPORT_7_CONTROLLER_SLOT>> <<SDT:DE_HOSTPORT_7_PORT_LABEL>>             <<SDT:DE_HOSTPORT_7_CHANNEL>> <<SDT:DE_HOSTPORT_7_IPV4_ADDRESS>> <<SDT:DE_HOSTPORT_7_IPV4_SUBNET_MASK>>  <<SDT:DE_HOSTPORT_7_IPV4_GATEWAY>>           <<SDT:DE_HOSTPORT_7_VLAN_ENABLED>> <<SDT:DE_HOSTPORT_7_VLAN_ID>>
+<<SDT:DE_HOSTPORT_8_TRAY_ID>>    <<SDT:DE_HOSTPORT_8_CONTROLLER_LABEL>>                            <<SDT:DE_HOSTPORT_8_CONTROLLER_SLOT>> <<SDT:DE_HOSTPORT_8_PORT_LABEL>>             <<SDT:DE_HOSTPORT_8_CHANNEL>> <<SDT:DE_HOSTPORT_8_IPV4_ADDRESS>> <<SDT:DE_HOSTPORT_8_IPV4_SUBNET_MASK>>  <<SDT:DE_HOSTPORT_8_IPV4_GATEWAY>>           <<SDT:DE_HOSTPORT_8_VLAN_ENABLED>> <<SDT:DE_HOSTPORT_8_VLAN_ID>>
+<<SDT:DE_HOSTPORT_9_TRAY_ID>>    <<SDT:DE_HOSTPORT_9_CONTROLLER_LABEL>>                            <<SDT:DE_HOSTPORT_9_CONTROLLER_SLOT>> <<SDT:DE_HOSTPORT_9_PORT_LABEL>>             <<SDT:DE_HOSTPORT_9_CHANNEL>> <<SDT:DE_HOSTPORT_9_IPV4_ADDRESS>> <<SDT:DE_HOSTPORT_9_IPV4_SUBNET_MASK>>  <<SDT:DE_HOSTPORT_9_IPV4_GATEWAY>>           <<SDT:DE_HOSTPORT_9_VLAN_ENABLED>> <<SDT:DE_HOSTPORT_9_VLAN_ID>>
+<<SDT:DE_HOSTPORT_10_TRAY_ID>>    <<SDT:DE_HOSTPORT_10_CONTROLLER_LABEL>>                            <<SDT:DE_HOSTPORT_10_CONTROLLER_SLOT>> <<SDT:DE_HOSTPORT_10_PORT_LABEL>>             <<SDT:DE_HOSTPORT_10_CHANNEL>> <<SDT:DE_HOSTPORT_10_IPV4_ADDRESS>> <<SDT:DE_HOSTPORT_10_IPV4_SUBNET_MASK>>  <<SDT:DE_HOSTPORT_10_IPV4_GATEWAY>>           <<SDT:DE_HOSTPORT_10_VLAN_ENABLED>> <<SDT:DE_HOSTPORT_10_VLAN_ID>>
+<<SDT:DE_HOSTPORT_11_TRAY_ID>>    <<SDT:DE_HOSTPORT_11_CONTROLLER_LABEL>>                            <<SDT:DE_HOSTPORT_11_CONTROLLER_SLOT>> <<SDT:DE_HOSTPORT_11_PORT_LABEL>>             <<SDT:DE_HOSTPORT_11_CHANNEL>> <<SDT:DE_HOSTPORT_11_IPV4_ADDRESS>> <<SDT:DE_HOSTPORT_11_IPV4_SUBNET_MASK>>  <<SDT:DE_HOSTPORT_11_IPV4_GATEWAY>>           <<SDT:DE_HOSTPORT_11_VLAN_ENABLED>> <<SDT:DE_HOSTPORT_11_VLAN_ID>>
+<<SDT:DE_HOSTPORT_12_TRAY_ID>>    <<SDT:DE_HOSTPORT_12_CONTROLLER_LABEL>>                            <<SDT:DE_HOSTPORT_12_CONTROLLER_SLOT>> <<SDT:DE_HOSTPORT_12_PORT_LABEL>>             <<SDT:DE_HOSTPORT_12_CHANNEL>> <<SDT:DE_HOSTPORT_12_IPV4_ADDRESS>> <<SDT:DE_HOSTPORT_12_IPV4_SUBNET_MASK>>  <<SDT:DE_HOSTPORT_12_IPV4_GATEWAY>>           <<SDT:DE_HOSTPORT_12_VLAN_ENABLED>> <<SDT:DE_HOSTPORT_12_VLAN_ID>>
+
+
+iSCSI IQN: <<SDT:DE_TRANSPORT_ISCSI_IQN>>
+
+Tables.SystemTime (controllerRef intentionally omitted in this blueprint)
+------------------------------------------------------------------------------------------
+
+systemId            : <<SDT:DE_SYSTIME_1_SYSTEM_ID>>
+ntpAcquisitionType  : <<SDT:DE_SYSTIME_1_NTP_ACQ_TYPE>>
+ntpServers          : <<SDT:DE_SYSTIME_1_NTP_SERVERS>>
+dhcpAcquiredServers : <<SDT:DE_SYSTIME_1_DHCP_ACQUIRED_SERVERS>>
+ipv4DefaultRouter   : <<SDT:DE_SYSTIME_1_IPV4_DEFAULT_ROUTER>>
+
+systemId            : <<SDT:DE_SYSTIME_2_SYSTEM_ID>>
+ntpAcquisitionType  : <<SDT:DE_SYSTIME_2_NTP_ACQ_TYPE>>
+ntpServers          : <<SDT:DE_SYSTIME_2_NTP_SERVERS>>
+dhcpAcquiredServers : <<SDT:DE_SYSTIME_2_DHCP_ACQUIRED_SERVERS>>
+ipv4DefaultRouter   : <<SDT:DE_SYSTIME_2_IPV4_DEFAULT_ROUTER>>
+
+
+Tables.SystemDNS (controllerRef intentionally omitted in this blueprint)
+------------------------------------------------------------------------------------------
+
+systemId            : <<SDT:DE_SYSDNS_1_SYSTEM_ID>>
+dnsAcquisitionType  : <<SDT:DE_SYSDNS_1_DNS_ACQ_TYPE>>
+dnsServers          : <<SDT:DE_SYSDNS_1_DNS_SERVERS>>
+dhcpAcquiredServers : <<SDT:DE_SYSDNS_1_DHCP_ACQUIRED_SERVERS>>
+
+systemId            : <<SDT:DE_SYSDNS_2_SYSTEM_ID>>
+dnsAcquisitionType  : <<SDT:DE_SYSDNS_2_DNS_ACQ_TYPE>>
+dnsServers          : <<SDT:DE_SYSDNS_2_DNS_SERVERS>>
+dhcpAcquiredServers : <<SDT:DE_SYSDNS_2_DHCP_ACQUIRED_SERVERS>>
+
+
+Tables.SystemASUP
+------------------------------------------------------------------------------------------
+
+<<SDT:DE_SYSTEM_ASUP_TABLE_JSON>>
+
+Findings
+------------------------------------------------------------------------------------------
+
+[INFO] ----------------------------------------------------------------------
+- HEALTH.SYSTEM.STATUS :: System status snapshot
+  System '<<SDT:DE_SYSTEM_NAME>>' reports status '<<SDT:DE_SYSTEM_STATUS>>'.
+- INVENTORY.COUNTS :: Collector inventory snapshot
+  Drives: <<SDT:DE_DRIVE_COUNT>>, Containers: <<SDT:DE_CONTAINER_COUNT>>, Volumes: <<SDT:DE_VOLUME_COUNT>>.
+- TRANSPORT.ACTIVE :: Active host transport
+  Active transport is '<<SDT:DE_TRANSPORT_ACTIVE>>' with iSCSI IQN '<<SDT:DE_TRANSPORT_ISCSI_IQN>>'.
+
+[WARNING] ----------------------------------------------------------------------
+- FINDINGS.RULE_ENGINE.NOT_INCLUDED :: Rule-engine findings not yet wired
+  This skeleton includes collector blueprint data, but rule-evaluated warning/finding objects are not currently emitted by the collector datasets consumed here.
+

@@ -31,8 +31,14 @@ function Resolve-DefaultBundleRoot {
 
 function Resolve-DefaultCatalogPath {
     param([Parameter(Mandatory = $true)][string]$RepoRoot)
-    $preferred = Join-Path $RepoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json'
-    if (Test-Path -LiteralPath $preferred -PathType Leaf) { return $preferred }
+    $preferredCatalogs = @(
+        (Join-Path $RepoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json'),
+        (Join-Path $RepoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json')
+    )
+
+    foreach ($preferred in $preferredCatalogs) {
+        if (Test-Path -LiteralPath $preferred -PathType Leaf) { return $preferred }
+    }
     $firstCatalog = Get-ChildItem -LiteralPath (Join-Path $RepoRoot 'templates') -Recurse -Filter '*.catalog.json' -File -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($null -ne $firstCatalog) { return $firstCatalog.FullName }
     return $null
@@ -86,6 +92,39 @@ function Invoke-BundleRender {
     if ($TechId -and $TechId.Count -gt 0) { $params.TechId = $TechId }
 
     & $invokeScript @params
+}
+
+
+function Format-MatchedTagsSummary {
+    param([Parameter(Mandatory = $true)][string]$BundleResultJson)
+
+    try {
+        $bundleReport = $BundleResultJson | ConvertFrom-Json -AsHashtable
+    }
+    catch {
+        return ''
+    }
+
+    $lines = [System.Collections.Generic.List[string]]::new()
+    foreach ($run in @($bundleReport.runs)) {
+        $entryId = [string]$run.entryId
+        $matched = @()
+        if ($run.ContainsKey('rendererOutput') -and $null -ne $run.rendererOutput -and $run.rendererOutput.ContainsKey('matches')) {
+            $matched = @($run.rendererOutput.matches)
+        }
+        if (@($matched).Count -eq 0) { continue }
+
+        $lines.Add("Matched fields for entry '$entryId':")
+        foreach ($m in $matched) {
+            $tag = [string]$m.tag
+            $preview = [string]$m.valuePreview
+            $lines.Add("  Found <$tag> = $preview")
+        }
+        $lines.Add('')
+    }
+
+    if ($lines.Count -eq 0) { return '' }
+    return (($lines -join [Environment]::NewLine) + [Environment]::NewLine)
 }
 
 $xaml = @"
@@ -182,7 +221,8 @@ $runButton.Add_Click({
         $techSelection = @($techIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
         $resultJson = Invoke-BundleRender -BundleRoot $bundleRootText.Text -CatalogPath $catalogPathText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text -TechId $techSelection
         $statusText.Text = 'Render completed successfully.'
-        $outputText.Text = $resultJson | Out-String
+        $matchSummary = Format-MatchedTagsSummary -BundleResultJson $resultJson
+        $outputText.Text = ($resultJson | Out-String) + [Environment]::NewLine + $matchSummary
     }
     catch {
         $statusText.Text = 'Render failed.'
