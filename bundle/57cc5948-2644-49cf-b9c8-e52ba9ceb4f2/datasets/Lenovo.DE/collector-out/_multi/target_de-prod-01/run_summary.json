@@ -1,0 +1,19 @@
+{
+  "collectedUtc": "2026-03-07T18:22:51.4051162+11:00",
+  "mode": "Cli",
+  "controller": "10.240.59.179",
+  "port": 8443,
+  "apiBasePath": "/devmgr",
+  "outDir": ".\\out\\57cc5948-2644-49cf-b9c8-e52ba9ceb4f2\\datasets\\Lenovo.DE\\collector-out\\_multi\\target_de-prod-01",
+  "systemCount": 1,
+  "perSystem": [
+    {
+      "id": "1",
+      "name": "DE4200_Rack4",
+      "drives": 24,
+      "containers": 3,
+      "volumes": 3,
+      "outputFolder": ".\\out\\57cc5948-2644-49cf-b9c8-e52ba9ceb4f2\\datasets\\Lenovo.DE\\collector-out\\_multi\\target_de-prod-01\\system_1_DE4200_Rack4"
+    }
+  ]
+}

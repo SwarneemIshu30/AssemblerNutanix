@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "status": "ok",
+  "bundle": {
+    "root": ".\\sample\\fc2c8a97-9214-456c-9d2f-4fcaba90e8ef\\",
+    "manifestSchemaVersion": 1,
+    "objectCount": 2,
+    "solutionId": "lenovo-de-multi-target",
+    "targetCount": 2,
+    "collectorCount": 1
+  },
+  "diagnostics": [
+    {
+      "stage": "Load",
+      "code": "ASB-ASM-INPUT-LOAD",
+      "level": "INFO",
+      "tsUtc": "2026-03-08T21:47:53.8191743Z",
+      "message": "Resolving required Direct-v1 input paths"
+    },
+    {
+      "stage": "Load",
+      "code": "ASB-ASM-INPUT-LOAD",
+      "level": "INFO",
+      "tsUtc": "2026-03-08T21:47:53.8193561Z",
+      "message": "Loading .\\sample\\fc2c8a97-9214-456c-9d2f-4fcaba90e8ef\\manifest.json"
+    },
+    {
+      "stage": "Load",
+      "code": "ASB-ASM-INPUT-LOAD",
+      "level": "INFO",
+      "tsUtc": "2026-03-08T21:47:53.8213050Z",
+      "message": "Loading .\\sample\\fc2c8a97-9214-456c-9d2f-4fcaba90e8ef\\objectIndex.json"
+    },
+    {
+      "stage": "Load",
+      "code": "ASB-ASM-INPUT-LOAD",
+      "level": "INFO",
+      "tsUtc": "2026-03-08T21:47:53.8221160Z",
+      "message": "Loading .\\sample\\fc2c8a97-9214-456c-9d2f-4fcaba90e8ef\\config\\solution.plan.json"
+    },
+    {
+      "stage": "Load",
+      "code": "ASB-ASM-CONTRACT-LOAD",
+      "level": "INFO",
+      "tsUtc": "2026-03-08T21:47:53.8237479Z",
+      "message": "Loading .\\export\\repo-ready\\contracts\\standards\\solution.plan.schema.v1.json"
+    },
+    {
+      "stage": "Validate",
+      "code": "ASB-ASM-CONTRACT-VALIDATE",
+      "level": "INFO",
+      "tsUtc": "2026-03-08T21:47:53.8271153Z",
+      "message": "Performing minimum solution plan contract checks"
+    },
+    {
+      "stage": "Validate",
+      "code": "ASB-ASM-CONTRACT-VALIDATE",
+      "level": "INFO",
+      "tsUtc": "2026-03-08T21:47:53.8281354Z",
+      "message": "Minimum contract checks passed"
+    }
+  ]
+}
