@@ -207,6 +207,44 @@ function Convert-ValueToString {
         [Parameter(Mandatory = $false)][string]$Tag
     )
 
+    if ($null -eq $Value) { return '' }
+
+    $rows = @()
+    if ($Value -is [System.Collections.IList]) {
+        foreach ($item in $Value) {
+            if ($item -is [hashtable]) {
+                $row = [ordered]@{}
+                foreach ($key in $item.Keys) {
+                    $row[[string]$key] = Convert-CellValueToString -Value $item[$key]
+                }
+                $rows += [pscustomobject]$row
+            }
+            else {
+                $rows += [pscustomobject]([ordered]@{ value = Convert-CellValueToString -Value $item })
+            }
+        }
+    }
+    elseif ($Value -is [hashtable]) {
+        $row = [ordered]@{}
+        foreach ($key in $Value.Keys) {
+            $row[[string]$key] = Convert-CellValueToString -Value $Value[$key]
+        }
+        $rows = @([pscustomobject]$row)
+    }
+
+    if (@($rows).Count -eq 0) {
+        return (Convert-CellValueToString -Value $Value)
+    }
+
+    return (($rows | Format-Table -AutoSize | Out-String).TrimEnd())
+}
+
+function Convert-ValueToString {
+    param(
+        [Parameter(Mandatory = $false)]$Value,
+        [Parameter(Mandatory = $false)][string]$Tag
+    )
+
     if ($null -eq $Value) {
         return ''
     }
