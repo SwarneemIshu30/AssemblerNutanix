@@ -9,6 +9,7 @@ Runtime direction is **PowerShell 7**.
 - `Invoke-AssemblerBundleRender.ps1` - bundle-aware orchestration skeleton that discovers tech in bundle and runs renderer once per TemplateCatalog entry.
 - `New-AssemblerSkeleton.ps1` - copies a built-in skeleton pack (mapping + template) into a local ingest folder.
 - `Sync-AssemblerContractsToRepo.ps1` - syncs contracts into deterministic repo-local ingest path (`.deps/contracts`).
+- `internal/AssemblerSchemaValidation.psm1` - shared helper for JSON schema validation against contracts under `standards/`.
 
 ## Contract path resolution (SDT render)
 
@@ -17,7 +18,7 @@ Runtime direction is **PowerShell 7**.
 2. `./.deps/contracts`
 3. `./export/repo-ready/contracts`
 
-The script loads `standards/mapping.dataset-to-sdt.schema.v1.json` from the resolved root and performs minimum mapping contract checks before rendering.
+The script loads `standards/mapping.dataset-to-sdt.schema.v1.json` and `standards/assembler/assembler.render-report.schema.v1.json` from the resolved root and performs schema validation for mapping input and render report output.
 
 ## TemplateCatalog contract
 
@@ -49,6 +50,7 @@ Optional:
 Behavior:
 - reads `objectIndex.json` to detect tech present in bundle
 - validates catalog against `assembler.template-catalog` schema
+- validates aggregate bundle report contract against `assembler.render-report` schema
 - filters enabled catalog entries by detected/requested `techId`
 - invokes `Invoke-AssemblerSdtRender.ps1` once per selected entry
 - writes aggregate report to `assembler-bundle-render-report.json`

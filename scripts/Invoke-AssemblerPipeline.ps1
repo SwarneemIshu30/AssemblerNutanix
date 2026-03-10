@@ -32,6 +32,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+Import-Module (Join-Path $PSScriptRoot 'internal/AssemblerSchemaValidation.psm1') -Force
+
 function Get-UtcTimestamp { (Get-Date).ToUniversalTime().ToString('o') }
 
 function New-Diagnostic {
@@ -84,43 +86,6 @@ function Read-JsonFile {
     }
 }
 
-function Test-SolutionPlanMinimumContract {
-    param(
-        [Parameter(Mandatory = $true)][hashtable]$Plan,
-        [Parameter(Mandatory = $true)][hashtable]$Schema
-    )
-
-    $errors = [System.Collections.Generic.List[string]]::new()
-
-    foreach ($requiredKey in ($Schema.required ?? @())) {
-        if (-not $Plan.ContainsKey([string]$requiredKey)) {
-            $errors.Add("ASB-ASM-CONTRACT-SOLUTIONPLAN-REQUIRED: missing required property '$requiredKey'")
-        }
-    }
-
-    $schemaProperties = $Schema.properties
-    if ($null -ne $schemaProperties) {
-        foreach ($entry in $schemaProperties.GetEnumerator()) {
-            $propertyName = [string]$entry.Key
-            $propertySchema = $entry.Value
-            if ($Plan.ContainsKey($propertyName) -and $propertySchema.ContainsKey('const')) {
-                if ($Plan[$propertyName] -ne $propertySchema.const) {
-                    $errors.Add("ASB-ASM-CONTRACT-SOLUTIONPLAN-CONST: property '$propertyName' must be '$($propertySchema.const)'")
-                }
-            }
-        }
-    }
-
-    if ($Plan.ContainsKey('targets') -and -not ($Plan.targets -is [System.Collections.IList])) {
-        $errors.Add("ASB-ASM-CONTRACT-SOLUTIONPLAN-TARGETS-TYPE: 'targets' must be an array")
-    }
-    if ($Plan.ContainsKey('collectors') -and -not ($Plan.collectors -is [System.Collections.IList])) {
-        $errors.Add("ASB-ASM-CONTRACT-SOLUTIONPLAN-COLLECTORS-TYPE: 'collectors' must be an array")
-    }
-
-    return @($errors)
-}
-
 function Invoke-AssemblerPipeline {
     param(
         [Parameter(Mandatory = $true)][string]$BundleRoot,
@@ -148,6 +113,8 @@ function Invoke-AssemblerPipeline {
         $manifestPath = Join-Path $BundleRoot 'manifest.json'
         $objectIndexPath = Join-Path $BundleRoot 'objectIndex.json'
         $solutionPlanPath = Join-Path (Join-Path $BundleRoot 'config') 'solution.plan.json'
+        $manifestSchemaPath = Join-Path (Join-Path $ContractsRoot 'standards') 'bundle.manifest.schema.v1.json'
+        $objectIndexSchemaPath = Join-Path (Join-Path $ContractsRoot 'standards') 'objectIndex.schema.v1.json'
         $solutionPlanSchemaPath = Join-Path (Join-Path $ContractsRoot 'standards') 'solution.plan.schema.v1.json'
 
         $diagnostics.Add((New-Diagnostic -Stage 'Load' -Level 'INFO' -Code 'ASB-ASM-INPUT-LOAD' -Message "Loading $manifestPath"))
@@ -156,23 +123,34 @@ function Invoke-AssemblerPipeline {
         $objectIndex = Read-JsonFile -Path $objectIndexPath
         $diagnostics.Add((New-Diagnostic -Stage 'Load' -Level 'INFO' -Code 'ASB-ASM-INPUT-LOAD' -Message "Loading $solutionPlanPath"))
         $solutionPlan = Read-JsonFile -Path $solutionPlanPath
-        $diagnostics.Add((New-Diagnostic -Stage 'Load' -Level 'INFO' -Code 'ASB-ASM-CONTRACT-LOAD' -Message "Loading $solutionPlanSchemaPath"))
-        $solutionPlanSchema = Read-JsonFile -Path $solutionPlanSchemaPath
+        $diagnostics.Add((New-Diagnostic -Stage 'Load' -Level 'INFO' -Code 'ASB-ASM-CONTRACT-LOAD' -Message "Resolved schema paths from $ContractsRoot/standards"))
         Complete-Stage -Stage $stages.Load -Status 'OK'
 
         Start-Stage -Stage $stages.Validate
-        $diagnostics.Add((New-Diagnostic -Stage 'Validate' -Level 'INFO' -Code 'ASB-ASM-CONTRACT-VALIDATE' -Message 'Performing minimum solution plan contract checks'))
-        $planErrors = @(Test-SolutionPlanMinimumContract -Plan $solutionPlan -Schema $solutionPlanSchema)
-        foreach ($err in $planErrors) {
-            $diagnostics.Add((New-Diagnostic -Stage 'Validate' -Level 'ERROR' -Code 'ASB-ASM-CONTRACT-VALIDATE' -Message $err))
+        $schemaFailures = [System.Collections.Generic.List[hashtable]]::new()
+        $schemaChecks = @(
+            [ordered]@{ artifact = 'manifest.json'; documentPath = $manifestPath; schemaPath = $manifestSchemaPath; code = 'ASB-ASM-SCHEMA-MANIFEST-INVALID' },
+            [ordered]@{ artifact = 'objectIndex.json'; documentPath = $objectIndexPath; schemaPath = $objectIndexSchemaPath; code = 'ASB-ASM-SCHEMA-OBJECTINDEX-INVALID' },
+            [ordered]@{ artifact = 'config/solution.plan.json'; documentPath = $solutionPlanPath; schemaPath = $solutionPlanSchemaPath; code = 'ASB-ASM-SCHEMA-SOLUTIONPLAN-INVALID' }
+        )
+
+        foreach ($schemaCheck in $schemaChecks) {
+            $validationResult = Test-AssemblerSchemaFile -DocumentPath $schemaCheck.documentPath -SchemaPath $schemaCheck.schemaPath
+            if (-not $validationResult.isValid) {
+                $schemaFailures.Add([ordered]@{ code = $schemaCheck.code; message = [string]$validationResult.message })
+                $diagnostics.Add((New-Diagnostic -Stage 'Validate' -Level 'ERROR' -Code $schemaCheck.code -Message $validationResult.message))
+            }
+            else {
+                $diagnostics.Add((New-Diagnostic -Stage 'Validate' -Level 'INFO' -Code 'ASB-ASM-CONTRACT-VALIDATE' -Message "Schema validation passed for $($schemaCheck.artifact)"))
+            }
         }
 
-        if ($planErrors.Count -gt 0) {
+        if ($schemaFailures.Count -gt 0) {
             Complete-Stage -Stage $stages.Validate -Status 'ERROR'
-            throw 'ASB-ASM-CONTRACT-FAIL: solution plan validation failed'
+            throw 'ASB-ASM-CONTRACT-FAIL: required input schema validation failed'
         }
 
-        $diagnostics.Add((New-Diagnostic -Stage 'Validate' -Level 'INFO' -Code 'ASB-ASM-CONTRACT-VALIDATE' -Message 'Minimum contract checks passed'))
+        $diagnostics.Add((New-Diagnostic -Stage 'Validate' -Level 'INFO' -Code 'ASB-ASM-CONTRACT-VALIDATE' -Message 'Required input schema checks passed'))
         Complete-Stage -Stage $stages.Validate -Status 'OK'
 
         Start-Stage -Stage $stages.Transform

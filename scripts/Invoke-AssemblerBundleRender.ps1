@@ -14,6 +14,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+Import-Module (Join-Path $PSScriptRoot 'internal/AssemblerSchemaValidation.psm1') -Force
+
 function Get-UtcTimestamp { (Get-Date).ToUniversalTime().ToString('o') }
 
 function Read-JsonFile {
@@ -208,47 +210,6 @@ function Ensure-Directory {
     }
 }
 
-function Test-TemplateCatalogMinimumContract {
-    param(
-        [Parameter(Mandatory = $true)][hashtable]$Catalog,
-        [Parameter(Mandatory = $true)][hashtable]$Schema
-    )
-
-    $errors = [System.Collections.Generic.List[string]]::new()
-
-    foreach ($requiredKey in ($Schema.required ?? @())) {
-        if (-not $Catalog.ContainsKey([string]$requiredKey)) {
-            $errors.Add("ASB-ASM-CATALOG-REQUIRED: missing required property '$requiredKey'")
-        }
-    }
-
-    if ($Catalog.ContainsKey('schema') -and $Catalog.schema -ne 'assembler.template-catalog') {
-        $errors.Add("ASB-ASM-CATALOG-CONST: schema must be 'assembler.template-catalog'")
-    }
-    if ($Catalog.ContainsKey('schemaVersion') -and [int]$Catalog.schemaVersion -ne 1) {
-        $errors.Add("ASB-ASM-CATALOG-CONST: schemaVersion must be 1")
-    }
-
-    if (-not $Catalog.ContainsKey('entries') -or -not ($Catalog.entries -is [System.Collections.IList])) {
-        $errors.Add("ASB-ASM-CATALOG-TYPE: 'entries' must be an array")
-        return @($errors.ToArray())
-    }
-
-    if (@($Catalog.entries).Count -lt 1) {
-        $errors.Add("ASB-ASM-CATALOG-MINITEMS: entries must contain at least one item")
-    }
-
-    foreach ($entry in @($Catalog.entries)) {
-        foreach ($field in @('id', 'techId', 'mappingPath', 'templatePath', 'outputFileName')) {
-            if (-not $entry.ContainsKey($field) -or [string]::IsNullOrWhiteSpace([string]$entry[$field])) {
-                $errors.Add("ASB-ASM-CATALOG-ENTRY-REQUIRED: catalog entry requires non-empty '$field'")
-            }
-        }
-    }
-
-    return @($errors.ToArray())
-}
-
 $startedUtc = Get-UtcTimestamp
 $issues = [System.Collections.Generic.List[hashtable]]::new()
 $runs = [System.Collections.Generic.List[hashtable]]::new()
@@ -281,6 +242,16 @@ function Complete-BundleStage {
     if ($PSBoundParameters.ContainsKey('Details')) { $Stage.details = $Details }
 }
 
+function Add-BundleSchemaIssue {
+    param(
+        [Parameter(Mandatory = $true)][string]$Code,
+        [Parameter(Mandatory = $true)][string]$Message,
+        [Parameter(Mandatory = $true)][string]$PathValue
+    )
+
+    $issues.Add([ordered]@{ code = $Code; severity = 'ERROR'; message = $Message; path = $PathValue })
+}
+
 try {
     $repoRoot = Split-Path -Parent $PSScriptRoot
     $invokeRenderScript = Join-Path $PSScriptRoot 'Invoke-AssemblerSdtRender.ps1'
@@ -288,9 +259,9 @@ try {
     Start-BundleStage -Stage $stageMap.Load
     $effectiveContractsRoot = Resolve-AssemblerContractsRoot -ContractsRoot $ContractsRoot -RepoRoot $repoRoot
     $catalogSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards/assembler') 'assembler.template-catalog.schema.v1.json'
+    $aggregateReportSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards/assembler') 'assembler.render-report.schema.v1.json'
 
     $catalog = Read-JsonFile -Path $CatalogPath
-    $catalogSchema = Read-JsonFile -Path $catalogSchemaPath
 
     $bundleResolution = Resolve-BundleRoot -BundleRoot $BundleRoot
     $effectiveBundleRoot = [string]$bundleResolution.bundleRoot
@@ -306,13 +277,11 @@ try {
     Complete-BundleStage -Stage $stageMap.Load -Status $(if ($bundleResolution.autoSelected) { 'WARN' } else { 'OK' })
 
     Start-BundleStage -Stage $stageMap.Validate
-    $catalogErrors = @(Test-TemplateCatalogMinimumContract -Catalog $catalog -Schema $catalogSchema)
-    foreach ($errorText in $catalogErrors) {
-        $issues.Add([ordered]@{ code = 'ASB-ASM-CATALOG-VALIDATE'; severity = 'ERROR'; message = $errorText; path = $CatalogPath })
-    }
-    if (@($catalogErrors).Count -gt 0) {
+    $catalogValidation = Test-AssemblerSchemaFile -DocumentPath $CatalogPath -SchemaPath $catalogSchemaPath
+    if (-not $catalogValidation.isValid) {
+        Add-BundleSchemaIssue -Code 'ASB-ASM-SCHEMA-CATALOG-INVALID' -Message ([string]$catalogValidation.message) -PathValue $CatalogPath
         Complete-BundleStage -Stage $stageMap.Validate -Status 'ERROR'
-        throw 'Template catalog validation failed.'
+        throw 'Template catalog schema validation failed.'
     }
     Complete-BundleStage -Stage $stageMap.Validate -Status 'OK'
 
@@ -483,6 +452,18 @@ $report = [ordered]@{
 }
 
 $reportJson = $report | ConvertTo-Json -Depth 12
+$aggregateReportValidation = Test-AssemblerSchemaJson -JsonText $reportJson -SchemaPath $aggregateReportSchemaPath -DocumentLabel 'assembler-bundle-render-report'
+if (-not $aggregateReportValidation.isValid) {
+    Add-BundleSchemaIssue -Code 'ASB-ASM-SCHEMA-AGGREGATEREPORT-INVALID' -Message ([string]$aggregateReportValidation.message) -PathValue (Join-Path $OutputRoot 'assembler-bundle-render-report.json')
+    $status = 'ERROR'
+    $report.status = $status
+    $report.issues = $issues
+    if ($null -ne $stageMap.Finalize.startedUtc) {
+        $stageMap.Finalize.status = 'ERROR'
+    }
+    $report.completedUtc = Get-UtcTimestamp
+    $reportJson = $report | ConvertTo-Json -Depth 12
+}
 Ensure-Directory -Path $OutputRoot
 $bundleReportPath = Join-Path $OutputRoot 'assembler-bundle-render-report.json'
 Set-Content -LiteralPath $bundleReportPath -Value $reportJson -Encoding UTF8
