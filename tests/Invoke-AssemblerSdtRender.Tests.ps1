@@ -3,7 +3,8 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         param(
             [Parameter(Mandatory = $true)][string]$Root,
             [Parameter(Mandatory = $true)][object[]]$Mappings,
-            [Parameter(Mandatory = $true)][string]$Template
+            [Parameter(Mandatory = $true)][string]$Template,
+            [Parameter(Mandatory = $false)][hashtable]$Dataset
         )
 
         $bundleRoot = Join-Path $Root 'bundle'
@@ -16,11 +17,22 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         } | ConvertTo-Json -Depth 5)
 
         $datasetPath = Join-Path $datasetsRoot 'systems.json'
-        Set-Content -LiteralPath $datasetPath -Encoding UTF8 -Value (@{
-            items = @(
-                @{ name = 'ArrayOne'; status = 'online' }
-            )
-        } | ConvertTo-Json -Depth 10)
+        $datasetPayload = if ($PSBoundParameters.ContainsKey('Dataset')) {
+            $Dataset
+        }
+        else {
+            @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'systems'
+                item_count = 1
+                items = @(
+                    @{ name = 'ArrayOne'; status = 'online' }
+                )
+            }
+        }
+        Set-Content -LiteralPath $datasetPath -Encoding UTF8 -Value ($datasetPayload | ConvertTo-Json -Depth 10)
 
         $mappingPath = Join-Path $Root 'mapping.json'
         Set-Content -LiteralPath $mappingPath -Encoding UTF8 -Value (@{
@@ -134,6 +146,69 @@ Describe 'Invoke-AssemblerSdtRender integration' {
 
             if ((@($report.matches | Where-Object { $_.tag -eq 'OPT_NAME' }).Count) -ne 0) {
                 throw 'Expected optional failed selector mapping to be skipped from matches'
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'emits envelope ERROR for required mappings and warning for optional mappings' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template "Req=<<SDT:REQ_NAME>>;Opt=<<SDT:OPT_NAME>>" -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'systems'
+                item_count = 2
+                items = @(
+                    @{ name = 'ArrayOne'; status = 'online' }
+                )
+            } -Mappings @(
+                @{
+                    dataset = 'datasets/systems.json'
+                    sdtTag = 'REQ_NAME'
+                    required = $true
+                    selectors = @('items', '0', 'name')
+                },
+                @{
+                    dataset = 'datasets/systems.json'
+                    sdtTag = 'OPT_NAME'
+                    required = $false
+                    selectors = @('items', '0', 'name')
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -eq 0) { throw 'Expected non-zero exit code due to required envelope validation failure' }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            if ($report.status -ne 'ERROR') { throw "Expected report.status ERROR, got '$($report.status)'" }
+
+            $envelopeIssues = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DATASET-ENVELOPE' })
+            $requiredIssue = @($envelopeIssues | Where-Object { $_.severity -eq 'ERROR' -and $_.message -match "tag 'REQ_NAME'" }) | Select-Object -First 1
+            if ($null -eq $requiredIssue) { throw 'Expected required mapping envelope failure to emit ERROR issue' }
+
+            $optionalIssue = @($envelopeIssues | Where-Object { $_.severity -eq 'WARN' -and $_.message -match "tag 'OPT_NAME'" }) | Select-Object -First 1
+            if ($null -eq $optionalIssue) { throw 'Expected optional mapping envelope failure to emit WARN issue' }
+
+            if ((@($report.matches | Where-Object { $_.tag -eq 'OPT_NAME' }).Count) -ne 0) {
+                throw 'Expected optional envelope-invalid mapping to be skipped from matches'
             }
         }
         finally {

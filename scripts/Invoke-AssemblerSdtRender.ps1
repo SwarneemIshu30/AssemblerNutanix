@@ -156,6 +156,42 @@ function Resolve-DatasetFilePath {
     return [ordered]@{ path = $exactPath; autoResolved = $false; reason = $null }
 }
 
+function Test-DatasetEnvelope {
+    param(
+        [Parameter(Mandatory = $true)][hashtable]$Dataset,
+        [Parameter(Mandatory = $true)][string]$DatasetPath
+    )
+
+    # Validation rules are sourced from:
+    # export/repo-ready/contracts/standards/architecture.direct-v1.collector-contracts.md
+    $errors = [System.Collections.Generic.List[string]]::new()
+
+    if (-not $Dataset.ContainsKey('schema_version') -or [string]::IsNullOrWhiteSpace([string]$Dataset.schema_version)) {
+        $errors.Add("Dataset envelope missing required field 'schema_version'")
+    }
+    elseif ([string]$Dataset.schema_version -ne 'lnv.collector.dataset.v1') {
+        $errors.Add("Dataset envelope schema_version must be 'lnv.collector.dataset.v1' (got '$($Dataset.schema_version)')")
+    }
+
+    foreach ($requiredField in @('collector', 'source', 'dataset', 'item_count', 'items')) {
+        if (-not $Dataset.ContainsKey($requiredField)) {
+            $errors.Add("Dataset envelope missing required field '$requiredField'")
+        }
+    }
+
+    if ($Dataset.ContainsKey('items') -and $Dataset.items -is [System.Collections.IList]) {
+        [int]$itemCount = 0
+        if (-not [int]::TryParse([string]$Dataset.item_count, [ref]$itemCount)) {
+            $errors.Add("Dataset envelope field 'item_count' must be an integer when 'items' is an array")
+        }
+        elseif ($itemCount -ne @($Dataset.items).Count) {
+            $errors.Add("Dataset envelope item_count ($itemCount) must equal items.Length (@($Dataset.items).Count)")
+        }
+    }
+
+    return @($errors.ToArray())
+}
+
 function Convert-CellValueToString {
     param([Parameter(Mandatory = $false)]$Value)
 
@@ -441,6 +477,16 @@ try {
         }
 
         $dataset = Read-JsonFile -Path $datasetPath
+        $envelopeErrors = @(Test-DatasetEnvelope -Dataset $dataset -DatasetPath $datasetPath)
+        if (@($envelopeErrors).Count -gt 0) {
+            $severity = if ($entry.required) { 'ERROR' } else { 'WARN' }
+            foreach ($envelopeError in $envelopeErrors) {
+                $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-DATASET-ENVELOPE'; severity = $severity; message = "Dataset '$($entry.dataset)' failed envelope validation for tag '$tag': $envelopeError"; path = $datasetPath })
+            }
+            if ($severity -eq 'ERROR') { $status = 'ERROR' }
+            continue
+        }
+
         $resolved = $null
         $selectors = @($entry.selectors)
         if (@($selectors).Count -gt 0) {
