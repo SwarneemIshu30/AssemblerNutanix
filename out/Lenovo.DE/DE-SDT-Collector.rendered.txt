@@ -21,10 +21,10 @@ Volumes    : 3
 Collection
 ------------------------------------------------------------------------------------------
 
-Collected UTC : 03/08/2026 15:07:36
-Mode          : Cli
-Controller    : 10.240.59.179:8443
-System Count  : 1
+Collected UTC : <<SDT:DE_COLLECTION_COLLECTED_UTC>>
+Mode          : <<SDT:DE_COLLECTION_MODE>>
+Controller    : <<SDT:DE_COLLECTION_CONTROLLER>>:<<SDT:DE_COLLECTION_PORT>>
+System Count  : <<SDT:DE_COLLECTION_SYSTEM_COUNT>>
 
 Tables.Systems
 ------------------------------------------------------------------------------------------
@@ -194,5 +194,5 @@ True        True            True        True            True               https
 Findings
 ------------------------------------------------------------------------------------------
 
-
+<<SDT:DE_COLLECTOR_FINDINGS>>
 
