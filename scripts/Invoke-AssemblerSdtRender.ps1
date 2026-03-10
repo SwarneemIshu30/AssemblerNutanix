@@ -444,12 +444,22 @@ try {
         $resolved = $null
         $selectors = @($entry.selectors)
         if (@($selectors).Count -gt 0) {
+            $resolved = $dataset
+            $selectorFailed = $false
             foreach ($selector in $selectors) {
-                $candidate = Resolve-Selector -InputObject $dataset -Selector ([string]$selector)
-                if ($null -ne $candidate) {
-                    $resolved = $candidate
+                $resolved = Resolve-Selector -InputObject $resolved -Selector ([string]$selector)
+                if ($null -eq $resolved) {
+                    $selectorFailed = $true
                     break
                 }
+            }
+
+            if ($selectorFailed) {
+                $selectorChain = ($selectors | ForEach-Object { [string]$_ }) -join ' -> '
+                $severity = if ($entry.required) { 'ERROR' } else { 'WARN' }
+                $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-SELECTOR-NOMATCH'; severity = $severity; message = "Selector chain '$selectorChain' did not resolve for tag '$tag'"; path = $datasetPath })
+                if ($severity -eq 'ERROR') { $status = 'ERROR' }
+                continue
             }
         }
         else {
@@ -465,7 +475,7 @@ try {
         $resolvedText = Convert-ValueToString -Value $resolved -Tag $tag
         $replaceByTag[$tag] = $resolvedText
         $valuePreview = if ($resolvedText.Length -gt 80) { $resolvedText.Substring(0, 80) + '...' } else { $resolvedText }
-        $matches.Add([ordered]@{ tag = $tag; dataset = [string]$entry.dataset; selector = if (@($selectors).Count -gt 0) { [string]$selectors[0] } else { '' }; valuePreview = $valuePreview })
+        $matches.Add([ordered]@{ tag = $tag; dataset = [string]$entry.dataset; selector = if (@($selectors).Count -gt 0) { (($selectors | ForEach-Object { [string]$_ }) -join ' -> ') } else { '' }; valuePreview = $valuePreview })
     }
 
     $transformStatus = if ($status -eq 'ERROR') { 'ERROR' } elseif (@($issues | Where-Object { $_.severity -eq 'WARN' }).Count -gt 0) { 'WARN' } else { 'OK' }
