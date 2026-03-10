@@ -23,11 +23,36 @@ $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1'
 
 function Resolve-DefaultBundleRoot {
     param([Parameter(Mandatory = $true)][string]$RepoRoot)
-    $bundleRoot = Join-Path $RepoRoot 'bundle'
-    if (Test-Path -LiteralPath $bundleRoot -PathType Container) { return $bundleRoot }
 
-    return $null
+    $bundleStagingRoot = Join-Path $RepoRoot 'bundle'
+    if (-not (Test-Path -LiteralPath $bundleStagingRoot -PathType Container)) {
+        return $null
     }
+
+    $directManifest = Join-Path $bundleStagingRoot 'manifest.json'
+    $directObjectIndex = Join-Path $bundleStagingRoot 'objectIndex.json'
+    $directSolutionPlan = Join-Path (Join-Path $bundleStagingRoot 'config') 'solution.plan.json'
+    if ((Test-Path -LiteralPath $directManifest -PathType Leaf) -and (Test-Path -LiteralPath $directObjectIndex -PathType Leaf) -and (Test-Path -LiteralPath $directSolutionPlan -PathType Leaf)) {
+        return $bundleStagingRoot
+    }
+
+    $bundleCandidates = @(
+        Get-ChildItem -LiteralPath $bundleStagingRoot -Directory -ErrorAction SilentlyContinue |
+            Where-Object {
+                (Test-Path -LiteralPath (Join-Path $_.FullName 'manifest.json') -PathType Leaf) -and
+                (Test-Path -LiteralPath (Join-Path $_.FullName 'objectIndex.json') -PathType Leaf) -and
+                (Test-Path -LiteralPath (Join-Path $_.FullName 'config/solution.plan.json') -PathType Leaf)
+            } |
+            Sort-Object -Property Name
+    )
+
+    if (@($bundleCandidates).Count -eq 1) {
+        return [string]$bundleCandidates[0].FullName
+    }
+
+    # Staging area may contain zero or multiple transported bundles; require explicit user selection in that case.
+    return $null
+}
 
 function Resolve-DefaultCatalogPath {
     param([Parameter(Mandatory = $true)][string]$RepoRoot)

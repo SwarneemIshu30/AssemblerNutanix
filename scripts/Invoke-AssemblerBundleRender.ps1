@@ -32,44 +32,68 @@ function Resolve-BundleRoot {
     param([Parameter(Mandatory = $true)][string]$BundleRoot)
 
     $resolvedInput = (Resolve-Path -LiteralPath $BundleRoot -ErrorAction Stop).Path
-    $directObjectIndex = Join-Path $resolvedInput 'objectIndex.json'
-    if (Test-Path -LiteralPath $directObjectIndex -PathType Leaf) {
+
+    function Test-BundleCandidate {
+        param([Parameter(Mandatory = $true)][string]$Path)
+
+        $manifestPath = Join-Path $Path 'manifest.json'
+        $objectIndexPath = Join-Path $Path 'objectIndex.json'
+        $solutionPlanPath = Join-Path (Join-Path $Path 'config') 'solution.plan.json'
+
+        return [ordered]@{
+            path = $Path
+            manifestPath = $manifestPath
+            objectIndexPath = $objectIndexPath
+            solutionPlanPath = $solutionPlanPath
+            isValid =
+                (Test-Path -LiteralPath $manifestPath -PathType Leaf) -and
+                (Test-Path -LiteralPath $objectIndexPath -PathType Leaf) -and
+                (Test-Path -LiteralPath $solutionPlanPath -PathType Leaf)
+        }
+    }
+
+    $directCandidate = Test-BundleCandidate -Path $resolvedInput
+    if ($directCandidate.isValid) {
         return [ordered]@{
             bundleRoot = $resolvedInput
-            objectIndexPath = $directObjectIndex
+            objectIndexPath = $directCandidate.objectIndexPath
             autoSelected = $false
-            candidateCount = 0
+            candidateCount = 1
+            selectionReason = 'direct'
         }
     }
 
     $candidates = @(
         Get-ChildItem -LiteralPath $resolvedInput -Directory -ErrorAction Stop |
             ForEach-Object {
-                $candidateObjectIndex = Join-Path $_.FullName 'objectIndex.json'
-                if (Test-Path -LiteralPath $candidateObjectIndex -PathType Leaf) {
+                $candidate = Test-BundleCandidate -Path $_.FullName
+                if ($candidate.isValid) {
                     [pscustomobject]@{
-                        bundleRoot = $_.FullName
-                        objectIndexPath = $candidateObjectIndex
-                        objectIndexWriteTimeUtc = (Get-Item -LiteralPath $candidateObjectIndex).LastWriteTimeUtc
+                        bundleRoot = [string]$candidate.path
+                        objectIndexPath = [string]$candidate.objectIndexPath
+                        solutionPlanPath = [string]$candidate.solutionPlanPath
                     }
                 }
             }
     )
 
-    if (@($candidates).Count -eq 0) {
-        throw "Required file not found: $directObjectIndex"
+    if (@($candidates).Count -eq 1) {
+        $selected = $candidates[0]
+        return [ordered]@{
+            bundleRoot = [string]$selected.bundleRoot
+            objectIndexPath = [string]$selected.objectIndexPath
+            autoSelected = $true
+            candidateCount = 1
+            selectionReason = 'single-staged-child'
+        }
     }
 
-    $selected = $candidates |
-        Sort-Object -Property @{ Expression = { $_.objectIndexWriteTimeUtc }; Descending = $true }, @{ Expression = { $_.bundleRoot }; Descending = $false } |
-        Select-Object -First 1
-
-    return [ordered]@{
-        bundleRoot = [string]$selected.bundleRoot
-        objectIndexPath = [string]$selected.objectIndexPath
-        autoSelected = $true
-        candidateCount = @($candidates).Count
+    if (@($candidates).Count -gt 1) {
+        $candidateRoots = @($candidates | Sort-Object -Property bundleRoot | ForEach-Object { [string]$_.bundleRoot })
+        throw "BundleRoot '$BundleRoot' resolves to a staging directory containing multiple bundle candidates. Provide a specific bundle directory (contains manifest.json, objectIndex.json, config/solution.plan.json). Candidates: $($candidateRoots -join ', ')"
     }
+
+    throw "BundleRoot '$BundleRoot' does not resolve to a valid bundle directory. Expected manifest.json, objectIndex.json, and config/solution.plan.json at '$resolvedInput' or exactly one child bundle directory."
 }
 
 function Resolve-AssemblerContractsRoot {
@@ -100,7 +124,8 @@ function Resolve-AssemblerContractsRoot {
 function Resolve-TechDatasetContext {
     param(
         [Parameter(Mandatory = $true)][string]$BundleRoot,
-        [Parameter(Mandatory = $true)][string]$TechId
+        [Parameter(Mandatory = $true)][string]$TechId,
+        [Parameter(Mandatory = $false)][hashtable]$CatalogEntry
     )
 
     $multiRoot = Join-Path (Join-Path (Join-Path $BundleRoot 'datasets') $TechId) 'collector-out/_multi'
@@ -116,7 +141,8 @@ function Resolve-TechDatasetContext {
                 [pscustomobject]@{
                     Name = $_.Name
                     FullName = $_.FullName
-                    Rank = if (Test-Path -LiteralPath $summary -PathType Leaf) { (Get-Item -LiteralPath $summary).LastWriteTimeUtc.Ticks } else { 0 }
+                    TargetKey = if ($_.Name.StartsWith('target_')) { $_.Name.Substring(7) } else { $_.Name }
+                    HasRunSummary = (Test-Path -LiteralPath $summary -PathType Leaf)
                 }
             }
     )
@@ -124,16 +150,100 @@ function Resolve-TechDatasetContext {
         throw "No target_* folders found in: $multiRoot"
     }
 
-    $target = $targets | Sort-Object -Property @{Expression={$_.Rank};Descending=$true}, @{Expression={$_.Name}} | Select-Object -First 1
+    # Deterministic precedence (never timestamp-based):
+    # 1) Explicit catalog metadata key (targetKey, target, selectedTargetKey, targetSelector.key).
+    # 2) First matching key from config/solution.plan.json collectors[].targetKeys for this TechId.
+    # 3) Lexical Name order (stable fallback).
+    $explicitTargetKeys = [System.Collections.Generic.List[string]]::new()
+    if ($null -ne $CatalogEntry) {
+        foreach ($keyField in @('targetKey','target','selectedTargetKey')) {
+            if ($CatalogEntry.ContainsKey($keyField) -and -not [string]::IsNullOrWhiteSpace([string]$CatalogEntry[$keyField])) {
+                $explicitTargetKeys.Add(([string]$CatalogEntry[$keyField]).Trim())
+            }
+        }
+        if ($CatalogEntry.ContainsKey('targetSelector') -and $null -ne $CatalogEntry.targetSelector) {
+            $selector = $CatalogEntry.targetSelector
+            if ($selector -is [hashtable] -and $selector.ContainsKey('key') -and -not [string]::IsNullOrWhiteSpace([string]$selector.key)) {
+                $explicitTargetKeys.Add(([string]$selector.key).Trim())
+            }
+        }
+    }
+
+    $solutionPlanTargetKeys = [System.Collections.Generic.List[string]]::new()
+    $solutionPlanPath = Join-Path (Join-Path $BundleRoot 'config') 'solution.plan.json'
+    if (Test-Path -LiteralPath $solutionPlanPath -PathType Leaf) {
+        try {
+            $solutionPlan = Read-JsonFile -Path $solutionPlanPath
+            foreach ($collector in @($solutionPlan.collectors)) {
+                if ([string]$collector.techId -ne $TechId) { continue }
+                foreach ($targetKey in @($collector.targetKeys)) {
+                    if (-not [string]::IsNullOrWhiteSpace([string]$targetKey)) {
+                        $solutionPlanTargetKeys.Add(([string]$targetKey).Trim())
+                    }
+                }
+            }
+        }
+        catch {
+            # Selection can still continue via explicit entry metadata or lexical fallback.
+        }
+    }
+
+    $targetByName = @{}
+    $targetByKey = @{}
+    foreach ($candidate in $targets) {
+        $targetByName[[string]$candidate.Name] = $candidate
+        $targetByKey[[string]$candidate.TargetKey] = $candidate
+    }
+
+    $selectedTarget = $null
+    $selectionReason = $null
+    foreach ($candidateKey in @($explicitTargetKeys)) {
+        if ($targetByName.ContainsKey($candidateKey)) {
+            $selectedTarget = $targetByName[$candidateKey]
+            $selectionReason = "catalog-entry:$candidateKey"
+            break
+        }
+        $prefixed = "target_$candidateKey"
+        if ($targetByName.ContainsKey($prefixed)) {
+            $selectedTarget = $targetByName[$prefixed]
+            $selectionReason = "catalog-entry:$candidateKey"
+            break
+        }
+        if ($targetByKey.ContainsKey($candidateKey)) {
+            $selectedTarget = $targetByKey[$candidateKey]
+            $selectionReason = "catalog-entry:$candidateKey"
+            break
+        }
+    }
+
+    if ($null -eq $selectedTarget) {
+        foreach ($targetKey in @($solutionPlanTargetKeys)) {
+            if ($targetByKey.ContainsKey($targetKey)) {
+                $selectedTarget = $targetByKey[$targetKey]
+                $selectionReason = "solution-plan:$targetKey"
+                break
+            }
+        }
+    }
+
+    if ($null -eq $selectedTarget) {
+        $selectedTarget = $targets | Sort-Object -Property Name | Select-Object -First 1
+        $selectionReason = 'lexical-fallback'
+    }
 
     $systems = @(
-        Get-ChildItem -LiteralPath $target.FullName -Directory -ErrorAction SilentlyContinue |
+        Get-ChildItem -LiteralPath $selectedTarget.FullName -Directory -ErrorAction SilentlyContinue |
             Where-Object { $_.Name -like 'system_*' } |
             Sort-Object -Property Name |
             ForEach-Object { [string]$_.Name }
     )
 
-    return [ordered]@{ target = [string]$target.Name; systems = $systems }
+    return [ordered]@{
+        target = [string]$selectedTarget.Name
+        systems = $systems
+        selectionReason = $selectionReason
+        candidateTargets = @($targets | Sort-Object -Property Name | ForEach-Object { [string]$_.Name })
+    }
 }
 
 function Resolve-MappingPathForBundle {
@@ -142,7 +252,8 @@ function Resolve-MappingPathForBundle {
         [Parameter(Mandatory = $true)][string]$MappingPath,
         [Parameter(Mandatory = $true)][string]$TechId,
         [Parameter(Mandatory = $true)][string]$OutputRoot,
-        [Parameter(Mandatory = $false)][string]$EntryId
+        [Parameter(Mandatory = $false)][string]$EntryId,
+        [Parameter(Mandatory = $false)][hashtable]$CatalogEntry
     )
 
     $effectiveEntryId = if ([string]::IsNullOrWhiteSpace($EntryId)) {
@@ -152,7 +263,7 @@ function Resolve-MappingPathForBundle {
         $EntryId
     }
 
-    $variants = Resolve-MappingVariantsForBundle -BundleRoot $BundleRoot -MappingPath $MappingPath -TechId $TechId -OutputRoot $OutputRoot -EntryId $effectiveEntryId
+    $variants = Resolve-MappingVariantsForBundle -BundleRoot $BundleRoot -MappingPath $MappingPath -TechId $TechId -OutputRoot $OutputRoot -EntryId $effectiveEntryId -CatalogEntry $CatalogEntry
     if (@($variants).Count -lt 1) {
         throw "Failed to resolve mapping variants for '$MappingPath'."
     }
@@ -166,15 +277,16 @@ function Resolve-MappingVariantsForBundle {
         [Parameter(Mandatory = $true)][string]$MappingPath,
         [Parameter(Mandatory = $true)][string]$TechId,
         [Parameter(Mandatory = $true)][string]$OutputRoot,
-        [Parameter(Mandatory = $true)][string]$EntryId
+        [Parameter(Mandatory = $true)][string]$EntryId,
+        [Parameter(Mandatory = $false)][hashtable]$CatalogEntry
     )
 
     $mappingText = Get-Content -LiteralPath $MappingPath -Raw -Encoding UTF8
     if (($mappingText -notmatch '__TARGET__') -and ($mappingText -notmatch '__SYSTEM__')) {
-        return @([pscustomobject]@{ mappingPath = $MappingPath; variantName = $null })
+        return @([pscustomobject]@{ mappingPath = $MappingPath; variantName = $null; selectedTarget = $null; targetSelectionReason = $null; targetCandidates = @() })
     }
 
-    $ctx = Resolve-TechDatasetContext -BundleRoot $BundleRoot -TechId $TechId
+    $ctx = Resolve-TechDatasetContext -BundleRoot $BundleRoot -TechId $TechId -CatalogEntry $CatalogEntry
     $targetResolved = $mappingText.Replace('__TARGET__', [string]$ctx.target)
 
     $tempDir = Join-Path $OutputRoot '.resolved-mappings'
@@ -183,7 +295,7 @@ function Resolve-MappingVariantsForBundle {
     if ($targetResolved -notmatch '__SYSTEM__') {
         $resolvedPath = Join-Path $tempDir ("$EntryId.target.$([string]$ctx.target).resolved.json")
         Set-Content -LiteralPath $resolvedPath -Value $targetResolved -Encoding UTF8
-        return @([pscustomobject]@{ mappingPath = $resolvedPath; variantName = [string]$ctx.target })
+        return @([pscustomobject]@{ mappingPath = $resolvedPath; variantName = [string]$ctx.target; selectedTarget = [string]$ctx.target; targetSelectionReason = [string]$ctx.selectionReason; targetCandidates = @($ctx.candidateTargets) })
     }
 
     if (@($ctx.systems).Count -eq 0) {
@@ -196,7 +308,7 @@ function Resolve-MappingVariantsForBundle {
         $safeSystem = ([string]$systemName).Replace('/', '_').Replace('\', '_')
         $resolvedPath = Join-Path $tempDir ("$EntryId.$safeSystem.resolved.json")
         Set-Content -LiteralPath $resolvedPath -Value $resolved -Encoding UTF8
-        $variants.Add([pscustomobject]@{ mappingPath = $resolvedPath; variantName = [string]$systemName })
+        $variants.Add([pscustomobject]@{ mappingPath = $resolvedPath; variantName = [string]$systemName; selectedTarget = [string]$ctx.target; targetSelectionReason = [string]$ctx.selectionReason; targetCandidates = @($ctx.candidateTargets) })
     }
 
     return @($variants)
@@ -270,7 +382,7 @@ try {
         $issues.Add([ordered]@{
             code = 'ASB-ASM-BUNDLE-AUTOSELECTED'
             severity = 'WARN'
-            message = "BundleRoot '$BundleRoot' did not contain objectIndex.json. Auto-selected '$effectiveBundleRoot' from $($bundleResolution.candidateCount) child bundle directories."
+            message = "BundleRoot '$BundleRoot' was treated as staging input and auto-selected child bundle '$effectiveBundleRoot' (single valid candidate with manifest.json, objectIndex.json, config/solution.plan.json)."
             path = [string]$bundleResolution.objectIndexPath
         })
     }
@@ -330,9 +442,19 @@ try {
             Complete-BundleStage -Stage $runStageMap.Validate -Status 'OK'
 
             Start-BundleStage -Stage $runStageMap.Transform
-            $mappingPath = Resolve-MappingPathForBundle -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TechId ([string]$entry.techId) -OutputRoot $OutputRoot
-            $mappingVariants = Resolve-MappingVariantsForBundle -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TechId ([string]$entry.techId) -OutputRoot $OutputRoot -EntryId ([string]$entry.id)
-            Complete-BundleStage -Stage $runStageMap.Transform -Status 'OK' -Details ([ordered]@{ variantCount = @($mappingVariants).Count })
+            $mappingPath = Resolve-MappingPathForBundle -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TechId ([string]$entry.techId) -OutputRoot $OutputRoot -CatalogEntry $entry
+            $mappingVariants = Resolve-MappingVariantsForBundle -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TechId ([string]$entry.techId) -OutputRoot $OutputRoot -EntryId ([string]$entry.id) -CatalogEntry $entry
+            $selectionReason = if (@($mappingVariants).Count -gt 0) { [string]$mappingVariants[0].targetSelectionReason } else { $null }
+            $selectedTarget = if (@($mappingVariants).Count -gt 0) { [string]$mappingVariants[0].selectedTarget } else { $null }
+            if ($selectionReason -eq 'lexical-fallback') {
+                $issues.Add([ordered]@{
+                    code = 'ASB-ASM-TARGET-AUTOSELECTED'
+                    severity = 'WARN'
+                    message = "Entry '$($entry.id)' selected target '$selectedTarget' via lexical fallback. Configure catalog target metadata or solution.plan targetKeys to avoid fallback."
+                    path = Join-Path (Join-Path (Join-Path $effectiveBundleRoot 'datasets') ([string]$entry.techId)) 'collector-out/_multi'
+                })
+            }
+            Complete-BundleStage -Stage $runStageMap.Transform -Status 'OK' -Details ([ordered]@{ variantCount = @($mappingVariants).Count; selectedTarget = $selectedTarget; targetSelectionReason = $selectionReason })
 
             Start-BundleStage -Stage $runStageMap.Render
             foreach ($variant in @($mappingVariants)) {
@@ -378,6 +500,9 @@ try {
                     reportPath = $variantReportPath
                     rendererOutput = $rendererReport
                     rendererOutputRaw = $json
+                    selectedTarget = [string]$variant.selectedTarget
+                    targetSelectionReason = [string]$variant.targetSelectionReason
+                    targetCandidates = @($variant.targetCandidates)
                 })
             }
             Complete-BundleStage -Stage $runStageMap.Render -Status $runStatus
