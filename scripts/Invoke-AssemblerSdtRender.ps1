@@ -15,6 +15,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+Import-Module (Join-Path $PSScriptRoot 'internal/AssemblerSchemaValidation.psm1') -Force
+
 function Get-UtcTimestamp { (Get-Date).ToUniversalTime().ToString('o') }
 
 function Read-JsonFile {
@@ -52,58 +54,6 @@ function Resolve-AssemblerContractsRoot {
     }
 
     throw "Unable to resolve contracts root. Checked: $($candidates -join ', ')."
-}
-
-function Test-MappingMinimumContract {
-    param(
-        [Parameter(Mandatory = $true)][hashtable]$Mapping,
-        [Parameter(Mandatory = $true)][hashtable]$Schema
-    )
-
-    $errors = [System.Collections.Generic.List[string]]::new()
-
-    foreach ($requiredKey in ($Schema.required ?? @())) {
-        if (-not $Mapping.ContainsKey([string]$requiredKey)) {
-            $errors.Add("ASB-ASM-CONTRACT-MAPPING-REQUIRED: missing required property '$requiredKey'")
-        }
-    }
-
-    $schemaProperties = $Schema.properties
-    if ($null -ne $schemaProperties) {
-        foreach ($entry in $schemaProperties.GetEnumerator()) {
-            $propertyName = [string]$entry.Key
-            $propertySchema = $entry.Value
-            if ($Mapping.ContainsKey($propertyName) -and $propertySchema.ContainsKey('const')) {
-                if ($Mapping[$propertyName] -ne $propertySchema.const) {
-                    $errors.Add("ASB-ASM-CONTRACT-MAPPING-CONST: property '$propertyName' must be '$($propertySchema.const)'")
-                }
-            }
-        }
-    }
-
-    if (-not $Mapping.ContainsKey('mappings') -or -not ($Mapping.mappings -is [System.Collections.IList])) {
-        $errors.Add("ASB-ASM-CONTRACT-MAPPING-TYPE: 'mappings' must be an array")
-        return @($errors.ToArray())
-    }
-
-    if (@($Mapping.mappings).Count -lt 1) {
-        $errors.Add("ASB-ASM-CONTRACT-MAPPING-MINITEMS: 'mappings' must contain at least 1 item")
-    }
-
-    foreach ($entry in @($Mapping.mappings)) {
-        if (-not $entry.ContainsKey('dataset') -or [string]::IsNullOrWhiteSpace([string]$entry.dataset)) {
-            $errors.Add("ASB-ASM-CONTRACT-MAPPING-DATASET: each mapping requires non-empty 'dataset'")
-            continue
-        }
-
-        $hasTopLevelTag = $entry.ContainsKey('sdtTag') -and -not [string]::IsNullOrWhiteSpace([string]$entry.sdtTag)
-        $hasTargetTag = $entry.ContainsKey('target') -and $entry.target.ContainsKey('sdtTag') -and -not [string]::IsNullOrWhiteSpace([string]$entry.target.sdtTag)
-        if (-not $hasTopLevelTag -and -not $hasTargetTag) {
-            $errors.Add("ASB-ASM-CONTRACT-MAPPING-TAG: mapping for dataset '$($entry.dataset)' requires 'sdtTag' or 'target.sdtTag'")
-        }
-    }
-
-    return @($errors.ToArray())
 }
 
 function Resolve-Selector {
@@ -426,10 +376,21 @@ function Complete-RenderStage {
     if ($PSBoundParameters.ContainsKey('Details')) { $Stage.details = $Details }
 }
 
+function Add-SchemaValidationIssue {
+    param(
+        [Parameter(Mandatory = $true)][string]$Code,
+        [Parameter(Mandatory = $true)][string]$Message,
+        [Parameter(Mandatory = $true)][string]$PathValue
+    )
+
+    $issues.Add([ordered]@{ code = $Code; severity = 'ERROR'; message = $Message; path = $PathValue })
+}
+
 try {
     $repoRoot = Split-Path -Parent $PSScriptRoot
     $effectiveContractsRoot = Resolve-AssemblerContractsRoot -ContractsRoot $ContractsRoot -RepoRoot $repoRoot
     $mappingSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards') 'mapping.dataset-to-sdt.schema.v1.json'
+    $renderReportSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards/assembler') 'assembler.render-report.schema.v1.json'
 
     Start-RenderStage -Stage $stageMap.Load
     $mapping = Read-JsonFile -Path $MappingPath
@@ -444,14 +405,12 @@ try {
     Complete-RenderStage -Stage $stageMap.Load -Status 'OK' -Details ([ordered]@{ mappingPath = $MappingPath; templatePath = $TemplatePath; contractsRoot = $effectiveContractsRoot; mappingSchemaPath = $mappingSchemaPath })
 
     Start-RenderStage -Stage $stageMap.Validate
-    $mappingErrors = @(Test-MappingMinimumContract -Mapping $mapping -Schema $mappingSchema)
-    foreach ($mappingError in $mappingErrors) {
-        $issues.Add([ordered]@{ code = 'ASB-ASM-CONTRACT-VALIDATE'; severity = 'ERROR'; message = $mappingError; path = $MappingPath })
-    }
-    if (@($mappingErrors).Count -gt 0) {
+    $mappingValidation = Test-AssemblerSchemaFile -DocumentPath $MappingPath -SchemaPath $mappingSchemaPath
+    if (-not $mappingValidation.isValid) {
+        Add-SchemaValidationIssue -Code 'ASB-ASM-SCHEMA-MAPPING-INVALID' -Message ([string]$mappingValidation.message) -PathValue $MappingPath
         Complete-RenderStage -Stage $stageMap.Validate -Status 'ERROR'
         $status = 'ERROR'
-        throw 'Mapping contract validation failed.'
+        throw 'Mapping schema validation failed.'
     }
     Complete-RenderStage -Stage $stageMap.Validate -Status 'OK' -Details ([ordered]@{ mappingCount = @($mapping.mappings).Count })
 
@@ -576,6 +535,22 @@ $report = [ordered]@{
 }
 
 $reportJson = $report | ConvertTo-Json -Depth 10
+$renderReportValidation = Test-AssemblerSchemaJson -JsonText $reportJson -SchemaPath $renderReportSchemaPath -DocumentLabel 'assembler-sdt-render-report'
+if (-not $renderReportValidation.isValid) {
+    Add-SchemaValidationIssue -Code 'ASB-ASM-SCHEMA-RENDERREPORT-INVALID' -Message ([string]$renderReportValidation.message) -PathValue $(if ($ReportPath) { $ReportPath } else { '<stdout>' })
+    foreach ($stageName in @('Finalize','Render','Transform','Validate','Load')) {
+        $stage = $stageMap[$stageName]
+        if ($null -ne $stage.startedUtc) {
+            $stage.status = 'ERROR'
+            break
+        }
+    }
+    $status = 'ERROR'
+    $report.status = $status
+    $report.issues = $issues
+    $report.completedUtc = Get-UtcTimestamp
+    $reportJson = $report | ConvertTo-Json -Depth 10
+}
 if ($ReportPath) {
     $reportDir = Split-Path -Path $ReportPath -Parent
     if ($reportDir -and -not (Test-Path -LiteralPath $reportDir -PathType Container)) {
