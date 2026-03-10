@@ -365,12 +365,37 @@ $matches = [System.Collections.Generic.List[hashtable]]::new()
 $status = 'OK'
 $bundleId = $null
 
+$stageMap = [ordered]@{}
+foreach ($stageName in @('Load','Validate','Transform','Render','Finalize')) {
+    $stage = [ordered]@{ name = $stageName; status = 'SKIPPED'; startedUtc = $null; completedUtc = $null; details = $null }
+    $stageMap[$stageName] = $stage
+    $stageList.Add($stage)
+}
+
+function Start-RenderStage {
+    param([Parameter(Mandatory = $true)][hashtable]$Stage)
+    $Stage.startedUtc = Get-UtcTimestamp
+    $Stage.completedUtc = $null
+    $Stage.status = 'OK'
+}
+
+function Complete-RenderStage {
+    param(
+        [Parameter(Mandatory = $true)][hashtable]$Stage,
+        [Parameter(Mandatory = $true)][string]$Status,
+        [Parameter(Mandatory = $false)][hashtable]$Details
+    )
+    $Stage.status = $Status
+    $Stage.completedUtc = Get-UtcTimestamp
+    if ($PSBoundParameters.ContainsKey('Details')) { $Stage.details = $Details }
+}
+
 try {
     $repoRoot = Split-Path -Parent $PSScriptRoot
     $effectiveContractsRoot = Resolve-AssemblerContractsRoot -ContractsRoot $ContractsRoot -RepoRoot $repoRoot
     $mappingSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards') 'mapping.dataset-to-sdt.schema.v1.json'
 
-    $loadStart = Get-UtcTimestamp
+    Start-RenderStage -Stage $stageMap.Load
     $mapping = Read-JsonFile -Path $MappingPath
     $mappingSchema = Read-JsonFile -Path $mappingSchemaPath
     $templateText = Get-Content -LiteralPath $TemplatePath -Raw -Encoding UTF8
@@ -380,25 +405,21 @@ try {
         $manifest = Read-JsonFile -Path $manifestPath
         $bundleId = $manifest.bundleId
     }
+    Complete-RenderStage -Stage $stageMap.Load -Status 'OK' -Details ([ordered]@{ mappingPath = $MappingPath; templatePath = $TemplatePath; contractsRoot = $effectiveContractsRoot; mappingSchemaPath = $mappingSchemaPath })
 
-    $stageList.Add([ordered]@{
-        name = 'LoadInputs'; status = 'OK'; startedUtc = $loadStart; completedUtc = Get-UtcTimestamp; details = [ordered]@{ mappingPath = $MappingPath; templatePath = $TemplatePath; contractsRoot = $effectiveContractsRoot; mappingSchemaPath = $mappingSchemaPath }
-    })
-
-    $validateStart = Get-UtcTimestamp
+    Start-RenderStage -Stage $stageMap.Validate
     $mappingErrors = @(Test-MappingMinimumContract -Mapping $mapping -Schema $mappingSchema)
     foreach ($mappingError in $mappingErrors) {
         $issues.Add([ordered]@{ code = 'ASB-ASM-CONTRACT-VALIDATE'; severity = 'ERROR'; message = $mappingError; path = $MappingPath })
     }
     if (@($mappingErrors).Count -gt 0) {
+        Complete-RenderStage -Stage $stageMap.Validate -Status 'ERROR'
         $status = 'ERROR'
         throw 'Mapping contract validation failed.'
     }
+    Complete-RenderStage -Stage $stageMap.Validate -Status 'OK' -Details ([ordered]@{ mappingCount = @($mapping.mappings).Count })
 
-    $stageList.Add([ordered]@{
-        name = 'ValidateContract'; status = 'OK'; startedUtc = $validateStart; completedUtc = Get-UtcTimestamp; details = [ordered]@{ mappingSchemaPath = $mappingSchemaPath }
-    })
-
+    Start-RenderStage -Stage $stageMap.Transform
     $replaceByTag = @{}
     foreach ($entry in @($mapping.mappings)) {
         $tag = if ($entry.ContainsKey('sdtTag')) { [string]$entry.sdtTag } elseif ($entry.ContainsKey('target') -and $entry.target.ContainsKey('sdtTag')) { [string]$entry.target.sdtTag } else { '' }
@@ -447,28 +468,39 @@ try {
         $matches.Add([ordered]@{ tag = $tag; dataset = [string]$entry.dataset; selector = if (@($selectors).Count -gt 0) { [string]$selectors[0] } else { '' }; valuePreview = $valuePreview })
     }
 
-    $renderStart = Get-UtcTimestamp
+    $transformStatus = if ($status -eq 'ERROR') { 'ERROR' } elseif (@($issues | Where-Object { $_.severity -eq 'WARN' }).Count -gt 0) { 'WARN' } else { 'OK' }
+    Complete-RenderStage -Stage $stageMap.Transform -Status $transformStatus -Details ([ordered]@{ tagsResolved = $replaceByTag.Count; matches = $matches.Count })
+
+    Start-RenderStage -Stage $stageMap.Render
     $rendered = $templateText
     foreach ($tag in $replaceByTag.Keys) {
         $token = "<<SDT:$tag>>"
         $rendered = $rendered.Replace($token, [string]$replaceByTag[$tag])
     }
+    $renderStatus = if ($status -eq 'ERROR') { 'ERROR' } else { 'OK' }
+    Complete-RenderStage -Stage $stageMap.Render -Status $renderStatus -Details ([ordered]@{ tagsPopulated = $replaceByTag.Count })
 
+    Start-RenderStage -Stage $stageMap.Finalize
     $outDir = Split-Path -Path $OutputPath -Parent
     if ($outDir -and -not (Test-Path -LiteralPath $outDir -PathType Container)) {
         New-Item -Path $outDir -ItemType Directory -Force | Out-Null
     }
     Set-Content -LiteralPath $OutputPath -Value $rendered -Encoding UTF8
     $outputs.Add([ordered]@{ path = $OutputPath; type = 'text/template-rendered' })
-
-    $stageList.Add([ordered]@{
-        name = 'RenderSdt'; status = if ($status -eq 'ERROR') { 'ERROR' } else { 'OK' }; startedUtc = $renderStart; completedUtc = Get-UtcTimestamp; details = [ordered]@{ tagsPopulated = $replaceByTag.Count }
-    })
+    $finalizeStatus = if ($status -eq 'ERROR') { 'ERROR' } else { 'OK' }
+    Complete-RenderStage -Stage $stageMap.Finalize -Status $finalizeStatus -Details ([ordered]@{ outputPath = $OutputPath })
 }
 catch {
     $status = 'ERROR'
     $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-UNHANDLED'; severity = 'ERROR'; message = $_.Exception.Message; path = $null })
-    $stageList.Add([ordered]@{ name = 'Unhandled'; status = 'ERROR'; startedUtc = Get-UtcTimestamp; completedUtc = Get-UtcTimestamp; details = $null })
+
+    foreach ($stageName in @('Load','Validate','Transform','Render','Finalize')) {
+        $stage = $stageMap[$stageName]
+        if ($null -ne $stage.startedUtc -and $null -eq $stage.completedUtc) {
+            Complete-RenderStage -Stage $stage -Status 'ERROR'
+            break
+        }
+    }
 }
 
 if ($status -ne 'ERROR' -and @($issues | Where-Object { $_.severity -eq 'WARN' }).Count -gt 0) {

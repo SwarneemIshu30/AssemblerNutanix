@@ -19,24 +19,6 @@ Path to the contracts root containing `standards/solution.plan.schema.v1.json`.
 .PARAMETER OutputPath
 Optional output file path for the JSON report. If omitted, report JSON is written to stdout.
 
-.OUTPUTS
-JSON text representing a report object with:
-- `schemaVersion`
-- `status` (`ok` or `error`)
-- optional `bundle` summary block
-- `diagnostics` list
-
-.EXAMPLE
-pwsh ./scripts/Invoke-AssemblerPipeline.ps1 `
-  -BundleRoot ./sample/bundle `
-  -ContractsRoot ./export/repo-ready/contracts
-
-.EXAMPLE
-pwsh ./scripts/Invoke-AssemblerPipeline.ps1 `
-  -BundleRoot ./sample/bundle `
-  -ContractsRoot ./export/repo-ready/contracts `
-  -OutputPath ./out/assembler-bootstrap-report.json
-
 .NOTES
 Exit code is `0` when `status=ok` and `1` when `status=error`.
 #>
@@ -50,9 +32,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-function Get-UtcTimestamp {
-    (Get-Date).ToUniversalTime().ToString('o')
-}
+function Get-UtcTimestamp { (Get-Date).ToUniversalTime().ToString('o') }
 
 function New-Diagnostic {
     param(
@@ -62,13 +42,31 @@ function New-Diagnostic {
         [Parameter(Mandatory = $true)][string]$Message
     )
 
-    [ordered]@{
-        tsUtc   = Get-UtcTimestamp
-        stage   = $Stage
-        level   = $Level
-        code    = $Code
-        message = $Message
-    }
+    [ordered]@{ tsUtc = Get-UtcTimestamp; stage = $Stage; level = $Level; code = $Code; message = $Message }
+}
+
+function New-StageRecord {
+    param([Parameter(Mandatory = $true)][string]$Name)
+    [ordered]@{ name = $Name; status = 'SKIPPED'; startedUtc = $null; completedUtc = $null; details = $null }
+}
+
+function Start-Stage {
+    param([Parameter(Mandatory = $true)][hashtable]$Stage)
+    $Stage.startedUtc = Get-UtcTimestamp
+    $Stage.completedUtc = $null
+    $Stage.status = 'OK'
+}
+
+function Complete-Stage {
+    param(
+        [Parameter(Mandatory = $true)][hashtable]$Stage,
+        [Parameter(Mandatory = $true)][string]$Status,
+        [Parameter(Mandatory = $false)][hashtable]$Details
+    )
+
+    $Stage.status = $Status
+    $Stage.completedUtc = Get-UtcTimestamp
+    if ($PSBoundParameters.ContainsKey('Details')) { $Stage.details = $Details }
 }
 
 function Read-JsonFile {
@@ -131,26 +129,38 @@ function Invoke-AssemblerPipeline {
     )
 
     $diagnostics = [System.Collections.Generic.List[hashtable]]::new()
-    $diagnostics.Add((New-Diagnostic -Stage 'Load' -Level 'INFO' -Code 'ASB-ASM-INPUT-LOAD' -Message 'Resolving required Direct-v1 input paths'))
+    $stages = [ordered]@{
+        Load = (New-StageRecord -Name 'Load')
+        Validate = (New-StageRecord -Name 'Validate')
+        Transform = (New-StageRecord -Name 'Transform')
+        Render = (New-StageRecord -Name 'Render')
+        Finalize = (New-StageRecord -Name 'Finalize')
+    }
 
-    $manifestPath = Join-Path $BundleRoot 'manifest.json'
-    $objectIndexPath = Join-Path $BundleRoot 'objectIndex.json'
-    $solutionPlanPath = Join-Path (Join-Path $BundleRoot 'config') 'solution.plan.json'
-    $solutionPlanSchemaPath = Join-Path (Join-Path $ContractsRoot 'standards') 'solution.plan.schema.v1.json'
-
+    $report = $null
+    $manifest = $null
+    $objectIndex = $null
+    $solutionPlan = $null
     try {
+        Start-Stage -Stage $stages.Load
+        $diagnostics.Add((New-Diagnostic -Stage 'Load' -Level 'INFO' -Code 'ASB-ASM-INPUT-LOAD' -Message 'Resolving required Direct-v1 input paths'))
+
+        $manifestPath = Join-Path $BundleRoot 'manifest.json'
+        $objectIndexPath = Join-Path $BundleRoot 'objectIndex.json'
+        $solutionPlanPath = Join-Path (Join-Path $BundleRoot 'config') 'solution.plan.json'
+        $solutionPlanSchemaPath = Join-Path (Join-Path $ContractsRoot 'standards') 'solution.plan.schema.v1.json'
+
         $diagnostics.Add((New-Diagnostic -Stage 'Load' -Level 'INFO' -Code 'ASB-ASM-INPUT-LOAD' -Message "Loading $manifestPath"))
         $manifest = Read-JsonFile -Path $manifestPath
-
         $diagnostics.Add((New-Diagnostic -Stage 'Load' -Level 'INFO' -Code 'ASB-ASM-INPUT-LOAD' -Message "Loading $objectIndexPath"))
         $objectIndex = Read-JsonFile -Path $objectIndexPath
-
         $diagnostics.Add((New-Diagnostic -Stage 'Load' -Level 'INFO' -Code 'ASB-ASM-INPUT-LOAD' -Message "Loading $solutionPlanPath"))
         $solutionPlan = Read-JsonFile -Path $solutionPlanPath
-
         $diagnostics.Add((New-Diagnostic -Stage 'Load' -Level 'INFO' -Code 'ASB-ASM-CONTRACT-LOAD' -Message "Loading $solutionPlanSchemaPath"))
         $solutionPlanSchema = Read-JsonFile -Path $solutionPlanSchemaPath
+        Complete-Stage -Stage $stages.Load -Status 'OK'
 
+        Start-Stage -Stage $stages.Validate
         $diagnostics.Add((New-Diagnostic -Stage 'Validate' -Level 'INFO' -Code 'ASB-ASM-CONTRACT-VALIDATE' -Message 'Performing minimum solution plan contract checks'))
         $planErrors = @(Test-SolutionPlanMinimumContract -Plan $solutionPlan -Schema $solutionPlanSchema)
         foreach ($err in $planErrors) {
@@ -158,50 +168,58 @@ function Invoke-AssemblerPipeline {
         }
 
         if ($planErrors.Count -gt 0) {
+            Complete-Stage -Stage $stages.Validate -Status 'ERROR'
             throw 'ASB-ASM-CONTRACT-FAIL: solution plan validation failed'
         }
 
         $diagnostics.Add((New-Diagnostic -Stage 'Validate' -Level 'INFO' -Code 'ASB-ASM-CONTRACT-VALIDATE' -Message 'Minimum contract checks passed'))
+        Complete-Stage -Stage $stages.Validate -Status 'OK'
+
+        Start-Stage -Stage $stages.Transform
+        Complete-Stage -Stage $stages.Transform -Status 'SKIPPED' -Details ([ordered]@{ reason = 'No transform operation in bootstrap pipeline.' })
+
+        Start-Stage -Stage $stages.Render
+        Complete-Stage -Stage $stages.Render -Status 'SKIPPED' -Details ([ordered]@{ reason = 'No render operation in bootstrap pipeline.' })
 
         $report = [ordered]@{
             schemaVersion = 1
-            status        = 'ok'
-            bundle        = [ordered]@{
-                root                  = $BundleRoot
+            status = 'ok'
+            bundle = [ordered]@{
+                root = $BundleRoot
                 manifestSchemaVersion = $manifest.schemaVersion
-                objectCount           = if ($objectIndex.ContainsKey('objectCount')) { $objectIndex.objectCount } else { @($objectIndex.objects).Count }
-                solutionId            = $solutionPlan.solutionId
-                targetCount           = @($solutionPlan.targets).Count
-                collectorCount        = @($solutionPlan.collectors).Count
+                objectCount = if ($objectIndex.ContainsKey('objectCount')) { $objectIndex.objectCount } else { @($objectIndex.objects).Count }
+                solutionId = $solutionPlan.solutionId
+                targetCount = @($solutionPlan.targets).Count
+                collectorCount = @($solutionPlan.collectors).Count
             }
-            diagnostics  = $diagnostics
+            stages = @($stages.Load, $stages.Validate, $stages.Transform, $stages.Render, $stages.Finalize)
+            diagnostics = $diagnostics
         }
     }
     catch {
+        if ($null -ne $stages.Load.startedUtc -and $null -eq $stages.Load.completedUtc) { Complete-Stage -Stage $stages.Load -Status 'ERROR' }
+        if ($null -ne $stages.Validate.startedUtc -and $null -eq $stages.Validate.completedUtc) { Complete-Stage -Stage $stages.Validate -Status 'ERROR' }
+
         $diagnostics.Add((New-Diagnostic -Stage 'Validate' -Level 'ERROR' -Code 'ASB-ASM-INPUT-FAIL' -Message $_.Exception.Message))
         $report = [ordered]@{
             schemaVersion = 1
-            status        = 'error'
-            diagnostics   = $diagnostics
+            status = 'error'
+            stages = @($stages.Load, $stages.Validate, $stages.Transform, $stages.Render, $stages.Finalize)
+            diagnostics = $diagnostics
         }
     }
 
+    Start-Stage -Stage $stages.Finalize
+    $parent = if ($OutputPath) { Split-Path -Path $OutputPath -Parent } else { $null }
+    if ($parent -and -not (Test-Path -LiteralPath $parent)) {
+        New-Item -ItemType Directory -Path $parent -Force | Out-Null
+    }
+
+    Complete-Stage -Stage $stages.Finalize -Status $(if ($report.status -eq 'error') { 'ERROR' } else { 'OK' })
     $json = $report | ConvertTo-Json -Depth 10
+    if ($OutputPath) { Set-Content -LiteralPath $OutputPath -Value $json -Encoding UTF8 } else { $json }
 
-    if ($OutputPath) {
-        $parent = Split-Path -Path $OutputPath -Parent
-        if ($parent -and -not (Test-Path -LiteralPath $parent)) {
-            New-Item -ItemType Directory -Path $parent -Force | Out-Null
-        }
-        Set-Content -LiteralPath $OutputPath -Value $json -Encoding UTF8
-    }
-    else {
-        $json
-    }
-
-    if ($report.status -eq 'error') {
-        exit 1
-    }
+    if ($report.status -eq 'error') { exit 1 }
 }
 
 Invoke-AssemblerPipeline -BundleRoot $BundleRoot -ContractsRoot $ContractsRoot -OutputPath $OutputPath

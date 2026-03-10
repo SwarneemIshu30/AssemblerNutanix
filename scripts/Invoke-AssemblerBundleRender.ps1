@@ -252,13 +252,40 @@ function Test-TemplateCatalogMinimumContract {
 $startedUtc = Get-UtcTimestamp
 $issues = [System.Collections.Generic.List[hashtable]]::new()
 $runs = [System.Collections.Generic.List[hashtable]]::new()
+$stages = [System.Collections.Generic.List[hashtable]]::new()
 $status = 'OK'
 $effectiveBundleRoot = $BundleRoot
+
+$stageMap = [ordered]@{}
+foreach ($stageName in @('Load','Validate','Transform','Render','Finalize')) {
+    $stage = [ordered]@{ name = $stageName; status = 'SKIPPED'; startedUtc = $null; completedUtc = $null; details = $null }
+    $stageMap[$stageName] = $stage
+    $stages.Add($stage)
+}
+
+function Start-BundleStage {
+    param([Parameter(Mandatory = $true)][hashtable]$Stage)
+    $Stage.startedUtc = Get-UtcTimestamp
+    $Stage.completedUtc = $null
+    $Stage.status = 'OK'
+}
+
+function Complete-BundleStage {
+    param(
+        [Parameter(Mandatory = $true)][hashtable]$Stage,
+        [Parameter(Mandatory = $true)][string]$Status,
+        [Parameter(Mandatory = $false)][hashtable]$Details
+    )
+    $Stage.status = $Status
+    $Stage.completedUtc = Get-UtcTimestamp
+    if ($PSBoundParameters.ContainsKey('Details')) { $Stage.details = $Details }
+}
 
 try {
     $repoRoot = Split-Path -Parent $PSScriptRoot
     $invokeRenderScript = Join-Path $PSScriptRoot 'Invoke-AssemblerSdtRender.ps1'
 
+    Start-BundleStage -Stage $stageMap.Load
     $effectiveContractsRoot = Resolve-AssemblerContractsRoot -ContractsRoot $ContractsRoot -RepoRoot $repoRoot
     $catalogSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards/assembler') 'assembler.template-catalog.schema.v1.json'
 
@@ -276,15 +303,20 @@ try {
             path = [string]$bundleResolution.objectIndexPath
         })
     }
+    Complete-BundleStage -Stage $stageMap.Load -Status $(if ($bundleResolution.autoSelected) { 'WARN' } else { 'OK' })
 
+    Start-BundleStage -Stage $stageMap.Validate
     $catalogErrors = @(Test-TemplateCatalogMinimumContract -Catalog $catalog -Schema $catalogSchema)
     foreach ($errorText in $catalogErrors) {
         $issues.Add([ordered]@{ code = 'ASB-ASM-CATALOG-VALIDATE'; severity = 'ERROR'; message = $errorText; path = $CatalogPath })
     }
     if (@($catalogErrors).Count -gt 0) {
+        Complete-BundleStage -Stage $stageMap.Validate -Status 'ERROR'
         throw 'Template catalog validation failed.'
     }
+    Complete-BundleStage -Stage $stageMap.Validate -Status 'OK'
 
+    Start-BundleStage -Stage $stageMap.Transform
     $detectedTechIds = @($objectIndex.objects | ForEach-Object { [string]$_.techId } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
     $requestedTechIds = if ($TechId -and @($TechId).Count -gt 0) { @($TechId) } else { $detectedTechIds }
 
@@ -293,66 +325,111 @@ try {
     $catalogBase = Split-Path -Parent (Resolve-Path -LiteralPath $CatalogPath).Path
     $entries = @($catalog.entries | Where-Object { ($_.enabled -ne $false) -and ($requestedTechIds -contains [string]$_.techId) })
     $entries = @($entries | Sort-Object -Property @{ Expression = { if ($_.ContainsKey('priority')) { [int]$_.priority } else { 100 } } }, @{ Expression = { [string]$_.id } })
+    Complete-BundleStage -Stage $stageMap.Transform -Status 'OK' -Details ([ordered]@{ selectedEntryCount = @($entries).Count })
 
+    Start-BundleStage -Stage $stageMap.Render
     foreach ($entry in $entries) {
+        $runStages = [System.Collections.Generic.List[hashtable]]::new()
+        $runStageMap = [ordered]@{}
+        foreach ($runStageName in @('Load','Validate','Transform','Render','Finalize')) {
+            $runStage = [ordered]@{ name = $runStageName; status = 'SKIPPED'; startedUtc = $null; completedUtc = $null; details = $null }
+            $runStageMap[$runStageName] = $runStage
+            $runStages.Add($runStage)
+        }
+
         $techOutputRoot = Join-Path $OutputRoot ([string]$entry.techId)
         if (-not (Test-Path -LiteralPath $techOutputRoot -PathType Container)) {
             New-Item -Path $techOutputRoot -ItemType Directory -Force | Out-Null
         }
 
         $mappingPath = Join-Path $catalogBase ([string]$entry.mappingPath)
-        $mappingPath = Resolve-MappingPathForBundle -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TechId ([string]$entry.techId) -OutputRoot $OutputRoot
         $templatePath = Join-Path $catalogBase ([string]$entry.templatePath)
         $outputPath = Join-Path $techOutputRoot ([string]$entry.outputFileName)
         $reportPath = Join-Path $techOutputRoot ("$([string]$entry.id).render-report.json")
 
-        $mappingVariants = Resolve-MappingVariantsForBundle -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TechId ([string]$entry.techId) -OutputRoot $OutputRoot -EntryId ([string]$entry.id)
         $variantReports = [System.Collections.Generic.List[hashtable]]::new()
         $sectionTexts = [System.Collections.Generic.List[string]]::new()
         $runStatus = 'OK'
 
-        foreach ($variant in @($mappingVariants)) {
-            $variantName = if ([string]::IsNullOrWhiteSpace([string]$variant.variantName)) { 'default' } else { [string]$variant.variantName }
-            $variantSafe = $variantName.Replace('/', '_').Replace('\', '_')
-            $variantOutputPath = if (@($mappingVariants).Count -gt 1) { Join-Path $techOutputRoot ("$([System.IO.Path]::GetFileNameWithoutExtension([string]$entry.outputFileName)).$variantSafe.rendered.txt") } else { $outputPath }
-            $variantReportPath = if (@($mappingVariants).Count -gt 1) { Join-Path $techOutputRoot ("$([string]$entry.id).$variantSafe.render-report.json") } else { $reportPath }
+        try {
+            Start-BundleStage -Stage $runStageMap.Load
+            Complete-BundleStage -Stage $runStageMap.Load -Status 'OK' -Details ([ordered]@{ mappingPath = $mappingPath; templatePath = $templatePath })
 
-            $json = & $invokeRenderScript -BundleRoot $effectiveBundleRoot -MappingPath ([string]$variant.mappingPath) -TemplatePath $templatePath -OutputPath $variantOutputPath -ReportPath $variantReportPath -ContractsRoot $effectiveContractsRoot
+            Start-BundleStage -Stage $runStageMap.Validate
+            if (-not (Test-Path -LiteralPath $mappingPath -PathType Leaf)) { throw "Required file not found: $mappingPath" }
+            if (-not (Test-Path -LiteralPath $templatePath -PathType Leaf)) { throw "Required file not found: $templatePath" }
+            Complete-BundleStage -Stage $runStageMap.Validate -Status 'OK'
 
-            $rendererReport = $null
-            $variantStatus = 'OK'
-            try {
-                $rendererReport = $json | ConvertFrom-Json -AsHashtable
-                if ($rendererReport.ContainsKey('status') -and [string]$rendererReport.status -eq 'ERROR') {
-                    $variantStatus = 'ERROR'
+            Start-BundleStage -Stage $runStageMap.Transform
+            $mappingPath = Resolve-MappingPathForBundle -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TechId ([string]$entry.techId) -OutputRoot $OutputRoot
+            $mappingVariants = Resolve-MappingVariantsForBundle -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TechId ([string]$entry.techId) -OutputRoot $OutputRoot -EntryId ([string]$entry.id)
+            Complete-BundleStage -Stage $runStageMap.Transform -Status 'OK' -Details ([ordered]@{ variantCount = @($mappingVariants).Count })
+
+            Start-BundleStage -Stage $runStageMap.Render
+            foreach ($variant in @($mappingVariants)) {
+                $variantName = if ([string]::IsNullOrWhiteSpace([string]$variant.variantName)) { 'default' } else { [string]$variant.variantName }
+                $variantSafe = $variantName.Replace('/', '_').Replace('\', '_')
+                $variantOutputPath = if (@($mappingVariants).Count -gt 1) { Join-Path $techOutputRoot ("$([System.IO.Path]::GetFileNameWithoutExtension([string]$entry.outputFileName)).$variantSafe.rendered.txt") } else { $outputPath }
+                $variantReportPath = if (@($mappingVariants).Count -gt 1) { Join-Path $techOutputRoot ("$([string]$entry.id).$variantSafe.render-report.json") } else { $reportPath }
+
+                $json = & $invokeRenderScript -BundleRoot $effectiveBundleRoot -MappingPath ([string]$variant.mappingPath) -TemplatePath $templatePath -OutputPath $variantOutputPath -ReportPath $variantReportPath -ContractsRoot $effectiveContractsRoot
+
+                $rendererReport = $null
+                $variantStatus = 'OK'
+                try {
+                    $rendererReport = $json | ConvertFrom-Json -AsHashtable
+                    if ($rendererReport.ContainsKey('status') -and [string]$rendererReport.status -eq 'ERROR') {
+                        $variantStatus = 'ERROR'
+                    }
+                    elseif ($rendererReport.ContainsKey('status') -and [string]$rendererReport.status -eq 'PARTIAL') {
+                        $variantStatus = 'WARN'
+                    }
+                }
+                catch {
+                    $variantStatus = if ($LASTEXITCODE -eq 0) { 'OK' } else { 'ERROR' }
+                }
+
+                if ($variantStatus -eq 'ERROR') {
+                    $runStatus = 'ERROR'
+                    $status = 'ERROR'
+                    $issues.Add([ordered]@{ code = 'ASB-ASM-BUNDLE-ENTRY-FAILED'; severity = 'ERROR'; message = "Entry '$($entry.id)' variant '$variantName' failed render."; path = $variantReportPath })
+                }
+                elseif ($variantStatus -eq 'WARN' -and $runStatus -ne 'ERROR') {
+                    $runStatus = 'WARN'
+                }
+
+                if (Test-Path -LiteralPath $variantOutputPath -PathType Leaf) {
+                    $sectionTexts.Add((Get-Content -LiteralPath $variantOutputPath -Raw -Encoding UTF8).TrimEnd())
+                }
+
+                $variantReports.Add([ordered]@{
+                    variant = $variantName
+                    status = $variantStatus
+                    outputPath = $variantOutputPath
+                    reportPath = $variantReportPath
+                    rendererOutput = $rendererReport
+                    rendererOutputRaw = $json
+                })
+            }
+            Complete-BundleStage -Stage $runStageMap.Render -Status $runStatus
+
+            Start-BundleStage -Stage $runStageMap.Finalize
+            if (@($mappingVariants).Count -gt 1 -and $sectionTexts.Count -gt 0) {
+                Set-Content -LiteralPath $outputPath -Value (($sectionTexts -join ([Environment]::NewLine + [Environment]::NewLine)) + [Environment]::NewLine) -Encoding UTF8
+            }
+            Complete-BundleStage -Stage $runStageMap.Finalize -Status $runStatus
+        }
+        catch {
+            $runStatus = 'ERROR'
+            $status = 'ERROR'
+            $issues.Add([ordered]@{ code = 'ASB-ASM-BUNDLE-ENTRY-UNHANDLED'; severity = 'ERROR'; message = "Entry '$($entry.id)' failed: $($_.Exception.Message)"; path = $null })
+            foreach ($runStageName in @('Load','Validate','Transform','Render','Finalize')) {
+                $runStage = $runStageMap[$runStageName]
+                if ($null -ne $runStage.startedUtc -and $null -eq $runStage.completedUtc) {
+                    Complete-BundleStage -Stage $runStage -Status 'ERROR'
+                    break
                 }
             }
-            catch {
-                $variantStatus = if ($LASTEXITCODE -eq 0) { 'OK' } else { 'ERROR' }
-            }
-
-            if ($variantStatus -eq 'ERROR') {
-                $runStatus = 'ERROR'
-                $status = 'ERROR'
-                $issues.Add([ordered]@{ code = 'ASB-ASM-BUNDLE-ENTRY-FAILED'; severity = 'ERROR'; message = "Entry '$($entry.id)' variant '$variantName' failed render."; path = $variantReportPath })
-            }
-
-            if (Test-Path -LiteralPath $variantOutputPath -PathType Leaf) {
-                $sectionTexts.Add((Get-Content -LiteralPath $variantOutputPath -Raw -Encoding UTF8).TrimEnd())
-            }
-
-            $variantReports.Add([ordered]@{
-                variant = $variantName
-                status = $variantStatus
-                outputPath = $variantOutputPath
-                reportPath = $variantReportPath
-                rendererOutput = $rendererReport
-                rendererOutputRaw = $json
-            })
-        }
-
-        if (@($mappingVariants).Count -gt 1 -and $sectionTexts.Count -gt 0) {
-            Set-Content -LiteralPath $outputPath -Value (($sectionTexts -join ([Environment]::NewLine + [Environment]::NewLine)) + [Environment]::NewLine) -Encoding UTF8
         }
 
         $primaryVariant = if ($variantReports.Count -gt 0) { $variantReports[0] } else { $null }
@@ -365,12 +442,31 @@ try {
             rendererOutput = if ($null -ne $primaryVariant) { $primaryVariant.rendererOutput } else { $null }
             rendererOutputRaw = if ($null -ne $primaryVariant) { $primaryVariant.rendererOutputRaw } else { $null }
             variants = $variantReports
+            stages = $runStages
         })
     }
+
+    $renderWarn = @($runs | Where-Object { $_.status -eq 'WARN' }).Count -gt 0
+    $renderStatus = if ($status -eq 'ERROR') { 'ERROR' } elseif ($renderWarn) { 'WARN' } else { 'OK' }
+    Complete-BundleStage -Stage $stageMap.Render -Status $renderStatus -Details ([ordered]@{ runCount = $runs.Count })
+
+    Start-BundleStage -Stage $stageMap.Finalize
+    Complete-BundleStage -Stage $stageMap.Finalize -Status $(if ($status -eq 'ERROR') { 'ERROR' } else { 'OK' })
 }
 catch {
     $status = 'ERROR'
     $issues.Add([ordered]@{ code = 'ASB-ASM-BUNDLE-UNHANDLED'; severity = 'ERROR'; message = $_.Exception.Message; path = $null })
+    foreach ($stageName in @('Load','Validate','Transform','Render','Finalize')) {
+        $stage = $stageMap[$stageName]
+        if ($null -ne $stage.startedUtc -and $null -eq $stage.completedUtc) {
+            Complete-BundleStage -Stage $stage -Status 'ERROR'
+            break
+        }
+    }
+}
+
+if ($status -ne 'ERROR' -and @($issues | Where-Object { $_.severity -eq 'WARN' }).Count -gt 0) {
+    $status = 'PARTIAL'
 }
 
 $report = [ordered]@{
@@ -381,6 +477,7 @@ $report = [ordered]@{
     bundleRoot = $effectiveBundleRoot
     catalogPath = $CatalogPath
     outputRoot = $OutputRoot
+    stages = $stages
     runs = $runs
     issues = $issues
 }
