@@ -30,84 +30,88 @@ Tables.Systems
 ------------------------------------------------------------------------------------------
 
 
-id name         model  status  fwVersion   appVersion  bootVersion nvsramVersion    chassisSerialNumber modelName
--- ----         -----  ------  ---------   ----------  ----------- -------------    ------------------- ---------
-1  DE4200_Rack4 DE4200 optimal 08.90.09.00 08.90.09.00 08.90.09.00 N4000-890870-D03 J7024YT4
+name         model  status  fwVersion   appVersion  bootVersion nvsramVersion    chassisSerialNumber modelName managemen
+                                                                                                               tHost
+----         -----  ------  ---------   ----------  ----------- -------------    ------------------- --------- ---------
+DE4200_Rack4 DE4200 optimal 08.90.09.00 08.90.09.00 08.90.09.00 N4000-890870-D03 J7024YT4
 
 
 Tables.Drives
 ------------------------------------------------------------------------------------------
 
 
-id                                       serialNumber         worldWideName                    manufacturer productID
---                                       ------------         -------------                    ------------ ---------   
-010000005000C500F53DB2870000000000000000 WBMAC9V10000R6041DK2 5000C500F53DB2870000000000000000 SEAGATE      ST2400MM0129
-010000005000C500F53DB3230000000000000000 WBMAC9QH0000R6041DL7 5000C500F53DB3230000000000000000 SEAGATE      ST2400MM0129
-010000005000C500F53DB3770000000000000000 WBMABYVD0000R6041DKR 5000C500F53DB3770000000000000000 SEAGATE      ST2400MM0129
-010000005000C500F53DB6630000000000000000 WBMABMNY0000R604UUM6 5000C500F53DB6630000000000000000 SEAGATE      ST2400MM0129
-010000005000C500F53DBA6F0000000000000000 WBMAC9T30000R6041DVA 5000C500F53DBA6F0000000000000000 SEAGATE      ST2400MM0129
-010000005000C500F53DBCDF0000000000000000 WBMAC0Y60000R604PWKR 5000C500F53DBCDF0000000000000000 SEAGATE      ST2400MM0129
-010000005000C500F53DBE130000000000000000 WBMAC1DQ0000R604E38A 5000C500F53DBE130000000000000000 SEAGATE      ST2400MM0129
-010000005000C500F53DBE730000000000000000 WBMACDYY0000R604GWTG 5000C500F53DBE730000000000000000 SEAGATE      ST2400MM0129
-0100000050025380759137B00000000000000000 S74ENC0Y901046       50025380759137B00000000000000000 SAMSUNG      MZILG1T9HCJ…
-0100000050025380759137D00000000000000000 S74ENC0Y901048       50025380759137D00000000000000000 SAMSUNG      MZILG1T9HCJ…
-0100000050025380759137E00000000000000000 S74ENC0Y901049       50025380759137E00000000000000000 SAMSUNG      MZILG1T9HCJ…
-0100000050025380759137F00000000000000000 S74ENC0Y901050       50025380759137F00000000000000000 SAMSUNG      MZILG1T9HCJ…
-0100000050025380759138000000000000000000 S74ENC0Y901051       50025380759138000000000000000000 SAMSUNG      MZILG1T9HCJ…
-0100000050025380759138100000000000000000 S74ENC0Y901052       50025380759138100000000000000000 SAMSUNG      MZILG1T9HCJ…
-0100000050025380759138200000000000000000 S74ENC0Y901053       50025380759138200000000000000000 SAMSUNG      MZILG1T9HCJ…
-0100000050025380759138400000000000000000 S74ENC0Y901055       50025380759138400000000000000000 SAMSUNG      MZILG1T9HCJ…
-0100000050025380A59113400000000000000000 S74DNN0Y900571       50025380A59113400000000000000000 SAMSUNG      MZILG3T8HCL…
-0100000050025380A59113800000000000000000 S74DNN0Y900575       50025380A59113800000000000000000 SAMSUNG      MZILG3T8HCL…
-0100000050025380A59113900000000000000000 S74DNN0Y900576       50025380A59113900000000000000000 SAMSUNG      MZILG3T8HCL…
-0100000050025380A59113A00000000000000000 S74DNN0Y900577       50025380A59113A00000000000000000 SAMSUNG      MZILG3T8HCL…
-0100000050025380A59113B00000000000000000 S74DNN0Y900578       50025380A59113B00000000000000000 SAMSUNG      MZILG3T8HCL…
-0100000050025380A59113C00000000000000000 S74DNN0Y900579       50025380A59113C00000000000000000 SAMSUNG      MZILG3T8HCL…
-0100000050025380A59113D00000000000000000 S74DNN0Y900580       50025380A59113D00000000000000000 SAMSUNG      MZILG3T8HCL…
-0100000050025380A59113E00000000000000000 S74DNN0Y900581       50025380A59113E00000000000000000 SAMSUNG      MZILG3T8HCL…
+Slot Media Type Raw     Usable  Firmware Status  SerialNumber
+---- ---------- ---     ------  -------- ------  ------------
+14   hdd        2.18 TB 2.18 TB LE05     optimal WBMAC9V10000R6041DK2
+12   hdd        2.18 TB 2.18 TB LE05     optimal WBMAC9QH0000R6041DL7
+9    hdd        2.18 TB 2.18 TB LE05     optimal WBMABYVD0000R6041DKR
+15   hdd        2.18 TB 2.18 TB LE05     optimal WBMABMNY0000R604UUM6
+10   hdd        2.18 TB 2.18 TB LE05     optimal WBMAC9T30000R6041DVA
+16   hdd        2.18 TB 2.18 TB LE05     optimal WBMAC0Y60000R604PWKR
+13   hdd        2.18 TB 2.18 TB LE05     optimal WBMAC1DQ0000R604E38A
+11   hdd        2.18 TB 2.18 TB LE05     optimal WBMACDYY0000R604GWTG
+7    ssd        1.75 TB 1.74 TB LE00     optimal S74ENC0Y901046
+2    ssd        1.75 TB 1.74 TB LE00     optimal S74ENC0Y901048
+8    ssd        1.75 TB 1.74 TB LE00     optimal S74ENC0Y901049
+4    ssd        1.75 TB 1.74 TB LE00     optimal S74ENC0Y901050
+5    ssd        1.75 TB 1.74 TB LE00     optimal S74ENC0Y901051
+1    ssd        1.75 TB 1.74 TB LE00     optimal S74ENC0Y901052
+3    ssd        1.75 TB 1.74 TB LE00     optimal S74ENC0Y901053
+6    ssd        1.75 TB 1.74 TB LE00     optimal S74ENC0Y901055
+17   ssd        3.49 TB 3.49 TB LE00     optimal S74DNN0Y900571
+21   ssd        3.49 TB 3.49 TB LE00     optimal S74DNN0Y900575
+19   ssd        3.49 TB 3.49 TB LE00     optimal S74DNN0Y900576
+20   ssd        3.49 TB 3.49 TB LE00     optimal S74DNN0Y900577
+22   ssd        3.49 TB 3.49 TB LE00     optimal S74DNN0Y900578
+23   ssd        3.49 TB 3.49 TB LE00     optimal S74DNN0Y900579
+24   ssd        3.49 TB 3.49 TB LE00     optimal S74DNN0Y900580
+18   ssd        3.49 TB 3.49 TB LE00     optimal S74DNN0Y900581
 
 
 Tables.StorageContainers
 ------------------------------------------------------------------------------------------
 
 
-id                                       name       containerType diskPool raidLevel driveMediaType drivePhysicalType st
-                                                                                                                      at
-                                                                                                                      e
---                                       ----       ------------- -------- --------- -------------- ----------------- --
-040000006D039EA000D9F0180000012769894EB2 SampleVG_1 VolumeGroup   False    raid6     ssd            sas               c…
-040000006D039EA000D9EFC20000014069894EDC SampleVG_2 VolumeGroup   False    raid6     ssd            sas               c…
-040000006D039EA000D9F0180000012869894ED2 SampleVG_3 VolumeGroup   False    raid6     hdd            sas               c…
+Name       ContainerType RaidLevel DriveMediaType Total    Used     Free      State    Status
+----       ------------- --------- -------------- -----    ----     ----      -----    ------
+SampleVG_1 VolumeGroup   raid6     ssd            20.93 TB 19.53 TB 1.40 TB   complete optimal
+SampleVG_2 VolumeGroup   raid6     ssd            10.45 TB 9.77 TB  697.98 GB complete optimal
+SampleVG_3 VolumeGroup   raid6     hdd            13.07 TB 11.72 TB 1.35 TB   complete optimal
 
 
 Tables.Volumes
 ------------------------------------------------------------------------------------------
 
 
-id                                       name          status  raidLevel containerName sizeBytes      segmentSize wwn
---                                       ----          ------  --------- ------------- ---------      ----------- ---   
-020000006D039EA000D9EFC20000014169894F3A VeeamVol1     optimal raid6     SampleVG_3    12884901888000 131072      6D039…
-020000006D039EA000D9F0180000012969894FD3 Hyper-V_Vol01 optimal raid6     SampleVG_1    21474836480000 131072      6D039…
-020000006D039EA000D9EFC20000014469894FF0 Hyper-V_Vol02 optimal raid6     SampleVG_2    10737418240000 131072      6D039…
+Name          Size     Status  RaidLevel Container
+----          ----     ------  --------- ---------
+VeeamVol1     11.72 TB optimal raid6     SampleVG_3
+Hyper-V_Vol01 19.53 TB optimal raid6     SampleVG_1
+Hyper-V_Vol02 9.77 TB  optimal raid6     SampleVG_2
 
 
-Tables.Controllers (controllerRef intentionally omitted)
+Tables.Controllers
 ------------------------------------------------------------------------------------------
 
-Controller   Slot   Status   AppVersion      BootVersion     Serial
-----------   ----   ------   ----------      -----------     ------
-A            1      optimal   08.90.09.00     08.90.09.00    952529000086
-B            2      optimal   08.90.09.00     08.90.09.00    952529000077
+
+Controller Slot Status  AppVersion  BootVersion SerialNumber
+---------- ---- ------  ----------  ----------- ------------
+A          1    optimal 08.90.09.00 08.90.09.00 952529000086
+B          2    optimal 08.90.09.00 08.90.09.00 952529000077
 
 
 Tables.Trays
 ------------------------------------------------------------------------------------------
 
 
-trayId trayType trayRole        controllerModelName status serialNumber partNumber vendorName manufacturer manufacturerD
-                                                                                                           ate
------- -------- --------        ------------------- ------ ------------ ---------- ---------- ------------ -------------
-99     de224c   controller-tray                            J7024YT4     7DCQCTO1WW NETAPP
+trayType trayRole        controllerModelName status serialNumber partNumber vendorName manufacturer manufacturerDate num
+                                                                                                                     Con
+                                                                                                                     tro
+                                                                                                                     lle
+                                                                                                                     rSl
+                                                                                                                     ots
+-------- --------        ------------------- ------ ------------ ---------- ---------- ------------ ---------------- ---
+de224c   controller-tray                            J7024YT4     7DCQCTO1WW NETAPP                                   2
 
 
 Tables.Transport
