@@ -1,0 +1,96 @@
+{
+  "concept_usage": [
+    {
+      "concept_id": "mapping.dataset-to-sdt.schema.v1.input",
+      "readers": [
+        "scripts/Invoke-AssemblerSdtRender.ps1"
+      ],
+      "validators": [
+        "scripts/internal/AssemblerSchemaValidation.psm1 via Test-AssemblerSchemaFile"
+      ],
+      "transformers": [
+        "scripts/Invoke-AssemblerSdtRender.ps1 mapping resolution"
+      ],
+      "renderers_or_outputs": [
+        "scripts/Invoke-AssemblerSdtRender.ps1 -> render-report.json + rendered template text"
+      ],
+      "tests_or_fixtures": [
+        "tests/Invoke-AssemblerSdtRender.Tests.ps1",
+        "templates/skeletons/Lenovo.DE/*.mapping.json"
+      ],
+      "runtime_assumptions": [
+        "Contracts root resolution precedence: explicit path, .deps/contracts, export/repo-ready/contracts",
+        "Mapping must validate before render execution"
+      ]
+    },
+    {
+      "concept_id": "assembler.render-report.schema.v1.output",
+      "readers": [
+        "scripts/Invoke-AssemblerSdtRender.ps1",
+        "scripts/Invoke-AssemblerBundleRender.ps1"
+      ],
+      "validators": [
+        "scripts/internal/AssemblerSchemaValidation.psm1"
+      ],
+      "transformers": [
+        "scripts/Invoke-AssemblerBundleRender.ps1 aggregate report composition"
+      ],
+      "renderers_or_outputs": [
+        "out/assembler-bundle-render-report.json",
+        "per-render report JSON files"
+      ],
+      "tests_or_fixtures": [
+        "tests/Invoke-AssemblerBundleRender.Tests.ps1",
+        "tests/Invoke-AssemblerSdtRender.Tests.ps1"
+      ],
+      "runtime_assumptions": [
+        "Error-classification codes are normalized into schema-compliant report shape"
+      ]
+    },
+    {
+      "concept_id": "bundle.manifest+objectIndex+solution.plan",
+      "readers": [
+        "scripts/Invoke-AssemblerPipeline.ps1"
+      ],
+      "validators": [
+        "scripts/Invoke-AssemblerPipeline.ps1 schemaChecks loop"
+      ],
+      "transformers": [
+        "scripts/Invoke-AssemblerPipeline.ps1 summary and diagnostics composition"
+      ],
+      "renderers_or_outputs": [
+        "stdout JSON pipeline summary"
+      ],
+      "tests_or_fixtures": [
+        "tests/Invoke-AssemblerPipeline.Tests.ps1",
+        "bundle/*/manifest.json",
+        "bundle/*/objectIndex.json",
+        "bundle/*/config/solution.plan.json"
+      ],
+      "runtime_assumptions": [
+        "All three required files must exist and validate; failures terminate pipeline with ASB-ASM-CONTRACT-FAIL"
+      ]
+    },
+    {
+      "concept_id": "contracts.sync.destination",
+      "readers": [
+        "scripts/Sync-AssemblerContractsToRepo.ps1"
+      ],
+      "validators": [
+        "tests/Sync-AssemblerContractsToRepo.Tests.ps1"
+      ],
+      "transformers": [
+        "scripts/Sync-AssemblerContractsToRepo.ps1 copy/download selection"
+      ],
+      "renderers_or_outputs": [
+        ".deps/contracts/*"
+      ],
+      "tests_or_fixtures": [
+        "export/repo-ready/contracts/*"
+      ],
+      "runtime_assumptions": [
+        "Default destination is ./.deps/contracts and contracts.snapshot.json is always written/updated"
+      ]
+    }
+  ]
+}

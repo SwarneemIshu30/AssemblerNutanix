@@ -1,0 +1,110 @@
+{
+  "repo": "LNV.AsBuiltDoc.Assembler",
+  "patterns": [
+    "**/*knowledge*.yaml",
+    "**/*knowledge*.yml",
+    "**/docs/*.machine.yaml",
+    "**/contracts/**",
+    "**/schemas/**",
+    "**/standards/**",
+    "**/fixtures/**"
+  ],
+  "items": [
+    {
+      "path": "export/repo-ready/contracts/README.md",
+      "class": "doc",
+      "confidence": 0.72,
+      "match_reason": "documentation in contracts/standards path"
+    },
+    {
+      "path": "export/repo-ready/contracts/contracts.snapshot.json",
+      "class": "knowledge",
+      "confidence": 0.83,
+      "match_reason": "json contract artifact under contracts directory"
+    },
+    {
+      "path": "export/repo-ready/contracts/manifest.json",
+      "class": "knowledge",
+      "confidence": 0.83,
+      "match_reason": "json contract artifact under contracts directory"
+    },
+    {
+      "path": "export/repo-ready/contracts/standards/architecture.direct-v1.collector-contracts.md",
+      "class": "doc",
+      "confidence": 0.72,
+      "match_reason": "documentation in contracts/standards path"
+    },
+    {
+      "path": "export/repo-ready/contracts/standards/assembler/assembler.error-model.v1.md",
+      "class": "doc",
+      "confidence": 0.72,
+      "match_reason": "documentation in contracts/standards path"
+    },
+    {
+      "path": "export/repo-ready/contracts/standards/assembler/assembler.input.schema.v1.json",
+      "class": "schema",
+      "confidence": 0.96,
+      "match_reason": "path under standards and filename includes schema"
+    },
+    {
+      "path": "export/repo-ready/contracts/standards/assembler/assembler.render-report.schema.v1.json",
+      "class": "schema",
+      "confidence": 0.96,
+      "match_reason": "path under standards and filename includes schema"
+    },
+    {
+      "path": "export/repo-ready/contracts/standards/assembler/assembler.runtime.contract.v1.md",
+      "class": "doc",
+      "confidence": 0.72,
+      "match_reason": "documentation in contracts/standards path"
+    },
+    {
+      "path": "export/repo-ready/contracts/standards/assembler/assembler.template-catalog.schema.v1.json",
+      "class": "schema",
+      "confidence": 0.96,
+      "match_reason": "path under standards and filename includes schema"
+    },
+    {
+      "path": "export/repo-ready/contracts/standards/assembler/assembler.transform-semantics.v1.md",
+      "class": "doc",
+      "confidence": 0.72,
+      "match_reason": "documentation in contracts/standards path"
+    },
+    {
+      "path": "export/repo-ready/contracts/standards/bundle.manifest.schema.v1.json",
+      "class": "schema",
+      "confidence": 0.96,
+      "match_reason": "path under standards and filename includes schema"
+    },
+    {
+      "path": "export/repo-ready/contracts/standards/coverage.schema.v1.json",
+      "class": "schema",
+      "confidence": 0.96,
+      "match_reason": "path under standards and filename includes schema"
+    },
+    {
+      "path": "export/repo-ready/contracts/standards/finding.schema.v1.json",
+      "class": "schema",
+      "confidence": 0.96,
+      "match_reason": "path under standards and filename includes schema"
+    },
+    {
+      "path": "export/repo-ready/contracts/standards/mapping.dataset-to-sdt.schema.v1.json",
+      "class": "schema",
+      "confidence": 0.96,
+      "match_reason": "path under standards and filename includes schema"
+    },
+    {
+      "path": "export/repo-ready/contracts/standards/objectIndex.schema.v1.json",
+      "class": "schema",
+      "confidence": 0.96,
+      "match_reason": "path under standards and filename includes schema"
+    },
+    {
+      "path": "export/repo-ready/contracts/standards/solution.plan.schema.v1.json",
+      "class": "schema",
+      "confidence": 0.96,
+      "match_reason": "path under standards and filename includes schema"
+    }
+  ]
+}
