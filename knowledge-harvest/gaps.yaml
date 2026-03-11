@@ -1,0 +1,45 @@
+{
+  "gaps": [
+    {
+      "gap_id": "KH-GAP-001",
+      "type": "other",
+      "severity": "medium",
+      "affected_concepts": [
+        "repo.metadata.repo_url",
+        "repo.metadata.default_branch"
+      ],
+      "evidence": [
+        "Repository has no configured git remote and only local branch \"work\" available."
+      ],
+      "proposed_resolution": "Set canonical repo_url and default_branch values during reviewer sign-off before central aggregation.",
+      "owner": "repo-owner"
+    },
+    {
+      "gap_id": "KH-GAP-002",
+      "type": "semantic_conflict",
+      "severity": "medium",
+      "affected_concepts": [
+        "concept_id normalization across schema versions"
+      ],
+      "evidence": [
+        "Current extraction uses filename.property pattern; no cross-repo canonical concept registry in this repo."
+      ],
+      "proposed_resolution": "Align concept_id mapping with central canonical registry in LNV.AsBuiltDoc.KnowledgeContracts during aggregation handoff.",
+      "owner": "knowledge-contracts-maintainer"
+    },
+    {
+      "gap_id": "KH-GAP-003",
+      "type": "missing_fixture",
+      "severity": "low",
+      "affected_concepts": [
+        "coverage.schema.v1",
+        "finding.schema.v1"
+      ],
+      "evidence": [
+        "No explicit local tests in this repo exercise coverage/finding schema payload examples."
+      ],
+      "proposed_resolution": "Add minimal fixture-based contract validation tests or import fixtures from contracts repository.",
+      "owner": "assembler-maintainer"
+    }
+  ]
+}

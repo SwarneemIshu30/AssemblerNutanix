@@ -1,0 +1,43 @@
+{
+  "repo": {
+    "name": "LNV.AsBuiltDoc.Assembler",
+    "url": "<REPO_URL>",
+    "default_branch": "<DEFAULT_BRANCH>",
+    "commit_sha": "4a0a94a22d37a53a11dbc1173dbc0194e66b6054",
+    "owner": "<TEAM_OR_PERSON>"
+  },
+  "sources_summary": {
+    "total_discovered": 16,
+    "by_class": {
+      "knowledge": 2,
+      "schema": 9,
+      "rule": 0,
+      "fixture": 0,
+      "doc": 5,
+      "unknown": 0
+    },
+    "high_confidence_sources": 11
+  },
+  "concepts_summary": {
+    "total_rows": 69,
+    "schema_derived_rows": 67,
+    "manually_normalized_rows": 2,
+    "critical_concepts": 4
+  },
+  "conflicts_summary": {
+    "total_gaps": 3,
+    "by_severity": {
+      "blocker": 0,
+      "high": 0,
+      "medium": 2,
+      "low": 1
+    }
+  },
+  "confidence_score": 88,
+  "readiness_status": "reviewed",
+  "next_actions": [
+    "Replace repo URL/default branch placeholders with canonical repository metadata.",
+    "Review concept_id normalization strategy against central registry.",
+    "Add fixture coverage for currently untested schemas before canonicalization approval."
+  ]
+}
