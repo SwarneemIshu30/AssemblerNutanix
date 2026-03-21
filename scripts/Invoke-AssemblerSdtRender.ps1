@@ -225,300 +225,254 @@ function Format-SizeHuman {
     return ('{0:N2} {1}' -f $value, $units[$idx])
 }
 
+function Get-TableProjectionDefinitions {
+    return @{
+        DE_DRIVES_TABLE_JSON = @{
+            columns = [ordered]@{
+                Slot = 'slot'
+                'Media Type' = 'driveMediaType'
+                Raw = { param($row) Format-SizeHuman -Bytes $row.rawCapacityBytes }
+                Usable = { param($row) Format-SizeHuman -Bytes $row.usableCapacityBytes }
+                Firmware = 'firmwareVersion'
+                Status = 'status'
+                SerialNumber = 'serialNumber'
+            }
+        }
+        DE_STORAGE_CONTAINERS_TABLE_JSON = @{
+            columns = [ordered]@{
+                Name = 'name'
+                ContainerType = 'containerType'
+                RaidLevel = 'raidLevel'
+                DriveMediaType = 'driveMediaType'
+                Total = { param($row) Format-SizeHuman -Bytes $row.totalBytes }
+                Used = { param($row) Format-SizeHuman -Bytes $row.usedBytes }
+                Free = { param($row) Format-SizeHuman -Bytes $row.freeBytes }
+                State = 'state'
+                Status = 'status'
+            }
+        }
+        DE_VOLUMES_TABLE_JSON = @{
+            columns = [ordered]@{
+                Name = 'name'
+                Size = { param($row) Format-SizeHuman -Bytes $row.sizeBytes }
+                Status = 'status'
+                RaidLevel = 'raidLevel'
+                Container = 'containerName'
+            }
+        }
+        DE_CONTROLLERS_TABLE_JSON = @{
+            columns = [ordered]@{
+                Controller = 'controllerLabel'
+                Slot = 'controllerSlot'
+                Status = 'status'
+                AppVersion = 'appVersion'
+                BootVersion = 'bootVersion'
+                SerialNumber = 'serialNumber'
+            }
+        }
+        DE_MANAGEMENT_INTERFACES_TABLE_JSON = @{
+            columns = [ordered]@{
+                Controller = 'controllerLabel'
+                Slot = 'controllerSlot'
+                Port = 'portLabel'
+                Interface = 'interfaceName'
+                LinkStatus = 'linkStatus'
+                Address = 'ipv4Address'
+                Mask = 'ipv4SubnetMask'
+            }
+        }
+        DE_TRANSPORT_TABLE_JSON = @{
+            columns = [ordered]@{
+                SystemId = 'systemId'
+                ActiveTransport = 'activeTransport'
+                IscsiIqn = 'iscsiIqn'
+            }
+        }
+        DE_HOSTPORTS_ISCSI_TABLE_JSON = @{
+            filter = { [string]$_.transport -eq 'iscsi' }
+            columns = [ordered]@{
+                Controller = 'controllerLabel'
+                Slot = 'controllerSlot'
+                Port = 'portLabel'
+                Channel = 'channel'
+                LinkStatus = 'linkStatus'
+                Address = 'ipv4Address'
+                Mask = 'ipv4SubnetMask'
+                Gateway = 'ipv4Gateway'
+                TcpPort = 'tcpPort'
+                IQN = 'iqn'
+            }
+        }
+        DE_HOSTPORTS_FC_TABLE_JSON = @{
+            filter = { [string]$_.transport -eq 'fc' }
+            columns = [ordered]@{
+                Controller = 'controllerLabel'
+                Slot = 'controllerSlot'
+                Port = 'portLabel'
+                Channel = 'channel'
+                LinkStatus = 'linkStatus'
+                CurrentSpeed = 'currentSpeed'
+                MaxSpeed = 'maxSpeed'
+                PortWWN = 'portWwn'
+                NodeWWN = 'nodeWwn'
+            }
+        }
+        DE_DNS_TABLE_JSON = @{
+            columns = [ordered]@{
+                SystemId = 'systemId'
+                Acquisition = 'dnsAcquisitionType'
+                DnsServers = { param($row) ($row.dnsServers -join ', ') }
+                DhcpServers = { param($row) ($row.dhcpAcquiredServers -join ', ') }
+            }
+        }
+        DE_TIME_TABLE_JSON = @{
+            columns = [ordered]@{
+                SystemId = 'systemId'
+                Acquisition = 'ntpAcquisitionType'
+                NtpServers = { param($row) ($row.ntpServers -join ', ') }
+                DhcpServers = { param($row) ($row.dhcpAcquiredServers -join ', ') }
+                DefaultRouter = 'ipv4DefaultRouter'
+            }
+        }
+        DE_HOSTS_TABLE_JSON = @{
+            columns = [ordered]@{
+                Name = 'name'
+                HostId = 'id'
+                HostType = 'hostTypeName'
+                ClusterRef = 'clusterRef'
+            }
+        }
+        DE_HOST_GROUPS_TABLE_JSON = @{
+            columns = [ordered]@{
+                Name = 'name'
+                GroupId = 'id'
+                Members = { param($row) ($row.memberNames -join ', ') }
+            }
+        }
+        DE_HOSTS_TO_HOST_GROUPS_TABLE_JSON = @{
+            columns = [ordered]@{
+                Host = 'hostName'
+                HostGroup = 'hostGroupName'
+                HostType = 'hostType'
+                KeyType = 'hostGroupKeyType'
+            }
+        }
+        DE_HOST_GROUPS_TO_VOLUMES_TABLE_JSON = @{
+            columns = [ordered]@{
+                HostGroup = 'hostGroupName'
+                Volume = 'volumeName'
+                Lun = 'lun'
+                MappingRef = 'mappingRef'
+            }
+        }
+        DE_HOSTS_TO_VOLUMES_TABLE_JSON = @{
+            columns = [ordered]@{
+                Host = 'hostName'
+                Volume = 'volumeName'
+                Lun = 'lun'
+                MappingRef = 'mappingRef'
+            }
+        }
+        DE_VOLUME_MAPPINGS_TABLE_JSON = @{
+            columns = [ordered]@{
+                Volume = 'volumeName'
+                Lun = 'lun'
+                TargetType = 'mappedToType'
+                TargetRef = 'mappedToRef'
+                MappingRef = 'mappingRef'
+            }
+        }
+        DE_SYSTEM_ASUP_TABLE_JSON = @{
+            columns = [ordered]@{
+                AsupEnabled = 'asupEnabled'
+                OnDemandEnabled = 'onDemandEnabled'
+                RemoteDiags = 'remoteDiagsEnabled'
+                DeliveryMethod = 'deliveryMethod'
+                RoutingType = 'routingType'
+                MaxHttps = { param($row) Format-SizeHuman -Bytes $row.maxSizeLimitHttps }
+                MaxSmtp = { param($row) Format-SizeHuman -Bytes $row.maxSizeLimitSmtp }
+            }
+        }
+        DE_CAPABILITIES_SUMMARY_TABLE_JSON = @{
+            filter = { $_.includeInMainBody -eq $true }
+            sortBy = 'sortOrder'
+            columns = [ordered]@{
+                Feature = 'displayName'
+                Category = 'category'
+                State = 'state'
+                Compliance = 'compliance'
+                Entitlement = 'entitlement'
+            }
+        }
+        DE_CAPABILITIES_KEY_FEATURES_TABLE_JSON = @{
+            filter = { $_.includeInMainBody -eq $true }
+            sortBy = 'sortOrder'
+            columns = [ordered]@{
+                Feature = 'displayName'
+                State = 'state'
+                License = 'licenseType'
+                Notes = 'notes'
+            }
+        }
+        DE_CAPABILITIES_LIMITS_TABLE_JSON = @{
+            filter = { $_.limit -ne $null -or $_.limitUsed -ne $null -or $_.includeInAppendix -eq $true }
+            sortBy = 'sortOrder'
+            columns = [ordered]@{
+                Feature = 'displayName'
+                Limit = 'limit'
+                Used = 'limitUsed'
+                LimitState = 'limitState'
+                Entitlement = 'entitlement'
+            }
+        }
+    }
+}
+
+function Invoke-TableProjection {
+    param(
+        [Parameter(Mandatory = $true)][object[]]$Rows,
+        [Parameter(Mandatory = $true)][hashtable]$Definition
+    )
+
+    $projectedRows = @($Rows)
+    if ($Definition.ContainsKey('filter')) {
+        $projectedRows = @($projectedRows | Where-Object -FilterScript $Definition.filter)
+    }
+    if ($Definition.ContainsKey('sortBy')) {
+        $projectedRows = @($projectedRows | Sort-Object -Property $Definition.sortBy)
+    }
+
+    return @(
+        $projectedRows | ForEach-Object {
+            $row = $_
+            $projected = [ordered]@{}
+            foreach ($columnName in $Definition.columns.Keys) {
+                $resolver = $Definition.columns[$columnName]
+                $value = if ($resolver -is [scriptblock]) {
+                    & $resolver $row
+                }
+                else {
+                    $row.$resolver
+                }
+                $projected[$columnName] = Convert-CellValueToString -Value $value
+            }
+            [pscustomobject]$projected
+        }
+    )
+}
+
 function Convert-TableRowsForTag {
     param(
         [Parameter(Mandatory = $true)][string]$Tag,
         [Parameter(Mandatory = $true)][object[]]$Rows
     )
 
-    switch ($Tag) {
-        'DE_DRIVES_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        Slot = $_.slot
-                        'Media Type' = $_.driveMediaType
-                        Raw = Format-SizeHuman -Bytes $_.rawCapacityBytes
-                        Usable = Format-SizeHuman -Bytes $_.usableCapacityBytes
-                        Firmware = $_.firmwareVersion
-                        Status = $_.status
-                        SerialNumber = $_.serialNumber
-                    }
-                }
-            )
-        }
-        'DE_STORAGE_CONTAINERS_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        Name = $_.name
-                        ContainerType = $_.containerType
-                        RaidLevel = $_.raidLevel
-                        DriveMediaType = $_.driveMediaType
-                        Total = Format-SizeHuman -Bytes $_.totalBytes
-                        Used = Format-SizeHuman -Bytes $_.usedBytes
-                        Free = Format-SizeHuman -Bytes $_.freeBytes
-                        State = $_.state
-                        Status = $_.status
-                    }
-                }
-            )
-        }
-        'DE_VOLUMES_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        Name = $_.name
-                        Size = Format-SizeHuman -Bytes $_.sizeBytes
-                        Status = $_.status
-                        RaidLevel = $_.raidLevel
-                        Container = $_.containerName
-                    }
-                }
-            )
-        }
-        'DE_CONTROLLERS_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        Controller = $_.controllerLabel
-                        Slot = $_.controllerSlot
-                        Status = $_.status
-                        AppVersion = $_.appVersion
-                        BootVersion = $_.bootVersion
-                        SerialNumber = $_.serialNumber
-                    }
-                }
-            )
-        }
-        'DE_MANAGEMENT_INTERFACES_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        Controller = $_.controllerLabel
-                        Slot = $_.controllerSlot
-                        Port = $_.portLabel
-                        Interface = $_.interfaceName
-                        LinkStatus = $_.linkStatus
-                        Address = $_.ipv4Address
-                        Mask = $_.ipv4SubnetMask
-                    }
-                }
-            )
-        }
-        'DE_TRANSPORT_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        SystemId = $_.systemId
-                        ActiveTransport = $_.activeTransport
-                        IscsiIqn = $_.iscsiIqn
-                    }
-                }
-            )
-        }
-        'DE_HOSTPORTS_ISCSI_TABLE_JSON' {
-            return @(
-                $Rows |
-                    Where-Object { [string]$_.transport -eq 'iscsi' } |
-                    ForEach-Object {
-                        [pscustomobject][ordered]@{
-                            Controller = $_.controllerLabel
-                            Slot = $_.controllerSlot
-                            Port = $_.portLabel
-                            Channel = $_.channel
-                            LinkStatus = $_.linkStatus
-                            Address = $_.ipv4Address
-                            Mask = $_.ipv4SubnetMask
-                            Gateway = $_.ipv4Gateway
-                            TcpPort = $_.tcpPort
-                            IQN = $_.iqn
-                        }
-                    }
-            )
-        }
-        'DE_HOSTPORTS_FC_TABLE_JSON' {
-            return @(
-                $Rows |
-                    Where-Object { [string]$_.transport -eq 'fc' } |
-                    ForEach-Object {
-                        [pscustomobject][ordered]@{
-                            Controller = $_.controllerLabel
-                            Slot = $_.controllerSlot
-                            Port = $_.portLabel
-                            Channel = $_.channel
-                            LinkStatus = $_.linkStatus
-                            CurrentSpeed = $_.currentSpeed
-                            MaxSpeed = $_.maxSpeed
-                            PortWWN = $_.portWwn
-                            NodeWWN = $_.nodeWwn
-                        }
-                    }
-            )
-        }
-        'DE_DNS_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        SystemId = $_.systemId
-                        Acquisition = $_.dnsAcquisitionType
-                        DnsServers = ($_.dnsServers -join ', ')
-                        DhcpServers = ($_.dhcpAcquiredServers -join ', ')
-                    }
-                }
-            )
-        }
-        'DE_TIME_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        SystemId = $_.systemId
-                        Acquisition = $_.ntpAcquisitionType
-                        NtpServers = ($_.ntpServers -join ', ')
-                        DhcpServers = ($_.dhcpAcquiredServers -join ', ')
-                        DefaultRouter = $_.ipv4DefaultRouter
-                    }
-                }
-            )
-        }
-        'DE_HOSTS_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        Name = $_.name
-                        HostId = $_.id
-                        HostType = $_.hostTypeName
-                        ClusterRef = $_.clusterRef
-                    }
-                }
-            )
-        }
-        'DE_HOST_GROUPS_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        Name = $_.name
-                        GroupId = $_.id
-                        Members = ($_.memberNames -join ', ')
-                    }
-                }
-            )
-        }
-        'DE_HOSTS_TO_HOST_GROUPS_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        Host = $_.hostName
-                        HostGroup = $_.hostGroupName
-                        HostType = $_.hostType
-                        KeyType = $_.hostGroupKeyType
-                    }
-                }
-            )
-        }
-        'DE_HOST_GROUPS_TO_VOLUMES_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        HostGroup = $_.hostGroupName
-                        Volume = $_.volumeName
-                        Lun = $_.lun
-                        MappingRef = $_.mappingRef
-                    }
-                }
-            )
-        }
-        'DE_HOSTS_TO_VOLUMES_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        Host = $_.hostName
-                        Volume = $_.volumeName
-                        Lun = $_.lun
-                        MappingRef = $_.mappingRef
-                    }
-                }
-            )
-        }
-        'DE_VOLUME_MAPPINGS_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        Volume = $_.volumeName
-                        Lun = $_.lun
-                        TargetType = $_.mappedToType
-                        TargetRef = $_.mappedToRef
-                        MappingRef = $_.mappingRef
-                    }
-                }
-            )
-        }
-        'DE_SYSTEM_ASUP_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        AsupEnabled = $_.asupEnabled
-                        OnDemandEnabled = $_.onDemandEnabled
-                        RemoteDiags = $_.remoteDiagsEnabled
-                        DeliveryMethod = $_.deliveryMethod
-                        RoutingType = $_.routingType
-                        MaxHttps = Format-SizeHuman -Bytes $_.maxSizeLimitHttps
-                        MaxSmtp = Format-SizeHuman -Bytes $_.maxSizeLimitSmtp
-                    }
-                }
-            )
-        }
-        'DE_CAPABILITIES_SUMMARY_TABLE_JSON' {
-            return @(
-                $Rows |
-                    Where-Object { $_.includeInMainBody -eq $true } |
-                    Sort-Object -Property sortOrder |
-                    ForEach-Object {
-                        [pscustomobject][ordered]@{
-                            Feature = $_.displayName
-                            Category = $_.category
-                            State = $_.state
-                            Compliance = $_.compliance
-                            Entitlement = $_.entitlement
-                        }
-                    }
-            )
-        }
-        'DE_CAPABILITIES_KEY_FEATURES_TABLE_JSON' {
-            return @(
-                $Rows |
-                    Where-Object { $_.includeInMainBody -eq $true } |
-                    Sort-Object -Property sortOrder |
-                    ForEach-Object {
-                        [pscustomobject][ordered]@{
-                            Feature = $_.displayName
-                            State = $_.state
-                            License = $_.licenseType
-                            Notes = $_.notes
-                        }
-                    }
-            )
-        }
-        'DE_CAPABILITIES_LIMITS_TABLE_JSON' {
-            return @(
-                $Rows |
-                    Where-Object { $_.limit -ne $null -or $_.limitUsed -ne $null -or $_.includeInAppendix -eq $true } |
-                    Sort-Object -Property sortOrder |
-                    ForEach-Object {
-                        [pscustomobject][ordered]@{
-                            Feature = $_.displayName
-                            Limit = $_.limit
-                            Used = $_.limitUsed
-                            LimitState = $_.limitState
-                            Entitlement = $_.entitlement
-                        }
-                    }
-            )
-        }
-        default {
-            return $Rows
-        }
+    $projectionDefinitions = Get-TableProjectionDefinitions
+    if ($projectionDefinitions.ContainsKey($Tag)) {
+        return @(Invoke-TableProjection -Rows $Rows -Definition $projectionDefinitions[$Tag])
     }
+
+    return $Rows
 }
 
 function Get-DisplayColumnsForTable {

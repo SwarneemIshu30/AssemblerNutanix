@@ -33,6 +33,10 @@ Each stage MUST emit stage diagnostics with UTC timestamps.
 - Assembler MAY apply a narrowly-scoped compatibility path for known legacy summary artifacts such as Lenovo.DE `run_summary.json` so required renders do not fail solely on envelope validation while collector/Core output is being corrected.
 - Any compatibility path MUST preserve existing mapped values, emit a warning in the render report, and remain limited to the named legacy artifact shape.
 
+## Projection policy
+- Assemblers SHOULD prefer bundle-native fields and contract-defined dataset semantics over hard-coded, tech-specific render logic.
+- When a document needs a presentation-specific table shape that is not carried natively in the bundle contract, the assembler MAY apply a declarative projection layer that filters, orders, and renames existing dataset fields without inventing new facts.
+
 ## Determinism requirements
 - Stable ordering for sections, tables, and rows
 - Stable null/empty rendering policy

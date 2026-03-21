@@ -7,6 +7,7 @@ This repository has been updated to better match the current Lenovo.DE contract 
 Applied in Assembler:
 - kept the legacy `run_summary.json` compatibility path narrowly scoped in `Invoke-AssemblerSdtRender.ps1`
 - kept existing Lenovo.DE summary selectors stable for `run_summary.json`
+- refactored Lenovo.DE table shaping into a declarative projection layer inside the assembler so the renderer maps bundle-native fields into document tables without embedding per-tag imperative formatting branches everywhere
 - aligned the Lenovo.DE collector skeleton template with the current contract table layout by adding sections for:
   - Controllers
   - Management Interfaces
@@ -53,6 +54,11 @@ The following work still belongs in Lenovo.DE/Core rather than this assembler re
 4. Confirm optional dataset behavior for empty relationship tables.
    - The template now includes host/group/volume relationship sections.
    - Collector/Core should continue emitting valid envelopes with `item_count: 0` when those relationship datasets are empty.
+
+## Native status
+- `run_summary.json` is **not fully native yet** because the live Lenovo.DE/Core output still uses the legacy non-envelope summary shape.
+- The newer table sections are **bundle-native in content** because they are rendered from existing dataset rows already present in the bundle.
+- The exact column layouts are still **assembler-side projections**, because the current contract pack defines dataset/table coverage but does not yet ship a full document-column projection contract for every Lenovo.DE table.
 
 ## Source contracts reviewed
 - `.deps/contracts/tech/Lenovo.DE/sdt_inventory.md`
