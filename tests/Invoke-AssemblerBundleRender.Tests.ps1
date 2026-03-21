@@ -1,3 +1,8 @@
+BeforeAll {
+    $repoRoot = Split-Path -Parent $PSScriptRoot
+    Import-Module (Join-Path $repoRoot 'scripts/internal/AssemblerSchemaValidation.psm1') -Force
+}
+
 Describe 'Invoke-AssemblerBundleRender orchestration' {
     It 'runs renderer per catalog entry for selected tech' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
@@ -20,13 +25,35 @@ Describe 'Invoke-AssemblerBundleRender orchestration' {
             }
 
             $report = $json | ConvertFrom-Json -AsHashtable
-            if ($report.status -ne 'OK') {
-                throw "Expected report.status OK, got '$($report.status)'"
-            }
 
             $bundleReportPath = Join-Path $outputRoot 'assembler-bundle-render-report.json'
             if (-not (Test-Path -LiteralPath $bundleReportPath -PathType Leaf)) {
                 throw 'Expected bundle render report file'
+            }
+
+            $contractsRoot = if (Test-Path -LiteralPath (Join-Path $repoRoot '.deps/contracts/standards/assembler/assembler.bundle-render-report.schema.v1.json') -PathType Leaf) {
+                Join-Path $repoRoot '.deps/contracts'
+            }
+            else {
+                Join-Path $repoRoot 'export21/repo-ready/contracts'
+            }
+            $bundleSchemaPath = Join-Path $contractsRoot 'standards/assembler/assembler.bundle-render-report.schema.v1.json'
+            $bundleReportValidation = Test-AssemblerSchemaFile -DocumentPath $bundleReportPath -SchemaPath $bundleSchemaPath
+            if (-not $bundleReportValidation.isValid) {
+                throw "Expected bundle report to validate against dedicated schema, got '$($bundleReportValidation.message)'"
+            }
+
+            if ($report.status -ne 'OK') {
+                throw "Expected report.status OK, got '$($report.status)'"
+            }
+            foreach ($requiredProperty in @('bundleRoot', 'catalogPath', 'outputRoot', 'runs')) {
+                if (-not $report.ContainsKey($requiredProperty)) {
+                    throw "Expected report to include '$requiredProperty'"
+                }
+            }
+            $schemaIssues = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SCHEMA-AGGREGATEREPORT-INVALID' })
+            if ($schemaIssues.Count -gt 0) {
+                throw "Did not expect aggregate report schema issues, got '$($schemaIssues[0].message)'"
             }
         }
         finally {

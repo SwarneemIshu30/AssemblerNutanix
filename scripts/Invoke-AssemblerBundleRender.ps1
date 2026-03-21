@@ -413,7 +413,7 @@ try {
     Start-BundleStage -Stage $stageMap.Load
     $effectiveContractsRoot = Resolve-AssemblerContractsRoot -ContractsRoot $ContractsRoot -RepoRoot $repoRoot
     $catalogSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards/assembler') 'assembler.template-catalog.schema.v1.json'
-    $aggregateReportSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards/assembler') 'assembler.render-report.schema.v1.json'
+    $aggregateReportSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards/assembler') 'assembler.bundle-render-report.schema.v1.json'
 
     $catalog = Read-JsonFile -Path $CatalogPath
 

@@ -18,7 +18,7 @@ Runtime direction is **PowerShell 7**.
 2. `./.deps/contracts`
 3. `./export/repo-ready/contracts`
 
-The script loads `standards/mapping.dataset-to-sdt.schema.v1.json` and `standards/assembler/assembler.render-report.schema.v1.json` from the resolved root and performs schema validation for mapping input and render report output.
+The SDT render script loads `standards/mapping.dataset-to-sdt.schema.v1.json` and `standards/assembler/assembler.render-report.schema.v1.json` from the resolved root and performs schema validation for mapping input and single-render output. Bundle orchestration separately validates `standards/assembler/assembler.bundle-render-report.schema.v1.json` for its aggregate report.
 
 ## TemplateCatalog contract
 
@@ -50,7 +50,7 @@ Optional:
 Behavior:
 - reads `objectIndex.json` to detect tech present in bundle
 - validates catalog against `assembler.template-catalog` schema
-- validates aggregate bundle report contract against `assembler.render-report` schema
+- validates aggregate bundle report contract against dedicated `assembler.bundle-render-report` schema
 - filters enabled catalog entries by detected/requested `techId`
 - invokes `Invoke-AssemblerSdtRender.ps1` once per selected entry
 - writes aggregate report to `assembler-bundle-render-report.json`

@@ -1,0 +1,301 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/standards/assembler/assembler.bundle-render-report.schema.v1.json",
+  "title": "Assembler Bundle Render Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "startedUtc",
+    "completedUtc",
+    "bundleRoot",
+    "catalogPath",
+    "outputRoot",
+    "stages",
+    "runs",
+    "issues"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "OK",
+        "PARTIAL",
+        "ERROR"
+      ]
+    },
+    "startedUtc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completedUtc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "bundleId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "bundleRoot": {
+      "type": "string"
+    },
+    "catalogPath": {
+      "type": "string"
+    },
+    "outputRoot": {
+      "type": "string"
+    },
+    "stages": {
+      "$ref": "#/$defs/stages"
+    },
+    "issues": {
+      "$ref": "#/$defs/issues"
+    },
+    "runs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "entryId",
+          "techId",
+          "status",
+          "outputPath",
+          "reportPath",
+          "variants",
+          "stages"
+        ],
+        "properties": {
+          "entryId": {
+            "type": "string"
+          },
+          "techId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "WARN",
+              "ERROR"
+            ]
+          },
+          "outputPath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reportPath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rendererOutput": {
+            "type": [
+              "object",
+              "array",
+              "string",
+              "number",
+              "boolean",
+              "null"
+            ]
+          },
+          "rendererOutputRaw": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "variant",
+                "status",
+                "outputPath",
+                "reportPath",
+                "selectedTarget",
+                "targetSelectionReason",
+                "selectedTargetRoot",
+                "targetCandidates",
+                "targetCandidateRoots"
+              ],
+              "properties": {
+                "variant": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "OK",
+                    "WARN",
+                    "ERROR"
+                  ]
+                },
+                "outputPath": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "reportPath": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "rendererOutput": {
+                  "type": [
+                    "object",
+                    "array",
+                    "string",
+                    "number",
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "rendererOutputRaw": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "selectedTarget": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "targetSelectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "selectedTargetRoot": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "targetCandidates": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "targetCandidateRoots": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "stages": {
+            "$ref": "#/$defs/stages"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "stages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "status",
+          "startedUtc",
+          "completedUtc"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "WARN",
+              "ERROR",
+              "SKIPPED"
+            ]
+          },
+          "startedUtc": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "completedUtc": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "details": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "severity",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "INFO",
+              "WARN",
+              "ERROR"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
