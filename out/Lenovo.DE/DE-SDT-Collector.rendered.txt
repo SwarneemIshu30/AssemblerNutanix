@@ -30,9 +30,8 @@ Tables.Systems
 ------------------------------------------------------------------------------------------
 
 
-name         model  status  fwVersion   appVersion  bootVersion nvsramVersion    chassisSerialNumber modelName managemen
-                                                                                                               tHost
-----         -----  ------  ---------   ----------  ----------- -------------    ------------------- --------- ---------
+name         model  status  fwVersion   appVersion  bootVersion nvsramVersion    chassisSerialNumber modelName managementHost
+----         -----  ------  ---------   ----------  ----------- -------------    ------------------- --------- --------------
 DE4200_Rack4 DE4200 optimal 08.90.09.00 08.90.09.00 08.90.09.00 N4000-890870-D03 J7024YT4
 
 
@@ -104,13 +103,8 @@ Tables.Trays
 ------------------------------------------------------------------------------------------
 
 
-trayType trayRole        controllerModelName status serialNumber partNumber vendorName manufacturer manufacturerDate num
-                                                                                                                     Con
-                                                                                                                     tro
-                                                                                                                     lle
-                                                                                                                     rSl
-                                                                                                                     ots
--------- --------        ------------------- ------ ------------ ---------- ---------- ------------ ---------------- ---
+trayType trayRole        controllerModelName status serialNumber partNumber vendorName manufacturer manufacturerDate numControllerSlots
+-------- --------        ------------------- ------ ------------ ---------- ---------- ------------ ---------------- ------------------
 de224c   controller-tray                            J7024YT4     7DCQCTO1WW NETAPP                                   2
 
 
@@ -186,9 +180,8 @@ Tables.SystemASUP
 ------------------------------------------------------------------------------------------
 
 
-asupCapable onDemandCapable asupEnabled onDemandEnabled remoteDiagsEnabled deliveryMethod routingType proxyHost proxyPor
-                                                                                                                t
------------ --------------- ----------- --------------- ------------------ -------------- ----------- --------- --------
+asupCapable onDemandCapable asupEnabled onDemandEnabled remoteDiagsEnabled deliveryMethod routingType proxyHost proxyPort proxyScript
+----------- --------------- ----------- --------------- ------------------ -------------- ----------- --------- --------- -----------
 True        True            True        True            True               https          direct
 
 Findings
