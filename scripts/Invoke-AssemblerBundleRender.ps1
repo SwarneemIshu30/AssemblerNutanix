@@ -326,7 +326,10 @@ function Resolve-MappingVariantsForBundle {
     }
 
     $ctx = Resolve-TechDatasetContext -BundleRoot $BundleRoot -TechId $TechId -CatalogEntry $CatalogEntry
-    $targetResolved = $mappingText.Replace('__TARGET__', [string]$ctx.target)
+    $techDatasetRoot = Join-Path (Join-Path $BundleRoot 'datasets') $TechId
+    $resolvedTargetPrefix = [System.IO.Path]::GetRelativePath($techDatasetRoot, [string]$ctx.targetRoot)
+    $resolvedTargetPrefix = $resolvedTargetPrefix.Replace('\', '/')
+    $targetResolved = $mappingText.Replace('__TARGET__', $resolvedTargetPrefix)
 
     $tempDir = Join-Path $OutputRoot '.resolved-mappings'
     Ensure-Directory -Path $tempDir
