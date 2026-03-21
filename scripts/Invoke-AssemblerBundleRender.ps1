@@ -120,6 +120,41 @@ function Resolve-AssemblerContractsRoot {
 }
 
 
+function Get-CollectorTargetRoots {
+    param(
+        [Parameter(Mandatory = $true)][string]$CollectorOutRoot
+    )
+
+    if (-not (Test-Path -LiteralPath $CollectorOutRoot -PathType Container)) {
+        throw "Expected collector dataset root not found: $CollectorOutRoot"
+    }
+
+    $targetRoots = [System.Collections.Generic.List[psobject]]::new()
+    foreach ($container in @(Get-ChildItem -LiteralPath $CollectorOutRoot -Directory -ErrorAction Stop | Sort-Object -Property Name)) {
+        if ($container.Name -eq '_multi') {
+            foreach ($targetRoot in @(Get-ChildItem -LiteralPath $container.FullName -Directory -ErrorAction Stop | Where-Object { $_.Name -like 'target_*' } | Sort-Object -Property Name)) {
+                $targetRoots.Add([pscustomobject]@{
+                    ContainerName = [string]$container.Name
+                    ContainerPath = [string]$container.FullName
+                    Name = [string]$targetRoot.Name
+                    FullName = [string]$targetRoot.FullName
+                })
+            }
+            continue
+        }
+
+        foreach ($targetRoot in @(Get-ChildItem -LiteralPath $container.FullName -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -like 'target_*' } | Sort-Object -Property Name)) {
+            $targetRoots.Add([pscustomobject]@{
+                ContainerName = [string]$container.Name
+                ContainerPath = [string]$container.FullName
+                Name = [string]$targetRoot.Name
+                FullName = [string]$targetRoot.FullName
+            })
+        }
+    }
+
+    return @($targetRoots)
+}
 
 function Resolve-TechDatasetContext {
     param(
@@ -128,26 +163,23 @@ function Resolve-TechDatasetContext {
         [Parameter(Mandatory = $false)][hashtable]$CatalogEntry
     )
 
-    $multiRoot = Join-Path (Join-Path (Join-Path $BundleRoot 'datasets') $TechId) 'collector-out/_multi'
-    if (-not (Test-Path -LiteralPath $multiRoot -PathType Container)) {
-        throw "Expected collector dataset root not found: $multiRoot"
-    }
-
+    $collectorOutRoot = Join-Path (Join-Path (Join-Path $BundleRoot 'datasets') $TechId) 'collector-out'
     $targets = @(
-        Get-ChildItem -LiteralPath $multiRoot -Directory -ErrorAction Stop |
-            Where-Object { $_.Name -like 'target_*' } |
+        Get-CollectorTargetRoots -CollectorOutRoot $collectorOutRoot |
             ForEach-Object {
                 $summary = Join-Path $_.FullName 'run_summary.json'
                 [pscustomobject]@{
                     Name = $_.Name
                     FullName = $_.FullName
+                    ContainerName = $_.ContainerName
+                    ContainerPath = $_.ContainerPath
                     TargetKey = if ($_.Name.StartsWith('target_')) { $_.Name.Substring(7) } else { $_.Name }
                     HasRunSummary = (Test-Path -LiteralPath $summary -PathType Leaf)
                 }
             }
     )
     if (@($targets).Count -eq 0) {
-        throw "No target_* folders found in: $multiRoot"
+        throw "No target_* folders found under collector dataset root: $collectorOutRoot"
     }
 
     # Deterministic precedence (never timestamp-based):
@@ -191,8 +223,12 @@ function Resolve-TechDatasetContext {
     $targetByName = @{}
     $targetByKey = @{}
     foreach ($candidate in $targets) {
-        $targetByName[[string]$candidate.Name] = $candidate
-        $targetByKey[[string]$candidate.TargetKey] = $candidate
+        if (-not $targetByName.ContainsKey([string]$candidate.Name)) {
+            $targetByName[[string]$candidate.Name] = $candidate
+        }
+        if (-not $targetByKey.ContainsKey([string]$candidate.TargetKey)) {
+            $targetByKey[[string]$candidate.TargetKey] = $candidate
+        }
     }
 
     $selectedTarget = $null
@@ -227,7 +263,7 @@ function Resolve-TechDatasetContext {
     }
 
     if ($null -eq $selectedTarget) {
-        $selectedTarget = $targets | Sort-Object -Property Name | Select-Object -First 1
+        $selectedTarget = $targets | Sort-Object -Property @{ Expression = 'Name' }, @{ Expression = 'FullName' } | Select-Object -First 1
         $selectionReason = 'lexical-fallback'
     }
 
@@ -240,9 +276,12 @@ function Resolve-TechDatasetContext {
 
     return [ordered]@{
         target = [string]$selectedTarget.Name
+        targetRoot = [string]$selectedTarget.FullName
+        targetContainer = [string]$selectedTarget.ContainerName
         systems = $systems
         selectionReason = $selectionReason
-        candidateTargets = @($targets | Sort-Object -Property Name | ForEach-Object { [string]$_.Name })
+        candidateTargets = @($targets | Sort-Object -Property @{ Expression = 'Name' }, @{ Expression = 'FullName' } | ForEach-Object { [string]$_.Name })
+        candidateTargetRoots = @($targets | Sort-Object -Property @{ Expression = 'Name' }, @{ Expression = 'FullName' } | ForEach-Object { [string]$_.FullName })
     }
 }
 
@@ -283,7 +322,7 @@ function Resolve-MappingVariantsForBundle {
 
     $mappingText = Get-Content -LiteralPath $MappingPath -Raw -Encoding UTF8
     if (($mappingText -notmatch '__TARGET__') -and ($mappingText -notmatch '__SYSTEM__')) {
-        return @([pscustomobject]@{ mappingPath = $MappingPath; variantName = $null; selectedTarget = $null; targetSelectionReason = $null; targetCandidates = @() })
+        return @([pscustomobject]@{ mappingPath = $MappingPath; variantName = $null; selectedTarget = $null; selectedTargetRoot = $null; targetSelectionReason = $null; targetCandidates = @(); targetCandidateRoots = @() })
     }
 
     $ctx = Resolve-TechDatasetContext -BundleRoot $BundleRoot -TechId $TechId -CatalogEntry $CatalogEntry
@@ -295,7 +334,7 @@ function Resolve-MappingVariantsForBundle {
     if ($targetResolved -notmatch '__SYSTEM__') {
         $resolvedPath = Join-Path $tempDir ("$EntryId.target.$([string]$ctx.target).resolved.json")
         Set-Content -LiteralPath $resolvedPath -Value $targetResolved -Encoding UTF8
-        return @([pscustomobject]@{ mappingPath = $resolvedPath; variantName = [string]$ctx.target; selectedTarget = [string]$ctx.target; targetSelectionReason = [string]$ctx.selectionReason; targetCandidates = @($ctx.candidateTargets) })
+        return @([pscustomobject]@{ mappingPath = $resolvedPath; variantName = [string]$ctx.target; selectedTarget = [string]$ctx.target; selectedTargetRoot = [string]$ctx.targetRoot; targetSelectionReason = [string]$ctx.selectionReason; targetCandidates = @($ctx.candidateTargets); targetCandidateRoots = @($ctx.candidateTargetRoots) })
     }
 
     if (@($ctx.systems).Count -eq 0) {
@@ -308,7 +347,7 @@ function Resolve-MappingVariantsForBundle {
         $safeSystem = ([string]$systemName).Replace('/', '_').Replace('\', '_')
         $resolvedPath = Join-Path $tempDir ("$EntryId.$safeSystem.resolved.json")
         Set-Content -LiteralPath $resolvedPath -Value $resolved -Encoding UTF8
-        $variants.Add([pscustomobject]@{ mappingPath = $resolvedPath; variantName = [string]$systemName; selectedTarget = [string]$ctx.target; targetSelectionReason = [string]$ctx.selectionReason; targetCandidates = @($ctx.candidateTargets) })
+        $variants.Add([pscustomobject]@{ mappingPath = $resolvedPath; variantName = [string]$systemName; selectedTarget = [string]$ctx.target; selectedTargetRoot = [string]$ctx.targetRoot; targetSelectionReason = [string]$ctx.selectionReason; targetCandidates = @($ctx.candidateTargets); targetCandidateRoots = @($ctx.candidateTargetRoots) })
     }
 
     return @($variants)
@@ -446,15 +485,16 @@ try {
             $mappingVariants = Resolve-MappingVariantsForBundle -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TechId ([string]$entry.techId) -OutputRoot $OutputRoot -EntryId ([string]$entry.id) -CatalogEntry $entry
             $selectionReason = if (@($mappingVariants).Count -gt 0) { [string]$mappingVariants[0].targetSelectionReason } else { $null }
             $selectedTarget = if (@($mappingVariants).Count -gt 0) { [string]$mappingVariants[0].selectedTarget } else { $null }
+            $selectedTargetRoot = if (@($mappingVariants).Count -gt 0) { [string]$mappingVariants[0].selectedTargetRoot } else { $null }
             if ($selectionReason -eq 'lexical-fallback') {
                 $issues.Add([ordered]@{
                     code = 'ASB-ASM-TARGET-AUTOSELECTED'
                     severity = 'WARN'
                     message = "Entry '$($entry.id)' selected target '$selectedTarget' via lexical fallback. Configure catalog target metadata or solution.plan targetKeys to avoid fallback."
-                    path = Join-Path (Join-Path (Join-Path $effectiveBundleRoot 'datasets') ([string]$entry.techId)) 'collector-out/_multi'
+                    path = if ([string]::IsNullOrWhiteSpace($selectedTargetRoot)) { Join-Path (Join-Path (Join-Path $effectiveBundleRoot 'datasets') ([string]$entry.techId)) 'collector-out' } else { $selectedTargetRoot }
                 })
             }
-            Complete-BundleStage -Stage $runStageMap.Transform -Status 'OK' -Details ([ordered]@{ variantCount = @($mappingVariants).Count; selectedTarget = $selectedTarget; targetSelectionReason = $selectionReason })
+            Complete-BundleStage -Stage $runStageMap.Transform -Status 'OK' -Details ([ordered]@{ variantCount = @($mappingVariants).Count; selectedTarget = $selectedTarget; selectedTargetRoot = $selectedTargetRoot; targetSelectionReason = $selectionReason })
 
             Start-BundleStage -Stage $runStageMap.Render
             foreach ($variant in @($mappingVariants)) {
@@ -502,7 +542,9 @@ try {
                     rendererOutputRaw = $json
                     selectedTarget = [string]$variant.selectedTarget
                     targetSelectionReason = [string]$variant.targetSelectionReason
+                    selectedTargetRoot = [string]$variant.selectedTargetRoot
                     targetCandidates = @($variant.targetCandidates)
+                    targetCandidateRoots = @($variant.targetCandidateRoots)
                 })
             }
             Complete-BundleStage -Stage $runStageMap.Render -Status $runStatus
