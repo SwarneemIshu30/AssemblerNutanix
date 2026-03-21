@@ -1,0 +1,370 @@
+{
+  "schemaVersion": 1,
+  "bundleId": "417f4663-0922-423b-92a9-34d4e33ecd0e",
+  "createdUtc": "2026-03-21T04:38:53.0250314Z",
+  "completedUtc": "2026-03-21T04:38:59.3215751Z",
+  "createdBy": "lforrest@LFORREST-3BS4V7",
+  "files": [
+    {
+      "path": "config/config_used.json",
+      "bytes": 26,
+      "sha256": "3d1fa4161017589f499e2d9420a35eb3e2ed0a8741338f981bf8429bea1d077b"
+    },
+    {
+      "path": "config/solution.plan.json",
+      "bytes": 1042,
+      "sha256": "2bb19ad7c198a6736a6a35a65397e9487024e65bc15050bf3a87c07d14f36d3f"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/run_summary.json",
+      "bytes": 937,
+      "sha256": "4fb215c1d66d8eb48e3cdb64706ce11ff483617f7002400ab0231760102d32db"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities-normalized.csv",
+      "bytes": 4648,
+      "sha256": "f96ac8c285b5a7fe5ce8bdee77db23859ec9fe49d896195d59dd4a7669509103"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities-normalized.json",
+      "bytes": 11849,
+      "sha256": "5f8e402b51163563a98b8babd89be16e319c946e0d42b8f818deaf8786d37d68"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities.keyfeatures.json",
+      "bytes": 4603,
+      "sha256": "ec4fb9b8ac5b0dd04d7399598a5bdaf30d629b680cbd462673366111cf8c87ac"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities.limits.json",
+      "bytes": 2852,
+      "sha256": "c4e80010d0b3146a7c774068061d42389a069d6dad55f7289f7d5e925fd2427b"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities.raw.csv",
+      "bytes": 1823,
+      "sha256": "3f3da5f101ff1d6b041ac7d887013d4d9205222dcbd339c0c293d82944a1b014"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities.raw.json",
+      "bytes": 46239,
+      "sha256": "97c14a6434206e49552ca56e89e186eb2b85db3028ea30a908e54b75f099b45c"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities.summary.json",
+      "bytes": 995,
+      "sha256": "1a5ac987208878fdabf2a95163aa8340eaa01f351e9cb191b72f1d913915dd34"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/device-asup.raw.csv",
+      "bytes": 622,
+      "sha256": "df2bddb35562bf8db0476da859fdc0187ad525bcbee29167b7fee73df96f2a24"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/device-asup.raw.json",
+      "bytes": 866,
+      "sha256": "411907be10db2fb1381f3d895ef23dfdd2b98a900f11f62838f4653c04b15a02"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/drives.json",
+      "bytes": 23358,
+      "sha256": "a1e62a60b9d2afd9efe66d4cd357a4a724b3b42737cafcce079f6b9b3cb3a810"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/drives.normalized.csv",
+      "bytes": 9519,
+      "sha256": "886f1e1f3e8e96f431fcf78122b5772828ad3d053457632d5a68e9d10434c695"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/drives.raw.csv",
+      "bytes": 31704,
+      "sha256": "55af502c8915e9bd28e2b26d5755417ec4cd5138ea4eb11f6dbadbfb50d4df75"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/drives.raw.json",
+      "bytes": 91537,
+      "sha256": "96d0558b6896e7f67d527c82e626ee976e58aa0de46d36834010c929d6576ca2"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hardware-inventory.raw.csv",
+      "bytes": 682,
+      "sha256": "63ac2c4d8d33237656e429d15f4295bf7ffa7d038b506210d879b22233c00d49"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hardware-inventory.raw.json",
+      "bytes": 465605,
+      "sha256": "0ea6684f728543ab8797274d0098d6c190ed73300a6d68d8580ef426da8e745b"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-groups-to-volumes.csv",
+      "bytes": 632,
+      "sha256": "a9f3c4fb197b06f6c06c2dcaf0fb7acde21f9f24e7143b82e9c00f56e758e8d7"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-groups-to-volumes.json",
+      "bytes": 1598,
+      "sha256": "8d1316d067c91e9ebf8626361c7024f827f38c0c60ac8e418cd7b1be838ce620"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-groups.csv",
+      "bytes": 278,
+      "sha256": "61ad560c761fedcff53fa981c20595eedc9ae65e8140d6038fcd0ce6dd2fdbbc"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-groups.json",
+      "bytes": 1139,
+      "sha256": "619177e99b48fe473248efdf35a5c2c375deba75762c5b094dd5ebac3e587a44"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-groups.raw.csv",
+      "bytes": 299,
+      "sha256": "2cae9b2f0486ada4678318690698e654cb1beaedeef44c8b6b04001456e30229"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-groups.raw.json",
+      "bytes": 360,
+      "sha256": "b9c8ea37f0f0425e43f5fbe012c86d60eaf556b29ebae57631312ddbc296103d"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.csv",
+      "bytes": 4348,
+      "sha256": "9f0539cfd42ebe0bc12622628d8871ba9294e6249650910918d5aeb7adb49e59"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "bytes": 10417,
+      "sha256": "be5be6c27a7fa4d4fe05f096d93e89595a73fa98b6770c9dcf09eb585440812d"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-types.csv",
+      "bytes": 355,
+      "sha256": "4386dd2aca5409299caf2a69cfb68846cb4182468e33324f8ff2b5f0f76193d2"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-types.json",
+      "bytes": 1618,
+      "sha256": "18a5f19e74dab95181b05770b5d2c40664dd424d553e52b90e2175b3a477e13f"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-types.raw.csv",
+      "bytes": 529,
+      "sha256": "59557cf53a66003efb1555241b1753026f04ab5a6f88e4b79f80d34805644ab5"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-types.raw.json",
+      "bytes": 1164,
+      "sha256": "655cda02ac4c80a78ad1e93b4095e1447b0e437bd28d62071bdb558a2186d7b1"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts-to-host-groups.csv",
+      "bytes": 670,
+      "sha256": "45b94efc8beb30086b8aff2d5d454a8fbc6f824d321be7d52c99db17f07f18a5"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts-to-host-groups.json",
+      "bytes": 1670,
+      "sha256": "2ef38aba4bba55a9174f647959473a27f13d5cd527a7b13e82105ca88d198262"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts-to-volumes.csv",
+      "bytes": 361,
+      "sha256": "51453f2aebc283c00dd1579acdba451665f3136469acc484350bf50ab3698529"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts-to-volumes.json",
+      "bytes": 1115,
+      "sha256": "2002adc76758d1936605270c1238bad2167ba80973d50e58987f55132a9a8ce3"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts.csv",
+      "bytes": 425,
+      "sha256": "dfe0d8b1e578b8b46263658ddeecce2581690bfe35bce7380c15dcfe68127c2d"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts.json",
+      "bytes": 1335,
+      "sha256": "35b85b34f02d5016f27fd9e5e98b8f885f000d67a6f43cae054213316583923e"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts.raw.csv",
+      "bytes": 739,
+      "sha256": "5f25dffe94aa33637becafab807264c41879c5cd2c143f05a6d957b8305b09cf"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts.raw.json",
+      "bytes": 3685,
+      "sha256": "80ccdbb0f191d05c7edf4efeda5ebce91416e5ab22475ffc23c7fb6263e00b47"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.csv",
+      "bytes": 563,
+      "sha256": "8a7e8b75477b417c5c394b29d13c2c434bf7d5188834a3e857a13e95a5b01e7f"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "bytes": 1710,
+      "sha256": "af19f028d84334b7ea772c2a7bede3406d4c910e22a39f83fced21791bc3ecf3"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/storage-containers.json",
+      "bytes": 2192,
+      "sha256": "ab61f8cba21bc4fe40ecf57cb9f40ed301f11aa147fec6afd09af1066c855240"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/storage-containers.normalized.csv",
+      "bytes": 731,
+      "sha256": "b6984f6d4145ac922e1d936d07121bef3e2307f7e8054a50c90d34e4731fc853"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/storage-pools.raw.csv",
+      "bytes": 2304,
+      "sha256": "39db13f15c16f6563e6157c87e2d5d8d53e7787a5eea3be4b8256517e9b8fee1"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/storage-pools.raw.json",
+      "bytes": 5529,
+      "sha256": "328edf6c1b03e07c3d97f23538892d934d14d467cac863100b263c88fbd65555"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-asup.csv",
+      "bytes": 369,
+      "sha256": "24764fa1a6fc45d78af969cf7d79fc56bb97b7b89dd2e08fbd129307744ed5e1"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-asup.json",
+      "bytes": 1155,
+      "sha256": "8dfd3f21218a06b48ad4dd2f8c91b6c54c98a0086636c67fe3175f6d3b9717b6"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.csv",
+      "bytes": 449,
+      "sha256": "45e76f871767d890978567c935207b2c29cad22b15e64ed6b5432db099973848"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json",
+      "bytes": 1506,
+      "sha256": "3c62ae6702ec447b3433f568816c28a9cfe1cd4600fc639b4109c1e0886cdabe"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.raw.csv",
+      "bytes": 2671,
+      "sha256": "c79985902745e2fe3e2757fba4f27b727936e2e3b432bffd306ada43ed5f68a9"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.raw.json",
+      "bytes": 94038,
+      "sha256": "1f83561adfe3ab52623b5d3ad3e8edb29a66f08a53d408c78af3ccdc7dd1522b"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.csv",
+      "bytes": 234,
+      "sha256": "535caa14ffa56eb6e576d12143f0f4734e5e5227e84bef32a4bf590ecc0ffb40"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "bytes": 1118,
+      "sha256": "5a4ed1f0c133dfe208a358b69a850fdf672b3f44defe4830630dd95a8fe757be"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.csv",
+      "bytes": 290,
+      "sha256": "fac7b84b23376eee1e538edec418486444a03edf7e53376e54111300db492e7c"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "bytes": 1105,
+      "sha256": "19fd94267d9db1ccbd2c516864eb970bf6a5467a10538d78e092a7167a995925"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/transport.csv",
+      "bytes": 124,
+      "sha256": "cb9d98d1acf2a645c663e307a4c9fedd4e89c076aac17f334fa3e91a0f50337f"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/transport.json",
+      "bytes": 796,
+      "sha256": "e6d847f8f8a1904406e4d85fe940327fe065750d7f5a1ec665d4a02269553fc7"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/trays.csv",
+      "bytes": 372,
+      "sha256": "8baf857eb39d9c941f5c0b298e455c2a316fbe7c7fbbb4829d1566f2d3c2badc"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/trays.json",
+      "bytes": 1163,
+      "sha256": "9cc49fa556467f5ee45174ce2a1db86f9554b6580d19c63eedc457e2faa0edaa"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/volume-mappings.json",
+      "bytes": 1803,
+      "sha256": "201be25f9fb7c9944877947431748ef86ad71b956c8a1012aaa780e23f98aa5d"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/volume-mappings.normalized.csv",
+      "bytes": 714,
+      "sha256": "c03a24ee6c6f94cebe18532586128b4325ac586b33b189bcd13e5262ee79d62f"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/volumes.json",
+      "bytes": 3215,
+      "sha256": "0c7efd72b90f8a5efbabfd8184e6f5dcc09b5fb0154a471ddeb8df3d7a854359"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/volumes.normalized.csv",
+      "bytes": 1410,
+      "sha256": "865e1f0c38fbcec90cd359ba352a4b950211bb2c423026265f2bf43112237fbf"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/volumes.raw.csv",
+      "bytes": 6291,
+      "sha256": "db19e225d389de96b82404275e2aa14561c491437a2ffe5ce8c5a6aa1225526c"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/volumes.raw.json",
+      "bytes": 12893,
+      "sha256": "e70734885013e32fb90c230cdcfda7e991f4e54c54bc904474d0aa58c46b0efe"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.csv",
+      "bytes": 1856,
+      "sha256": "ca72e725d6e13a516ff0bf48503c5885c89b4b448abbe37bd04e86ee2c2c2d95"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json",
+      "bytes": 3589,
+      "sha256": "c8b349a9928e69fb8d24c74cd344090dfbf7017f764f4a5934e9e45d369e0d3d"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.raw.csv",
+      "bytes": 1839,
+      "sha256": "d69e46abe131039449c2b5bd11484cb394c07acda4279a9f50cbfc45e8619602"
+    },
+    {
+      "path": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.raw.json",
+      "bytes": 2738,
+      "sha256": "76dabadc1edb328e04fa9ae8d257948c399a73ca693f207ff8b2ecdbb90248e0"
+    }
+  ],
+  "results": [
+    {
+      "techId": "Lenovo.DE",
+      "startedUtc": "2026-03-21T04:38:53.0251411Z",
+      "completedUtc": "2026-03-21T04:38:59.2786037Z",
+      "status": "OK",
+      "errors": [],
+      "warnings": []
+    }
+  ],
+  "dependencies": {
+    "contractsSnapshot": {
+      "schemaVersion": 1,
+      "syncedUtc": "2026-03-21T04:29:10.0356232Z",
+      "source": "release-pack",
+      "version": "2.0.3",
+      "packUrl": "https://github.com/LNV-AsBuiltDoc/LNV.AsBuiltDoc.Contracts/releases/download/v2.0.3/asbuiltdoc-contracts-v2.0.3.zip",
+      "packPath": "C:\\Users\\lforrest\\AppData\\Local\\Temp\\asbuiltdoc-contracts-v2.0.3.zip",
+      "packSha256": "b894f0b0181bda8abe59468a6546f17b5aabf83ac506a2158b8fb2b189c74477"
+    }
+  }
+}

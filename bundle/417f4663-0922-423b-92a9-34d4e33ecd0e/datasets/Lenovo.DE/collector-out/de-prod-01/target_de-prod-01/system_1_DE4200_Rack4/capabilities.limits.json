@@ -1,0 +1,65 @@
+[
+  {
+    "systemId": "1",
+    "featureKey": "storagePartitions",
+    "displayName": "Storage Partitions",
+    "category": "Host Access",
+    "limit": 128.0,
+    "limitState": "Unknown",
+    "notes": "Controls host access segmentation and multi-tenant style partitioning. Runtime capabilities: storagePoolsType2 Limit is present, but source data does not expose current usage for threshold evaluation."
+  },
+  {
+    "systemId": "1",
+    "featureKey": "volumeCopy",
+    "displayName": "Volume Copy",
+    "category": "Data Services",
+    "limit": 511.0,
+    "limitState": "Unknown",
+    "notes": "Array-based full volume copy service. Runtime capabilities: volumeCopy Limit is present, but source data does not expose current usage for threshold evaluation."
+  },
+  {
+    "systemId": "1",
+    "featureKey": "remoteMirroring",
+    "displayName": "Remote Mirroring",
+    "category": "Data Protection",
+    "limit": 32.0,
+    "limitState": "Unknown",
+    "notes": "Covers synchronous or asynchronous replication style features when supported. Runtime capabilities: remoteMirroringType2, totalNumberOfArvmMirrorsPerArray Limit is present, but source data does not expose current usage for threshold evaluation."
+  },
+  {
+    "systemId": "1",
+    "featureKey": "solidStateDisk",
+    "displayName": "SSD Support",
+    "category": "Media Support",
+    "limit": 96.0,
+    "limitState": "Unknown",
+    "notes": "Captures whether SSD media is supported and, where available, associated platform limits. Runtime capabilities: ssdSupport, driveSlotLimit Limit is present, but source data does not expose current usage for threshold evaluation."
+  },
+  {
+    "systemId": "1",
+    "featureKey": "snapshotImages",
+    "displayName": "Snapshot Images",
+    "category": "Scale Limits",
+    "limit": 256.0,
+    "limitState": "Unknown",
+    "notes": "Aggregates point-in-time image and snapshot group scale limits. Runtime capabilities: totalNumberOfPitsPerArray Limit is present, but source data does not expose current usage for threshold evaluation."
+  },
+  {
+    "systemId": "1",
+    "featureKey": "thinVolumes",
+    "displayName": "Thin Volumes",
+    "category": "Scale Limits",
+    "limit": 512.0,
+    "limitState": "Unknown",
+    "notes": "Maximum supported thin volume count for the array. Runtime capabilities: totalNumberOfThinVolumesPerArray Limit is present, but source data does not expose current usage for threshold evaluation."
+  },
+  {
+    "systemId": "1",
+    "featureKey": "volumeScale",
+    "displayName": "Volume Scale",
+    "category": "Scale Limits",
+    "limit": 512.0,
+    "limitState": "Unknown",
+    "notes": "Platform scale limits for overall volumes and per-partition volume count. Limit is present, but source data does not expose current usage for threshold evaluation."
+  }
+]
