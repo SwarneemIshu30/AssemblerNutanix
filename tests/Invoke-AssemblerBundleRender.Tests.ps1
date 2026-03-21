@@ -99,6 +99,52 @@ Describe 'Invoke-AssemblerBundleRender orchestration' {
     }
 
 
+
+    It 'writes resolved Lenovo.DE mappings against discovered target roots' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $bundleRoot = Join-Path $repoRoot 'bundle/417f4663-0922-423b-92a9-34d4e33ecd0e'
+        $catalogPath = Join-Path $repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json'
+
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-bundle-render-resolved-mapping-test-" + [guid]::NewGuid().ToString())
+        $outputRoot = Join-Path $tempRoot 'out'
+
+        try {
+            $scriptPath = Join-Path $repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1'
+            $json = & $pwshPath -NoLogo -NoProfile -File $scriptPath -BundleRoot $bundleRoot -CatalogPath $catalogPath -OutputRoot $outputRoot -TechId 'Lenovo.DE'
+            if ($LASTEXITCODE -ne 0) {
+                throw "Expected exit code 0, got $LASTEXITCODE"
+            }
+
+            $report = $json | ConvertFrom-Json -AsHashtable
+            if ($report.status -ne 'OK') {
+                throw "Expected report.status OK, got '$($report.status)'"
+            }
+
+            $variant = @(@($report.runs)[0].variants)[0]
+            $resolvedMappingPath = [string]$variant.mappingPath
+            if (-not (Test-Path -LiteralPath $resolvedMappingPath -PathType Leaf)) {
+                throw "Expected resolved mapping path '$resolvedMappingPath' to exist"
+            }
+
+            $resolvedMapping = Get-Content -LiteralPath $resolvedMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            $expectedDataset = 'datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json'
+            $actualDataset = [string]$resolvedMapping.mappings[0].dataset
+            if ($actualDataset -ne $expectedDataset) {
+                throw "Expected resolved dataset '$expectedDataset', got '$actualDataset'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'resolves Lenovo.DE datasets from single-target-per-folder layout' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $bundleRoot = Join-Path $repoRoot 'bundle/417f4663-0922-423b-92a9-34d4e33ecd0e'
