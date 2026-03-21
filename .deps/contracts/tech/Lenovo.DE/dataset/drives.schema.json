@@ -1,0 +1,215 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/dataset/drives.schema.json",
+  "title": "Lenovo.DE Drives Dataset (v2)",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "lnv.collector.dataset.v1"
+    },
+    "collector": {
+      "type": "object",
+      "required": [
+        "vendor",
+        "name",
+        "version"
+      ],
+      "properties": {
+        "vendor": {
+          "const": "LNV.AsBuiltDoc"
+        },
+        "name": {
+          "const": "LNV.AsBuiltDoc.Lenovo.DE"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "source": {
+      "type": "object"
+    },
+    "dataset": {
+      "const": "drives"
+    },
+    "collected_at_utc": {
+      "type": "string"
+    },
+    "item_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "patternProperties": {
+          "^x-": {}
+        },
+        "required": [
+          "systemId",
+          "driveRef",
+          "status",
+          "rawCapacityBytes",
+          "usableCapacityBytes",
+          "trayRef",
+          "slot"
+        ],
+        "properties": {
+          "systemId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "driveRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "serialNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "worldWideName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "manufacturer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "productID": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "driveMediaType": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "e.g. hdd|ssd"
+          },
+          "phyDriveType": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "e.g. sas"
+          },
+          "interfaceDriveType": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "e.g. sas"
+          },
+          "status": {
+            "type": "string",
+            "minLength": 1
+          },
+          "pfa": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "pfaReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "offline": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "removed": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "hotSpare": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "rawCapacityBytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "usableCapacityBytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "firmwareVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "trayRef": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slot": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "driveTemperatureC": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "ssdWearLifePercent": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "currentVolumeGroupRef": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

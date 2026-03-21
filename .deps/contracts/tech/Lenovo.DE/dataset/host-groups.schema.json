@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tech/Lenovo.DE/dataset/host-groups.schema.json",
+  "title": "Lenovo.DE host-groups dataset item",
+  "description": "Normalized Lenovo.DE host-group identity plus collector-materialized membership summary. Membership detail is emitted directly on each row via derived arrays such as memberRefs and memberNames.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "id",
+    "systemId"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Canonical host-group identifier; primary key used by mapping joins."
+    },
+    "ref": {
+      "type": "string",
+      "description": "Source-native host-group reference. Keep for lineage; may match id."
+    },
+    "systemId": {
+      "type": "string",
+      "description": "Storage-system join key for per-system filtering and assembler partitioning."
+    },
+    "name": {
+      "type": "string"
+    },
+    "clusterRef": {
+      "type": "string",
+      "description": "Canonical Lenovo DE host-group membership key. Membership is derived primarily by joining hosts.clusterRef to host-groups.clusterRef or id."
+    },
+    "hostGroupRef": {
+      "type": "string",
+      "description": "Legacy/compatibility host-group reference retained for lineage and older payloads. Use only as a fallback when hosts.clusterRef is unavailable."
+    },
+    "memberRefs": {
+      "type": "array",
+      "description": "Derived summary of normalized host member identifiers. Collectors should build this primarily from hosts.clusterRef -> host-groups.clusterRef/id joins, using hosts.hostGroupRef only as a fallback for older payloads.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "memberNames": {
+      "type": "array",
+      "description": "Derived summary of normalized host member names. This is populated from the authoritative hosts.clusterRef -> host-groups.clusterRef/id relationship, with hostGroupRef retained only as a fallback for older payloads.",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

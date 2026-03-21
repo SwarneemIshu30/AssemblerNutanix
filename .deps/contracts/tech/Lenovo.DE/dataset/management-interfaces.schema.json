@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/dataset/management-interfaces.schema.json",
+  "title": "Lenovo.DE Management Interfaces Dataset (v2)",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "lnv.collector.dataset.v1"
+    },
+    "collector": {
+      "type": "object",
+      "required": [
+        "vendor",
+        "name",
+        "version"
+      ],
+      "properties": {
+        "vendor": {
+          "const": "LNV.AsBuiltDoc"
+        },
+        "name": {
+          "const": "LNV.AsBuiltDoc.Lenovo.DE"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "source": {
+      "type": "object"
+    },
+    "dataset": {
+      "const": "management-interfaces"
+    },
+    "collected_at_utc": {
+      "type": "string"
+    },
+    "item_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "patternProperties": {
+          "^x-": {}
+        },
+        "required": [
+          "systemId",
+          "controllerRef",
+          "controllerLabel",
+          "controllerSlot",
+          "portLabel",
+          "interfaceName",
+          "interfaceRef",
+          "linkStatus",
+          "macAddress",
+          "currentSpeed",
+          "ipv4Address",
+          "ipv4SubnetMask",
+          "ipv4GatewayAddress"
+        ],
+        "properties": {
+          "systemId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "controllerRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "controllerLabel": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Typically 'A' or 'B'."
+          },
+          "controllerSlot": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "portLabel": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Physical label (e.g. P1)."
+          },
+          "portSlot": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "interfaceName": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "OS/interface name (e.g. wan0)."
+          },
+          "interfaceRef": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SANtricity interfaceRef/id."
+          },
+          "linkStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "macAddress": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "currentSpeed": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ipv4Address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ipv4SubnetMask": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ipv4GatewayAddress": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional interface type if exposed by source."
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

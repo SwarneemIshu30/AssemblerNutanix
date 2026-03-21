@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/dataset/volumes.schema.json",
+  "title": "Lenovo.DE Volumes Dataset (v2)",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "lnv.collector.dataset.v1"
+    },
+    "collector": {
+      "type": "object",
+      "required": [
+        "vendor",
+        "name",
+        "version"
+      ],
+      "properties": {
+        "vendor": {
+          "const": "LNV.AsBuiltDoc"
+        },
+        "name": {
+          "const": "LNV.AsBuiltDoc.Lenovo.DE"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "source": {
+      "type": "object"
+    },
+    "dataset": {
+      "const": "volumes"
+    },
+    "collected_at_utc": {
+      "type": "string"
+    },
+    "item_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "patternProperties": {
+          "^x-": {}
+        },
+        "required": [
+          "systemId",
+          "name",
+          "sizeBytes",
+          "status"
+        ],
+        "properties": {
+          "systemId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sizeHuman": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "raidLevel": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "containerName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "containerRef": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "volumeRef": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "volumeGroupRef": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "diskPoolRef": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "segmentSize": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "wwn": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "worldWideName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "preferredControllerId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "currentControllerId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "readCacheEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "writeCacheEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "createdBy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdUtc": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

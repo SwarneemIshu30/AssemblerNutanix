@@ -1,0 +1,402 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/dataset/systems.schema.json",
+  "title": "Lenovo.DE Systems Dataset (v2)",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "lnv.collector.dataset.v1"
+    },
+    "collector": {
+      "type": "object",
+      "required": [
+        "vendor",
+        "name",
+        "version"
+      ],
+      "properties": {
+        "vendor": {
+          "const": "LNV.AsBuiltDoc"
+        },
+        "name": {
+          "const": "LNV.AsBuiltDoc.Lenovo.DE"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "source": {
+      "type": "object"
+    },
+    "dataset": {
+      "const": "systems"
+    },
+    "collected_at_utc": {
+      "type": "string"
+    },
+    "item_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "patternProperties": {
+          "^x-": {}
+        },
+        "required": [
+          "id",
+          "name",
+          "model",
+          "status",
+          "fwVersion",
+          "appVersion",
+          "bootVersion",
+          "nvsramVersion",
+          "chassisSerialNumber"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "minLength": 1
+          },
+          "fwVersion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "appVersion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "bootVersion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "nvsramVersion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "chassisSerialNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "modelName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "managementHost": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "wwn": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "passwordStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "passwordSet": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "certificateStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ip1": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ip2": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "managementPaths": {
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "controllers": {
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "driveCount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "trayCount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "traceEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "types": {
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "metaTags": {
+            "type": [
+              "object",
+              "array",
+              "null"
+            ]
+          },
+          "hotSpareSize": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "hotSpareCount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "hostSpareCountInStandby": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "hostSparesUsed": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "usedPoolSpace": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "freePoolSpace": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "unconfiguredSpace": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "usedPoolSpaceAsString": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "freePoolSpaceAsString": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hotSpareSizeAsString": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "unconfiguredSpaceAsStrings": {
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "driveTypes": {
+            "type": [
+              "string",
+              "array",
+              "null"
+            ]
+          },
+          "unconfiguredSpaceByDriveType": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "resourceProvisionedVolumesEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "bootTime": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "accessVolume": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mediaScanPeriod": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "driveChannelPortDisabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "recoveryModeEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "autoLoadBalancingEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "hostConnectivityReportingEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "remoteMirroringEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "fcRemoteMirroringState": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "asupEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "securityKeyEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "externalKeyEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "lastContacted": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "definedPartitionCount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "simplexModeEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "supportedManagementPorts": {
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "invalidSystemConfig": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

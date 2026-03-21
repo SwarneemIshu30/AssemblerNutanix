@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tech/Lenovo.DE/dataset/capabilities-normalized.schema.json",
+  "title": "Lenovo.DE capabilities-normalized dataset",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
+    "items"
+  ],
+  "properties": {
+    "schema_version": { "const": "lnv.collector.dataset.v1" },
+    "collector": { "type": "object" },
+    "source": { "type": "object" },
+    "dataset": {
+      "type": "object",
+      "required": ["key", "schema_path"],
+      "properties": {
+        "key": { "const": "capabilities-normalized" },
+        "schema_path": { "const": "tech/Lenovo.DE/dataset/capabilities-normalized.schema.json" }
+      },
+      "additionalProperties": true
+    },
+    "item_count": { "type": "integer", "minimum": 0 },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["systemId", "featureKey", "displayName", "category", "state", "entitlement"],
+        "properties": {
+          "systemId": { "type": "string", "minLength": 1 },
+          "featureKey": { "type": "string", "minLength": 1 },
+          "displayName": { "type": "string", "minLength": 1 },
+          "category": { "type": "string", "minLength": 1 },
+          "state": { "type": "string", "enum": ["Enabled", "Disabled", "NotAvailable"] },
+          "compliance": { "type": "string", "enum": ["Compliant", "NonCompliant", "Unknown"] },
+          "entitlement": { "type": "string", "enum": ["Bundled", "Licensed", "Limited", "Unsupported"] },
+          "limit": { "type": ["integer", "null"] },
+          "limitUsed": { "type": ["integer", "null"] },
+          "limitState": { "type": "string", "enum": ["WithinLimits", "Unknown", "NotApplicable"] },
+          "licenseType": { "type": "string", "enum": ["None", "Permanent", "Evaluation", "KeyRequired"] },
+          "includeInMainBody": { "type": "boolean" },
+          "includeInAppendix": { "type": "boolean" },
+          "sortOrder": { "type": "integer" },
+          "sourceFeatureIds": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "bundleName": { "type": ["string", "null"] },
+          "bundleSubmodelId": { "type": ["integer", "string", "null"] },
+          "notes": { "type": ["string", "null"] }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

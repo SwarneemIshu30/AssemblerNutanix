@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tech/Lenovo.DE/dataset/volume-mappings.schema.json",
+  "title": "Lenovo.DE volume-mappings dataset item",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["systemId", "volumeRef", "mappedToRef"],
+  "properties": {
+    "systemId": {
+      "type": "string",
+      "description": "Storage-system join key for per-system filtering and assembler partitioning."
+    },
+    "volumeRef": {
+      "type": "string",
+      "description": "Volume identifier from volumes dataset (id/volumeRef)."
+    },
+    "mappedToRef": {
+      "type": "string",
+      "description": "Join target reference to resolve against hosts.id and/or host-groups.id."
+    },
+    "mappedToType": {
+      "type": "string",
+      "description": "Target type normalized to host or hostGroup (cluster is normalized to hostGroup).",
+      "enum": ["host", "hostGroup", "cluster"]
+    },
+    "mappingRef": { "type": "string" },
+    "volumeId": { "type": "string" },
+    "volumeName": { "type": "string" },
+    "lun": { "type": ["integer", "string", "null"] }
+  }
+}

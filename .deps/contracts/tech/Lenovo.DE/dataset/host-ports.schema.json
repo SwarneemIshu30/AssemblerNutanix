@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/dataset/host-ports.schema.json",
+  "title": "Lenovo.DE host ports dataset schema (v2)",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "lnv.collector.dataset.v1"
+    },
+    "collector": {
+      "type": "object",
+      "required": [
+        "vendor",
+        "name",
+        "version"
+      ],
+      "properties": {
+        "vendor": {
+          "const": "LNV.AsBuiltDoc"
+        },
+        "name": {
+          "const": "LNV.AsBuiltDoc.Lenovo.DE"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "source": {
+      "type": "object"
+    },
+    "dataset": {
+      "const": "host-ports"
+    },
+    "collected_at_utc": {
+      "type": "string"
+    },
+    "item_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "patternProperties": {
+          "^x-": {}
+        },
+        "required": [
+          "systemId",
+          "transport",
+          "controllerRef",
+          "controllerLabel",
+          "controllerSlot",
+          "portLabel",
+          "interfaceRef",
+          "linkStatus"
+        ],
+        "properties": {
+          "systemId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "transport": {
+            "type": "string",
+            "enum": [
+              "iscsi",
+              "fc"
+            ]
+          },
+          "trayId": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "controllerLabel": {
+            "type": "string",
+            "minLength": 1
+          },
+          "controllerSlot": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "controllerRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "portLabel": {
+            "type": "string",
+            "minLength": 1
+          },
+          "channel": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "interfaceRef": {
+            "type": "string",
+            "minLength": 1
+          },
+          "channelPortRef": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "linkStatus": {
+            "type": "string",
+            "minLength": 1
+          },
+          "macAddress": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "maxSpeed": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "currentSpeed": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mtu": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "vlanEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "vlanId": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "ipv4Address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ipv4SubnetMask": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ipv4Gateway": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tcpPort": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "iqn": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

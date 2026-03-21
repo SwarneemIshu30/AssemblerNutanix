@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tech/Lenovo.DE/dataset/hosts.schema.json",
+  "title": "Lenovo.DE hosts dataset item",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["id", "systemId"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Canonical host identifier; primary key used by downstream joins."
+    },
+    "ref": {
+      "type": "string",
+      "description": "Source-native host reference. Keep for lineage; may match id."
+    },
+    "systemId": {
+      "type": "string",
+      "description": "Storage-system join key for per-system filtering and assembler partitioning."
+    },
+    "name": { "type": "string" },
+    "clusterRef": { "type": "string" },
+    "hostGroupRef": { "type": "string" }
+  }
+}

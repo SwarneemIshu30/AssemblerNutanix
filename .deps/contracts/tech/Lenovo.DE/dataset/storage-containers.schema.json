@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/dataset/storage-containers.schema.json",
+  "title": "Lenovo.DE Storage Containers Dataset (v2)",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "lnv.collector.dataset.v1"
+    },
+    "collector": {
+      "type": "object",
+      "required": [
+        "vendor",
+        "name",
+        "version"
+      ],
+      "properties": {
+        "vendor": {
+          "const": "LNV.AsBuiltDoc"
+        },
+        "name": {
+          "const": "LNV.AsBuiltDoc.Lenovo.DE"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "source": {
+      "type": "object"
+    },
+    "dataset": {
+      "const": "storage-containers"
+    },
+    "collected_at_utc": {
+      "type": "string"
+    },
+    "item_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "patternProperties": {
+          "^x-": {}
+        },
+        "required": [
+          "systemId",
+          "id",
+          "name",
+          "containerType",
+          "diskPool",
+          "totalBytes",
+          "usedBytes",
+          "freeBytes",
+          "state",
+          "status"
+        ],
+        "properties": {
+          "systemId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "containerType": {
+            "type": "string",
+            "enum": [
+              "VolumeGroup",
+              "DiskPool"
+            ]
+          },
+          "diskPool": {
+            "type": "boolean"
+          },
+          "raidLevel": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "driveMediaType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "drivePhysicalType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "totalBytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "usedBytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "freeBytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "securityType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "protectionType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "totalHuman": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "usedHuman": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "freeHuman": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "usedPct": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 100
+          },
+          "freePct": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 100
+          },
+          "containerRef": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

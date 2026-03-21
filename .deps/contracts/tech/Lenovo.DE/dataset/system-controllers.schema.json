@@ -1,24 +1,61 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/schemas/system-controllers.schema.v1.json",
-  "title": "Lenovo.DE system controllers dataset schema (v1)",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/dataset/system-controllers.schema.json",
+  "title": "Lenovo.DE system controllers dataset schema (v2)",
   "type": "object",
-  "additionalProperties": false,
   "required": [
-    "schemaVersion",
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
     "items"
   ],
   "properties": {
-    "schemaVersion": {
+    "schema_version": {
+      "const": "lnv.collector.dataset.v1"
+    },
+    "collector": {
+      "type": "object",
+      "required": [
+        "vendor",
+        "name",
+        "version"
+      ],
+      "properties": {
+        "vendor": {
+          "const": "LNV.AsBuiltDoc"
+        },
+        "name": {
+          "const": "LNV.AsBuiltDoc.Lenovo.DE"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "source": {
+      "type": "object"
+    },
+    "dataset": {
+      "const": "system-controllers"
+    },
+    "collected_at_utc": {
+      "type": "string"
+    },
+    "item_count": {
       "type": "integer",
-      "const": 1
+      "minimum": 0
     },
     "items": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "patternProperties": { "^x-": {} },
+        "patternProperties": {
+          "^x-": {}
+        },
         "required": [
           "systemId",
           "controllerRef",
@@ -60,7 +97,10 @@
             "minLength": 1
           },
           "bootTime": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Controller boot time in UTC, formatted as YYYY-MM-DDTHH:MM:SS (no fractional seconds)."
           },
           "serialNumber": {
@@ -68,7 +108,10 @@
             "minLength": 1
           },
           "manufacturerDate": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Controller manufacturing date formatted as YYYY-MM-DD."
           },
           "trayId": {
@@ -82,5 +125,6 @@
         }
       }
     }
-  }
+  },
+  "additionalProperties": true
 }

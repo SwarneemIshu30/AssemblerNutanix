@@ -1,136 +1,35 @@
-techId: Lenovo.DE
-schemaVersion: 1
-displayName: Lenovo ThinkSystem DE Series
-collector: LNV.AsBuiltDoc.Lenovo.DE
-bundleSchema: 1
-
+apiVersion: lnv.asbuiltdoc/v1
+kind: CollectorContractManifest
+metadata:
+  tech: Lenovo.DE
+  collector: LNV.AsBuiltDoc.Lenovo.DE
 spec:
+  entrypoint: Invoke-LnvAsBuiltDoc.Lenovo.DE
+  bundleSchemas:
+    manifest: lnv.bundle.manifest.v1
+    configUsed: lnv.bundle.config_used.v1
+    dataset: lnv.collector.dataset.v1
+  planValidation: plan_validation.yaml
+  datasetSchemaPath: dataset
+  datasetToSdtMapping: mapping.dataset-to-sdt.v1.yaml
   datasets:
-    - key: systems
-      file: systems.json
-    - key: system-controllers
-      file: system-controllers.json
-    - key: management-interfaces
-      file: management-interfaces.json
-    - key: transport
-      file: transport.json
-    - key: system-dns
-      file: system-dns.json
-    - key: system-time
-      file: system-time.json
-    - key: trays
-      file: trays.json
-    - key: host-ports
-      file: host-ports.json
-    - key: drives
-      file: drives.json
-    - key: storage-containers
-      file: storage-containers.json
-    - key: volumes
-      file: volumes.json
-    - key: system-asup
-      file: system-asup.json
-  artifacts:
-    mappings:
-      datasetToSdt: mapping.dataset-to-sdt.v1.yaml
-
-domains:
-  - name: System
-    dataset: systems.json
-    objects:
-      - key: System
-        sdtTag: LNV.Lenovo.DE.System.Summary
-        placement: Main
-        minInfoLevel: 1
-
-  - name: Controllers
-    dataset: system-controllers.json
-    objects:
-      - key: Controllers
-        sdtTag: LNV.Lenovo.DE.Controllers.Table
-        placement: Main
-        minInfoLevel: 1
-
-  - name: ManagementInterfaces
-    dataset: management-interfaces.json
-    objects:
-      - key: ManagementInterfaces
-        sdtTag: LNV.Lenovo.DE.Network.ManagementInterfaces.Table
-        placement: Main
-        minInfoLevel: 1
-
-  - name: Transport
-    dataset: transport.json
-    objects:
-      - key: ActiveTransport
-        sdtTag: LNV.Lenovo.DE.Network.Transport.Table
-        placement: Main
-        minInfoLevel: 1
-
-  - name: SystemDns
-    dataset: system-dns.json
-    objects:
-      - key: DNS
-        sdtTag: LNV.Lenovo.DE.Network.DNS.Table
-        placement: Main
-        minInfoLevel: 1
-
-  - name: SystemTime
-    dataset: system-time.json
-    objects:
-      - key: NTP
-        sdtTag: LNV.Lenovo.DE.Network.Time.Table
-        placement: Main
-        minInfoLevel: 1
-
-  - name: Trays
-    dataset: trays.json
-    objects:
-      - key: Trays
-        sdtTag: LNV.Lenovo.DE.Trays.Table
-        placement: Appendix
-        minInfoLevel: 2
-
-  - name: HostPorts
-    dataset: host-ports.json
-    objects:
-      - key: iSCSI
-        sdtTag: LNV.Lenovo.DE.HostPorts.iSCSI.Table
-        placement: Main
-        minInfoLevel: 2
-      - key: FibreChannel
-        sdtTag: LNV.Lenovo.DE.HostPorts.FC.Table
-        placement: Main
-        minInfoLevel: 2
-
-  - name: Drives
-    dataset: drives.json
-    objects:
-      - key: Drives
-        sdtTag: LNV.Lenovo.DE.Drives.Table
-        placement: Appendix
-        minInfoLevel: 2
-
-  - name: Containers
-    dataset: storage-containers.json
-    objects:
-      - key: VolumeGroups
-        sdtTag: LNV.Lenovo.DE.Containers.Table
-        placement: Main
-        minInfoLevel: 1
-
-  - name: Volumes
-    dataset: volumes.json
-    objects:
-      - key: Volumes
-        sdtTag: LNV.Lenovo.DE.Volumes.Table
-        placement: Main
-        minInfoLevel: 1
-
-  - name: ASUP
-    dataset: system-asup.json
-    objects:
-      - key: ASUP
-        sdtTag: LNV.Lenovo.DE.ASUP.Table
-        placement: Appendix
-        minInfoLevel: 1
+    - systems
+    - system-controllers
+    - management-interfaces
+    - transport
+    - system-dns
+    - system-time
+    - trays
+    - host-ports
+    - host-types
+    - hosts
+    - host-groups
+    - hosts-to-host-groups
+    - drives
+    - storage-containers
+    - volumes
+    - host-groups-to-volumes
+    - hosts-to-volumes
+    - volume-mappings
+    - system-asup
+    - capabilities-normalized

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tech/Lenovo.DE/dataset/host-groups-to-volumes.schema.json",
+  "title": "Lenovo.DE host-groups-to-volumes dataset",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
+    "items"
+  ],
+  "properties": {
+    "schema_version": { "const": "lnv.collector.dataset.v1" },
+    "collector": { "type": "object" },
+    "source": { "type": "object" },
+    "dataset": {
+      "type": "object",
+      "required": ["key", "schema_path"],
+      "properties": {
+        "key": { "const": "host-groups-to-volumes" },
+        "schema_path": { "const": "tech/Lenovo.DE/dataset/host-groups-to-volumes.schema.json" }
+      },
+      "additionalProperties": true
+    },
+    "item_count": { "type": "integer", "minimum": 0 },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "systemId",
+          "hostGroupRef",
+          "hostGroupName",
+          "volumeRef",
+          "volumeName",
+          "lun"
+        ],
+        "properties": {
+          "systemId": { "type": "string", "minLength": 1 },
+          "hostGroupId": { "type": ["string", "null"] },
+          "hostGroupRef": { "type": "string", "minLength": 1 },
+          "hostGroupName": { "type": "string", "minLength": 1 },
+          "volumeId": { "type": ["string", "null"] },
+          "volumeRef": { "type": "string", "minLength": 1 },
+          "volumeName": { "type": "string", "minLength": 1 },
+          "lun": { "type": ["integer", "string", "null"] },
+          "mappingRef": { "type": ["string", "null"] }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}
