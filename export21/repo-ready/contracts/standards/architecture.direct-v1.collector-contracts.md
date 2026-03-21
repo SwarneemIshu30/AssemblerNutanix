@@ -47,7 +47,7 @@ And:
 Collector-contract tech validation assumes contracts pack version `>=2.0.0 <3.0.0` via `contracts.snapshot.json`.
 
 ## 5) Migration behavior (Core compatibility path)
-Until all modules emit the envelope natively, Core may migrate legacy wrapper payloads (`{ schemaVersion, items }`) into the required envelope shape.
+Until all modules emit the envelope natively, Core may migrate legacy wrapper payloads (`{ schemaVersion, items }`) into the required envelope shape. Assemblers may also apply narrowly-scoped compatibility for legacy `run_summary.json` summary payloads while Lenovo.DE/Core are updated to emit native envelopes.
 This compatibility path is transitional and should be removed after all collectors emit native envelope output.
 
 ## 6) Machine-readable onboarding plan

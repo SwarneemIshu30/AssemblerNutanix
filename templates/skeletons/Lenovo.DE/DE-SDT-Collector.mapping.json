@@ -1452,6 +1452,126 @@
       "selectors": [
         "items"
       ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/host-ports.json",
+      "sdtTag": "DE_HOSTPORTS_ISCSI_TABLE_JSON",
+      "required": false,
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/host-ports.json",
+      "sdtTag": "DE_HOSTPORTS_FC_TABLE_JSON",
+      "required": false,
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/system-dns.json",
+      "sdtTag": "DE_DNS_TABLE_JSON",
+      "required": true,
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/system-time.json",
+      "sdtTag": "DE_TIME_TABLE_JSON",
+      "required": true,
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/hosts.json",
+      "sdtTag": "DE_HOSTS_TABLE_JSON",
+      "required": false,
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/host-groups.json",
+      "sdtTag": "DE_HOST_GROUPS_TABLE_JSON",
+      "required": false,
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/hosts-to-host-groups.json",
+      "sdtTag": "DE_HOSTS_TO_HOST_GROUPS_TABLE_JSON",
+      "required": false,
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/host-groups-to-volumes.json",
+      "sdtTag": "DE_HOST_GROUPS_TO_VOLUMES_TABLE_JSON",
+      "required": false,
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/hosts-to-volumes.json",
+      "sdtTag": "DE_HOSTS_TO_VOLUMES_TABLE_JSON",
+      "required": false,
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/volume-mappings.json",
+      "sdtTag": "DE_VOLUME_MAPPINGS_TABLE_JSON",
+      "required": false,
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/capabilities-normalized.json",
+      "sdtTag": "DE_CAPABILITIES_SUMMARY_TABLE_JSON",
+      "required": false,
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/capabilities-normalized.json",
+      "sdtTag": "DE_CAPABILITIES_KEY_FEATURES_TABLE_JSON",
+      "required": false,
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/capabilities-normalized.json",
+      "sdtTag": "DE_CAPABILITIES_LIMITS_TABLE_JSON",
+      "required": false,
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/management-interfaces.json",
+      "sdtTag": "DE_MANAGEMENT_INTERFACES_TABLE_JSON",
+      "required": true,
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/transport.json",
+      "sdtTag": "DE_TRANSPORT_TABLE_JSON",
+      "required": true,
+      "selectors": [
+        "items"
+      ]
     }
   ]
 }

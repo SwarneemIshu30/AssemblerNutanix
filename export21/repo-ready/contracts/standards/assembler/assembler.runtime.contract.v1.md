@@ -28,6 +28,11 @@ Each stage MUST emit stage diagnostics with UTC timestamps.
 - Warning: optional dataset absent, optional mapping unresolved, non-fatal format fallback
 - Skipped: mapping intentionally inapplicable for selected profile/scope
 
+## Compatibility policy
+- Assembler SHOULD prefer native `lnv.collector.dataset.v1` envelopes for every dataset input.
+- Assembler MAY apply a narrowly-scoped compatibility path for known legacy summary artifacts such as Lenovo.DE `run_summary.json` so required renders do not fail solely on envelope validation while collector/Core output is being corrected.
+- Any compatibility path MUST preserve existing mapped values, emit a warning in the render report, and remain limited to the named legacy artifact shape.
+
 ## Determinism requirements
 - Stable ordering for sections, tables, and rows
 - Stable null/empty rendering policy

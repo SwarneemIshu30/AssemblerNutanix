@@ -142,6 +142,62 @@ function Test-DatasetEnvelope {
     return @($errors.ToArray())
 }
 
+function Test-LegacySummaryCompatibilityDataset {
+    param(
+        [Parameter(Mandatory = $true)][hashtable]$Dataset,
+        [Parameter(Mandatory = $true)][string]$DatasetPath
+    )
+
+    if ([string]::IsNullOrWhiteSpace($DatasetPath)) { return $false }
+    if ([System.IO.Path]::GetFileName($DatasetPath) -ne 'run_summary.json') { return $false }
+    if ($Dataset.ContainsKey('schema_version') -or $Dataset.ContainsKey('items')) { return $false }
+
+    foreach ($requiredField in @('collectedUtc', 'mode', 'controller', 'port', 'systemCount')) {
+        if (-not $Dataset.ContainsKey($requiredField)) {
+            return $false
+        }
+    }
+
+    return $true
+}
+
+function Resolve-SelectorWithSummaryCompatibility {
+    param(
+        [Parameter(Mandatory = $true)][hashtable]$Dataset,
+        [Parameter(Mandatory = $true)][string[]]$Selectors,
+        [Parameter(Mandatory = $true)][string]$DatasetPath
+    )
+
+    $resolved = $Dataset
+    foreach ($selector in $Selectors) {
+        $resolved = Resolve-Selector -InputObject $resolved -Selector ([string]$selector)
+        if ($null -eq $resolved) {
+            $summaryItem = $null
+            if (
+                [System.IO.Path]::GetFileName($DatasetPath) -eq 'run_summary.json' -and
+                $Dataset.ContainsKey('items') -and
+                $Dataset.items -is [System.Collections.IList] -and
+                @($Dataset.items).Count -eq 1 -and
+                $Dataset.items[0] -is [hashtable] -and
+                -not [string]::IsNullOrWhiteSpace([string]$selector) -and
+                -not ([string]$selector).StartsWith('items.', [System.StringComparison]::Ordinal)
+            ) {
+                $summaryItem = $Dataset.items[0]
+            }
+
+            if ($null -ne $summaryItem) {
+                $resolved = Resolve-Selector -InputObject $summaryItem -Selector ([string]$selector)
+            }
+
+            if ($null -eq $resolved) {
+                return [ordered]@{ value = $null; selectorFailed = $true }
+            }
+        }
+    }
+
+    return [ordered]@{ value = $resolved; selectorFailed = $false }
+}
+
 function Convert-CellValueToString {
     param([Parameter(Mandatory = $false)]$Value)
 
@@ -233,6 +289,230 @@ function Convert-TableRowsForTag {
                         SerialNumber = $_.serialNumber
                     }
                 }
+            )
+        }
+        'DE_MANAGEMENT_INTERFACES_TABLE_JSON' {
+            return @(
+                $Rows | ForEach-Object {
+                    [pscustomobject][ordered]@{
+                        Controller = $_.controllerLabel
+                        Slot = $_.controllerSlot
+                        Port = $_.portLabel
+                        Interface = $_.interfaceName
+                        LinkStatus = $_.linkStatus
+                        Address = $_.ipv4Address
+                        Mask = $_.ipv4SubnetMask
+                    }
+                }
+            )
+        }
+        'DE_TRANSPORT_TABLE_JSON' {
+            return @(
+                $Rows | ForEach-Object {
+                    [pscustomobject][ordered]@{
+                        SystemId = $_.systemId
+                        ActiveTransport = $_.activeTransport
+                        IscsiIqn = $_.iscsiIqn
+                    }
+                }
+            )
+        }
+        'DE_HOSTPORTS_ISCSI_TABLE_JSON' {
+            return @(
+                $Rows |
+                    Where-Object { [string]$_.transport -eq 'iscsi' } |
+                    ForEach-Object {
+                        [pscustomobject][ordered]@{
+                            Controller = $_.controllerLabel
+                            Slot = $_.controllerSlot
+                            Port = $_.portLabel
+                            Channel = $_.channel
+                            LinkStatus = $_.linkStatus
+                            Address = $_.ipv4Address
+                            Mask = $_.ipv4SubnetMask
+                            Gateway = $_.ipv4Gateway
+                            TcpPort = $_.tcpPort
+                            IQN = $_.iqn
+                        }
+                    }
+            )
+        }
+        'DE_HOSTPORTS_FC_TABLE_JSON' {
+            return @(
+                $Rows |
+                    Where-Object { [string]$_.transport -eq 'fc' } |
+                    ForEach-Object {
+                        [pscustomobject][ordered]@{
+                            Controller = $_.controllerLabel
+                            Slot = $_.controllerSlot
+                            Port = $_.portLabel
+                            Channel = $_.channel
+                            LinkStatus = $_.linkStatus
+                            CurrentSpeed = $_.currentSpeed
+                            MaxSpeed = $_.maxSpeed
+                            PortWWN = $_.portWwn
+                            NodeWWN = $_.nodeWwn
+                        }
+                    }
+            )
+        }
+        'DE_DNS_TABLE_JSON' {
+            return @(
+                $Rows | ForEach-Object {
+                    [pscustomobject][ordered]@{
+                        SystemId = $_.systemId
+                        Acquisition = $_.dnsAcquisitionType
+                        DnsServers = ($_.dnsServers -join ', ')
+                        DhcpServers = ($_.dhcpAcquiredServers -join ', ')
+                    }
+                }
+            )
+        }
+        'DE_TIME_TABLE_JSON' {
+            return @(
+                $Rows | ForEach-Object {
+                    [pscustomobject][ordered]@{
+                        SystemId = $_.systemId
+                        Acquisition = $_.ntpAcquisitionType
+                        NtpServers = ($_.ntpServers -join ', ')
+                        DhcpServers = ($_.dhcpAcquiredServers -join ', ')
+                        DefaultRouter = $_.ipv4DefaultRouter
+                    }
+                }
+            )
+        }
+        'DE_HOSTS_TABLE_JSON' {
+            return @(
+                $Rows | ForEach-Object {
+                    [pscustomobject][ordered]@{
+                        Name = $_.name
+                        HostId = $_.id
+                        HostType = $_.hostTypeName
+                        ClusterRef = $_.clusterRef
+                    }
+                }
+            )
+        }
+        'DE_HOST_GROUPS_TABLE_JSON' {
+            return @(
+                $Rows | ForEach-Object {
+                    [pscustomobject][ordered]@{
+                        Name = $_.name
+                        GroupId = $_.id
+                        Members = ($_.memberNames -join ', ')
+                    }
+                }
+            )
+        }
+        'DE_HOSTS_TO_HOST_GROUPS_TABLE_JSON' {
+            return @(
+                $Rows | ForEach-Object {
+                    [pscustomobject][ordered]@{
+                        Host = $_.hostName
+                        HostGroup = $_.hostGroupName
+                        HostType = $_.hostType
+                        KeyType = $_.hostGroupKeyType
+                    }
+                }
+            )
+        }
+        'DE_HOST_GROUPS_TO_VOLUMES_TABLE_JSON' {
+            return @(
+                $Rows | ForEach-Object {
+                    [pscustomobject][ordered]@{
+                        HostGroup = $_.hostGroupName
+                        Volume = $_.volumeName
+                        Lun = $_.lun
+                        MappingRef = $_.mappingRef
+                    }
+                }
+            )
+        }
+        'DE_HOSTS_TO_VOLUMES_TABLE_JSON' {
+            return @(
+                $Rows | ForEach-Object {
+                    [pscustomobject][ordered]@{
+                        Host = $_.hostName
+                        Volume = $_.volumeName
+                        Lun = $_.lun
+                        MappingRef = $_.mappingRef
+                    }
+                }
+            )
+        }
+        'DE_VOLUME_MAPPINGS_TABLE_JSON' {
+            return @(
+                $Rows | ForEach-Object {
+                    [pscustomobject][ordered]@{
+                        Volume = $_.volumeName
+                        Lun = $_.lun
+                        TargetType = $_.mappedToType
+                        TargetRef = $_.mappedToRef
+                        MappingRef = $_.mappingRef
+                    }
+                }
+            )
+        }
+        'DE_SYSTEM_ASUP_TABLE_JSON' {
+            return @(
+                $Rows | ForEach-Object {
+                    [pscustomobject][ordered]@{
+                        AsupEnabled = $_.asupEnabled
+                        OnDemandEnabled = $_.onDemandEnabled
+                        RemoteDiags = $_.remoteDiagsEnabled
+                        DeliveryMethod = $_.deliveryMethod
+                        RoutingType = $_.routingType
+                        MaxHttps = Format-SizeHuman -Bytes $_.maxSizeLimitHttps
+                        MaxSmtp = Format-SizeHuman -Bytes $_.maxSizeLimitSmtp
+                    }
+                }
+            )
+        }
+        'DE_CAPABILITIES_SUMMARY_TABLE_JSON' {
+            return @(
+                $Rows |
+                    Where-Object { $_.includeInMainBody -eq $true } |
+                    Sort-Object -Property sortOrder |
+                    ForEach-Object {
+                        [pscustomobject][ordered]@{
+                            Feature = $_.displayName
+                            Category = $_.category
+                            State = $_.state
+                            Compliance = $_.compliance
+                            Entitlement = $_.entitlement
+                        }
+                    }
+            )
+        }
+        'DE_CAPABILITIES_KEY_FEATURES_TABLE_JSON' {
+            return @(
+                $Rows |
+                    Where-Object { $_.includeInMainBody -eq $true } |
+                    Sort-Object -Property sortOrder |
+                    ForEach-Object {
+                        [pscustomobject][ordered]@{
+                            Feature = $_.displayName
+                            State = $_.state
+                            License = $_.licenseType
+                            Notes = $_.notes
+                        }
+                    }
+            )
+        }
+        'DE_CAPABILITIES_LIMITS_TABLE_JSON' {
+            return @(
+                $Rows |
+                    Where-Object { $_.limit -ne $null -or $_.limitUsed -ne $null -or $_.includeInAppendix -eq $true } |
+                    Sort-Object -Property sortOrder |
+                    ForEach-Object {
+                        [pscustomobject][ordered]@{
+                            Feature = $_.displayName
+                            Limit = $_.limit
+                            Used = $_.limitUsed
+                            LimitState = $_.limitState
+                            Entitlement = $_.entitlement
+                        }
+                    }
             )
         }
         default {
@@ -438,26 +718,30 @@ try {
         $dataset = Read-JsonFile -Path $datasetPath
         $envelopeErrors = @(Test-DatasetEnvelope -Dataset $dataset -DatasetPath $datasetPath)
         if (@($envelopeErrors).Count -gt 0) {
-            $severity = if ($entry.required) { 'ERROR' } else { 'WARN' }
-            foreach ($envelopeError in $envelopeErrors) {
-                $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-DATASET-ENVELOPE'; severity = $severity; message = "Dataset '$($entry.dataset)' failed envelope validation for tag '$tag': $envelopeError"; path = $datasetPath })
+            if (Test-LegacySummaryCompatibilityDataset -Dataset $dataset -DatasetPath $datasetPath) {
+                $issues.Add([ordered]@{
+                    code = 'ASB-ASM-SDT-DATASET-COMPAT'
+                    severity = 'WARN'
+                    message = "Dataset '$($entry.dataset)' uses legacy run_summary.json compatibility for tag '$tag'; update the collector/Core output to emit a full lnv.collector.dataset.v1 envelope."
+                    path = $datasetPath
+                })
             }
-            if ($severity -eq 'ERROR') { $status = 'ERROR' }
-            continue
+            else {
+                $severity = if ($entry.required) { 'ERROR' } else { 'WARN' }
+                foreach ($envelopeError in $envelopeErrors) {
+                    $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-DATASET-ENVELOPE'; severity = $severity; message = "Dataset '$($entry.dataset)' failed envelope validation for tag '$tag': $envelopeError"; path = $datasetPath })
+                }
+                if ($severity -eq 'ERROR') { $status = 'ERROR' }
+                continue
+            }
         }
 
         $resolved = $null
         $selectors = @($entry.selectors)
         if (@($selectors).Count -gt 0) {
-            $resolved = $dataset
-            $selectorFailed = $false
-            foreach ($selector in $selectors) {
-                $resolved = Resolve-Selector -InputObject $resolved -Selector ([string]$selector)
-                if ($null -eq $resolved) {
-                    $selectorFailed = $true
-                    break
-                }
-            }
+            $selectorResult = Resolve-SelectorWithSummaryCompatibility -Dataset $dataset -Selectors @($selectors | ForEach-Object { [string]$_ }) -DatasetPath $datasetPath
+            $resolved = $selectorResult.value
+            $selectorFailed = [bool]$selectorResult.selectorFailed
 
             if ($selectorFailed) {
                 $selectorChain = ($selectors | ForEach-Object { [string]$_ }) -join ' -> '
