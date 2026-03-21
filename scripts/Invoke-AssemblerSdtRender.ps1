@@ -142,6 +142,62 @@ function Test-DatasetEnvelope {
     return @($errors.ToArray())
 }
 
+function Test-LegacySummaryCompatibilityDataset {
+    param(
+        [Parameter(Mandatory = $true)][hashtable]$Dataset,
+        [Parameter(Mandatory = $true)][string]$DatasetPath
+    )
+
+    if ([string]::IsNullOrWhiteSpace($DatasetPath)) { return $false }
+    if ([System.IO.Path]::GetFileName($DatasetPath) -ne 'run_summary.json') { return $false }
+    if ($Dataset.ContainsKey('schema_version') -or $Dataset.ContainsKey('items')) { return $false }
+
+    foreach ($requiredField in @('collectedUtc', 'mode', 'controller', 'port', 'systemCount')) {
+        if (-not $Dataset.ContainsKey($requiredField)) {
+            return $false
+        }
+    }
+
+    return $true
+}
+
+function Resolve-SelectorWithSummaryCompatibility {
+    param(
+        [Parameter(Mandatory = $true)][hashtable]$Dataset,
+        [Parameter(Mandatory = $true)][string[]]$Selectors,
+        [Parameter(Mandatory = $true)][string]$DatasetPath
+    )
+
+    $resolved = $Dataset
+    foreach ($selector in $Selectors) {
+        $resolved = Resolve-Selector -InputObject $resolved -Selector ([string]$selector)
+        if ($null -eq $resolved) {
+            $summaryItem = $null
+            if (
+                [System.IO.Path]::GetFileName($DatasetPath) -eq 'run_summary.json' -and
+                $Dataset.ContainsKey('items') -and
+                $Dataset.items -is [System.Collections.IList] -and
+                @($Dataset.items).Count -eq 1 -and
+                $Dataset.items[0] -is [hashtable] -and
+                -not [string]::IsNullOrWhiteSpace([string]$selector) -and
+                -not ([string]$selector).StartsWith('items.', [System.StringComparison]::Ordinal)
+            ) {
+                $summaryItem = $Dataset.items[0]
+            }
+
+            if ($null -ne $summaryItem) {
+                $resolved = Resolve-Selector -InputObject $summaryItem -Selector ([string]$selector)
+            }
+
+            if ($null -eq $resolved) {
+                return [ordered]@{ value = $null; selectorFailed = $true }
+            }
+        }
+    }
+
+    return [ordered]@{ value = $resolved; selectorFailed = $false }
+}
+
 function Convert-CellValueToString {
     param([Parameter(Mandatory = $false)]$Value)
 
@@ -169,76 +225,254 @@ function Format-SizeHuman {
     return ('{0:N2} {1}' -f $value, $units[$idx])
 }
 
+function Get-TableProjectionDefinitions {
+    return @{
+        DE_DRIVES_TABLE_JSON = @{
+            columns = [ordered]@{
+                Slot = 'slot'
+                'Media Type' = 'driveMediaType'
+                Raw = { param($row) Format-SizeHuman -Bytes $row.rawCapacityBytes }
+                Usable = { param($row) Format-SizeHuman -Bytes $row.usableCapacityBytes }
+                Firmware = 'firmwareVersion'
+                Status = 'status'
+                SerialNumber = 'serialNumber'
+            }
+        }
+        DE_STORAGE_CONTAINERS_TABLE_JSON = @{
+            columns = [ordered]@{
+                Name = 'name'
+                ContainerType = 'containerType'
+                RaidLevel = 'raidLevel'
+                DriveMediaType = 'driveMediaType'
+                Total = { param($row) Format-SizeHuman -Bytes $row.totalBytes }
+                Used = { param($row) Format-SizeHuman -Bytes $row.usedBytes }
+                Free = { param($row) Format-SizeHuman -Bytes $row.freeBytes }
+                State = 'state'
+                Status = 'status'
+            }
+        }
+        DE_VOLUMES_TABLE_JSON = @{
+            columns = [ordered]@{
+                Name = 'name'
+                Size = { param($row) Format-SizeHuman -Bytes $row.sizeBytes }
+                Status = 'status'
+                RaidLevel = 'raidLevel'
+                Container = 'containerName'
+            }
+        }
+        DE_CONTROLLERS_TABLE_JSON = @{
+            columns = [ordered]@{
+                Controller = 'controllerLabel'
+                Slot = 'controllerSlot'
+                Status = 'status'
+                AppVersion = 'appVersion'
+                BootVersion = 'bootVersion'
+                SerialNumber = 'serialNumber'
+            }
+        }
+        DE_MANAGEMENT_INTERFACES_TABLE_JSON = @{
+            columns = [ordered]@{
+                Controller = 'controllerLabel'
+                Slot = 'controllerSlot'
+                Port = 'portLabel'
+                Interface = 'interfaceName'
+                LinkStatus = 'linkStatus'
+                Address = 'ipv4Address'
+                Mask = 'ipv4SubnetMask'
+            }
+        }
+        DE_TRANSPORT_TABLE_JSON = @{
+            columns = [ordered]@{
+                SystemId = 'systemId'
+                ActiveTransport = 'activeTransport'
+                IscsiIqn = 'iscsiIqn'
+            }
+        }
+        DE_HOSTPORTS_ISCSI_TABLE_JSON = @{
+            filter = { [string]$_.transport -eq 'iscsi' }
+            columns = [ordered]@{
+                Controller = 'controllerLabel'
+                Slot = 'controllerSlot'
+                Port = 'portLabel'
+                Channel = 'channel'
+                LinkStatus = 'linkStatus'
+                Address = 'ipv4Address'
+                Mask = 'ipv4SubnetMask'
+                Gateway = 'ipv4Gateway'
+                TcpPort = 'tcpPort'
+                IQN = 'iqn'
+            }
+        }
+        DE_HOSTPORTS_FC_TABLE_JSON = @{
+            filter = { [string]$_.transport -eq 'fc' }
+            columns = [ordered]@{
+                Controller = 'controllerLabel'
+                Slot = 'controllerSlot'
+                Port = 'portLabel'
+                Channel = 'channel'
+                LinkStatus = 'linkStatus'
+                CurrentSpeed = 'currentSpeed'
+                MaxSpeed = 'maxSpeed'
+                PortWWN = 'portWwn'
+                NodeWWN = 'nodeWwn'
+            }
+        }
+        DE_DNS_TABLE_JSON = @{
+            columns = [ordered]@{
+                SystemId = 'systemId'
+                Acquisition = 'dnsAcquisitionType'
+                DnsServers = { param($row) ($row.dnsServers -join ', ') }
+                DhcpServers = { param($row) ($row.dhcpAcquiredServers -join ', ') }
+            }
+        }
+        DE_TIME_TABLE_JSON = @{
+            columns = [ordered]@{
+                SystemId = 'systemId'
+                Acquisition = 'ntpAcquisitionType'
+                NtpServers = { param($row) ($row.ntpServers -join ', ') }
+                DhcpServers = { param($row) ($row.dhcpAcquiredServers -join ', ') }
+                DefaultRouter = 'ipv4DefaultRouter'
+            }
+        }
+        DE_HOSTS_TABLE_JSON = @{
+            columns = [ordered]@{
+                Name = 'name'
+                HostId = 'id'
+                HostType = 'hostTypeName'
+                ClusterRef = 'clusterRef'
+            }
+        }
+        DE_HOST_GROUPS_TABLE_JSON = @{
+            columns = [ordered]@{
+                Name = 'name'
+                GroupId = 'id'
+                Members = { param($row) ($row.memberNames -join ', ') }
+            }
+        }
+        DE_HOSTS_TO_HOST_GROUPS_TABLE_JSON = @{
+            columns = [ordered]@{
+                Host = 'hostName'
+                HostGroup = 'hostGroupName'
+                HostType = 'hostType'
+                KeyType = 'hostGroupKeyType'
+            }
+        }
+        DE_HOST_GROUPS_TO_VOLUMES_TABLE_JSON = @{
+            columns = [ordered]@{
+                HostGroup = 'hostGroupName'
+                Volume = 'volumeName'
+                Lun = 'lun'
+                MappingRef = 'mappingRef'
+            }
+        }
+        DE_HOSTS_TO_VOLUMES_TABLE_JSON = @{
+            columns = [ordered]@{
+                Host = 'hostName'
+                Volume = 'volumeName'
+                Lun = 'lun'
+                MappingRef = 'mappingRef'
+            }
+        }
+        DE_VOLUME_MAPPINGS_TABLE_JSON = @{
+            columns = [ordered]@{
+                Volume = 'volumeName'
+                Lun = 'lun'
+                TargetType = 'mappedToType'
+                TargetRef = 'mappedToRef'
+                MappingRef = 'mappingRef'
+            }
+        }
+        DE_SYSTEM_ASUP_TABLE_JSON = @{
+            columns = [ordered]@{
+                AsupEnabled = 'asupEnabled'
+                OnDemandEnabled = 'onDemandEnabled'
+                RemoteDiags = 'remoteDiagsEnabled'
+                DeliveryMethod = 'deliveryMethod'
+                RoutingType = 'routingType'
+                MaxHttps = { param($row) Format-SizeHuman -Bytes $row.maxSizeLimitHttps }
+                MaxSmtp = { param($row) Format-SizeHuman -Bytes $row.maxSizeLimitSmtp }
+            }
+        }
+        DE_CAPABILITIES_SUMMARY_TABLE_JSON = @{
+            filter = { $_.includeInMainBody -eq $true }
+            sortBy = 'sortOrder'
+            columns = [ordered]@{
+                Feature = 'displayName'
+                Category = 'category'
+                State = 'state'
+                Compliance = 'compliance'
+                Entitlement = 'entitlement'
+            }
+        }
+        DE_CAPABILITIES_KEY_FEATURES_TABLE_JSON = @{
+            filter = { $_.includeInMainBody -eq $true }
+            sortBy = 'sortOrder'
+            columns = [ordered]@{
+                Feature = 'displayName'
+                State = 'state'
+                License = 'licenseType'
+                Notes = 'notes'
+            }
+        }
+        DE_CAPABILITIES_LIMITS_TABLE_JSON = @{
+            filter = { $_.limit -ne $null -or $_.limitUsed -ne $null -or $_.includeInAppendix -eq $true }
+            sortBy = 'sortOrder'
+            columns = [ordered]@{
+                Feature = 'displayName'
+                Limit = 'limit'
+                Used = 'limitUsed'
+                LimitState = 'limitState'
+                Entitlement = 'entitlement'
+            }
+        }
+    }
+}
+
+function Invoke-TableProjection {
+    param(
+        [Parameter(Mandatory = $true)][object[]]$Rows,
+        [Parameter(Mandatory = $true)][hashtable]$Definition
+    )
+
+    $projectedRows = @($Rows)
+    if ($Definition.ContainsKey('filter')) {
+        $projectedRows = @($projectedRows | Where-Object -FilterScript $Definition.filter)
+    }
+    if ($Definition.ContainsKey('sortBy')) {
+        $projectedRows = @($projectedRows | Sort-Object -Property $Definition.sortBy)
+    }
+
+    return @(
+        $projectedRows | ForEach-Object {
+            $row = $_
+            $projected = [ordered]@{}
+            foreach ($columnName in $Definition.columns.Keys) {
+                $resolver = $Definition.columns[$columnName]
+                $value = if ($resolver -is [scriptblock]) {
+                    & $resolver $row
+                }
+                else {
+                    $row.$resolver
+                }
+                $projected[$columnName] = Convert-CellValueToString -Value $value
+            }
+            [pscustomobject]$projected
+        }
+    )
+}
+
 function Convert-TableRowsForTag {
     param(
         [Parameter(Mandatory = $true)][string]$Tag,
         [Parameter(Mandatory = $true)][object[]]$Rows
     )
 
-    switch ($Tag) {
-        'DE_DRIVES_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        Slot = $_.slot
-                        'Media Type' = $_.driveMediaType
-                        Raw = Format-SizeHuman -Bytes $_.rawCapacityBytes
-                        Usable = Format-SizeHuman -Bytes $_.usableCapacityBytes
-                        Firmware = $_.firmwareVersion
-                        Status = $_.status
-                        SerialNumber = $_.serialNumber
-                    }
-                }
-            )
-        }
-        'DE_STORAGE_CONTAINERS_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        Name = $_.name
-                        ContainerType = $_.containerType
-                        RaidLevel = $_.raidLevel
-                        DriveMediaType = $_.driveMediaType
-                        Total = Format-SizeHuman -Bytes $_.totalBytes
-                        Used = Format-SizeHuman -Bytes $_.usedBytes
-                        Free = Format-SizeHuman -Bytes $_.freeBytes
-                        State = $_.state
-                        Status = $_.status
-                    }
-                }
-            )
-        }
-        'DE_VOLUMES_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        Name = $_.name
-                        Size = Format-SizeHuman -Bytes $_.sizeBytes
-                        Status = $_.status
-                        RaidLevel = $_.raidLevel
-                        Container = $_.containerName
-                    }
-                }
-            )
-        }
-        'DE_CONTROLLERS_TABLE_JSON' {
-            return @(
-                $Rows | ForEach-Object {
-                    [pscustomobject][ordered]@{
-                        Controller = $_.controllerLabel
-                        Slot = $_.controllerSlot
-                        Status = $_.status
-                        AppVersion = $_.appVersion
-                        BootVersion = $_.bootVersion
-                        SerialNumber = $_.serialNumber
-                    }
-                }
-            )
-        }
-        default {
-            return $Rows
-        }
+    $projectionDefinitions = Get-TableProjectionDefinitions
+    if ($projectionDefinitions.ContainsKey($Tag)) {
+        return @(Invoke-TableProjection -Rows $Rows -Definition $projectionDefinitions[$Tag])
     }
+
+    return $Rows
 }
 
 function Get-DisplayColumnsForTable {
@@ -438,26 +672,30 @@ try {
         $dataset = Read-JsonFile -Path $datasetPath
         $envelopeErrors = @(Test-DatasetEnvelope -Dataset $dataset -DatasetPath $datasetPath)
         if (@($envelopeErrors).Count -gt 0) {
-            $severity = if ($entry.required) { 'ERROR' } else { 'WARN' }
-            foreach ($envelopeError in $envelopeErrors) {
-                $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-DATASET-ENVELOPE'; severity = $severity; message = "Dataset '$($entry.dataset)' failed envelope validation for tag '$tag': $envelopeError"; path = $datasetPath })
+            if (Test-LegacySummaryCompatibilityDataset -Dataset $dataset -DatasetPath $datasetPath) {
+                $issues.Add([ordered]@{
+                    code = 'ASB-ASM-SDT-DATASET-COMPAT'
+                    severity = 'WARN'
+                    message = "Dataset '$($entry.dataset)' uses legacy run_summary.json compatibility for tag '$tag'; update the collector/Core output to emit a full lnv.collector.dataset.v1 envelope."
+                    path = $datasetPath
+                })
             }
-            if ($severity -eq 'ERROR') { $status = 'ERROR' }
-            continue
+            else {
+                $severity = if ($entry.required) { 'ERROR' } else { 'WARN' }
+                foreach ($envelopeError in $envelopeErrors) {
+                    $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-DATASET-ENVELOPE'; severity = $severity; message = "Dataset '$($entry.dataset)' failed envelope validation for tag '$tag': $envelopeError"; path = $datasetPath })
+                }
+                if ($severity -eq 'ERROR') { $status = 'ERROR' }
+                continue
+            }
         }
 
         $resolved = $null
         $selectors = @($entry.selectors)
         if (@($selectors).Count -gt 0) {
-            $resolved = $dataset
-            $selectorFailed = $false
-            foreach ($selector in $selectors) {
-                $resolved = Resolve-Selector -InputObject $resolved -Selector ([string]$selector)
-                if ($null -eq $resolved) {
-                    $selectorFailed = $true
-                    break
-                }
-            }
+            $selectorResult = Resolve-SelectorWithSummaryCompatibility -Dataset $dataset -Selectors @($selectors | ForEach-Object { [string]$_ }) -DatasetPath $datasetPath
+            $resolved = $selectorResult.value
+            $selectorFailed = [bool]$selectorResult.selectorFailed
 
             if ($selectorFailed) {
                 $selectorChain = ($selectors | ForEach-Object { [string]$_ }) -join ' -> '
