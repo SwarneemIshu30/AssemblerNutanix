@@ -368,6 +368,130 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
+
+    It 'renders an empty string when FC host-port projection filters out all rows' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-empty-fc-hostports-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template "FC=<<SDT:DE_HOSTPORTS_FC_TABLE_JSON>>" -DatasetRelativePath 'datasets/host-ports.json' -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'host-ports'
+                item_count = 1
+                items = @(
+                    @{
+                        controllerLabel = 'A'
+                        controllerSlot = '1'
+                        portLabel = '1'
+                        channel = '1'
+                        linkStatus = 'up'
+                        transport = 'iscsi'
+                        ipv4Address = '192.0.2.10'
+                    }
+                )
+            } -Mappings @(
+                @{
+                    dataset = 'datasets/host-ports.json'
+                    sdtTag = 'DE_HOSTPORTS_FC_TABLE_JSON'
+                    required = $true
+                    selectors = @('items')
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode" }
+
+            $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
+            if ($rendered -ne 'FC=') {
+                throw "Expected empty FC table rendering after projection filter removes all rows, got '$rendered'"
+            }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            if ($report.status -ne 'OK') {
+                throw "Expected report.status OK, got '$($report.status)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'renders an empty string when capabilities projection filters out all rows' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-empty-capabilities-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template "Caps=<<SDT:DE_CAPABILITIES_SUMMARY_TABLE_JSON>>" -DatasetRelativePath 'datasets/capabilities-normalized.json' -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'capabilities-normalized'
+                item_count = 1
+                items = @(
+                    @{
+                        displayName = 'Hidden Feature'
+                        category = 'Testing'
+                        state = 'Disabled'
+                        compliance = 'Unknown'
+                        entitlement = 'None'
+                        includeInMainBody = $false
+                        includeInAppendix = $false
+                        sortOrder = 10
+                    }
+                )
+            } -Mappings @(
+                @{
+                    dataset = 'datasets/capabilities-normalized.json'
+                    sdtTag = 'DE_CAPABILITIES_SUMMARY_TABLE_JSON'
+                    required = $true
+                    selectors = @('items')
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode" }
+
+            $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
+            if ($rendered -ne 'Caps=') {
+                throw "Expected empty capabilities table rendering after projection filter removes all rows, got '$rendered'"
+            }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            if ($report.status -ne 'OK') {
+                throw "Expected report.status OK, got '$($report.status)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'keeps Lenovo.DE collector skeleton aligned with the current contract table set' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractMappingPath = Join-Path $repoRoot '.deps/contracts/tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml'
