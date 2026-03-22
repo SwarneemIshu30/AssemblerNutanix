@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "solutionId": "lenovo-de-real-target",
+  "description": "Real-target plan for Lenovo.DE Direct-v1 collection",
+  "createdBy": "Levin Forrest",
+  "contracts": {
+    "version": "2.0.4"
+  },
+  "targets": [
+    {
+      "kind": "Lenovo.DE",
+      "key": "de-prod-01",
+      "displayName": "Lenovo DE Production Array",
+      "endpoints": {
+        "mgmt": "10.240.59.179"
+      },
+      "authRef": "de-prod-admin",
+      "params": {
+        "port": 8443,
+        "apiBasePath": "/devmgr",
+        "skipTlsVerify": true,
+        "timeoutSec": 60
+      },
+      "tags": {
+        "env": "prod",
+        "site": "dc1"
+      }
+    }
+  ],
+  "collectors": [
+    {
+      "techId": "Lenovo.DE",
+      "module": "LNV.AsBuiltDoc.Lenovo.DE",
+      "entryPoint": "Invoke-LnvAsBuiltDoc.Lenovo.DE",
+      "targetKeys": [
+        "de-prod-01"
+      ],
+      "params": {
+        "profileSchema": false
+      }
+    }
+  ],
+  "auth": {
+    "de-prod-admin": {
+      "username": "admin",
+      "password": "88h@#$zdn-1D3b555s0@"
+    }
+  }
+}

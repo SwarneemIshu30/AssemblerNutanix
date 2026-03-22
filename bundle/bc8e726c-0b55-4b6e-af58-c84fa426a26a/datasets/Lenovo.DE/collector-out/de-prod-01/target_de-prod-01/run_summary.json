@@ -1,0 +1,48 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.DE",
+    "module": "LNV.AsBuiltDoc.Lenovo.DE",
+    "entry_point": "Invoke-LnvAsBuiltDoc.Lenovo.DE"
+  },
+  "source": {
+    "bundle_id": "target_de-prod-01",
+    "bundle_root": "C:\\Github\\LNV.AsBuiltDoc.Core\\out\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01",
+    "file": "run_summary.json"
+  },
+  "dataset": {
+    "key": "run-summary",
+    "schema_path": "tech/Lenovo.DE/dataset/run-summary.schema.json"
+  },
+  "item_count": 1,
+  "items": [
+    {
+      "collectedUtc": "2026-03-23T09:02:08.9568013+11:00",
+      "mode": "Cli",
+      "controller": "10.240.59.179",
+      "port": 8443,
+      "apiBasePath": "/devmgr",
+      "outDir": "C:\\Github\\LNV.AsBuiltDoc.Core\\out\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01",
+      "systemCount": 1,
+      "perSystem": [
+        {
+          "id": "1",
+          "name": "DE4200_Rack4",
+          "hosts": 2,
+          "hostGroups": 1,
+          "drives": 24,
+          "containers": 3,
+          "volumes": 3,
+          "volumeMappings": 3,
+          "hostsToHostGroups": 2,
+          "hostGroupsToVolumes": 2,
+          "hostsToVolumes": 1,
+          "featureStates": 25,
+          "featureBundle": 80,
+          "capabilitiesNormalized": 14,
+          "outputFolder": "C:\\Github\\LNV.AsBuiltDoc.Core\\out\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01\\system_1_DE4200_Rack4"
+        }
+      ]
+    }
+  ]
+}
