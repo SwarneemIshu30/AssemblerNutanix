@@ -545,6 +545,10 @@ function Convert-ValueToTableString {
 
     $rows = @(Convert-TableRowsForTag -Tag $Tag -Rows $rows)
 
+    if (@($rows).Count -eq 0) {
+        return ''
+    }
+
     $allColumns = @($rows[0].PSObject.Properties.Name)
     $displayColumns = Get-DisplayColumnsForTable -Columns $allColumns
 
