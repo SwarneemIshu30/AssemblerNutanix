@@ -7,6 +7,7 @@ This repository has been updated to better match the current Lenovo.DE contract 
 Applied in Assembler:
 - kept the legacy `run_summary.json` compatibility path narrowly scoped in `Invoke-AssemblerSdtRender.ps1`
 - kept existing Lenovo.DE summary selectors stable for `run_summary.json`
+- removed the collector-level Findings block from the Lenovo.DE summary skeleton because the current `run_summary.json` contract only carries summary fields in `items[0]` and does not supply report findings text
 - refactored Lenovo.DE table shaping into a declarative projection layer inside the assembler so the renderer maps bundle-native fields into document tables without embedding per-tag imperative formatting branches everywhere
 - aligned the Lenovo.DE collector skeleton template with the current contract table layout by adding sections for:
   - Controllers

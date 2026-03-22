@@ -26,11 +26,6 @@ Mode          : <<SDT:DE_COLLECTION_MODE>>
 Controller    : <<SDT:DE_COLLECTION_CONTROLLER>>:<<SDT:DE_COLLECTION_PORT>>
 System Count  : <<SDT:DE_COLLECTION_SYSTEM_COUNT>>
 
-Findings
-------------------------------------------------------------------------------------------
-
-<<SDT:DE_COLLECTOR_FINDINGS>>
-
 Tables.Controllers
 ------------------------------------------------------------------------------------------
 
