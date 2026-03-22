@@ -153,7 +153,78 @@ function Format-MatchedTagsSummary {
 }
 
 
+function Test-IsDerivedBundleWrapperIssue {
+    param(
+        [Parameter(Mandatory = $true)]$Issue,
+        [Parameter(Mandatory = $false)]$BundleReport
+    )
+
+    if ($null -eq $Issue) { return $false }
+    if ([string]$Issue.code -ne 'ASB-ASM-BUNDLE-ENTRY-FAILED') { return $false }
+    if ($null -eq $BundleReport -or -not $BundleReport.ContainsKey('runs')) { return $false }
+
+    $issuePath = [string]$Issue.path
+    foreach ($run in @($BundleReport.runs)) {
+        foreach ($variant in @($run.variants)) {
+            if ([string]$variant.reportPath -ne $issuePath) { continue }
+            if ($variant.ContainsKey('rendererOutput') -and $null -ne $variant.rendererOutput -and $variant.rendererOutput -is [System.Collections.IDictionary] -and $variant.rendererOutput.ContainsKey('issues') -and @($variant.rendererOutput.issues).Count -gt 0) {
+                return $true
+            }
+        }
+    }
+
+    return $false
+}
+
+function Get-RootCauseIssueSummary {
+    param([Parameter(Mandatory = $true)]$BundleReport)
+
+    $issueCounts = @{}
+    $derivedWrapperCount = 0
+    $firstIssueMessage = ''
+
+    foreach ($run in @($BundleReport.runs)) {
+        if ($run.ContainsKey('rendererOutput') -and $null -ne $run.rendererOutput) {
+            if ($run.rendererOutput.ContainsKey('issues')) {
+                foreach ($issue in @($run.rendererOutput.issues)) {
+                    $severity = [string]$issue.severity
+                    if ([string]::IsNullOrWhiteSpace($severity)) { $severity = 'UNKNOWN' }
+                    if (-not $issueCounts.ContainsKey($severity)) { $issueCounts[$severity] = 0 }
+                    $issueCounts[$severity]++
+
+                    if ([string]::IsNullOrWhiteSpace($firstIssueMessage)) {
+                        $firstIssueMessage = [string]$issue.message
+                    }
+                }
+            }
+        }
+    }
+
+    foreach ($issue in @($BundleReport.issues)) {
+        if (Test-IsDerivedBundleWrapperIssue -Issue $issue -BundleReport $BundleReport) {
+            $derivedWrapperCount++
+            continue
+        }
+
+        $severity = [string]$issue.severity
+        if ([string]::IsNullOrWhiteSpace($severity)) { $severity = 'UNKNOWN' }
+        if (-not $issueCounts.ContainsKey($severity)) { $issueCounts[$severity] = 0 }
+        $issueCounts[$severity]++
+
+        if ([string]::IsNullOrWhiteSpace($firstIssueMessage)) {
+            $firstIssueMessage = [string]$issue.message
+        }
+    }
+
+    return [ordered]@{
+        issueCounts = $issueCounts
+        derivedWrapperCount = $derivedWrapperCount
+        firstIssueMessage = $firstIssueMessage
+    }
+}
+
 function Format-RenderFindingsSummary {
+
     param([Parameter(Mandatory = $true)][string]$BundleResultJson)
 
     try {
@@ -165,14 +236,8 @@ function Format-RenderFindingsSummary {
 
     $runCount = @($bundleReport.runs).Count
     $totalMatches = 0
-    $issueCounts = @{}
-
-    foreach ($issue in @($bundleReport.issues)) {
-        $severity = [string]$issue.severity
-        if ([string]::IsNullOrWhiteSpace($severity)) { $severity = 'UNKNOWN' }
-        if (-not $issueCounts.ContainsKey($severity)) { $issueCounts[$severity] = 0 }
-        $issueCounts[$severity]++
-    }
+    $rootCauseSummary = Get-RootCauseIssueSummary -BundleReport $bundleReport
+    $issueCounts = $rootCauseSummary.issueCounts
 
     foreach ($run in @($bundleReport.runs)) {
         if ($run.ContainsKey('rendererOutput') -and $null -ne $run.rendererOutput) {
@@ -180,14 +245,6 @@ function Format-RenderFindingsSummary {
                 $totalMatches += @($run.rendererOutput.matches).Count
             }
 
-            if ($run.rendererOutput.ContainsKey('issues')) {
-                foreach ($issue in @($run.rendererOutput.issues)) {
-                    $severity = [string]$issue.severity
-                    if ([string]::IsNullOrWhiteSpace($severity)) { $severity = 'UNKNOWN' }
-                    if (-not $issueCounts.ContainsKey($severity)) { $issueCounts[$severity] = 0 }
-                    $issueCounts[$severity]++
-                }
-            }
         }
     }
 
@@ -204,31 +261,12 @@ function Format-RenderFindingsSummary {
         $issueSegments = @($issueCounts.Keys | Sort-Object | ForEach-Object { "$_=$($issueCounts[$_])" })
         $summaryLines.Add("  Issues by severity: $($issueSegments -join ', ')")
 
-        $firstIssueMessage = ''
-        $firstError = @($bundleReport.issues | Where-Object { [string]$_.severity -eq 'ERROR' } | Select-Object -First 1)
-        if (@($firstError).Count -gt 0) {
-            $firstIssueMessage = [string]$firstError[0].message
-        }
-        elseif (@($bundleReport.issues).Count -gt 0) {
-            $firstIssueMessage = [string]$bundleReport.issues[0].message
-        }
-        elseif (@($bundleReport.runs).Count -gt 0) {
-            foreach ($run in @($bundleReport.runs)) {
-                if ($run.ContainsKey('rendererOutput') -and $null -ne $run.rendererOutput -and $run.rendererOutput.ContainsKey('issues') -and @($run.rendererOutput.issues).Count -gt 0) {
-                    $runFirstError = @($run.rendererOutput.issues | Where-Object { [string]$_.severity -eq 'ERROR' } | Select-Object -First 1)
-                    if (@($runFirstError).Count -gt 0) {
-                        $firstIssueMessage = [string]$runFirstError[0].message
-                    }
-                    else {
-                        $firstIssueMessage = [string]$run.rendererOutput.issues[0].message
-                    }
-                    break
-                }
-            }
+        if ($rootCauseSummary.derivedWrapperCount -gt 0) {
+            $summaryLines.Add("  Derived bundle wrapper failures: $($rootCauseSummary.derivedWrapperCount) (see nested renderer report issues)")
         }
 
-        if (-not [string]::IsNullOrWhiteSpace($firstIssueMessage)) {
-            $summaryLines.Add("  First issue: $firstIssueMessage")
+        if (-not [string]::IsNullOrWhiteSpace([string]$rootCauseSummary.firstIssueMessage)) {
+            $summaryLines.Add("  First issue: $([string]$rootCauseSummary.firstIssueMessage)")
         }
     }
 

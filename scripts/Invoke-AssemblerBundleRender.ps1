@@ -367,6 +367,33 @@ function Ensure-Directory {
 $startedUtc = Get-UtcTimestamp
 $issues = [System.Collections.Generic.List[hashtable]]::new()
 $runs = [System.Collections.Generic.List[hashtable]]::new()
+
+function Get-BundleEntryFailureMessage {
+    param(
+        [Parameter(Mandatory = $true)][string]$EntryId,
+        [Parameter(Mandatory = $true)][string]$VariantName,
+        [Parameter(Mandatory = $false)]$RendererReport,
+        [Parameter(Mandatory = $false)][string]$RendererReportPath
+    )
+
+    $rendererIssues = @()
+    if ($null -ne $RendererReport -and $RendererReport -is [System.Collections.IDictionary] -and $RendererReport.ContainsKey('issues')) {
+        $rendererIssues = @($RendererReport.issues)
+    }
+
+    if (@($rendererIssues).Count -gt 0) {
+        $errorCount = @($rendererIssues | Where-Object { [string]$_.severity -eq 'ERROR' }).Count
+        $rootCauseCount = if ($errorCount -gt 0) { $errorCount } else { @($rendererIssues).Count }
+        $rootCauseLabel = if ($errorCount -gt 0) { 'ERROR issue(s)' } else { 'issue(s)' }
+        return "Entry '$EntryId' variant '$VariantName' failed render as a wrapper/aggregation error. Inspect nested renderer report '$RendererReportPath' and its issues array for the $rootCauseCount underlying renderer $rootCauseLabel."
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($RendererReportPath)) {
+        return "Entry '$EntryId' variant '$VariantName' failed render as a wrapper/aggregation error. Inspect nested renderer report '$RendererReportPath' and its issues array for the underlying renderer failure details."
+    }
+
+    return "Entry '$EntryId' variant '$VariantName' failed render as a wrapper/aggregation error. Inspect the nested renderer report and its issues array for the underlying renderer failure details."
+}
 $stages = [System.Collections.Generic.List[hashtable]]::new()
 $status = 'OK'
 $effectiveBundleRoot = $BundleRoot
@@ -526,7 +553,7 @@ try {
                 if ($variantStatus -eq 'ERROR') {
                     $runStatus = 'ERROR'
                     $status = 'ERROR'
-                    $issues.Add([ordered]@{ code = 'ASB-ASM-BUNDLE-ENTRY-FAILED'; severity = 'ERROR'; message = "Entry '$($entry.id)' variant '$variantName' failed render."; path = $variantReportPath })
+                    $issues.Add([ordered]@{ code = 'ASB-ASM-BUNDLE-ENTRY-FAILED'; severity = 'ERROR'; message = (Get-BundleEntryFailureMessage -EntryId ([string]$entry.id) -VariantName $variantName -RendererReport $rendererReport -RendererReportPath $variantReportPath); path = $variantReportPath })
                 }
                 elseif ($variantStatus -eq 'WARN' -and $runStatus -ne 'ERROR') {
                     $runStatus = 'WARN'
