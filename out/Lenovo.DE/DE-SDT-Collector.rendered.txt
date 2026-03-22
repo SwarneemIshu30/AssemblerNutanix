@@ -21,18 +21,141 @@ Volumes    : 3
 Collection
 ------------------------------------------------------------------------------------------
 
-Collected UTC : <<SDT:DE_COLLECTION_COLLECTED_UTC>>
-Mode          : <<SDT:DE_COLLECTION_MODE>>
-Controller    : <<SDT:DE_COLLECTION_CONTROLLER>>:<<SDT:DE_COLLECTION_PORT>>
-System Count  : <<SDT:DE_COLLECTION_SYSTEM_COUNT>>
+Collected UTC : 03/23/2026 09:02:08
+Mode          : Cli
+Controller    : 10.240.59.179:8443
+System Count  : 1
 
-Tables.Systems
+Tables.Controllers
 ------------------------------------------------------------------------------------------
 
 
-name         model  status  fwVersion   appVersion  bootVersion nvsramVersion    chassisSerialNumber modelName managementHost
-----         -----  ------  ---------   ----------  ----------- -------------    ------------------- --------- --------------
-DE4200_Rack4 DE4200 optimal 08.90.09.00 08.90.09.00 08.90.09.00 N4000-890870-D03 J7024YT4
+Controller Slot Status  AppVersion  BootVersion SerialNumber
+---------- ---- ------  ----------  ----------- ------------
+B          2    optimal 08.90.09.00 08.90.09.00 952529000077
+A          1    optimal 08.90.09.00 08.90.09.00 952529000086
+
+
+Tables.ManagementInterfaces
+------------------------------------------------------------------------------------------
+
+
+Controller Slot Port Interface LinkStatus Address       Mask
+---------- ---- ---- --------- ---------- -------       ----
+B          2    P1   wan0      up         10.240.59.179 255.255.252.0
+A          1    P1   wan0      up         10.240.59.30  255.255.252.0
+
+
+Tables.Transport
+------------------------------------------------------------------------------------------
+
+
+ActiveTransport IscsiIqn
+--------------- --------
+iscsi           iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f018000000006949701c
+
+
+Tables.DNS
+------------------------------------------------------------------------------------------
+
+
+Acquisition DnsServers DhcpServers
+----------- ---------- -----------
+dhcp                   ["10.240.2.27","10.240.2.21"]
+dhcp                   ["10.240.2.27","10.240.2.21"]
+
+
+Tables.Time
+------------------------------------------------------------------------------------------
+
+
+Acquisition NtpServers DhcpServers DefaultRouter
+----------- ---------- ----------- -------------
+disabled                           10.240.56.1
+disabled                           10.240.56.1
+
+
+Tables.Trays
+------------------------------------------------------------------------------------------
+
+
+trayType trayRole        controllerModelName status serialNumber partNumber vendorName manufacturer manufacturerDate numControllerSlots
+-------- --------        ------------------- ------ ------------ ---------- ---------- ------------ ---------------- ------------------
+de224c   controller-tray                            J7024YT4     7DCQCTO1WW NETAPP                                   2
+
+
+Tables.HostPortsiSCSI
+------------------------------------------------------------------------------------------
+
+
+Controller Slot Port Channel LinkStatus Address         Mask          Gateway TcpPort IQN
+---------- ---- ---- ------- ---------- -------         ----          ------- ------- ---
+B          2    e1a  3       down       192.168.132.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f0180000000…
+B          2    e0a  1       down       192.168.130.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f0180000000…
+B          2    e1d  6       down       192.168.135.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f0180000000…
+B          2    e1b  4       down       192.168.133.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f0180000000…
+B          2    e1c  5       down       192.168.134.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f0180000000…
+B          2    e0b  2       down       192.168.131.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f0180000000…
+A          1    e1b  4       down       192.168.133.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f0180000000…
+A          1    e0b  2       down       192.168.131.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f0180000000…
+A          1    e0a  1       down       192.168.130.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f0180000000…
+A          1    e1a  3       down       192.168.132.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f0180000000…
+A          1    e1c  5       down       192.168.134.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f0180000000…
+A          1    e1d  6       down       192.168.135.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f0180000000…
+
+
+Tables.HostPortsFC
+------------------------------------------------------------------------------------------
+
+
+
+
+Tables.Hosts
+------------------------------------------------------------------------------------------
+
+
+Name        HostType
+----        --------
+NameofHost2 
+NameofHost1
+
+
+Tables.HostGroups
+------------------------------------------------------------------------------------------
+
+
+Name              Members
+----              -------
+NameofHostCluster ["NameofHost2","NameofHost1"]
+
+
+Tables.HostsToHostGroups
+------------------------------------------------------------------------------------------
+
+
+Host        HostGroup         HostType KeyType
+----        ---------         -------- -------
+NameofHost2 NameofHostCluster          clusterRef
+NameofHost1 NameofHostCluster          clusterRef
+
+
+Tables.HostGroupsToVolumes
+------------------------------------------------------------------------------------------
+
+
+HostGroup         Volume        Lun
+---------         ------        ---
+NameofHostCluster Hyper-V_Vol01 2
+NameofHostCluster Hyper-V_Vol02 1
+
+
+Tables.HostsToVolumes
+------------------------------------------------------------------------------------------
+
+
+Host        Volume    Lun
+----        ------    ---
+NameofHost1 VeeamVol1 3
 
 
 Tables.Drives
@@ -89,103 +212,84 @@ Hyper-V_Vol01 19.53 TB optimal raid6     SampleVG_1
 Hyper-V_Vol02 9.77 TB  optimal raid6     SampleVG_2
 
 
-Tables.Controllers
+Tables.VolumeMappings
 ------------------------------------------------------------------------------------------
 
 
-Controller Slot Status  AppVersion  BootVersion SerialNumber
----------- ---- ------  ----------  ----------- ------------
-A          1    optimal 08.90.09.00 08.90.09.00 952529000086
-B          2    optimal 08.90.09.00 08.90.09.00 952529000077
+Volume        Lun TargetType
+------        --- ----------
+VeeamVol1     3   host
+Hyper-V_Vol01 2   hostGroup
+Hyper-V_Vol02 1   hostGroup
 
 
-Tables.Trays
+Tables.ASUP
 ------------------------------------------------------------------------------------------
 
 
-trayType trayRole        controllerModelName status serialNumber partNumber vendorName manufacturer manufacturerDate numControllerSlots
--------- --------        ------------------- ------ ------------ ---------- ---------- ------------ ---------------- ------------------
-de224c   controller-tray                            J7024YT4     7DCQCTO1WW NETAPP                                   2
+AsupEnabled OnDemandEnabled RemoteDiags DeliveryMethod RoutingType MaxHttps MaxSmtp
+----------- --------------- ----------- -------------- ----------- -------- -------
+True        True            True        https          direct      50.00 MB 5.00 MB
 
 
-Tables.Transport
-------------------------------------------------------------------------------------------
-
-systemId        : 1
-activeTransport : iscsi
-iscsiIqn        : iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f018000000006949701c
-
-
-Tables.ManagementInterfaces (controllerRef intentionally omitted)
-------------------------------------------------------------------------------------------
-
-controllerLabel controllerSlot portLabel interfaceName linkStatus ipv4Address   ipv4SubnetMask
---------------- -------------- --------- ------------- ---------- -----------   --------------
-A                            1 P1        wan0          up         10.240.59.30  255.255.252.0
-B                            2 P1        wan0          up         10.240.59.179  255.255.252.0
-
-
-Tables.HostPorts.iSCSI (controllerRef intentionally omitted)
-------------------------------------------------------------------------------------------
-
-trayId controllerLabel controllerSlot portLabel channel ipv4Address     ipv4SubnetMask ipv4Gateway vlanEnabled vlanId
------- --------------- -------------- --------- ------- -----------     -------------- ----------- ----------- ------
-99    A                            1 e1b             4 192.168.133.101 255.255.255.0  0.0.0.0           False 0
-99    A                            1 e0b             2 192.168.131.101 255.255.255.0  0.0.0.0           False 0
-99    A                            1 e0a             1 192.168.130.101 255.255.255.0  0.0.0.0           False 0
-99    A                            1 e1a             3 192.168.132.101 255.255.255.0  0.0.0.0           False 0
-99    A                            1 e1c             5 192.168.134.101 255.255.255.0  0.0.0.0           False 0
-99    A                            1 e1d             6 192.168.135.101 255.255.255.0  0.0.0.0           False 0
-99    B                            2 e1a             3 192.168.132.102 255.255.255.0  0.0.0.0           False 0
-99    B                            2 e0a             1 192.168.130.102 255.255.255.0  0.0.0.0           False 0
-99    B                            2 e1d             6 192.168.135.102 255.255.255.0  0.0.0.0           False 0
-99    B                            2 e1b             4 192.168.133.102 255.255.255.0  0.0.0.0           False 0
-99    B                            2 e1c             5 192.168.134.102 255.255.255.0  0.0.0.0           False 0
-99    B                            2 e0b             2 192.168.131.102 255.255.255.0  0.0.0.0           False 0
-
-
-iSCSI IQN: iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f018000000006949701c
-
-Tables.SystemTime (controllerRef intentionally omitted in this blueprint)
-------------------------------------------------------------------------------------------
-
-systemId            : 1
-ntpAcquisitionType  : disabled
-ntpServers          : <<SDT:DE_SYSTIME_1_NTP_SERVERS>>
-dhcpAcquiredServers : <<SDT:DE_SYSTIME_1_DHCP_ACQUIRED_SERVERS>>
-ipv4DefaultRouter   : 10.240.56.1
-
-systemId            : 1
-ntpAcquisitionType  : disabled
-ntpServers          : <<SDT:DE_SYSTIME_2_NTP_SERVERS>>
-dhcpAcquiredServers : <<SDT:DE_SYSTIME_2_DHCP_ACQUIRED_SERVERS>>
-ipv4DefaultRouter   : 10.240.56.1
-
-
-Tables.SystemDNS (controllerRef intentionally omitted in this blueprint)
-------------------------------------------------------------------------------------------
-
-systemId            : 1
-dnsAcquisitionType  : dhcp
-dnsServers          : <<SDT:DE_SYSDNS_1_DNS_SERVERS>>
-dhcpAcquiredServers : ["10.240.2.27","10.240.2.21"]
-
-systemId            : 1
-dnsAcquisitionType  : dhcp
-dnsServers          : <<SDT:DE_SYSDNS_2_DNS_SERVERS>>
-dhcpAcquiredServers : ["10.240.2.27","10.240.2.21"]
-
-
-Tables.SystemASUP
+Tables.CapabilitiesSummary
 ------------------------------------------------------------------------------------------
 
 
-asupCapable onDemandCapable asupEnabled onDemandEnabled remoteDiagsEnabled deliveryMethod routingType proxyHost proxyPort proxyScript
------------ --------------- ----------- --------------- ------------------ -------------- ----------- --------- --------- -----------
-True        True            True        True            True               https          direct
+Feature                Category           State    Compliance Entitlement
+-------                --------           -----    ---------- -----------
+Storage Partitions     Host Access        Enabled  Compliant  Bundled
+SSD Support            Media Support      Enabled  Compliant  Bundled
+Thin Volumes           Scale Limits       Enabled  Compliant  Bundled
+AutoSupport            Operations         Disabled Unknown    Bundled
+Snapshot Services      Data Protection    Disabled Compliant  Bundled
+Volume Copy            Data Services      Enabled  Compliant  Bundled
+Remote Mirroring       Data Protection    Disabled Compliant  Licensed
+Mixed Drive Types      Media Support      Enabled  Compliant  Bundled
+Performance Tiering    Performance        Enabled  Compliant  Bundled
+RAID 6                 Storage Resiliency Enabled  Compliant  Bundled
+Secure Volume          Security           Enabled  Compliant  Bundled
+Protection Information Storage Resiliency Enabled  Compliant  Bundled
 
-Findings
+
+Tables.CapabilitiesKeyFeatures
 ------------------------------------------------------------------------------------------
 
-<<SDT:DE_COLLECTOR_FINDINGS>>
+
+Feature                State    License     Notes
+-------                -----    -------     -----
+Storage Partitions     Enabled  None        Controls host access segmentation and multi-tenant style partitioning. Runtime capabilities: storage…
+SSD Support            Enabled  None        Captures whether SSD media is supported and, where available, associated platform limits. Runtime ca…
+Thin Volumes           Enabled  None        Maximum supported thin volume count for the array. Runtime capabilities: totalNumberOfThinVolumesPer…
+AutoSupport            Disabled None        Support telemetry and serviceability capability.
+Snapshot Services      Disabled None        Base snapshot capability used for point-in-time data protection. Runtime capabilities: snapshotsType2
+Volume Copy            Enabled  None        Array-based full volume copy service. Runtime capabilities: volumeCopy Limit is present, but source …
+Remote Mirroring       Disabled KeyRequired Covers synchronous or asynchronous replication style features when supported. Runtime capabilities: …
+Mixed Drive Types      Enabled  None        Permits mixed media classes in the supported Lenovo DE configuration envelope. Runtime capabilities:…
+Performance Tiering    Enabled  None        Represents optional cache or performance tier functions exposed by SANtricity. Runtime capabilities:…
+RAID 6                 Enabled  None        Double-parity RAID support. Runtime capabilities: raid6
+Secure Volume          Enabled  None        Encryption-at-rest and related key management capability. Runtime capabilities: secureVolume, fdePro…
+Protection Information Enabled  None        T10/DIF style end-to-end data integrity support. Runtime capabilities: protectionInformation
+
+
+Tables.CapabilitiesLimits
+------------------------------------------------------------------------------------------
+
+
+Feature                Limit Used LimitState    Entitlement
+-------                ----- ---- ----------    -----------
+Storage Partitions     128        Unknown       Bundled
+SSD Support            96         Unknown       Bundled
+Snapshot Images        256        Unknown       Bundled
+Thin Volumes           512        Unknown       Bundled
+Volume Scale           512        Unknown       Limited
+AutoSupport                       NotApplicable Bundled
+Snapshot Services                 NotApplicable Bundled
+Volume Copy            511        Unknown       Bundled
+Remote Mirroring       32         Unknown       Licensed
+Mixed Drive Types                 NotApplicable Bundled
+Performance Tiering               NotApplicable Bundled
+RAID 6                            NotApplicable Bundled
+Secure Volume                     NotApplicable Bundled
+Protection Information            NotApplicable Bundled
 

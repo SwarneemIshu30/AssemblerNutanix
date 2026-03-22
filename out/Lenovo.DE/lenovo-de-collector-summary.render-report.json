@@ -1,60 +1,47 @@
 {
   "schemaVersion": 1,
-  "status": "ERROR",
-  "startedUtc": "2026-03-22T22:39:52.8256085Z",
-  "completedUtc": "2026-03-22T22:39:53.2106147Z",
+  "status": "OK",
+  "startedUtc": "2026-03-22T23:36:14.4909366Z",
+  "completedUtc": "2026-03-22T23:36:15.1560584Z",
   "bundleId": "bc8e726c-0b55-4b6e-af58-c84fa426a26a",
   "stages": [
     {
       "details": null,
       "name": "Load",
       "status": "SKIPPED",
-      "completedUtc": null,
-      "startedUtc": null
+      "completedUtc": "2026-03-22T23:36:14.4910325Z",
+      "startedUtc": "2026-03-22T23:36:14.4910325Z"
     },
     {
       "details": null,
       "name": "Validate",
       "status": "SKIPPED",
-      "completedUtc": null,
-      "startedUtc": null
+      "completedUtc": "2026-03-22T23:36:14.4910325Z",
+      "startedUtc": "2026-03-22T23:36:14.4910325Z"
     },
     {
       "details": null,
       "name": "Transform",
       "status": "SKIPPED",
-      "completedUtc": null,
-      "startedUtc": null
+      "completedUtc": "2026-03-22T23:36:14.4910325Z",
+      "startedUtc": "2026-03-22T23:36:14.4910325Z"
     },
     {
       "details": null,
       "name": "Render",
       "status": "SKIPPED",
-      "completedUtc": null,
-      "startedUtc": null
+      "completedUtc": "2026-03-22T23:36:14.4910325Z",
+      "startedUtc": "2026-03-22T23:36:14.4910325Z"
     },
     {
       "details": null,
       "name": "Finalize",
       "status": "SKIPPED",
-      "completedUtc": null,
-      "startedUtc": null
+      "completedUtc": "2026-03-22T23:36:14.4910325Z",
+      "startedUtc": "2026-03-22T23:36:14.4910325Z"
     }
   ],
-  "issues": [
-    {
-      "severity": "ERROR",
-      "message": "The property 'Length' cannot be found on this object. Verify that the property exists.",
-      "path": null,
-      "code": "ASB-ASM-SDT-UNHANDLED"
-    },
-    {
-      "severity": "ERROR",
-      "message": "JSON schema validation failed for 'assembler-sdt-render-report' against 'C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts\\standards\\assembler\\assembler.render-report.schema.v1.json': The JSON is not valid with the schema: Value is \"null\" but should be \"string\" at '/stages/0/startedUtc'",
-      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\Lenovo.DE\\lenovo-de-collector-summary.render-report.json",
-      "code": "ASB-ASM-SCHEMA-RENDERREPORT-INVALID"
-    }
-  ],
+  "issues": [],
   "matches": [
     {
       "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json",
@@ -1027,7 +1014,204 @@
       "selector": "items.0.ntpAcquisitionType",
       "valuePreview": "disabled",
       "tag": "DE_SYSTIME_1_NTP_ACQ_TYPE"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "selector": "items.0.ntpServers",
+      "valuePreview": "[]",
+      "tag": "DE_SYSTIME_1_NTP_SERVERS"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "selector": "items.0.dhcpAcquiredServers",
+      "valuePreview": "[]",
+      "tag": "DE_SYSTIME_1_DHCP_ACQUIRED_SERVERS"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "selector": "items.0.ipv4DefaultRouter",
+      "valuePreview": "10.240.56.1",
+      "tag": "DE_SYSTIME_1_IPV4_DEFAULT_ROUTER"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "selector": "items.0.systemId",
+      "valuePreview": "1",
+      "tag": "DE_SYSDNS_1_SYSTEM_ID"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "selector": "items.0.dnsAcquisitionType",
+      "valuePreview": "dhcp",
+      "tag": "DE_SYSDNS_1_DNS_ACQ_TYPE"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "selector": "items.0.dnsServers",
+      "valuePreview": "[]",
+      "tag": "DE_SYSDNS_1_DNS_SERVERS"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "selector": "items.0.dhcpAcquiredServers",
+      "valuePreview": "[\"10.240.2.27\",\"10.240.2.21\"]",
+      "tag": "DE_SYSDNS_1_DHCP_ACQUIRED_SERVERS"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "selector": "items.1.systemId",
+      "valuePreview": "1",
+      "tag": "DE_SYSTIME_2_SYSTEM_ID"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "selector": "items.1.ntpAcquisitionType",
+      "valuePreview": "disabled",
+      "tag": "DE_SYSTIME_2_NTP_ACQ_TYPE"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "selector": "items.1.ntpServers",
+      "valuePreview": "[]",
+      "tag": "DE_SYSTIME_2_NTP_SERVERS"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "selector": "items.1.dhcpAcquiredServers",
+      "valuePreview": "[]",
+      "tag": "DE_SYSTIME_2_DHCP_ACQUIRED_SERVERS"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "selector": "items.1.ipv4DefaultRouter",
+      "valuePreview": "10.240.56.1",
+      "tag": "DE_SYSTIME_2_IPV4_DEFAULT_ROUTER"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "selector": "items.1.systemId",
+      "valuePreview": "1",
+      "tag": "DE_SYSDNS_2_SYSTEM_ID"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "selector": "items.1.dnsAcquisitionType",
+      "valuePreview": "dhcp",
+      "tag": "DE_SYSDNS_2_DNS_ACQ_TYPE"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "selector": "items.1.dnsServers",
+      "valuePreview": "[]",
+      "tag": "DE_SYSDNS_2_DNS_SERVERS"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "selector": "items.1.dhcpAcquiredServers",
+      "valuePreview": "[\"10.240.2.27\",\"10.240.2.21\"]",
+      "tag": "DE_SYSDNS_2_DHCP_ACQUIRED_SERVERS"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-asup.json",
+      "selector": "items",
+      "valuePreview": "\r\nAsupEnabled OnDemandEnabled RemoteDiags DeliveryMethod RoutingType MaxHttps Ma...",
+      "tag": "DE_SYSTEM_ASUP_TABLE_JSON"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "selector": "items",
+      "valuePreview": "\r\nController Slot Port Channel LinkStatus Address         Mask          Gateway ...",
+      "tag": "DE_HOSTPORTS_ISCSI_TABLE_JSON"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "selector": "items",
+      "valuePreview": "",
+      "tag": "DE_HOSTPORTS_FC_TABLE_JSON"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "selector": "items",
+      "valuePreview": "\r\nAcquisition DnsServers DhcpServers\r\n----------- ---------- -----------\r\ndhcp  ...",
+      "tag": "DE_DNS_TABLE_JSON"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "selector": "items",
+      "valuePreview": "\r\nAcquisition NtpServers DhcpServers DefaultRouter\r\n----------- ---------- -----...",
+      "tag": "DE_TIME_TABLE_JSON"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts.json",
+      "selector": "items",
+      "valuePreview": "\r\nName        HostType\r\n----        --------\r\nNameofHost2 \r\nNameofHost1",
+      "tag": "DE_HOSTS_TABLE_JSON"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-groups.json",
+      "selector": "items",
+      "valuePreview": "\r\nName              Members\r\n----              -------\r\nNameofHostCluster [\"Name...",
+      "tag": "DE_HOST_GROUPS_TABLE_JSON"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts-to-host-groups.json",
+      "selector": "items",
+      "valuePreview": "\r\nHost        HostGroup         HostType KeyType\r\n----        ---------         ...",
+      "tag": "DE_HOSTS_TO_HOST_GROUPS_TABLE_JSON"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-groups-to-volumes.json",
+      "selector": "items",
+      "valuePreview": "\r\nHostGroup         Volume        Lun\r\n---------         ------        ---\r\nName...",
+      "tag": "DE_HOST_GROUPS_TO_VOLUMES_TABLE_JSON"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts-to-volumes.json",
+      "selector": "items",
+      "valuePreview": "\r\nHost        Volume    Lun\r\n----        ------    ---\r\nNameofHost1 VeeamVol1 3",
+      "tag": "DE_HOSTS_TO_VOLUMES_TABLE_JSON"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/volume-mappings.json",
+      "selector": "items",
+      "valuePreview": "\r\nVolume        Lun TargetType\r\n------        --- ----------\r\nVeeamVol1     3   ...",
+      "tag": "DE_VOLUME_MAPPINGS_TABLE_JSON"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities-normalized.json",
+      "selector": "items",
+      "valuePreview": "\r\nFeature                Category           State    Compliance Entitlement\r\n---...",
+      "tag": "DE_CAPABILITIES_SUMMARY_TABLE_JSON"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities-normalized.json",
+      "selector": "items",
+      "valuePreview": "\r\nFeature                State    License     Notes\r\n-------                ----...",
+      "tag": "DE_CAPABILITIES_KEY_FEATURES_TABLE_JSON"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities-normalized.json",
+      "selector": "items",
+      "valuePreview": "\r\nFeature                Limit Used LimitState    Entitlement\r\n-------          ...",
+      "tag": "DE_CAPABILITIES_LIMITS_TABLE_JSON"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "selector": "items",
+      "valuePreview": "\r\nController Slot Port Interface LinkStatus Address       Mask\r\n---------- ---- ...",
+      "tag": "DE_MANAGEMENT_INTERFACES_TABLE_JSON"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/transport.json",
+      "selector": "items",
+      "valuePreview": "\r\nActiveTransport IscsiIqn\r\n--------------- --------\r\niscsi           iqn.2002-0...",
+      "tag": "DE_TRANSPORT_TABLE_JSON"
     }
   ],
-  "outputs": []
+  "outputs": [
+    {
+      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\Lenovo.DE\\DE-SDT-Collector.rendered.txt",
+      "type": "text/template-rendered"
+    }
+  ]
 }
