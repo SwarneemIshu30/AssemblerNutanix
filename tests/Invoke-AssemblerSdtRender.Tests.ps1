@@ -62,6 +62,55 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
+    It 'assigns valid timestamps to skipped stages when execution stops during validation' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-skipped-stage-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'System=<<SDT:DE_SYSTEM_NAME>>' -Mappings @()
+
+            Set-Content -LiteralPath $fixture.mappingPath -Encoding UTF8 -Value (@{
+                schema = 'mapping.dataset-to-sdt'
+                schemaVersion = 1
+                techId = 'Lenovo.DE'
+                displayName = 'invalid mapping'
+                strictContracts = @{ enabled = $true; requireAllMappings = $true }
+            } | ConvertTo-Json -Depth 10)
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -eq 0) { throw 'Expected non-zero exit code due to invalid mapping schema' }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            foreach ($stage in @($report.stages | Where-Object { $_.status -eq 'SKIPPED' })) {
+                if ([string]::IsNullOrWhiteSpace([string]$stage.startedUtc)) {
+                    throw "Expected skipped stage '$($stage.name)' to include startedUtc"
+                }
+                if ([string]::IsNullOrWhiteSpace([string]$stage.completedUtc)) {
+                    throw "Expected skipped stage '$($stage.name)' to include completedUtc"
+                }
+            }
+
+            if ((@($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SCHEMA-RENDERREPORT-INVALID' }).Count) -ne 0) {
+                throw 'Expected skipped-stage timestamps to keep render report schema-valid'
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'applies selector chains sequentially and records the full selector chain in matches' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
