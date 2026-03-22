@@ -600,8 +600,15 @@ function Convert-ValueToString {
     if ($Value -is [ValueType]) {
         return [string]$Value
     }
+    if ($Value -is [System.Collections.IDictionary]) {
+        return ([string](ConvertTo-Json -InputObject $Value -Depth 10 -Compress))
+    }
+    if ($Value -is [System.Collections.IEnumerable] -and -not ($Value -is [string])) {
+        $items = @($Value)
+        return ([string](ConvertTo-Json -InputObject $items -Depth 10 -Compress))
+    }
 
-    return ($Value | ConvertTo-Json -Depth 10 -Compress)
+    return ([string](ConvertTo-Json -InputObject $Value -Depth 10 -Compress))
 }
 
 $startedUtc = Get-UtcTimestamp
@@ -742,9 +749,10 @@ try {
             continue
         }
 
-        $resolvedText = Convert-ValueToString -Value $resolved -Tag $tag
+        $resolvedText = [string](Convert-ValueToString -Value $resolved -Tag $tag)
         $replaceByTag[$tag] = $resolvedText
-        $valuePreview = if ($resolvedText.Length -gt 80) { $resolvedText.Substring(0, 80) + '...' } else { $resolvedText }
+        $resolvedTextLength = if ($null -eq $resolvedText) { 0 } else { $resolvedText.Length }
+        $valuePreview = if ($resolvedTextLength -gt 80) { $resolvedText.Substring(0, 80) + '...' } else { $resolvedText }
         $matches.Add([ordered]@{ tag = $tag; dataset = [string]$entry.dataset; selector = if (@($selectors).Count -gt 0) { (($selectors | ForEach-Object { [string]$_ }) -join ' -> ') } else { '' }; valuePreview = $valuePreview })
     }
 
