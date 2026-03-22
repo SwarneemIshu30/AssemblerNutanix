@@ -150,14 +150,6 @@
       ]
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/run_summary.json",
-      "sdtTag": "DE_COLLECTOR_FINDINGS",
-      "required": false,
-      "selectors": [
-        "findings"
-      ]
-    },
-    {
       "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json",
       "sdtTag": "DE_SYSTEMS_TABLE_JSON",
       "required": true,

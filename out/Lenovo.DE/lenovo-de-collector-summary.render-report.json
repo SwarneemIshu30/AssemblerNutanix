@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "status": "ERROR",
-  "startedUtc": "2026-03-22T22:06:38.8101023Z",
-  "completedUtc": "2026-03-22T22:06:39.0861550Z",
+  "startedUtc": "2026-03-22T22:39:52.8256085Z",
+  "completedUtc": "2026-03-22T22:39:53.2106147Z",
   "bundleId": "bc8e726c-0b55-4b6e-af58-c84fa426a26a",
   "stages": [
     {
@@ -43,56 +43,14 @@
   ],
   "issues": [
     {
-      "severity": "WARN",
-      "message": "Selector chain 'findings' did not resolve for tag 'DE_COLLECTOR_FINDINGS'",
-      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01\\run_summary.json",
-      "code": "ASB-ASM-SDT-SELECTOR-NOMATCH"
-    },
-    {
       "severity": "ERROR",
-      "message": "Selector chain 'items.0.ntpServers' did not resolve for tag 'DE_SYSTIME_1_NTP_SERVERS'",
-      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01\\system_1_DE4200_Rack4\\system-time.json",
-      "code": "ASB-ASM-SDT-SELECTOR-NOMATCH"
-    },
-    {
-      "severity": "ERROR",
-      "message": "Selector chain 'items.0.dhcpAcquiredServers' did not resolve for tag 'DE_SYSTIME_1_DHCP_ACQUIRED_SERVERS'",
-      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01\\system_1_DE4200_Rack4\\system-time.json",
-      "code": "ASB-ASM-SDT-SELECTOR-NOMATCH"
-    },
-    {
-      "severity": "ERROR",
-      "message": "Selector chain 'items.0.dnsServers' did not resolve for tag 'DE_SYSDNS_1_DNS_SERVERS'",
-      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01\\system_1_DE4200_Rack4\\system-dns.json",
-      "code": "ASB-ASM-SDT-SELECTOR-NOMATCH"
-    },
-    {
-      "severity": "ERROR",
-      "message": "Selector chain 'items.1.ntpServers' did not resolve for tag 'DE_SYSTIME_2_NTP_SERVERS'",
-      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01\\system_1_DE4200_Rack4\\system-time.json",
-      "code": "ASB-ASM-SDT-SELECTOR-NOMATCH"
-    },
-    {
-      "severity": "ERROR",
-      "message": "Selector chain 'items.1.dhcpAcquiredServers' did not resolve for tag 'DE_SYSTIME_2_DHCP_ACQUIRED_SERVERS'",
-      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01\\system_1_DE4200_Rack4\\system-time.json",
-      "code": "ASB-ASM-SDT-SELECTOR-NOMATCH"
-    },
-    {
-      "severity": "ERROR",
-      "message": "Selector chain 'items.1.dnsServers' did not resolve for tag 'DE_SYSDNS_2_DNS_SERVERS'",
-      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01\\system_1_DE4200_Rack4\\system-dns.json",
-      "code": "ASB-ASM-SDT-SELECTOR-NOMATCH"
-    },
-    {
-      "severity": "ERROR",
-      "message": "Index was outside the bounds of the array.",
+      "message": "The property 'Length' cannot be found on this object. Verify that the property exists.",
       "path": null,
       "code": "ASB-ASM-SDT-UNHANDLED"
     },
     {
       "severity": "ERROR",
-      "message": "JSON schema validation failed for 'assembler-sdt-render-report' against 'C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts\\standards\\assembler\\assembler.render-report.schema.v1.json': The JSON is not valid with the schema: All values fail against the false schema at '/matches'",
+      "message": "JSON schema validation failed for 'assembler-sdt-render-report' against 'C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts\\standards\\assembler\\assembler.render-report.schema.v1.json': The JSON is not valid with the schema: Value is \"null\" but should be \"string\" at '/stages/0/startedUtc'",
       "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\Lenovo.DE\\lenovo-de-collector-summary.render-report.json",
       "code": "ASB-ASM-SCHEMA-RENDERREPORT-INVALID"
     }
@@ -1069,78 +1027,6 @@
       "selector": "items.0.ntpAcquisitionType",
       "valuePreview": "disabled",
       "tag": "DE_SYSTIME_1_NTP_ACQ_TYPE"
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
-      "selector": "items.0.ipv4DefaultRouter",
-      "valuePreview": "10.240.56.1",
-      "tag": "DE_SYSTIME_1_IPV4_DEFAULT_ROUTER"
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
-      "selector": "items.0.systemId",
-      "valuePreview": "1",
-      "tag": "DE_SYSDNS_1_SYSTEM_ID"
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
-      "selector": "items.0.dnsAcquisitionType",
-      "valuePreview": "dhcp",
-      "tag": "DE_SYSDNS_1_DNS_ACQ_TYPE"
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
-      "selector": "items.0.dhcpAcquiredServers",
-      "valuePreview": "[\"10.240.2.27\",\"10.240.2.21\"]",
-      "tag": "DE_SYSDNS_1_DHCP_ACQUIRED_SERVERS"
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
-      "selector": "items.1.systemId",
-      "valuePreview": "1",
-      "tag": "DE_SYSTIME_2_SYSTEM_ID"
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
-      "selector": "items.1.ntpAcquisitionType",
-      "valuePreview": "disabled",
-      "tag": "DE_SYSTIME_2_NTP_ACQ_TYPE"
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
-      "selector": "items.1.ipv4DefaultRouter",
-      "valuePreview": "10.240.56.1",
-      "tag": "DE_SYSTIME_2_IPV4_DEFAULT_ROUTER"
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
-      "selector": "items.1.systemId",
-      "valuePreview": "1",
-      "tag": "DE_SYSDNS_2_SYSTEM_ID"
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
-      "selector": "items.1.dnsAcquisitionType",
-      "valuePreview": "dhcp",
-      "tag": "DE_SYSDNS_2_DNS_ACQ_TYPE"
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
-      "selector": "items.1.dhcpAcquiredServers",
-      "valuePreview": "[\"10.240.2.27\",\"10.240.2.21\"]",
-      "tag": "DE_SYSDNS_2_DHCP_ACQUIRED_SERVERS"
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-asup.json",
-      "selector": "items",
-      "valuePreview": "\r\nAsupEnabled OnDemandEnabled RemoteDiags DeliveryMethod RoutingType MaxHttps Ma...",
-      "tag": "DE_SYSTEM_ASUP_TABLE_JSON"
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
-      "selector": "items",
-      "valuePreview": "\r\nController Slot Port Channel LinkStatus Address         Mask          Gateway ...",
-      "tag": "DE_HOSTPORTS_ISCSI_TABLE_JSON"
     }
   ],
   "outputs": []
