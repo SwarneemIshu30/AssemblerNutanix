@@ -620,8 +620,9 @@ $status = 'OK'
 $bundleId = $null
 
 $stageMap = [ordered]@{}
+$stageInitializationUtc = Get-UtcTimestamp
 foreach ($stageName in @('Load','Validate','Transform','Render','Finalize')) {
-    $stage = [ordered]@{ name = $stageName; status = 'SKIPPED'; startedUtc = $null; completedUtc = $null; details = $null }
+    $stage = [ordered]@{ name = $stageName; status = 'SKIPPED'; startedUtc = $stageInitializationUtc; completedUtc = $stageInitializationUtc; details = $null }
     $stageMap[$stageName] = $stage
     $stageList.Add($stage)
 }
@@ -813,7 +814,7 @@ if (-not $renderReportValidation.isValid) {
     Add-SchemaValidationIssue -Code 'ASB-ASM-SCHEMA-RENDERREPORT-INVALID' -Message ([string]$renderReportValidation.message) -PathValue $(if ($ReportPath) { $ReportPath } else { '<stdout>' })
     foreach ($stageName in @('Finalize','Render','Transform','Validate','Load')) {
         $stage = $stageMap[$stageName]
-        if ($null -ne $stage.startedUtc) {
+        if ($stage.status -ne 'SKIPPED') {
             $stage.status = 'ERROR'
             break
         }
