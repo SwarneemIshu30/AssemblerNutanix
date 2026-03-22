@@ -63,14 +63,17 @@ function Resolve-Selector {
     )
 
     $current = $InputObject
+    $resolved = $true
     foreach ($segment in $Selector.Split('.')) {
         if ($null -eq $current) {
-            return $null
+            $resolved = $false
+            break
         }
 
         if ($current -is [hashtable]) {
             if (-not $current.ContainsKey($segment)) {
-                return $null
+                $resolved = $false
+                break
             }
             $current = $current[$segment]
             continue
@@ -79,19 +82,27 @@ function Resolve-Selector {
         if ($current -is [System.Collections.IList]) {
             [int]$idx = 0
             if (-not [int]::TryParse($segment, [ref]$idx)) {
-                return $null
+                $resolved = $false
+                break
             }
             if ($idx -lt 0 -or $idx -ge $current.Count) {
-                return $null
+                $resolved = $false
+                break
             }
             $current = $current[$idx]
             continue
         }
 
-        return $null
+        $resolved = $false
+        break
     }
 
-    return $current
+    return [ordered]@{
+        found = $resolved
+        value = $current
+        valueIsNull = ($resolved -and $null -eq $current)
+        valueIsEmptyArray = ($resolved -and $current -is [System.Array] -and $current.Length -eq 0)
+    }
 }
 
 
@@ -170,8 +181,8 @@ function Resolve-SelectorWithSummaryCompatibility {
 
     $resolved = $Dataset
     foreach ($selector in $Selectors) {
-        $resolved = Resolve-Selector -InputObject $resolved -Selector ([string]$selector)
-        if ($null -eq $resolved) {
+        $resolution = Resolve-Selector -InputObject $resolved -Selector ([string]$selector)
+        if (-not $resolution.found) {
             $summaryItem = $null
             if (
                 [System.IO.Path]::GetFileName($DatasetPath) -eq 'run_summary.json' -and
@@ -186,16 +197,28 @@ function Resolve-SelectorWithSummaryCompatibility {
             }
 
             if ($null -ne $summaryItem) {
-                $resolved = Resolve-Selector -InputObject $summaryItem -Selector ([string]$selector)
+                $resolution = Resolve-Selector -InputObject $summaryItem -Selector ([string]$selector)
             }
 
-            if ($null -eq $resolved) {
-                return [ordered]@{ value = $null; selectorFailed = $true }
+            if (-not $resolution.found) {
+                return [ordered]@{
+                    value = $null
+                    selectorFailed = $true
+                    valueIsNull = $false
+                    valueIsEmptyArray = $false
+                }
             }
         }
+
+        $resolved = $resolution.value
     }
 
-    return [ordered]@{ value = $resolved; selectorFailed = $false }
+    return [ordered]@{
+        value = $resolved
+        selectorFailed = $false
+        valueIsNull = [bool]$resolution.valueIsNull
+        valueIsEmptyArray = [bool]$resolution.valueIsEmptyArray
+    }
 }
 
 function Convert-CellValueToString {

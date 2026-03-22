@@ -160,6 +160,85 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
+    It 'treats empty array selector values as successful resolutions for Lenovo.DE datasets' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-empty-array-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template @'
+NTP0=<<SDT:NTP0>>
+DHCP0=<<SDT:DHCP0>>
+DNS0=<<SDT:DNS0>>
+NTP1=<<SDT:NTP1>>
+DHCP1=<<SDT:DHCP1>>
+DNS1=<<SDT:DNS1>>
+'@ -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'systems'
+                item_count = 2
+                items = @(
+                    @{
+                        ntpServers = @()
+                        dhcpAcquiredServers = @()
+                        dnsServers = @()
+                    },
+                    @{
+                        ntpServers = @()
+                        dhcpAcquiredServers = @()
+                        dnsServers = @()
+                    }
+                )
+            } -Mappings @(
+                @{ dataset = 'datasets/systems.json'; sdtTag = 'NTP0'; required = $true; selectors = @('items', '0', 'ntpServers') },
+                @{ dataset = 'datasets/systems.json'; sdtTag = 'DHCP0'; required = $true; selectors = @('items', '0', 'dhcpAcquiredServers') },
+                @{ dataset = 'datasets/systems.json'; sdtTag = 'DNS0'; required = $true; selectors = @('items', '0', 'dnsServers') },
+                @{ dataset = 'datasets/systems.json'; sdtTag = 'NTP1'; required = $true; selectors = @('items', '1', 'ntpServers') },
+                @{ dataset = 'datasets/systems.json'; sdtTag = 'DHCP1'; required = $true; selectors = @('items', '1', 'dhcpAcquiredServers') },
+                @{ dataset = 'datasets/systems.json'; sdtTag = 'DNS1'; required = $true; selectors = @('items', '1', 'dnsServers') }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode" }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            if ($report.status -ne 'OK') { throw "Expected report.status OK, got '$($report.status)'" }
+
+            $selectorIssues = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-SELECTOR-NOMATCH' })
+            if ($selectorIssues.Count -ne 0) {
+                throw "Expected no selector no-match issues for empty arrays, got $($selectorIssues.Count)"
+            }
+
+            foreach ($tag in @('NTP0', 'DHCP0', 'DNS0', 'NTP1', 'DHCP1', 'DNS1')) {
+                $match = @($report.matches | Where-Object { $_.tag -eq $tag }) | Select-Object -First 1
+                if ($null -eq $match) { throw "Expected match entry for tag '$tag'" }
+            }
+
+            $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
+            foreach ($expectedLine in @('NTP0=[]', 'DHCP0=[]', 'DNS0=[]', 'NTP1=[]', 'DHCP1=[]', 'DNS1=[]')) {
+                if ($rendered -notmatch [regex]::Escape($expectedLine)) {
+                    throw "Expected rendered output to contain '$expectedLine', got '$rendered'"
+                }
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'emits envelope ERROR for required mappings and warning for optional mappings' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
