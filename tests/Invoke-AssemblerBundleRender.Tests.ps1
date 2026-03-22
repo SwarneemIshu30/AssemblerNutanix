@@ -213,6 +213,58 @@ Describe 'Invoke-AssemblerBundleRender orchestration' {
         }
     }
 
+    It 'classifies bundle entry failures as derived wrapper errors that point to nested renderer issues' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $bundleRoot = Join-Path $repoRoot 'bundle/bc8e726c-0b55-4b6e-af58-c84fa426a26a'
+        $catalogPath = Join-Path $repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json'
+
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-bundle-render-wrapper-issue-test-" + [guid]::NewGuid().ToString())
+        $outputRoot = Join-Path $tempRoot 'out'
+
+        try {
+            $scriptPath = Join-Path $repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1'
+            $json = & $pwshPath -NoLogo -NoProfile -File $scriptPath -BundleRoot $bundleRoot -CatalogPath $catalogPath -OutputRoot $outputRoot -TechId 'Lenovo.DE'
+            if ($LASTEXITCODE -eq 0) {
+                throw 'Expected non-zero exit code for known failing Lenovo.DE collector render'
+            }
+
+            $report = $json | ConvertFrom-Json -AsHashtable
+            $bundleWrapperIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-BUNDLE-ENTRY-FAILED' } | Select-Object -First 1)
+            if (@($bundleWrapperIssue).Count -eq 0) {
+                throw 'Expected ASB-ASM-BUNDLE-ENTRY-FAILED issue in aggregate report'
+            }
+
+            $issue = $bundleWrapperIssue[0]
+            if ([string]$issue.message -notmatch 'wrapper/aggregation error') {
+                throw "Expected wrapper/aggregation wording, got '$($issue.message)'"
+            }
+            if ([string]$issue.message -notmatch 'nested renderer report') {
+                throw "Expected nested renderer report guidance, got '$($issue.message)'"
+            }
+            if ([string]$issue.message -notmatch 'issues array') {
+                throw "Expected issues array guidance, got '$($issue.message)'"
+            }
+
+            $variant = @(@($report.runs)[0].variants)[0]
+            if ([string]$issue.path -ne [string]$variant.reportPath) {
+                throw "Expected bundle wrapper path '$($variant.reportPath)', got '$($issue.path)'"
+            }
+            if ($null -eq $variant.rendererOutput -or -not $variant.rendererOutput.ContainsKey('issues') -or @($variant.rendererOutput.issues).Count -eq 0) {
+                throw 'Expected nested renderer report issues to be present for derived wrapper error'
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'fails fast when BundleRoot staging directory contains multiple bundles' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $sourceBundleRoot = Join-Path $repoRoot 'bundle/417f4663-0922-423b-92a9-34d4e33ecd0e'
