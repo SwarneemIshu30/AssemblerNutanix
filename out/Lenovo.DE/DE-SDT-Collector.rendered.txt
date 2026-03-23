@@ -1,33 +1,32 @@
-Mode: Blueprint
+Mode: As-Built Draft
 
-# System: DE4200_Rack4
-------------------------------------------------------------------------------------------
+# Lenovo DE As-Built Configuration Reference: DE4200_Rack4
+====================================================================================================
 
-Summary
-------------------------------------------------------------------------------------------
+1. Platform Summary
+----------------------------------------------------------------------------------------------------
+System Name             : DE4200_Rack4
+Model                   : DE4200
+Operational Status      : optimal
+Firmware Version        : 08.90.09.00
+Application Version     : 08.90.09.00
+Boot Version            : 08.90.09.00
+NVSRAM Version          : N4000-890870-D03
+Management IP           : 192.0.2.12
+Drive Count             : 24
+Storage Container Count : 3
+Volume Count            : 3
 
-Name       : DE4200_Rack4
-Model      : DE4200
-Status     : optimal
-Firmware   : 08.90.09.00
-AppVersion : 08.90.09.00
-Boot       : 08.90.09.00
-Nvsram     : N4000-890870-D03
-Mgmt IP    : 192.0.2.12
-Drives     : 24
-Containers : 3
-Volumes    : 3
+2. Collection Context
+----------------------------------------------------------------------------------------------------
+Collected UTC           : 03/23/2026 09:02:08
+Collection Mode         : Cli
+Collection Endpoint     : 10.240.59.179:8443
+System Count Returned   : 1
 
-Collection
-------------------------------------------------------------------------------------------
-
-Collected UTC : 03/23/2026 09:02:08
-Mode          : Cli
-Controller    : 10.240.59.179:8443
-System Count  : 1
-
-Tables.Controllers
-------------------------------------------------------------------------------------------
+3. System Overview
+----------------------------------------------------------------------------------------------------
+3.1 Controller Inventory
 
 
 Controller Slot Status  AppVersion  BootVersion SerialNumber
@@ -35,9 +34,7 @@ Controller Slot Status  AppVersion  BootVersion SerialNumber
 B          2    optimal 08.90.09.00 08.90.09.00 952529000077
 A          1    optimal 08.90.09.00 08.90.09.00 952529000086
 
-
-Tables.ManagementInterfaces
-------------------------------------------------------------------------------------------
+3.2 Management Interfaces
 
 
 Controller Slot Port Interface LinkStatus Address       Mask
@@ -45,18 +42,14 @@ Controller Slot Port Interface LinkStatus Address       Mask
 B          2    P1   wan0      up         10.240.59.179 255.255.252.0
 A          1    P1   wan0      up         10.240.59.30  255.255.252.0
 
-
-Tables.Transport
-------------------------------------------------------------------------------------------
+3.3 Transport Summary
 
 
 ActiveTransport IscsiIqn
 --------------- --------
 iscsi           iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f018000000006949701c
 
-
-Tables.DNS
-------------------------------------------------------------------------------------------
+3.4 DNS Configuration
 
 
 Acquisition DnsServers DhcpServers
@@ -64,9 +57,7 @@ Acquisition DnsServers DhcpServers
 dhcp                   ["10.240.2.27","10.240.2.21"]
 dhcp                   ["10.240.2.27","10.240.2.21"]
 
-
-Tables.Time
-------------------------------------------------------------------------------------------
+3.5 Time Configuration
 
 
 Acquisition NtpServers DhcpServers DefaultRouter
@@ -74,18 +65,16 @@ Acquisition NtpServers DhcpServers DefaultRouter
 disabled                           10.240.56.1
 disabled                           10.240.56.1
 
-
-Tables.Trays
-------------------------------------------------------------------------------------------
+4. Platform Configuration
+----------------------------------------------------------------------------------------------------
+4.1 Tray / Shelf Inventory
 
 
 trayType trayRole        controllerModelName status serialNumber partNumber vendorName manufacturer manufacturerDate numControllerSlots
 -------- --------        ------------------- ------ ------------ ---------- ---------- ------------ ---------------- ------------------
 de224c   controller-tray                            J7024YT4     7DCQCTO1WW NETAPP                                   2
 
-
-Tables.HostPortsiSCSI
-------------------------------------------------------------------------------------------
+4.2 Host Port Configuration - iSCSI
 
 
 Controller Slot Port Channel LinkStatus Address         Mask          Gateway TcpPort IQN
@@ -103,15 +92,11 @@ A          1    e1a  3       down       192.168.132.101 255.255.255.0 0.0.0.0 32
 A          1    e1c  5       down       192.168.134.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f0180000000…
 A          1    e1d  6       down       192.168.135.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f0180000000…
 
-
-Tables.HostPortsFC
-------------------------------------------------------------------------------------------
+4.3 Host Port Configuration - Fibre Channel
 
 
 
-
-Tables.Hosts
-------------------------------------------------------------------------------------------
+4.4 Host Definitions
 
 
 Name        HostType
@@ -119,18 +104,14 @@ Name        HostType
 NameofHost2 
 NameofHost1
 
-
-Tables.HostGroups
-------------------------------------------------------------------------------------------
+4.5 Host Groups
 
 
 Name              Members
 ----              -------
 NameofHostCluster ["NameofHost2","NameofHost1"]
 
-
-Tables.HostsToHostGroups
-------------------------------------------------------------------------------------------
+4.6 Host to Host Group Relationships
 
 
 Host        HostGroup         HostType KeyType
@@ -138,9 +119,7 @@ Host        HostGroup         HostType KeyType
 NameofHost2 NameofHostCluster          clusterRef
 NameofHost1 NameofHostCluster          clusterRef
 
-
-Tables.HostGroupsToVolumes
-------------------------------------------------------------------------------------------
+4.7 Host Group to Volume Presentation
 
 
 HostGroup         Volume        Lun
@@ -148,18 +127,16 @@ HostGroup         Volume        Lun
 NameofHostCluster Hyper-V_Vol01 2
 NameofHostCluster Hyper-V_Vol02 1
 
-
-Tables.HostsToVolumes
-------------------------------------------------------------------------------------------
+4.8 Direct Host to Volume Presentation
 
 
 Host        Volume    Lun
 ----        ------    ---
 NameofHost1 VeeamVol1 3
 
-
-Tables.Drives
-------------------------------------------------------------------------------------------
+5. Storage Configuration
+----------------------------------------------------------------------------------------------------
+5.1 Drive Inventory
 
 
 Slot Media Type Raw     Usable  Firmware Status  SerialNumber
@@ -189,9 +166,7 @@ Slot Media Type Raw     Usable  Firmware Status  SerialNumber
 24   ssd        3.49 TB 3.49 TB LE00     optimal S74DNN0Y900580
 18   ssd        3.49 TB 3.49 TB LE00     optimal S74DNN0Y900581
 
-
-Tables.StorageContainers
-------------------------------------------------------------------------------------------
+5.2 Storage Containers / Pools / Volume Groups
 
 
 Name       ContainerType RaidLevel DriveMediaType Total    Used     Free      State    Status
@@ -200,9 +175,7 @@ SampleVG_1 VolumeGroup   raid6     ssd            20.93 TB 19.53 TB 1.40 TB   co
 SampleVG_2 VolumeGroup   raid6     ssd            10.45 TB 9.77 TB  697.98 GB complete optimal
 SampleVG_3 VolumeGroup   raid6     hdd            13.07 TB 11.72 TB 1.35 TB   complete optimal
 
-
-Tables.Volumes
-------------------------------------------------------------------------------------------
+5.3 Volumes
 
 
 Name          Size     Status  RaidLevel Container
@@ -211,9 +184,7 @@ VeeamVol1     11.72 TB optimal raid6     SampleVG_3
 Hyper-V_Vol01 19.53 TB optimal raid6     SampleVG_1
 Hyper-V_Vol02 9.77 TB  optimal raid6     SampleVG_2
 
-
-Tables.VolumeMappings
-------------------------------------------------------------------------------------------
+5.4 Volume Mapping Summary
 
 
 Volume        Lun TargetType
@@ -222,18 +193,16 @@ VeeamVol1     3   host
 Hyper-V_Vol01 2   hostGroup
 Hyper-V_Vol02 1   hostGroup
 
-
-Tables.ASUP
-------------------------------------------------------------------------------------------
+6. Operations, Support, and Feature State
+----------------------------------------------------------------------------------------------------
+6.1 AutoSupport Configuration
 
 
 AsupEnabled OnDemandEnabled RemoteDiags DeliveryMethod RoutingType MaxHttps MaxSmtp
 ----------- --------------- ----------- -------------- ----------- -------- -------
 True        True            True        https          direct      50.00 MB 5.00 MB
 
-
-Tables.CapabilitiesSummary
-------------------------------------------------------------------------------------------
+6.2 Capabilities Summary
 
 
 Feature                Category           State    Compliance Entitlement
@@ -251,9 +220,7 @@ RAID 6                 Storage Resiliency Enabled  Compliant  Bundled
 Secure Volume          Security           Enabled  Compliant  Bundled
 Protection Information Storage Resiliency Enabled  Compliant  Bundled
 
-
-Tables.CapabilitiesKeyFeatures
-------------------------------------------------------------------------------------------
+6.3 Key Features
 
 
 Feature                State    License     Notes
@@ -271,9 +238,7 @@ RAID 6                 Enabled  None        Double-parity RAID support. Runtime 
 Secure Volume          Enabled  None        Encryption-at-rest and related key management capability. Runtime capabilities: secureVolume, fdePro…
 Protection Information Enabled  None        T10/DIF style end-to-end data integrity support. Runtime capabilities: protectionInformation
 
-
-Tables.CapabilitiesLimits
-------------------------------------------------------------------------------------------
+6.4 Feature Limits / Consumption
 
 
 Feature                Limit Used LimitState    Entitlement
@@ -292,4 +257,11 @@ Performance Tiering               NotApplicable Bundled
 RAID 6                            NotApplicable Bundled
 Secure Volume                     NotApplicable Bundled
 Protection Information            NotApplicable Bundled
+
+7. Notes for Review
+----------------------------------------------------------------------------------------------------
+- Review host definitions and host-group mappings to verify host type / OS personality is populated as expected.
+- Review transport and host-port sections together to validate the intended access model (iSCSI vs FC).
+- Review storage-container, volume, and mapping sections together to confirm pool/container-to-volume relationships.
+- This text template is intended as a richer local validation layout before moving equivalent structure into the DOCX skeleton.
 
