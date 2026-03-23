@@ -21,7 +21,8 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             [Parameter(Mandatory = $true)][object[]]$Mappings,
             [Parameter(Mandatory = $true)][string]$Template,
             [Parameter(Mandatory = $false)][hashtable]$Dataset,
-            [Parameter(Mandatory = $false)][string]$DatasetRelativePath = 'datasets/systems.json'
+            [Parameter(Mandatory = $false)][string]$DatasetRelativePath = 'datasets/systems.json',
+            [Parameter(Mandatory = $false)][string]$TechId = 'Lenovo.DE'
         )
 
         $bundleRoot = Join-Path $Root 'bundle'
@@ -59,7 +60,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         Set-Content -LiteralPath $mappingPath -Encoding UTF8 -Value (@{
             schema = 'mapping.dataset-to-sdt'
             schemaVersion = 1
-            techId = 'Lenovo.DE'
+            techId = $TechId
             displayName = 'test mapping'
             compatibility = @{ contracts = @{ version = 'v1' } }
             strictContracts = @{ enabled = $true; requireAllMappings = $true }
@@ -76,6 +77,78 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             outputPath = (Join-Path $Root 'rendered.txt')
             reportPath = (Join-Path $Root 'report.json')
         }
+    }
+
+    function New-MinimalContractsRoot {
+        param(
+            [Parameter(Mandatory = $true)][string]$Root,
+            [Parameter(Mandatory = $true)][string]$DatasetName
+        )
+
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $sourceContractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $contractsRoot = Join-Path $Root 'contracts'
+        $null = New-Item -Path $contractsRoot -ItemType Directory -Force
+
+        $schemaRelativePaths = @(
+            'standards/mapping.dataset-to-sdt.schema.v1.json',
+            'standards/assembler/assembler.projections.schema.v1.json',
+            'standards/assembler/assembler.render-report.schema.v1.json'
+        )
+
+        foreach ($schemaRelativePath in $schemaRelativePaths) {
+            $sourcePath = Join-Path $sourceContractsRoot $schemaRelativePath
+            $targetPath = Join-Path $contractsRoot $schemaRelativePath
+            $targetDir = Split-Path -Parent $targetPath
+            if (-not (Test-Path -LiteralPath $targetDir -PathType Container)) {
+                $null = New-Item -Path $targetDir -ItemType Directory -Force
+            }
+
+            Copy-Item -LiteralPath $sourcePath -Destination $targetPath -Force
+        }
+
+        $techRoot = Join-Path $contractsRoot 'tech/Test.Tech'
+        $datasetRoot = Join-Path $techRoot 'dataset'
+        $null = New-Item -Path $datasetRoot -ItemType Directory -Force
+
+        $projectionRef = 'LNV.Test.Tech.System[ArrayName].Tables.Sample'
+        $projectionContractPath = Join-Path $techRoot 'assembler.projections.v1.json'
+        Set-Content -LiteralPath $projectionContractPath -Encoding UTF8 -Value (@{
+            schema = 'assembler.projections'
+            schemaVersion = 1
+            techId = 'Test.Tech'
+            displayName = 'Test.Tech projection definitions'
+            projections = @{
+                $projectionRef = @{
+                    columns = @(
+                        @{ name = 'Controller'; source = 'controllerLabel' },
+                        @{ name = 'Address'; source = 'ipv4Address' },
+                        @{ name = 'IQN'; source = 'iqn' }
+                    )
+                    renderMode = 'table'
+                    renderAs = 'table'
+                    emptyBehavior = 'render-empty'
+                    identityKeys = @('controllerLabel')
+                    rowOrder = @('controllerLabel')
+                }
+            }
+        } | ConvertTo-Json -Depth 10)
+
+        $datasetMetadataPath = Join-Path $datasetRoot "$DatasetName.assembler.meta.json"
+        Set-Content -LiteralPath $datasetMetadataPath -Encoding UTF8 -Value (@{
+            schemaVersion = 1
+            dataset = $DatasetName
+            presentationKind = 'table'
+            defaultItemRoot = 'items'
+            preferredProjectionViews = @(
+                @{
+                    name = 'Sample'
+                    projectionRef = $projectionRef
+                }
+            )
+        } | ConvertTo-Json -Depth 10)
+
+        return $contractsRoot
     }
 
     It 'keeps successful render reports schema-valid when matches are emitted' {
@@ -1476,7 +1549,6 @@ DNS1=<<SDT:DNS1>>
 
     It 'uses dataset presentation metadata to default selectors and preferred projections' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
-        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
         if ([string]::IsNullOrWhiteSpace($pwshPath)) {
             throw 'pwsh is required to execute scripts in this test'
@@ -1486,7 +1558,9 @@ DNS1=<<SDT:DNS1>>
         $null = New-Item -ItemType Directory -Path $tempRoot -Force
 
         try {
-            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'Ports=<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI>>' -Dataset @{
+            $contractsRoot = New-MinimalContractsRoot -Root $tempRoot -DatasetName 'host-ports'
+
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'Ports=<<SDT:LNV.Test.Tech.System[ArrayName].Tables.Sample>>' -Dataset @{
                 schema_version = 'lnv.collector.dataset.v1'
                 collector = @{ module = 'test.module'; version = '1.0.0' }
                 source = @{ kind = 'integration-test'; endpoint = 'local' }
@@ -1513,10 +1587,10 @@ DNS1=<<SDT:DNS1>>
             } -DatasetRelativePath 'datasets/host-ports.json' -Mappings @(
                 @{
                     dataset = 'datasets/host-ports.json'
-                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI'
+                    sdtTag = 'LNV.Test.Tech.System[ArrayName].Tables.Sample'
                     required = $true
                 }
-            )
+            ) -TechId 'Test.Tech'
 
             $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
             $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
@@ -1528,7 +1602,7 @@ DNS1=<<SDT:DNS1>>
             }
 
             $report = $output | ConvertFrom-Json -AsHashtable
-            $match = @($report.matches | Where-Object { $_.tag -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI' }) | Select-Object -First 1
+            $match = @($report.matches | Where-Object { $_.tag -eq 'LNV.Test.Tech.System[ArrayName].Tables.Sample' }) | Select-Object -First 1
             if ($null -eq $match) {
                 throw 'Expected match entry for metadata-driven host port rendering'
             }
