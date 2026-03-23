@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "dataset": "host-ports",
+  "presentationKind": "table",
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    {
+      "name": "HostPortsiSCSI",
+      "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI"
+    },
+    {
+      "name": "HostPortsFC",
+      "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC"
+    }
+  ]
+}

@@ -286,10 +286,123 @@ function ConvertTo-PlainHashtable {
 }
 
 
+$script:DatasetPresentationMetadataCache = @{}
+
+function Get-DatasetContractKey {
+    param(
+        [Parameter(Mandatory = $false)][string]$DatasetRelativePath,
+        [Parameter(Mandatory = $false)][hashtable]$Dataset
+    )
+
+    if ($null -ne $Dataset -and $Dataset.ContainsKey('dataset')) {
+        $datasetValue = $Dataset.dataset
+        if ($datasetValue -is [string] -and -not [string]::IsNullOrWhiteSpace([string]$datasetValue)) {
+            return [string]$datasetValue
+        }
+
+        if ($datasetValue -is [System.Collections.IDictionary] -and $datasetValue.ContainsKey('key') -and -not [string]::IsNullOrWhiteSpace([string]$datasetValue.key)) {
+            return [string]$datasetValue.key
+        }
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($DatasetRelativePath)) {
+        $fileName = [System.IO.Path]::GetFileNameWithoutExtension([string]$DatasetRelativePath)
+        if (-not [string]::IsNullOrWhiteSpace($fileName)) {
+            return $fileName
+        }
+    }
+
+    return $null
+}
+
+function Get-DatasetPresentationMetadata {
+    param(
+        [Parameter(Mandatory = $true)][string]$ContractsRoot,
+        [Parameter(Mandatory = $true)][string]$TechId,
+        [Parameter(Mandatory = $false)][string]$DatasetContractKey
+    )
+
+    if ([string]::IsNullOrWhiteSpace($DatasetContractKey)) {
+        return $null
+    }
+
+    $cacheKey = "$ContractsRoot|$TechId|$DatasetContractKey"
+    if ($script:DatasetPresentationMetadataCache.ContainsKey($cacheKey)) {
+        return $script:DatasetPresentationMetadataCache[$cacheKey]
+    }
+
+    $metadataPath = Join-Path (Join-Path (Join-Path (Join-Path $ContractsRoot 'tech') $TechId) 'dataset') ($DatasetContractKey + '.assembler.meta.json')
+    if (-not (Test-Path -LiteralPath $metadataPath -PathType Leaf)) {
+        $script:DatasetPresentationMetadataCache[$cacheKey] = $null
+        return $null
+    }
+
+    $metadata = ConvertTo-PlainHashtable -InputObject (Read-JsonFile -Path $metadataPath)
+    $script:DatasetPresentationMetadataCache[$cacheKey] = $metadata
+    return $metadata
+}
+
+function Resolve-PreferredProjectionFromMetadata {
+    param(
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$DatasetPresentation,
+        [Parameter(Mandatory = $false)][string]$Tag
+    )
+
+    if ($null -eq $DatasetPresentation -or -not $DatasetPresentation.ContainsKey('preferredProjectionViews')) {
+        return $null
+    }
+
+    $views = @(ConvertTo-ObjectArray -InputObject $DatasetPresentation.preferredProjectionViews | Where-Object { $_ -is [System.Collections.IDictionary] })
+    if (@($views).Count -eq 0) {
+        return $null
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($Tag)) {
+        foreach ($view in $views) {
+            $viewName = if ($view.ContainsKey('name')) { [string]$view.name } else { '' }
+            $projectionRef = if ($view.ContainsKey('projectionRef')) { [string]$view.projectionRef } else { '' }
+            if ((-not [string]::IsNullOrWhiteSpace($viewName) -and $Tag.IndexOf($viewName, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) -or (-not [string]::IsNullOrWhiteSpace($projectionRef) -and $Tag.IndexOf($projectionRef, [System.StringComparison]::OrdinalIgnoreCase) -ge 0)) {
+                return $view
+            }
+        }
+    }
+
+    if (@($views).Count -eq 1) {
+        return $views[0]
+    }
+
+    return $null
+}
+
 function Get-MappingRenderHint {
-    param([Parameter(Mandatory = $false)]$MappingEntry)
+    param(
+        [Parameter(Mandatory = $false)]$MappingEntry,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$DatasetPresentation,
+        [Parameter(Mandatory = $false)][string]$Tag
+    )
 
     $hint = [ordered]@{}
+
+    if ($null -ne $DatasetPresentation) {
+        $presentationKind = if ($DatasetPresentation.ContainsKey('presentationKind')) { [string]$DatasetPresentation.presentationKind } else { '' }
+        switch ($presentationKind) {
+            'table' { $hint.renderAs = 'table' }
+            'relationshipTable' { $hint.renderAs = 'table' }
+            'evidence' { $hint.renderMode = 'json-evidence' }
+            'summary' { }
+        }
+
+        $preferredProjection = Resolve-PreferredProjectionFromMetadata -DatasetPresentation $DatasetPresentation -Tag $Tag
+        if ($null -ne $preferredProjection) {
+            if ($preferredProjection.ContainsKey('projectionRef') -and -not [string]::IsNullOrWhiteSpace([string]$preferredProjection.projectionRef)) {
+                $hint.projectionRef = [string]$preferredProjection.projectionRef
+            }
+            if ($preferredProjection.ContainsKey('name') -and -not [string]::IsNullOrWhiteSpace([string]$preferredProjection.name)) {
+                $hint.view = [string]$preferredProjection.name
+            }
+        }
+    }
+
     if ($null -eq $MappingEntry -or -not ($MappingEntry -is [System.Collections.IDictionary])) {
         return $hint
     }
@@ -423,12 +536,18 @@ function Get-StructuredValuePlaceholder {
 function Get-EffectiveSelectorsForMapping {
     param(
         [Parameter(Mandatory = $true)][System.Collections.IDictionary]$MappingEntry,
-        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$DatasetPresentation
     )
 
     $selectors = @(ConvertTo-ObjectArray -InputObject $MappingEntry.selectors | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | ForEach-Object { [string]$_ })
     if (@($selectors).Count -gt 0) {
         return @($selectors)
+    }
+
+    $defaultItemRoot = ''
+    if ($null -ne $DatasetPresentation -and $DatasetPresentation.ContainsKey('defaultItemRoot') -and -not [string]::IsNullOrWhiteSpace([string]$DatasetPresentation.defaultItemRoot)) {
+        $defaultItemRoot = [string]$DatasetPresentation.defaultItemRoot
     }
 
     if ($null -ne $RenderHint) {
@@ -440,6 +559,9 @@ function Get-EffectiveSelectorsForMapping {
             -not [string]::IsNullOrWhiteSpace($projectionRef) -or
             -not [string]::IsNullOrWhiteSpace($view)
         ) {
+            if (-not [string]::IsNullOrWhiteSpace($defaultItemRoot)) {
+                return @($defaultItemRoot)
+            }
             return @('items')
         }
     }
@@ -1076,8 +1198,10 @@ try {
         }
 
         $resolved = $null
-        $renderHint = Get-MappingRenderHint -MappingEntry $entry
-        $selectors = @(Get-EffectiveSelectorsForMapping -MappingEntry $entry -RenderHint $renderHint)
+        $datasetContractKey = Get-DatasetContractKey -DatasetRelativePath ([string]$entry.dataset) -Dataset $dataset
+        $datasetPresentation = Get-DatasetPresentationMetadata -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId) -DatasetContractKey $datasetContractKey
+        $renderHint = Get-MappingRenderHint -MappingEntry $entry -DatasetPresentation $datasetPresentation -Tag $tag
+        $selectors = @(Get-EffectiveSelectorsForMapping -MappingEntry $entry -RenderHint $renderHint -DatasetPresentation $datasetPresentation)
         $currentSelectorChain = if (@($selectors).Count -gt 0) { (($selectors | ForEach-Object { [string]$_ }) -join ' -> ') } else { '' }
         if (@($selectors).Count -gt 0) {
             $selectorResult = Resolve-SelectorWithSummaryCompatibility -Dataset $dataset -Selectors @($selectors | ForEach-Object { [string]$_ }) -DatasetPath $datasetPath

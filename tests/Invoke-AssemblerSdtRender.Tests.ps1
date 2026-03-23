@@ -1474,4 +1474,73 @@ DNS1=<<SDT:DNS1>>
         }
     }
 
+    It 'uses dataset presentation metadata to default selectors and preferred projections' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-dataset-presentation-metadata-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'Ports=<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI>>' -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'host-ports'
+                item_count = 1
+                items = @(
+                    @{
+                        systemId = 'sys-01'
+                        transport = 'iscsi'
+                        controllerRef = 'A'
+                        controllerLabel = 'A'
+                        controllerSlot = 1
+                        portLabel = 'P1'
+                        interfaceRef = 'if-01'
+                        linkStatus = 'up'
+                        channel = 1
+                        ipv4Address = '10.0.0.10'
+                        ipv4SubnetMask = '255.255.255.0'
+                        ipv4Gateway = '10.0.0.1'
+                        tcpPort = 3260
+                        iqn = 'iqn.1993-08.org.debian:01:test'
+                    }
+                )
+            } -DatasetRelativePath 'datasets/host-ports.json' -Mappings @(
+                @{
+                    dataset = 'datasets/host-ports.json'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI'
+                    required = $true
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            if ($LASTEXITCODE -ne 0) { throw "Expected exit code 0, got $LASTEXITCODE" }
+
+            $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
+            if ($rendered -notmatch 'Controller' -or $rendered -notmatch '10\.0\.0\.10' -or $rendered -notmatch 'iqn\.1993-08\.org\.debian:01:test') {
+                throw "Expected dataset presentation metadata to drive items-selector table rendering, got '$rendered'"
+            }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            $match = @($report.matches | Where-Object { $_.tag -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI' }) | Select-Object -First 1
+            if ($null -eq $match) {
+                throw 'Expected match entry for metadata-driven host port rendering'
+            }
+            if ([string]$match.selector -ne 'items') {
+                throw "Expected selector chain 'items' from dataset presentation metadata, got '$($match.selector)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
 }
