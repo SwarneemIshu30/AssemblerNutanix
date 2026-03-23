@@ -996,6 +996,71 @@ DNS1=<<SDT:DNS1>>
         }
     }
 
+    It 'renders Lenovo.DE system inventory projection with display columns and selected values from systems fixture' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-system-inventory-focused-projection-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template "Inventory=<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Inventory>>" -DatasetRelativePath 'datasets/systems.json' -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'systems'
+                item_count = 1
+                items = @(
+                    @{
+                        name = 'Array-Prime'
+                        model = 'DE6000F'
+                        status = 'optimal'
+                        fwVersion = '11.90'
+                        appVersion = '11.90.1'
+                        ip2 = '198.51.100.24'
+                        controllers = 2
+                        trayCount = 3
+                        driveCount = 48
+                        hiddenRef = 'internal-only'
+                    }
+                )
+            } -Mappings @(
+                @{
+                    dataset = 'datasets/systems.json'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Tables.Inventory'
+                    required = $true
+                    selectors = @('items')
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode" }
+
+            $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
+            if ($rendered -notmatch 'SystemName\s+Model\s+Status\s+FirmwareVersion\s+ApplicationVersion\s+ManagementIP\s+ControllerCount\s+TrayCount\s+DriveCount') {
+                throw "Expected readable projected system inventory header, got '$rendered'"
+            }
+            if ($rendered -notmatch 'Array-Prime\s+DE6000F\s+optimal\s+11\.90\s+11\.90\.1\s+198\.51\.100\.24\s+2\s+3\s+48') {
+                throw "Expected projected system inventory values, got '$rendered'"
+            }
+            if ($rendered -match 'hiddenRef|fwVersion|appVersion|\{"name":|^\s*Inventory=\s*\{' ) {
+                throw "Expected projected system inventory output instead of raw JSON keys/braces, got '$rendered'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'uses Lenovo.DE tray projection so tray table tags render reader-facing tabular columns' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot '.deps/contracts'
@@ -1048,6 +1113,71 @@ DNS1=<<SDT:DNS1>>
             }
             if ($rendered -match 'manufacturer|\{"trayId":') {
                 throw "Expected reader-facing tray projection output instead of raw JSON, got '$rendered'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'renders Lenovo.DE tray projection with display columns and excludes internal tray fields' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-tray-focused-projection-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template "Trays=<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Trays>>" -DatasetRelativePath 'datasets/trays.json' -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'trays'
+                item_count = 1
+                items = @(
+                    @{
+                        trayId = 7
+                        trayType = 'DE212C'
+                        trayRole = 'expansion-tray'
+                        serialNumber = 'TRAY-0007'
+                        partNumber = '01KP999'
+                        numDriveSlots = 12
+                        numControllerSlots = 0
+                        status = 'optimal'
+                        manufacturer = 'Lenovo'
+                        esmFirmware = '8.20'
+                    }
+                )
+            } -Mappings @(
+                @{
+                    dataset = 'datasets/trays.json'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Tables.Trays'
+                    required = $true
+                    selectors = @('items')
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode" }
+
+            $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
+            if ($rendered -notmatch 'TrayId\s+TrayType\s+TrayRole\s+SerialNumber\s+PartNumber\s+DriveSlots\s+ControllerSlots\s+Status') {
+                throw "Expected readable projected tray header, got '$rendered'"
+            }
+            if ($rendered -notmatch '7\s+DE212C\s+expansion-tray\s+TRAY-0007\s+01KP999\s+12\s+0\s+optimal') {
+                throw "Expected projected tray values, got '$rendered'"
+            }
+            if ($rendered -match 'manufacturer|esmFirmware|numDriveSlots|numControllerSlots|\{"trayId":|^\s*Trays=\s*\{' ) {
+                throw "Expected projected tray output instead of raw/internal fields, got '$rendered'"
             }
         }
         finally {
