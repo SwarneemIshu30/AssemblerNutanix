@@ -376,6 +376,7 @@ function Resolve-ProjectionContractPath {
 }
 
 $script:ProjectionDefinitionsCache = @{}
+$script:ProjectionAliasesCache = @{}
 
 function Get-ProjectionDefinitions {
     param(
@@ -391,37 +392,68 @@ function Get-ProjectionDefinitions {
     $projectionContractPath = Resolve-ProjectionContractPath -ContractsRoot $ContractsRoot -TechId $TechId
     $contract = Read-ProjectionContractFile -Path $projectionContractPath
     $definitions = @{}
-    if ($contract -is [hashtable] -and $contract.ContainsKey('projections')) {
-        if ($contract.projections -is [hashtable]) {
-            foreach ($projectionTag in @($contract.projections.Keys)) {
-                if (-not [string]::IsNullOrWhiteSpace([string]$projectionTag)) {
-                    $definitions[[string]$projectionTag] = Normalize-ProjectionDefinition -Definition $contract.projections[$projectionTag]
+    $aliases = @{}
+    if ($contract -is [hashtable]) {
+        if ($contract.ContainsKey('projections')) {
+            if ($contract.projections -is [hashtable]) {
+                foreach ($projectionTag in @($contract.projections.Keys)) {
+                    if (-not [string]::IsNullOrWhiteSpace([string]$projectionTag)) {
+                        $definitions[[string]$projectionTag] = Normalize-ProjectionDefinition -Definition $contract.projections[$projectionTag]
+                    }
+                }
+            }
+            elseif ($contract.projections -is [System.Collections.IList]) {
+                foreach ($projection in @($contract.projections)) {
+                    if ($projection -is [hashtable] -and $projection.ContainsKey('sdtTag') -and -not [string]::IsNullOrWhiteSpace([string]$projection.sdtTag)) {
+                        $definition = @{}
+                        foreach ($key in @($projection.Keys)) {
+                            if ([string]$key -ne 'sdtTag') {
+                                $definition[[string]$key] = $projection[$key]
+                            }
+                        }
+                        $definitions[[string]$projection.sdtTag] = Normalize-ProjectionDefinition -Definition $definition
+                    }
                 }
             }
         }
-        elseif ($contract.projections -is [System.Collections.IList]) {
-            foreach ($projection in @($contract.projections)) {
-                if ($projection -is [hashtable] -and $projection.ContainsKey('sdtTag') -and -not [string]::IsNullOrWhiteSpace([string]$projection.sdtTag)) {
-                    $definition = @{}
-                    foreach ($key in @($projection.Keys)) {
-                        if ([string]$key -ne 'sdtTag') {
-                            $definition[[string]$key] = $projection[$key]
-                        }
-                    }
-                    $definitions[[string]$projection.sdtTag] = Normalize-ProjectionDefinition -Definition $definition
+
+        if ($contract.ContainsKey('aliases') -and $contract.aliases -is [hashtable]) {
+            foreach ($aliasTag in @($contract.aliases.Keys)) {
+                if (-not [string]::IsNullOrWhiteSpace([string]$aliasTag)) {
+                    $aliases[[string]$aliasTag] = [string]$contract.aliases[$aliasTag]
                 }
             }
         }
     }
 
     $script:ProjectionDefinitionsCache[$cacheKey] = $definitions
+    $script:ProjectionAliasesCache[$cacheKey] = $aliases
     return $definitions
+}
+
+function Get-ProjectionAliases {
+    param(
+        [Parameter(Mandatory = $true)][string]$ContractsRoot,
+        [Parameter(Mandatory = $true)][string]$TechId
+    )
+
+    $cacheKey = "$ContractsRoot|$TechId"
+    if (-not $script:ProjectionAliasesCache.ContainsKey($cacheKey)) {
+        $null = Get-ProjectionDefinitions -ContractsRoot $ContractsRoot -TechId $TechId
+    }
+
+    if ($script:ProjectionAliasesCache.ContainsKey($cacheKey)) {
+        return $script:ProjectionAliasesCache[$cacheKey]
+    }
+
+    return @{}
 }
 
 function Get-ProjectionDefinitionForTag {
     param(
         [Parameter(Mandatory = $false)][string]$Tag,
-        [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions,
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases
     )
 
     if ($null -eq $ProjectionDefinitions -or [string]::IsNullOrWhiteSpace($Tag)) {
@@ -432,14 +464,8 @@ function Get-ProjectionDefinitionForTag {
         return $ProjectionDefinitions[$Tag]
     }
 
-    $aliasMap = @{
-        'LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory' = 'LNV.Lenovo.DE.System[ArrayName].Tables.Drives'
-        'LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory' = 'LNV.Lenovo.DE.System[ArrayName].Tables.StorageContainers'
-        'LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory' = 'LNV.Lenovo.DE.System[ArrayName].Tables.Volumes'
-    }
-
-    if ($aliasMap.ContainsKey($Tag)) {
-        $projectionTag = [string]$aliasMap[$Tag]
+    if ($null -ne $ProjectionAliases -and $ProjectionAliases.ContainsKey($Tag)) {
+        $projectionTag = [string]$ProjectionAliases[$Tag]
         if ($ProjectionDefinitions.ContainsKey($projectionTag)) {
             return $ProjectionDefinitions[$projectionTag]
         }
@@ -553,11 +579,12 @@ function Convert-TableRowsForTag {
     param(
         [Parameter(Mandatory = $true)][string]$Tag,
         [Parameter(Mandatory = $true)][object[]]$Rows,
-        [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions,
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases
     )
 
     $normalizedRows = @(ConvertTo-ObjectArray -InputObject $Rows)
-    $projectionDefinition = Get-ProjectionDefinitionForTag -Tag $Tag -ProjectionDefinitions $ProjectionDefinitions
+    $projectionDefinition = Get-ProjectionDefinitionForTag -Tag $Tag -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases
     if ($null -ne $projectionDefinition) {
         return @(ConvertTo-ObjectArray -InputObject (Invoke-TableProjection -Rows $normalizedRows -Definition $projectionDefinition))
     }
@@ -602,7 +629,8 @@ function Convert-ValueToTableString {
     param(
         [Parameter(Mandatory = $false)]$Value,
         [Parameter(Mandatory = $false)][string]$Tag,
-        [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions,
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases
     )
 
     if ($null -eq $Value) { return '' }
@@ -634,7 +662,7 @@ function Convert-ValueToTableString {
         return (Convert-CellValueToString -Value $Value)
     }
 
-    $rows = @(ConvertTo-ObjectArray -InputObject (Convert-TableRowsForTag -Tag $Tag -Rows $rows -ProjectionDefinitions $ProjectionDefinitions))
+    $rows = @(ConvertTo-ObjectArray -InputObject (Convert-TableRowsForTag -Tag $Tag -Rows $rows -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases))
 
     if (@($rows).Count -eq 0) {
         return ''
@@ -654,16 +682,17 @@ function Convert-ValueToString {
     param(
         [Parameter(Mandatory = $false)]$Value,
         [Parameter(Mandatory = $false)][string]$Tag,
-        [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions,
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases
     )
 
     if ($null -eq $Value) {
         return ''
     }
-    $projectionDefinition = Get-ProjectionDefinitionForTag -Tag $Tag -ProjectionDefinitions $ProjectionDefinitions
+    $projectionDefinition = Get-ProjectionDefinitionForTag -Tag $Tag -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases
     $hasProjection = ($null -ne $projectionDefinition)
     if ($hasProjection -or (-not [string]::IsNullOrWhiteSpace($Tag) -and $Tag.EndsWith('_TABLE_JSON'))) {
-        return (Convert-ValueToTableString -Value $Value -Tag $Tag -ProjectionDefinitions $ProjectionDefinitions)
+        return (Convert-ValueToTableString -Value $Value -Tag $Tag -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases)
     }
     if ($Value -is [string]) {
         return $Value
@@ -745,6 +774,7 @@ try {
     $projectionContractPath = Resolve-ProjectionContractPath -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
     $projectionContract = Read-ProjectionContractFile -Path $projectionContractPath
     $projectionDefinitions = Get-ProjectionDefinitions -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
+    $projectionAliases = Get-ProjectionAliases -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
     $mappingSchema = Read-JsonFile -Path $mappingSchemaPath
     $templateText = Get-Content -LiteralPath $TemplatePath -Raw -Encoding UTF8
 
@@ -855,7 +885,7 @@ try {
             continue
         }
 
-        $resolvedText = [string](Convert-ValueToString -Value $resolved -Tag $tag -ProjectionDefinitions $projectionDefinitions)
+        $resolvedText = [string](Convert-ValueToString -Value $resolved -Tag $tag -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases)
         $replaceByTag[$tag] = $resolvedText
         $resolvedTextLength = if ($null -eq $resolvedText) { 0 } else { $resolvedText.Length }
         $valuePreview = if ($resolvedTextLength -gt 80) { $resolvedText.Substring(0, 80) + '...' } else { $resolvedText }
