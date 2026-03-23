@@ -41,7 +41,8 @@
           "name": "SerialNumber",
           "source": "serialNumber"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.StorageContainers": {
       "columns": [
@@ -84,7 +85,8 @@
           "name": "Status",
           "source": "status"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.Volumes": {
       "columns": [
@@ -109,7 +111,8 @@
           "name": "Container",
           "source": "containerName"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.Controllers": {
       "columns": [
@@ -137,7 +140,8 @@
           "name": "SerialNumber",
           "source": "serialNumber"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces": {
       "columns": [
@@ -169,7 +173,8 @@
           "name": "Mask",
           "source": "ipv4SubnetMask"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.Transport": {
       "columns": [
@@ -185,7 +190,8 @@
           "name": "IscsiIqn",
           "source": "iscsiIqn"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI": {
       "filter": [
@@ -235,7 +241,8 @@
           "name": "IQN",
           "source": "iqn"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC": {
       "filter": [
@@ -281,7 +288,8 @@
           "name": "NodeWWN",
           "source": "nodeWwn"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.DNS": {
       "columns": [
@@ -305,7 +313,8 @@
           "format": "join",
           "delimiter": ", "
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.Time": {
       "columns": [
@@ -333,7 +342,8 @@
           "name": "DefaultRouter",
           "source": "ipv4DefaultRouter"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts": {
       "columns": [
@@ -353,7 +363,8 @@
           "name": "ClusterRef",
           "source": "clusterRef"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups": {
       "columns": [
@@ -371,7 +382,8 @@
           "format": "join",
           "delimiter": ", "
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups": {
       "columns": [
@@ -391,7 +403,8 @@
           "name": "KeyType",
           "source": "hostGroupKeyType"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes": {
       "columns": [
@@ -411,7 +424,8 @@
           "name": "MappingRef",
           "source": "mappingRef"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes": {
       "columns": [
@@ -431,7 +445,8 @@
           "name": "MappingRef",
           "source": "mappingRef"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings": {
       "columns": [
@@ -455,7 +470,8 @@
           "name": "MappingRef",
           "source": "mappingRef"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport": {
       "columns": [
@@ -489,7 +505,8 @@
           "source": "maxSizeLimitSmtp",
           "format": "bytesHuman"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary": {
       "filter": [
@@ -520,7 +537,8 @@
           "name": "Entitlement",
           "source": "entitlement"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures": {
       "filter": [
@@ -547,7 +565,8 @@
           "name": "Notes",
           "source": "notes"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits": {
       "filter": [
@@ -590,7 +609,8 @@
           "name": "Entitlement",
           "source": "entitlement"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.Inventory": {
       "columns": [
@@ -630,7 +650,8 @@
           "name": "DriveCount",
           "source": "driveCount"
         }
-      ]
+      ],
+      "renderMode": "table"
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.Trays": {
       "columns": [
@@ -666,7 +687,8 @@
           "name": "Status",
           "source": "status"
         }
-      ]
+      ],
+      "renderMode": "table"
     }
   }
 }

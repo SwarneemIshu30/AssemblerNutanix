@@ -1369,4 +1369,109 @@ DNS1=<<SDT:DNS1>>
             }
         }
     }
+
+    It 'emits a render issue and placeholder when table render mode has no projection definition' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-table-missing-projection-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'Table=<<SDT:MISSING_TABLE>>' -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'systems'
+                item_count = 1
+                items = @(
+                    @{ name = 'row1'; status = 'online' }
+                )
+            } -Mappings @(
+                @{
+                    dataset = 'datasets/systems.json'
+                    sdtTag = 'MISSING_TABLE'
+                    required = $true
+                    renderHint = @{ renderMode = 'table'; missingProjectionPolicy = 'placeholder' }
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            if ($LASTEXITCODE -ne 0) { throw "Expected exit code 0, got $LASTEXITCODE" }
+
+            $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
+            if ($rendered -notmatch [regex]::Escape('Table=[table data omitted: projection required]')) {
+                throw "Expected placeholder output for missing table projection, got '$rendered'"
+            }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            $issue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-TABLE-PROJECTION-MISSING' }) | Select-Object -First 1
+            if ($null -eq $issue) {
+                throw 'Expected missing table projection issue in report'
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'allows raw JSON only for explicitly declared json evidence render mode' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-json-evidence-render-mode-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'Evidence=<<SDT:RAW_EVIDENCE>>' -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'systems'
+                item_count = 1
+                items = @(
+                    @{ name = 'ArrayOne'; nested = @{ state = 'ok' } }
+                )
+            } -Mappings @(
+                @{
+                    dataset = 'datasets/systems.json'
+                    sdtTag = 'RAW_EVIDENCE'
+                    required = $true
+                    selectors = @('items', '0')
+                    renderHint = @{ renderMode = 'json-evidence' }
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            if ($LASTEXITCODE -ne 0) { throw "Expected exit code 0, got $LASTEXITCODE" }
+
+            $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
+            if ($rendered -notmatch 'Evidence=\{"name":"ArrayOne","nested":\{"state":"ok"\}\}') {
+                throw "Expected explicit json evidence render mode to preserve JSON, got '$rendered'"
+            }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            if ((@($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-STRUCTURED-VALUE-RENDERMODE-REQUIRED' }).Count) -ne 0) {
+                throw 'Expected no structured-value render mode warning for explicit json evidence rendering'
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
 }
