@@ -1,152 +1,124 @@
-Mode: Blueprint
+Mode: As-Built Draft
 
-# System: <<SDT:DE_SYSTEM_NAME>>
-------------------------------------------------------------------------------------------
+# Lenovo DE As-Built Configuration Reference: <<SDT:DE_SYSTEM_NAME>>
+====================================================================================================
 
-Summary
-------------------------------------------------------------------------------------------
+1. Platform Summary
+----------------------------------------------------------------------------------------------------
+System Name             : <<SDT:DE_SYSTEM_NAME>>
+Model                   : <<SDT:DE_SYSTEM_MODEL>>
+Operational Status      : <<SDT:DE_SYSTEM_STATUS>>
+Firmware Version        : <<SDT:DE_FIRMWARE_VERSION>>
+Application Version     : <<SDT:DE_APP_VERSION>>
+Boot Version            : <<SDT:DE_BOOT_VERSION>>
+NVSRAM Version          : <<SDT:DE_NVSRAM_VERSION>>
+Management IP           : <<SDT:DE_MANAGEMENT_IP>>
+Drive Count             : <<SDT:DE_DRIVE_COUNT>>
+Storage Container Count : <<SDT:DE_CONTAINER_COUNT>>
+Volume Count            : <<SDT:DE_VOLUME_COUNT>>
 
-Name       : <<SDT:DE_SYSTEM_NAME>>
-Model      : <<SDT:DE_SYSTEM_MODEL>>
-Status     : <<SDT:DE_SYSTEM_STATUS>>
-Firmware   : <<SDT:DE_FIRMWARE_VERSION>>
-AppVersion : <<SDT:DE_APP_VERSION>>
-Boot       : <<SDT:DE_BOOT_VERSION>>
-Nvsram     : <<SDT:DE_NVSRAM_VERSION>>
-Mgmt IP    : <<SDT:DE_MANAGEMENT_IP>>
-Drives     : <<SDT:DE_DRIVE_COUNT>>
-Containers : <<SDT:DE_CONTAINER_COUNT>>
-Volumes    : <<SDT:DE_VOLUME_COUNT>>
+2. Collection Context
+----------------------------------------------------------------------------------------------------
+Collected UTC           : <<SDT:DE_COLLECTION_COLLECTED_UTC>>
+Collection Mode         : <<SDT:DE_COLLECTION_MODE>>
+Collection Endpoint     : <<SDT:DE_COLLECTION_CONTROLLER>>:<<SDT:DE_COLLECTION_PORT>>
+System Count Returned   : <<SDT:DE_COLLECTION_SYSTEM_COUNT>>
 
-Collection
-------------------------------------------------------------------------------------------
-
-Collected UTC : <<SDT:DE_COLLECTION_COLLECTED_UTC>>
-Mode          : <<SDT:DE_COLLECTION_MODE>>
-Controller    : <<SDT:DE_COLLECTION_CONTROLLER>>:<<SDT:DE_COLLECTION_PORT>>
-System Count  : <<SDT:DE_COLLECTION_SYSTEM_COUNT>>
-
-Tables.Controllers
-------------------------------------------------------------------------------------------
+3. System Overview
+----------------------------------------------------------------------------------------------------
+3.1 Controller Inventory
 
 <<SDT:DE_CONTROLLERS_TABLE_JSON>>
 
-
-Tables.ManagementInterfaces
-------------------------------------------------------------------------------------------
+3.2 Management Interfaces
 
 <<SDT:DE_MANAGEMENT_INTERFACES_TABLE_JSON>>
 
-
-Tables.Transport
-------------------------------------------------------------------------------------------
+3.3 Transport Summary
 
 <<SDT:DE_TRANSPORT_TABLE_JSON>>
 
-
-Tables.DNS
-------------------------------------------------------------------------------------------
+3.4 DNS Configuration
 
 <<SDT:DE_DNS_TABLE_JSON>>
 
-
-Tables.Time
-------------------------------------------------------------------------------------------
+3.5 Time Configuration
 
 <<SDT:DE_TIME_TABLE_JSON>>
 
-
-Tables.Trays
-------------------------------------------------------------------------------------------
+4. Platform Configuration
+----------------------------------------------------------------------------------------------------
+4.1 Tray / Shelf Inventory
 
 <<SDT:DE_TRAYS_TABLE_JSON>>
 
-
-Tables.HostPortsiSCSI
-------------------------------------------------------------------------------------------
+4.2 Host Port Configuration - iSCSI
 
 <<SDT:DE_HOSTPORTS_ISCSI_TABLE_JSON>>
 
-
-Tables.HostPortsFC
-------------------------------------------------------------------------------------------
+4.3 Host Port Configuration - Fibre Channel
 
 <<SDT:DE_HOSTPORTS_FC_TABLE_JSON>>
 
-
-Tables.Hosts
-------------------------------------------------------------------------------------------
+4.4 Host Definitions
 
 <<SDT:DE_HOSTS_TABLE_JSON>>
 
-
-Tables.HostGroups
-------------------------------------------------------------------------------------------
+4.5 Host Groups
 
 <<SDT:DE_HOST_GROUPS_TABLE_JSON>>
 
-
-Tables.HostsToHostGroups
-------------------------------------------------------------------------------------------
+4.6 Host to Host Group Relationships
 
 <<SDT:DE_HOSTS_TO_HOST_GROUPS_TABLE_JSON>>
 
-
-Tables.HostGroupsToVolumes
-------------------------------------------------------------------------------------------
+4.7 Host Group to Volume Presentation
 
 <<SDT:DE_HOST_GROUPS_TO_VOLUMES_TABLE_JSON>>
 
-
-Tables.HostsToVolumes
-------------------------------------------------------------------------------------------
+4.8 Direct Host to Volume Presentation
 
 <<SDT:DE_HOSTS_TO_VOLUMES_TABLE_JSON>>
 
-
-Tables.Drives
-------------------------------------------------------------------------------------------
+5. Storage Configuration
+----------------------------------------------------------------------------------------------------
+5.1 Drive Inventory
 
 <<SDT:DE_DRIVES_TABLE_JSON>>
 
-
-Tables.StorageContainers
-------------------------------------------------------------------------------------------
+5.2 Storage Containers / Pools / Volume Groups
 
 <<SDT:DE_STORAGE_CONTAINERS_TABLE_JSON>>
 
-
-Tables.Volumes
-------------------------------------------------------------------------------------------
+5.3 Volumes
 
 <<SDT:DE_VOLUMES_TABLE_JSON>>
 
-
-Tables.VolumeMappings
-------------------------------------------------------------------------------------------
+5.4 Volume Mapping Summary
 
 <<SDT:DE_VOLUME_MAPPINGS_TABLE_JSON>>
 
-
-Tables.ASUP
-------------------------------------------------------------------------------------------
+6. Operations, Support, and Feature State
+----------------------------------------------------------------------------------------------------
+6.1 AutoSupport Configuration
 
 <<SDT:DE_SYSTEM_ASUP_TABLE_JSON>>
 
-
-Tables.CapabilitiesSummary
-------------------------------------------------------------------------------------------
+6.2 Capabilities Summary
 
 <<SDT:DE_CAPABILITIES_SUMMARY_TABLE_JSON>>
 
-
-Tables.CapabilitiesKeyFeatures
-------------------------------------------------------------------------------------------
+6.3 Key Features
 
 <<SDT:DE_CAPABILITIES_KEY_FEATURES_TABLE_JSON>>
 
-
-Tables.CapabilitiesLimits
-------------------------------------------------------------------------------------------
+6.4 Feature Limits / Consumption
 
 <<SDT:DE_CAPABILITIES_LIMITS_TABLE_JSON>>
+
+7. Notes for Review
+----------------------------------------------------------------------------------------------------
+- Review host definitions and host-group mappings to verify host type / OS personality is populated as expected.
+- Review transport and host-port sections together to validate the intended access model (iSCSI vs FC).
+- Review storage-container, volume, and mapping sections together to confirm pool/container-to-volume relationships.
+- This text template is intended as a richer local validation layout before moving equivalent structure into the DOCX skeleton.
