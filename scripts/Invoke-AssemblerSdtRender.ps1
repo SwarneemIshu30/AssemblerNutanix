@@ -285,6 +285,82 @@ function ConvertTo-PlainHashtable {
     return $InputObject
 }
 
+
+function Get-MappingRenderHint {
+    param([Parameter(Mandatory = $false)]$MappingEntry)
+
+    $hint = [ordered]@{}
+    if ($null -eq $MappingEntry -or -not ($MappingEntry -is [System.Collections.IDictionary])) {
+        return $hint
+    }
+
+    if ($MappingEntry.ContainsKey('renderHint') -and $MappingEntry.renderHint -is [System.Collections.IDictionary]) {
+        foreach ($key in @($MappingEntry.renderHint.Keys)) {
+            if (-not [string]::IsNullOrWhiteSpace([string]$key)) {
+                $hint[[string]$key] = $MappingEntry.renderHint[$key]
+            }
+        }
+    }
+
+    foreach ($legacyKey in @('projectionRef', 'renderAs', 'view')) {
+        if (-not $hint.Contains($legacyKey) -and $MappingEntry.ContainsKey($legacyKey) -and -not [string]::IsNullOrWhiteSpace([string]$MappingEntry[$legacyKey])) {
+            $hint[$legacyKey] = [string]$MappingEntry[$legacyKey]
+        }
+    }
+
+    return $hint
+}
+
+function Get-EffectiveSelectorsForMapping {
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$MappingEntry,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint
+    )
+
+    $selectors = @(ConvertTo-ObjectArray -InputObject $MappingEntry.selectors | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | ForEach-Object { [string]$_ })
+    if (@($selectors).Count -gt 0) {
+        return @($selectors)
+    }
+
+    if ($null -ne $RenderHint) {
+        $renderAs = if ($RenderHint.Contains('renderAs')) { [string]$RenderHint.renderAs } else { '' }
+        $projectionRef = if ($RenderHint.Contains('projectionRef')) { [string]$RenderHint.projectionRef } else { '' }
+        $view = if ($RenderHint.Contains('view')) { [string]$RenderHint.view } else { '' }
+        if (
+            $renderAs -eq 'table' -or
+            -not [string]::IsNullOrWhiteSpace($projectionRef) -or
+            -not [string]::IsNullOrWhiteSpace($view)
+        ) {
+            return @('items')
+        }
+    }
+
+    return @()
+}
+
+function Get-ProjectionDefinitionForMapping {
+    param(
+        [Parameter(Mandatory = $false)][string]$Tag,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions,
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases
+    )
+
+    if ($null -ne $RenderHint) {
+        foreach ($hintKey in @('projectionRef', 'view')) {
+            if ($RenderHint.Contains($hintKey) -and -not [string]::IsNullOrWhiteSpace([string]$RenderHint[$hintKey])) {
+                $projectionTag = [string]$RenderHint[$hintKey]
+                $definition = Get-ProjectionDefinitionForTag -Tag $projectionTag -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases
+                if ($null -ne $definition) {
+                    return $definition
+                }
+            }
+        }
+    }
+
+    return Get-ProjectionDefinitionForTag -Tag $Tag -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases
+}
+
 function Test-ProjectionContractJsonArrayShape {
     param([Parameter(Mandatory = $true)][string]$JsonText)
 
@@ -579,12 +655,13 @@ function Convert-TableRowsForTag {
     param(
         [Parameter(Mandatory = $true)][string]$Tag,
         [Parameter(Mandatory = $true)][object[]]$Rows,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
         [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions,
         [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases
     )
 
     $normalizedRows = @(ConvertTo-ObjectArray -InputObject $Rows)
-    $projectionDefinition = Get-ProjectionDefinitionForTag -Tag $Tag -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases
+    $projectionDefinition = Get-ProjectionDefinitionForMapping -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases
     if ($null -ne $projectionDefinition) {
         return @(ConvertTo-ObjectArray -InputObject (Invoke-TableProjection -Rows $normalizedRows -Definition $projectionDefinition))
     }
@@ -629,6 +706,7 @@ function Convert-ValueToTableString {
     param(
         [Parameter(Mandatory = $false)]$Value,
         [Parameter(Mandatory = $false)][string]$Tag,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
         [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions,
         [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases
     )
@@ -662,7 +740,7 @@ function Convert-ValueToTableString {
         return (Convert-CellValueToString -Value $Value)
     }
 
-    $rows = @(ConvertTo-ObjectArray -InputObject (Convert-TableRowsForTag -Tag $Tag -Rows $rows -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases))
+    $rows = @(ConvertTo-ObjectArray -InputObject (Convert-TableRowsForTag -Tag $Tag -Rows $rows -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases))
 
     if (@($rows).Count -eq 0) {
         return ''
@@ -682,6 +760,7 @@ function Convert-ValueToString {
     param(
         [Parameter(Mandatory = $false)]$Value,
         [Parameter(Mandatory = $false)][string]$Tag,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
         [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions,
         [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases
     )
@@ -689,10 +768,11 @@ function Convert-ValueToString {
     if ($null -eq $Value) {
         return ''
     }
-    $projectionDefinition = Get-ProjectionDefinitionForTag -Tag $Tag -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases
+    $projectionDefinition = Get-ProjectionDefinitionForMapping -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases
+    $renderAs = if ($null -ne $RenderHint -and $RenderHint.Contains('renderAs')) { [string]$RenderHint.renderAs } else { '' }
     $hasProjection = ($null -ne $projectionDefinition)
-    if ($hasProjection -or (-not [string]::IsNullOrWhiteSpace($Tag) -and $Tag.EndsWith('_TABLE_JSON'))) {
-        return (Convert-ValueToTableString -Value $Value -Tag $Tag -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases)
+    if ($renderAs -eq 'table' -or $hasProjection -or (-not [string]::IsNullOrWhiteSpace($Tag) -and $Tag.EndsWith('_TABLE_JSON'))) {
+        return (Convert-ValueToTableString -Value $Value -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases)
     }
     if ($Value -is [string]) {
         return $Value
@@ -860,7 +940,8 @@ try {
         }
 
         $resolved = $null
-        $selectors = @(ConvertTo-ObjectArray -InputObject $entry.selectors)
+        $renderHint = Get-MappingRenderHint -MappingEntry $entry
+        $selectors = @(Get-EffectiveSelectorsForMapping -MappingEntry $entry -RenderHint $renderHint)
         $currentSelectorChain = if (@($selectors).Count -gt 0) { (($selectors | ForEach-Object { [string]$_ }) -join ' -> ') } else { '' }
         if (@($selectors).Count -gt 0) {
             $selectorResult = Resolve-SelectorWithSummaryCompatibility -Dataset $dataset -Selectors @($selectors | ForEach-Object { [string]$_ }) -DatasetPath $datasetPath
@@ -885,7 +966,7 @@ try {
             continue
         }
 
-        $resolvedText = [string](Convert-ValueToString -Value $resolved -Tag $tag -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases)
+        $resolvedText = [string](Convert-ValueToString -Value $resolved -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases)
         $replaceByTag[$tag] = $resolvedText
         $resolvedTextLength = if ($null -eq $resolvedText) { 0 } else { $resolvedText.Length }
         $valuePreview = if ($resolvedTextLength -gt 80) { $resolvedText.Substring(0, 80) + '...' } else { $resolvedText }

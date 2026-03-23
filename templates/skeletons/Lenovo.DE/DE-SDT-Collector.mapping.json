@@ -155,7 +155,11 @@
       "required": true,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.Inventory"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/drives.json",
@@ -163,7 +167,11 @@
       "required": true,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/storage-containers.json",
@@ -171,7 +179,11 @@
       "required": true,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/volumes.json",
@@ -179,7 +191,11 @@
       "required": true,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/system-controllers.json",
@@ -187,7 +203,11 @@
       "required": true,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.Controllers"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/trays.json",
@@ -195,7 +215,11 @@
       "required": true,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.Trays"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/transport.json",
@@ -1443,7 +1467,11 @@
       "required": true,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/host-ports.json",
@@ -1451,7 +1479,11 @@
       "required": false,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/host-ports.json",
@@ -1459,7 +1491,11 @@
       "required": false,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/system-dns.json",
@@ -1467,7 +1503,11 @@
       "required": true,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.DNS"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/system-time.json",
@@ -1475,7 +1515,11 @@
       "required": true,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.Time"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/hosts.json",
@@ -1483,7 +1527,11 @@
       "required": false,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/host-groups.json",
@@ -1491,7 +1539,11 @@
       "required": false,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/hosts-to-host-groups.json",
@@ -1499,7 +1551,11 @@
       "required": false,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/host-groups-to-volumes.json",
@@ -1507,7 +1563,11 @@
       "required": false,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/hosts-to-volumes.json",
@@ -1515,7 +1575,11 @@
       "required": false,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/volume-mappings.json",
@@ -1523,7 +1587,11 @@
       "required": false,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/capabilities-normalized.json",
@@ -1531,7 +1599,11 @@
       "required": false,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/capabilities-normalized.json",
@@ -1539,7 +1611,11 @@
       "required": false,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/capabilities-normalized.json",
@@ -1547,7 +1623,11 @@
       "required": false,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/management-interfaces.json",
@@ -1555,7 +1635,11 @@
       "required": true,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces"
+      }
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/transport.json",
@@ -1563,7 +1647,11 @@
       "required": true,
       "selectors": [
         "items"
-      ]
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.Transport"
+      }
     }
   ]
 }
