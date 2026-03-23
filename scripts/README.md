@@ -17,7 +17,7 @@ Runtime direction is **PowerShell 7**.
 1. explicit `-ContractsRoot`
 2. `./.deps/contracts`
 
-The SDT render script loads `standards/mapping.dataset-to-sdt.schema.v1.json` and `standards/assembler/assembler.render-report.schema.v1.json` from the resolved root and performs schema validation for mapping input and single-render output. Bundle orchestration separately validates `standards/assembler/assembler.bundle-render-report.schema.v1.json` for its aggregate report.
+The SDT render script loads `standards/mapping.dataset-to-sdt.schema.v1.json` and `standards/assembler/assembler.render-report.schema.v1.json` from the resolved root and performs schema validation for mapping input and single-render output. It also loads tech-specific projection contracts from `tech/<techId>/assembler.projections.v1.json` when present so table shaping remains contract-owned. Bundle orchestration separately validates `standards/assembler/assembler.bundle-render-report.schema.v1.json` for its aggregate report.
 
 ## TemplateCatalog contract
 

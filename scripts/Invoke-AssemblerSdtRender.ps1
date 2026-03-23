@@ -247,207 +247,163 @@ function Format-SizeHuman {
     return ('{0:N2} {1}' -f $value, $units[$idx])
 }
 
-function Get-TableProjectionDefinitions {
-    return @{
-        DE_DRIVES_TABLE_JSON = @{
-            columns = [ordered]@{
-                Slot = 'slot'
-                'Media Type' = 'driveMediaType'
-                Raw = { param($row) Format-SizeHuman -Bytes $row.rawCapacityBytes }
-                Usable = { param($row) Format-SizeHuman -Bytes $row.usableCapacityBytes }
-                Firmware = 'firmwareVersion'
-                Status = 'status'
-                SerialNumber = 'serialNumber'
-            }
+function ConvertTo-PlainHashtable {
+    param([Parameter(Mandatory = $false)]$InputObject)
+
+    if ($null -eq $InputObject) { return $null }
+
+    if ($InputObject -is [System.Collections.IDictionary]) {
+        $converted = [ordered]@{}
+        foreach ($key in $InputObject.Keys) {
+            $converted[[string]$key] = ConvertTo-PlainHashtable -InputObject $InputObject[$key]
         }
-        DE_STORAGE_CONTAINERS_TABLE_JSON = @{
-            columns = [ordered]@{
-                Name = 'name'
-                ContainerType = 'containerType'
-                RaidLevel = 'raidLevel'
-                DriveMediaType = 'driveMediaType'
-                Total = { param($row) Format-SizeHuman -Bytes $row.totalBytes }
-                Used = { param($row) Format-SizeHuman -Bytes $row.usedBytes }
-                Free = { param($row) Format-SizeHuman -Bytes $row.freeBytes }
-                State = 'state'
-                Status = 'status'
-            }
+        return $converted
+    }
+
+    if ($InputObject -is [System.Collections.IEnumerable] -and -not ($InputObject -is [string])) {
+        $items = @()
+        foreach ($item in $InputObject) {
+            $items += ,(ConvertTo-PlainHashtable -InputObject $item)
         }
-        DE_VOLUMES_TABLE_JSON = @{
-            columns = [ordered]@{
-                Name = 'name'
-                Size = { param($row) Format-SizeHuman -Bytes $row.sizeBytes }
-                Status = 'status'
-                RaidLevel = 'raidLevel'
-                Container = 'containerName'
-            }
+        return $items
+    }
+
+    if ($InputObject.PSObject -and $InputObject.PSObject.Properties.Count -gt 0 -and -not ($InputObject -is [ValueType])) {
+        $converted = [ordered]@{}
+        foreach ($property in $InputObject.PSObject.Properties) {
+            $converted[[string]$property.Name] = ConvertTo-PlainHashtable -InputObject $property.Value
         }
-        DE_CONTROLLERS_TABLE_JSON = @{
-            columns = [ordered]@{
-                Controller = 'controllerLabel'
-                Slot = 'controllerSlot'
-                Status = 'status'
-                AppVersion = 'appVersion'
-                BootVersion = 'bootVersion'
-                SerialNumber = 'serialNumber'
-            }
+        return $converted
+    }
+
+    return $InputObject
+}
+
+function Read-ProjectionContractFile {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        throw "Projection contract file not found: $Path"
+    }
+
+    $raw = Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json
+    return (ConvertTo-PlainHashtable -InputObject $raw)
+}
+
+function Resolve-ProjectionContractPath {
+    param(
+        [Parameter(Mandatory = $true)][string]$ContractsRoot,
+        [Parameter(Mandatory = $true)][string]$TechId
+    )
+
+    $candidates = @(
+        (Join-Path (Join-Path (Join-Path $ContractsRoot 'tech') $TechId) 'assembler.projections.v1.json')
+    )
+
+    foreach ($candidate in $candidates) {
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+            return (Resolve-Path -LiteralPath $candidate).Path
         }
-        DE_MANAGEMENT_INTERFACES_TABLE_JSON = @{
-            columns = [ordered]@{
-                Controller = 'controllerLabel'
-                Slot = 'controllerSlot'
-                Port = 'portLabel'
-                Interface = 'interfaceName'
-                LinkStatus = 'linkStatus'
-                Address = 'ipv4Address'
-                Mask = 'ipv4SubnetMask'
-            }
-        }
-        DE_TRANSPORT_TABLE_JSON = @{
-            columns = [ordered]@{
-                SystemId = 'systemId'
-                ActiveTransport = 'activeTransport'
-                IscsiIqn = 'iscsiIqn'
-            }
-        }
-        DE_HOSTPORTS_ISCSI_TABLE_JSON = @{
-            filter = { [string]$_.transport -eq 'iscsi' }
-            columns = [ordered]@{
-                Controller = 'controllerLabel'
-                Slot = 'controllerSlot'
-                Port = 'portLabel'
-                Channel = 'channel'
-                LinkStatus = 'linkStatus'
-                Address = 'ipv4Address'
-                Mask = 'ipv4SubnetMask'
-                Gateway = 'ipv4Gateway'
-                TcpPort = 'tcpPort'
-                IQN = 'iqn'
-            }
-        }
-        DE_HOSTPORTS_FC_TABLE_JSON = @{
-            filter = { [string]$_.transport -eq 'fc' }
-            columns = [ordered]@{
-                Controller = 'controllerLabel'
-                Slot = 'controllerSlot'
-                Port = 'portLabel'
-                Channel = 'channel'
-                LinkStatus = 'linkStatus'
-                CurrentSpeed = 'currentSpeed'
-                MaxSpeed = 'maxSpeed'
-                PortWWN = 'portWwn'
-                NodeWWN = 'nodeWwn'
-            }
-        }
-        DE_DNS_TABLE_JSON = @{
-            columns = [ordered]@{
-                SystemId = 'systemId'
-                Acquisition = 'dnsAcquisitionType'
-                DnsServers = { param($row) ($row.dnsServers -join ', ') }
-                DhcpServers = { param($row) ($row.dhcpAcquiredServers -join ', ') }
-            }
-        }
-        DE_TIME_TABLE_JSON = @{
-            columns = [ordered]@{
-                SystemId = 'systemId'
-                Acquisition = 'ntpAcquisitionType'
-                NtpServers = { param($row) ($row.ntpServers -join ', ') }
-                DhcpServers = { param($row) ($row.dhcpAcquiredServers -join ', ') }
-                DefaultRouter = 'ipv4DefaultRouter'
-            }
-        }
-        DE_HOSTS_TABLE_JSON = @{
-            columns = [ordered]@{
-                Name = 'name'
-                HostId = 'id'
-                HostType = 'hostTypeName'
-                ClusterRef = 'clusterRef'
-            }
-        }
-        DE_HOST_GROUPS_TABLE_JSON = @{
-            columns = [ordered]@{
-                Name = 'name'
-                GroupId = 'id'
-                Members = { param($row) ($row.memberNames -join ', ') }
-            }
-        }
-        DE_HOSTS_TO_HOST_GROUPS_TABLE_JSON = @{
-            columns = [ordered]@{
-                Host = 'hostName'
-                HostGroup = 'hostGroupName'
-                HostType = 'hostType'
-                KeyType = 'hostGroupKeyType'
-            }
-        }
-        DE_HOST_GROUPS_TO_VOLUMES_TABLE_JSON = @{
-            columns = [ordered]@{
-                HostGroup = 'hostGroupName'
-                Volume = 'volumeName'
-                Lun = 'lun'
-                MappingRef = 'mappingRef'
-            }
-        }
-        DE_HOSTS_TO_VOLUMES_TABLE_JSON = @{
-            columns = [ordered]@{
-                Host = 'hostName'
-                Volume = 'volumeName'
-                Lun = 'lun'
-                MappingRef = 'mappingRef'
-            }
-        }
-        DE_VOLUME_MAPPINGS_TABLE_JSON = @{
-            columns = [ordered]@{
-                Volume = 'volumeName'
-                Lun = 'lun'
-                TargetType = 'mappedToType'
-                TargetRef = 'mappedToRef'
-                MappingRef = 'mappingRef'
-            }
-        }
-        DE_SYSTEM_ASUP_TABLE_JSON = @{
-            columns = [ordered]@{
-                AsupEnabled = 'asupEnabled'
-                OnDemandEnabled = 'onDemandEnabled'
-                RemoteDiags = 'remoteDiagsEnabled'
-                DeliveryMethod = 'deliveryMethod'
-                RoutingType = 'routingType'
-                MaxHttps = { param($row) Format-SizeHuman -Bytes $row.maxSizeLimitHttps }
-                MaxSmtp = { param($row) Format-SizeHuman -Bytes $row.maxSizeLimitSmtp }
-            }
-        }
-        DE_CAPABILITIES_SUMMARY_TABLE_JSON = @{
-            filter = { $_.includeInMainBody -eq $true }
-            sortBy = 'sortOrder'
-            columns = [ordered]@{
-                Feature = 'displayName'
-                Category = 'category'
-                State = 'state'
-                Compliance = 'compliance'
-                Entitlement = 'entitlement'
-            }
-        }
-        DE_CAPABILITIES_KEY_FEATURES_TABLE_JSON = @{
-            filter = { $_.includeInMainBody -eq $true }
-            sortBy = 'sortOrder'
-            columns = [ordered]@{
-                Feature = 'displayName'
-                State = 'state'
-                License = 'licenseType'
-                Notes = 'notes'
-            }
-        }
-        DE_CAPABILITIES_LIMITS_TABLE_JSON = @{
-            filter = { $_.limit -ne $null -or $_.limitUsed -ne $null -or $_.includeInAppendix -eq $true }
-            sortBy = 'sortOrder'
-            columns = [ordered]@{
-                Feature = 'displayName'
-                Limit = 'limit'
-                Used = 'limitUsed'
-                LimitState = 'limitState'
-                Entitlement = 'entitlement'
+    }
+
+    return $null
+}
+
+$script:ProjectionDefinitionsCache = @{}
+
+function Get-ProjectionDefinitions {
+    param(
+        [Parameter(Mandatory = $true)][string]$ContractsRoot,
+        [Parameter(Mandatory = $true)][string]$TechId
+    )
+
+    $cacheKey = "$ContractsRoot|$TechId"
+    if ($script:ProjectionDefinitionsCache.ContainsKey($cacheKey)) {
+        return $script:ProjectionDefinitionsCache[$cacheKey]
+    }
+
+    $projectionContractPath = Resolve-ProjectionContractPath -ContractsRoot $ContractsRoot -TechId $TechId
+    if ([string]::IsNullOrWhiteSpace($projectionContractPath)) {
+        $script:ProjectionDefinitionsCache[$cacheKey] = @{}
+        return $script:ProjectionDefinitionsCache[$cacheKey]
+    }
+
+    $contract = Read-ProjectionContractFile -Path $projectionContractPath
+    $definitions = @{}
+    if ($contract -is [hashtable] -and $contract.ContainsKey('projections') -and $contract.projections -is [System.Collections.IList]) {
+        foreach ($projection in @($contract.projections)) {
+            if ($projection -is [hashtable] -and $projection.ContainsKey('sdtTag') -and -not [string]::IsNullOrWhiteSpace([string]$projection.sdtTag)) {
+                $definitions[[string]$projection.sdtTag] = $projection
             }
         }
     }
+
+    $script:ProjectionDefinitionsCache[$cacheKey] = $definitions
+    return $definitions
+}
+
+function Test-ProjectionCondition {
+    param(
+        [Parameter(Mandatory = $true)]$Row,
+        [Parameter(Mandatory = $true)][hashtable]$Condition
+    )
+
+    if ($Condition.ContainsKey('anyOf') -and $Condition.anyOf -is [System.Collections.IList]) {
+        foreach ($nested in @($Condition.anyOf)) {
+            if (Test-ProjectionCondition -Row $Row -Condition $nested) { return $true }
+        }
+        return $false
+    }
+
+    if ($Condition.ContainsKey('allOf') -and $Condition.allOf -is [System.Collections.IList]) {
+        foreach ($nested in @($Condition.allOf)) {
+            if (-not (Test-ProjectionCondition -Row $Row -Condition $nested)) { return $false }
+        }
+        return $true
+    }
+
+    if (-not $Condition.ContainsKey('field')) {
+        throw 'Projection condition is missing required field property.'
+    }
+
+    $actual = $Row.([string]$Condition.field)
+    if ($Condition.ContainsKey('equals')) {
+        return ([string]$actual -eq [string]$Condition.equals)
+    }
+    if ($Condition.ContainsKey('notEquals')) {
+        return ([string]$actual -ne [string]$Condition.notEquals)
+    }
+    if ($Condition.ContainsKey('isNull')) {
+        return (($null -eq $actual) -eq [bool]$Condition.isNull)
+    }
+
+    throw "Unsupported projection condition for field '$($Condition.field)'."
+}
+
+function Resolve-ProjectionColumnValue {
+    param(
+        [Parameter(Mandatory = $true)]$Row,
+        [Parameter(Mandatory = $true)][hashtable]$Column
+    )
+
+    $value = $null
+    if ($Column.ContainsKey('source')) {
+        $value = $Row.([string]$Column.source)
+    }
+
+    if ($Column.ContainsKey('format')) {
+        switch ([string]$Column.format) {
+            'bytesHuman' { return (Format-SizeHuman -Bytes $value) }
+            'join' {
+                if ($null -eq $value) { return '' }
+                $delimiter = if ($Column.ContainsKey('delimiter')) { [string]$Column.delimiter } else { ', ' }
+                return (@($value) -join $delimiter)
+            }
+            default { throw "Unsupported projection column format '$([string]$Column.format)'." }
+        }
+    }
+
+    return $value
 }
 
 function Invoke-TableProjection {
@@ -457,26 +413,28 @@ function Invoke-TableProjection {
     )
 
     $projectedRows = @($Rows)
-    if ($Definition.ContainsKey('filter')) {
-        $projectedRows = @($projectedRows | Where-Object -FilterScript $Definition.filter)
+    if ($Definition.ContainsKey('filter') -and $Definition.filter -is [System.Collections.IList]) {
+        foreach ($condition in @($Definition.filter)) {
+            $projectedRows = @($projectedRows | Where-Object { Test-ProjectionCondition -Row $_ -Condition $condition })
+        }
     }
-    if ($Definition.ContainsKey('sortBy')) {
-        $projectedRows = @($projectedRows | Sort-Object -Property $Definition.sortBy)
+    if ($Definition.ContainsKey('sortBy') -and -not [string]::IsNullOrWhiteSpace([string]$Definition.sortBy)) {
+        $projectedRows = @($projectedRows | Sort-Object -Property ([string]$Definition.sortBy))
+    }
+
+    if (-not $Definition.ContainsKey('columns') -or -not ($Definition.columns -is [System.Collections.IList])) {
+        return $projectedRows
     }
 
     return @(
         $projectedRows | ForEach-Object {
             $row = $_
             $projected = [ordered]@{}
-            foreach ($columnName in $Definition.columns.Keys) {
-                $resolver = $Definition.columns[$columnName]
-                $value = if ($resolver -is [scriptblock]) {
-                    & $resolver $row
+            foreach ($column in @($Definition.columns)) {
+                if (-not ($column -is [hashtable]) -or -not $column.ContainsKey('name')) {
+                    throw 'Projection column is missing required name property.'
                 }
-                else {
-                    $row.$resolver
-                }
-                $projected[$columnName] = Convert-CellValueToString -Value $value
+                $projected[[string]$column.name] = Convert-CellValueToString -Value (Resolve-ProjectionColumnValue -Row $row -Column $column)
             }
             [pscustomobject]$projected
         }
@@ -486,12 +444,12 @@ function Invoke-TableProjection {
 function Convert-TableRowsForTag {
     param(
         [Parameter(Mandatory = $true)][string]$Tag,
-        [Parameter(Mandatory = $true)][object[]]$Rows
+        [Parameter(Mandatory = $true)][object[]]$Rows,
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions
     )
 
-    $projectionDefinitions = Get-TableProjectionDefinitions
-    if ($projectionDefinitions.ContainsKey($Tag)) {
-        return @(Invoke-TableProjection -Rows $Rows -Definition $projectionDefinitions[$Tag])
+    if ($null -ne $ProjectionDefinitions -and $ProjectionDefinitions.ContainsKey($Tag)) {
+        return @(Invoke-TableProjection -Rows $Rows -Definition $ProjectionDefinitions[$Tag])
     }
 
     return $Rows
@@ -533,7 +491,8 @@ function Get-DisplayColumnsForTable {
 function Convert-ValueToTableString {
     param(
         [Parameter(Mandatory = $false)]$Value,
-        [Parameter(Mandatory = $false)][string]$Tag
+        [Parameter(Mandatory = $false)][string]$Tag,
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions
     )
 
     if ($null -eq $Value) { return '' }
@@ -565,7 +524,7 @@ function Convert-ValueToTableString {
         return (Convert-CellValueToString -Value $Value)
     }
 
-    $rows = @(Convert-TableRowsForTag -Tag $Tag -Rows $rows)
+    $rows = @(Convert-TableRowsForTag -Tag $Tag -Rows $rows -ProjectionDefinitions $ProjectionDefinitions)
 
     if (@($rows).Count -eq 0) {
         return ''
@@ -584,14 +543,16 @@ function Convert-ValueToTableString {
 function Convert-ValueToString {
     param(
         [Parameter(Mandatory = $false)]$Value,
-        [Parameter(Mandatory = $false)][string]$Tag
+        [Parameter(Mandatory = $false)][string]$Tag,
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions
     )
 
     if ($null -eq $Value) {
         return ''
     }
-    if (-not [string]::IsNullOrWhiteSpace($Tag) -and $Tag.EndsWith('_TABLE_JSON')) {
-        return (Convert-ValueToTableString -Value $Value -Tag $Tag)
+    $hasProjection = ($null -ne $ProjectionDefinitions -and -not [string]::IsNullOrWhiteSpace($Tag) -and $ProjectionDefinitions.ContainsKey($Tag))
+    if ($hasProjection -or (-not [string]::IsNullOrWhiteSpace($Tag) -and $Tag.EndsWith('_TABLE_JSON'))) {
+        return (Convert-ValueToTableString -Value $Value -Tag $Tag -ProjectionDefinitions $ProjectionDefinitions)
     }
     if ($Value -is [string]) {
         return $Value
@@ -662,6 +623,7 @@ try {
 
     Start-RenderStage -Stage $stageMap.Load
     $mapping = Read-JsonFile -Path $MappingPath
+    $projectionDefinitions = Get-ProjectionDefinitions -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
     $mappingSchema = Read-JsonFile -Path $mappingSchemaPath
     $templateText = Get-Content -LiteralPath $TemplatePath -Raw -Encoding UTF8
 
@@ -749,7 +711,7 @@ try {
             continue
         }
 
-        $resolvedText = [string](Convert-ValueToString -Value $resolved -Tag $tag)
+        $resolvedText = [string](Convert-ValueToString -Value $resolved -Tag $tag -ProjectionDefinitions $projectionDefinitions)
         $replaceByTag[$tag] = $resolvedText
         $resolvedTextLength = if ($null -eq $resolvedText) { 0 } else { $resolvedText.Length }
         $valuePreview = if ($resolvedTextLength -gt 80) { $resolvedText.Substring(0, 80) + '...' } else { $resolvedText }
