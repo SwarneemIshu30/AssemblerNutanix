@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "status": "ERROR",
-  "startedUtc": "2026-03-23T03:48:59.6543151Z",
-  "completedUtc": "2026-03-23T03:48:59.7529239Z",
+  "startedUtc": "2026-03-23T04:29:45.6377147Z",
+  "completedUtc": "2026-03-23T04:29:45.7211122Z",
   "bundleRoot": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a",
   "catalogPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.catalog.json",
   "outputRoot": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out",
@@ -45,53 +45,53 @@
   ],
   "runs": [
     {
-      "rendererOutputRaw": "{\r\n  \"schemaVersion\": 1,\r\n  \"status\": \"ERROR\",\r\n  \"startedUtc\": \"2026-03-23T03:48:59.7358489Z\",\r\n  \"completedUtc\": \"2026-03-23T03:48:59.7472053Z\",\r\n  \"bundleId\": null,\r\n  \"stages\": [\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Load\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T03:48:59.7359141Z\",\r\n      \"startedUtc\": \"2026-03-23T03:48:59.7359141Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Validate\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T03:48:59.7359141Z\",\r\n      \"startedUtc\": \"2026-03-23T03:48:59.7359141Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Transform\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T03:48:59.7359141Z\",\r\n      \"startedUtc\": \"2026-03-23T03:48:59.7359141Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Render\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T03:48:59.7359141Z\",\r\n      \"startedUtc\": \"2026-03-23T03:48:59.7359141Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Finalize\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T03:48:59.7359141Z\",\r\n      \"startedUtc\": \"2026-03-23T03:48:59.7359141Z\"\r\n    }\r\n  ],\r\n  \"issues\": [\r\n    {\r\n      \"severity\": \"ERROR\",\r\n      \"message\": \"The property 'Count' cannot be found on this object. Verify that the property exists.\",\r\n      \"path\": null,\r\n      \"code\": \"ASB-ASM-SDT-UNHANDLED\"\r\n    },\r\n    {\r\n      \"severity\": \"ERROR\",\r\n      \"message\": \"JSON schema validation failed for 'assembler-sdt-render-report' against 'C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\.deps\\\\contracts\\\\standards\\\\assembler\\\\assembler.render-report.schema.v1.json': The JSON is not valid with the schema: All values fail against the false schema at '/matches'\",\r\n      \"path\": \"C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\out\\\\Lenovo.DE\\\\lenovo-de-collector-summary.render-report.json\",\r\n      \"code\": \"ASB-ASM-SCHEMA-RENDERREPORT-INVALID\"\r\n    }\r\n  ],\r\n  \"matches\": [],\r\n  \"outputs\": []\r\n}",
+      "rendererOutputRaw": "{\r\n  \"schemaVersion\": 1,\r\n  \"status\": \"ERROR\",\r\n  \"startedUtc\": \"2026-03-23T04:29:45.7052921Z\",\r\n  \"completedUtc\": \"2026-03-23T04:29:45.7128231Z\",\r\n  \"bundleId\": null,\r\n  \"stages\": [\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Load\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T04:29:45.7053580Z\",\r\n      \"startedUtc\": \"2026-03-23T04:29:45.7053580Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Validate\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T04:29:45.7053580Z\",\r\n      \"startedUtc\": \"2026-03-23T04:29:45.7053580Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Transform\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T04:29:45.7053580Z\",\r\n      \"startedUtc\": \"2026-03-23T04:29:45.7053580Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Render\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T04:29:45.7053580Z\",\r\n      \"startedUtc\": \"2026-03-23T04:29:45.7053580Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Finalize\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T04:29:45.7053580Z\",\r\n      \"startedUtc\": \"2026-03-23T04:29:45.7053580Z\"\r\n    }\r\n  ],\r\n  \"issues\": [\r\n    {\r\n      \"severity\": \"ERROR\",\r\n      \"message\": \"The property 'Count' cannot be found on this object. Verify that the property exists.\",\r\n      \"path\": null,\r\n      \"code\": \"ASB-ASM-SDT-UNHANDLED\"\r\n    }\r\n  ],\r\n  \"matches\": [],\r\n  \"outputs\": []\r\n}",
       "variants": [
         {
-          "rendererOutputRaw": "{\r\n  \"schemaVersion\": 1,\r\n  \"status\": \"ERROR\",\r\n  \"startedUtc\": \"2026-03-23T03:48:59.7358489Z\",\r\n  \"completedUtc\": \"2026-03-23T03:48:59.7472053Z\",\r\n  \"bundleId\": null,\r\n  \"stages\": [\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Load\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T03:48:59.7359141Z\",\r\n      \"startedUtc\": \"2026-03-23T03:48:59.7359141Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Validate\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T03:48:59.7359141Z\",\r\n      \"startedUtc\": \"2026-03-23T03:48:59.7359141Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Transform\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T03:48:59.7359141Z\",\r\n      \"startedUtc\": \"2026-03-23T03:48:59.7359141Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Render\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T03:48:59.7359141Z\",\r\n      \"startedUtc\": \"2026-03-23T03:48:59.7359141Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Finalize\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T03:48:59.7359141Z\",\r\n      \"startedUtc\": \"2026-03-23T03:48:59.7359141Z\"\r\n    }\r\n  ],\r\n  \"issues\": [\r\n    {\r\n      \"severity\": \"ERROR\",\r\n      \"message\": \"The property 'Count' cannot be found on this object. Verify that the property exists.\",\r\n      \"path\": null,\r\n      \"code\": \"ASB-ASM-SDT-UNHANDLED\"\r\n    },\r\n    {\r\n      \"severity\": \"ERROR\",\r\n      \"message\": \"JSON schema validation failed for 'assembler-sdt-render-report' against 'C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\.deps\\\\contracts\\\\standards\\\\assembler\\\\assembler.render-report.schema.v1.json': The JSON is not valid with the schema: All values fail against the false schema at '/matches'\",\r\n      \"path\": \"C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\out\\\\Lenovo.DE\\\\lenovo-de-collector-summary.render-report.json\",\r\n      \"code\": \"ASB-ASM-SCHEMA-RENDERREPORT-INVALID\"\r\n    }\r\n  ],\r\n  \"matches\": [],\r\n  \"outputs\": []\r\n}",
+          "rendererOutputRaw": "{\r\n  \"schemaVersion\": 1,\r\n  \"status\": \"ERROR\",\r\n  \"startedUtc\": \"2026-03-23T04:29:45.7052921Z\",\r\n  \"completedUtc\": \"2026-03-23T04:29:45.7128231Z\",\r\n  \"bundleId\": null,\r\n  \"stages\": [\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Load\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T04:29:45.7053580Z\",\r\n      \"startedUtc\": \"2026-03-23T04:29:45.7053580Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Validate\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T04:29:45.7053580Z\",\r\n      \"startedUtc\": \"2026-03-23T04:29:45.7053580Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Transform\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T04:29:45.7053580Z\",\r\n      \"startedUtc\": \"2026-03-23T04:29:45.7053580Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Render\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T04:29:45.7053580Z\",\r\n      \"startedUtc\": \"2026-03-23T04:29:45.7053580Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Finalize\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T04:29:45.7053580Z\",\r\n      \"startedUtc\": \"2026-03-23T04:29:45.7053580Z\"\r\n    }\r\n  ],\r\n  \"issues\": [\r\n    {\r\n      \"severity\": \"ERROR\",\r\n      \"message\": \"The property 'Count' cannot be found on this object. Verify that the property exists.\",\r\n      \"path\": null,\r\n      \"code\": \"ASB-ASM-SDT-UNHANDLED\"\r\n    }\r\n  ],\r\n  \"matches\": [],\r\n  \"outputs\": []\r\n}",
           "selectedTarget": "",
           "outputPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\Lenovo.DE\\DE-SDT-Collector.rendered.txt",
           "rendererOutput": {
             "schemaVersion": 1,
             "status": "ERROR",
-            "startedUtc": "2026-03-23T03:48:59.7358489Z",
-            "completedUtc": "2026-03-23T03:48:59.7472053Z",
+            "startedUtc": "2026-03-23T04:29:45.7052921Z",
+            "completedUtc": "2026-03-23T04:29:45.7128231Z",
             "bundleId": null,
             "stages": [
               {
                 "details": null,
                 "name": "Load",
                 "status": "SKIPPED",
-                "completedUtc": "2026-03-23T03:48:59.7359141Z",
-                "startedUtc": "2026-03-23T03:48:59.7359141Z"
+                "completedUtc": "2026-03-23T04:29:45.705358Z",
+                "startedUtc": "2026-03-23T04:29:45.705358Z"
               },
               {
                 "details": null,
                 "name": "Validate",
                 "status": "SKIPPED",
-                "completedUtc": "2026-03-23T03:48:59.7359141Z",
-                "startedUtc": "2026-03-23T03:48:59.7359141Z"
+                "completedUtc": "2026-03-23T04:29:45.705358Z",
+                "startedUtc": "2026-03-23T04:29:45.705358Z"
               },
               {
                 "details": null,
                 "name": "Transform",
                 "status": "SKIPPED",
-                "completedUtc": "2026-03-23T03:48:59.7359141Z",
-                "startedUtc": "2026-03-23T03:48:59.7359141Z"
+                "completedUtc": "2026-03-23T04:29:45.705358Z",
+                "startedUtc": "2026-03-23T04:29:45.705358Z"
               },
               {
                 "details": null,
                 "name": "Render",
                 "status": "SKIPPED",
-                "completedUtc": "2026-03-23T03:48:59.7359141Z",
-                "startedUtc": "2026-03-23T03:48:59.7359141Z"
+                "completedUtc": "2026-03-23T04:29:45.705358Z",
+                "startedUtc": "2026-03-23T04:29:45.705358Z"
               },
               {
                 "details": null,
                 "name": "Finalize",
                 "status": "SKIPPED",
-                "completedUtc": "2026-03-23T03:48:59.7359141Z",
-                "startedUtc": "2026-03-23T03:48:59.7359141Z"
+                "completedUtc": "2026-03-23T04:29:45.705358Z",
+                "startedUtc": "2026-03-23T04:29:45.705358Z"
               }
             ],
             "issues": [
@@ -100,12 +100,6 @@
                 "message": "The property 'Count' cannot be found on this object. Verify that the property exists.",
                 "path": null,
                 "code": "ASB-ASM-SDT-UNHANDLED"
-              },
-              {
-                "severity": "ERROR",
-                "message": "JSON schema validation failed for 'assembler-sdt-render-report' against 'C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts\\standards\\assembler\\assembler.render-report.schema.v1.json': The JSON is not valid with the schema: All values fail against the false schema at '/matches'",
-                "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\Lenovo.DE\\lenovo-de-collector-summary.render-report.json",
-                "code": "ASB-ASM-SCHEMA-RENDERREPORT-INVALID"
               }
             ],
             "matches": [],
@@ -161,44 +155,44 @@
       "rendererOutput": {
         "schemaVersion": 1,
         "status": "ERROR",
-        "startedUtc": "2026-03-23T03:48:59.7358489Z",
-        "completedUtc": "2026-03-23T03:48:59.7472053Z",
+        "startedUtc": "2026-03-23T04:29:45.7052921Z",
+        "completedUtc": "2026-03-23T04:29:45.7128231Z",
         "bundleId": null,
         "stages": [
           {
             "details": null,
             "name": "Load",
             "status": "SKIPPED",
-            "completedUtc": "2026-03-23T03:48:59.7359141Z",
-            "startedUtc": "2026-03-23T03:48:59.7359141Z"
+            "completedUtc": "2026-03-23T04:29:45.705358Z",
+            "startedUtc": "2026-03-23T04:29:45.705358Z"
           },
           {
             "details": null,
             "name": "Validate",
             "status": "SKIPPED",
-            "completedUtc": "2026-03-23T03:48:59.7359141Z",
-            "startedUtc": "2026-03-23T03:48:59.7359141Z"
+            "completedUtc": "2026-03-23T04:29:45.705358Z",
+            "startedUtc": "2026-03-23T04:29:45.705358Z"
           },
           {
             "details": null,
             "name": "Transform",
             "status": "SKIPPED",
-            "completedUtc": "2026-03-23T03:48:59.7359141Z",
-            "startedUtc": "2026-03-23T03:48:59.7359141Z"
+            "completedUtc": "2026-03-23T04:29:45.705358Z",
+            "startedUtc": "2026-03-23T04:29:45.705358Z"
           },
           {
             "details": null,
             "name": "Render",
             "status": "SKIPPED",
-            "completedUtc": "2026-03-23T03:48:59.7359141Z",
-            "startedUtc": "2026-03-23T03:48:59.7359141Z"
+            "completedUtc": "2026-03-23T04:29:45.705358Z",
+            "startedUtc": "2026-03-23T04:29:45.705358Z"
           },
           {
             "details": null,
             "name": "Finalize",
             "status": "SKIPPED",
-            "completedUtc": "2026-03-23T03:48:59.7359141Z",
-            "startedUtc": "2026-03-23T03:48:59.7359141Z"
+            "completedUtc": "2026-03-23T04:29:45.705358Z",
+            "startedUtc": "2026-03-23T04:29:45.705358Z"
           }
         ],
         "issues": [
@@ -207,12 +201,6 @@
             "message": "The property 'Count' cannot be found on this object. Verify that the property exists.",
             "path": null,
             "code": "ASB-ASM-SDT-UNHANDLED"
-          },
-          {
-            "severity": "ERROR",
-            "message": "JSON schema validation failed for 'assembler-sdt-render-report' against 'C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts\\standards\\assembler\\assembler.render-report.schema.v1.json': The JSON is not valid with the schema: All values fail against the false schema at '/matches'",
-            "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\Lenovo.DE\\lenovo-de-collector-summary.render-report.json",
-            "code": "ASB-ASM-SCHEMA-RENDERREPORT-INVALID"
           }
         ],
         "matches": [],
@@ -227,7 +215,7 @@
   "issues": [
     {
       "severity": "ERROR",
-      "message": "Entry 'lenovo-de-collector-summary' variant 'default' failed render as a wrapper/aggregation error. Inspect nested renderer report 'C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\Lenovo.DE\\lenovo-de-collector-summary.render-report.json' and its issues array for the 2 underlying renderer ERROR issue(s).",
+      "message": "Entry 'lenovo-de-collector-summary' variant 'default' failed render as a wrapper/aggregation error. Inspect nested renderer report 'C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\Lenovo.DE\\lenovo-de-collector-summary.render-report.json' and its issues array for the 1 underlying renderer ERROR issue(s).",
       "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\Lenovo.DE\\lenovo-de-collector-summary.render-report.json",
       "code": "ASB-ASM-BUNDLE-ENTRY-FAILED"
     }
