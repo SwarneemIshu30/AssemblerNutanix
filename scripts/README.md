@@ -19,6 +19,8 @@ Runtime direction is **PowerShell 7**.
 
 The SDT render script loads `standards/mapping.dataset-to-sdt.schema.v1.json` and `standards/assembler/assembler.render-report.schema.v1.json` from the resolved root and performs schema validation for mapping input and single-render output. It also loads tech-specific projection contracts from `tech/<techId>/assembler.projections.v1.json` when present so table shaping remains contract-owned. Bundle orchestration separately validates `standards/assembler/assembler.bundle-render-report.schema.v1.json` for its aggregate report.
 
+Repo ownership note: tracked contract handoff artifacts live under `exports/LNV.AsBuiltDoc.Contracts/...`, including `exports/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/assembler.projections.v1.json`. The `.deps/contracts` tree is a repo-local synced runtime dependency populated by `Sync-AssemblerContractsToRepo.ps1`; do not make repo-managed contract edits there.
+
 ## TemplateCatalog contract
 
 Schema file:
