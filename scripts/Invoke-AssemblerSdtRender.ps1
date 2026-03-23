@@ -296,17 +296,14 @@ function Resolve-ProjectionContractPath {
         [Parameter(Mandatory = $true)][string]$TechId
     )
 
-    $candidates = @(
-        (Join-Path (Join-Path (Join-Path $ContractsRoot 'tech') $TechId) 'assembler.projections.v1.json')
-    )
+    $relativePath = [System.IO.Path]::Combine('tech', $TechId, 'assembler.projections.v1.json').Replace('\', '/')
+    $candidate = Join-Path (Join-Path (Join-Path $ContractsRoot 'tech') $TechId) 'assembler.projections.v1.json'
 
-    foreach ($candidate in $candidates) {
-        if (Test-Path -LiteralPath $candidate -PathType Leaf) {
-            return (Resolve-Path -LiteralPath $candidate).Path
-        }
+    if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+        return (Resolve-Path -LiteralPath $candidate).Path
     }
 
-    return $null
+    throw "Missing required projection contract for tech '$TechId'. Expected synced runtime dependency at '$relativePath' under ContractsRoot '$ContractsRoot'. Contracts sync is incomplete; sync '$relativePath' into .deps/contracts outside this repo and rerun."
 }
 
 $script:ProjectionDefinitionsCache = @{}
@@ -323,11 +320,6 @@ function Get-ProjectionDefinitions {
     }
 
     $projectionContractPath = Resolve-ProjectionContractPath -ContractsRoot $ContractsRoot -TechId $TechId
-    if ([string]::IsNullOrWhiteSpace($projectionContractPath)) {
-        $script:ProjectionDefinitionsCache[$cacheKey] = @{}
-        return $script:ProjectionDefinitionsCache[$cacheKey]
-    }
-
     $contract = Read-ProjectionContractFile -Path $projectionContractPath
     $definitions = @{}
     if ($contract -is [hashtable] -and $contract.ContainsKey('projections') -and $contract.projections -is [System.Collections.IList]) {
