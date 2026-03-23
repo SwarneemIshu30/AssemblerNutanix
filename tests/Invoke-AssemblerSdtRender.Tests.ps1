@@ -620,6 +620,84 @@ DNS1=<<SDT:DNS1>>
         }
     }
 
+    It 'renders Lenovo.DE capabilities projection when filtering leaves a single row' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-single-capability-row-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template "Caps=<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary>>" -DatasetRelativePath 'datasets/capabilities-normalized.json' -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'capabilities-normalized'
+                item_count = 2
+                items = @(
+                    @{
+                        displayName = 'Snapshot Copies'
+                        category = 'Data Protection'
+                        state = 'Enabled'
+                        compliance = 'Compliant'
+                        entitlement = 'Included'
+                        includeInMainBody = $true
+                        includeInAppendix = $true
+                        sortOrder = 10
+                    },
+                    @{
+                        displayName = 'Hidden Feature'
+                        category = 'Testing'
+                        state = 'Disabled'
+                        compliance = 'Unknown'
+                        entitlement = 'None'
+                        includeInMainBody = $false
+                        includeInAppendix = $false
+                        sortOrder = 20
+                    }
+                )
+            } -Mappings @(
+                @{
+                    dataset = 'datasets/capabilities-normalized.json'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary'
+                    required = $true
+                    selectors = @('items')
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode" }
+
+            $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
+            if ($rendered -notmatch 'Feature\s+Category\s+State\s+Compliance\s+Entitlement') {
+                throw "Expected capabilities projection table header, got '$rendered'"
+            }
+            if ($rendered -notmatch 'Snapshot Copies\s+Data Protection\s+Enabled\s+Compliant\s+Included') {
+                throw "Expected filtered projected capability row, got '$rendered'"
+            }
+            if ($rendered -match 'Hidden Feature') {
+                throw "Expected projection filter to remove hidden capability row, got '$rendered'"
+            }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            if ($report.status -ne 'OK') {
+                throw "Expected report.status OK, got '$($report.status)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'renders an empty string when capabilities projection filters out all rows' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot '.deps/contracts'
