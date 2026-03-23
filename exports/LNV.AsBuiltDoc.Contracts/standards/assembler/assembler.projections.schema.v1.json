@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv.asbuiltdoc/contracts/standards/assembler/assembler.projections.schema.v1.json",
+  "title": "Assembler Projection Contract",
+  "description": "Contract for SDT-oriented projection definitions consumed by the assembler renderer.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schemaVersion",
+    "techId",
+    "projections"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "assembler.projections"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "techId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "projections": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/projectionDefinition"
+      }
+    }
+  },
+  "$defs": {
+    "scalarValue": {
+      "type": [
+        "string",
+        "number",
+        "integer",
+        "boolean",
+        "null"
+      ]
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "equals": {
+          "$ref": "#/$defs/scalarValue"
+        },
+        "notEquals": {
+          "$ref": "#/$defs/scalarValue"
+        },
+        "isNull": {
+          "type": "boolean"
+        },
+        "anyOf": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        },
+        "allOf": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "required": [
+                "equals"
+              ]
+            },
+            {
+              "required": [
+                "notEquals"
+              ]
+            },
+            {
+              "required": [
+                "isNull"
+              ]
+            },
+            {
+              "required": [
+                "anyOf"
+              ]
+            },
+            {
+              "required": [
+                "allOf"
+              ]
+            }
+          ]
+        },
+        {
+          "if": {
+            "anyOf": [
+              {
+                "required": [
+                  "equals"
+                ]
+              },
+              {
+                "required": [
+                  "notEquals"
+                ]
+              },
+              {
+                "required": [
+                  "isNull"
+                ]
+              }
+            ]
+          },
+          "then": {
+            "required": [
+              "field"
+            ]
+          }
+        }
+      ]
+    },
+    "columnDirective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "bytesHuman",
+            "join"
+          ]
+        },
+        "delimiter": {
+          "type": "string"
+        }
+      }
+    },
+    "projectionDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "filter": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        },
+        "sortBy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/columnDirective"
+          }
+        }
+      }
+    }
+  }
+}

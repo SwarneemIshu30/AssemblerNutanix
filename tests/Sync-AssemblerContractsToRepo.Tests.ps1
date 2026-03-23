@@ -24,6 +24,9 @@ Describe 'Sync-AssemblerContractsToRepo' {
             if (-not (Test-Path -LiteralPath (Join-Path $destinationRoot 'standards/assembler/assembler.bundle-render-report.schema.v1.json') -PathType Leaf)) {
                 throw 'Expected bundle render report schema in destination after sync'
             }
+            if (-not (Test-Path -LiteralPath (Join-Path $destinationRoot 'standards/assembler/assembler.projections.schema.v1.json') -PathType Leaf)) {
+                throw 'Expected projection contract schema in destination after sync'
+            }
             if (-not (Test-Path -LiteralPath (Join-Path $destinationRoot 'contracts.snapshot.json') -PathType Leaf)) {
                 throw 'Expected contracts snapshot in destination after sync'
             }
