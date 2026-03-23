@@ -74,7 +74,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         $null = New-Item -ItemType Directory -Path $tempRoot -Force
 
         try {
-            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'System=<<SDT:DE_SYSTEM_NAME>>' -Mappings @()
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'System=<<SDT:LNV.Lenovo.DE.System[ArrayName].Summary.SystemName>>' -Mappings @()
 
             Set-Content -LiteralPath $fixture.mappingPath -Encoding UTF8 -Value (@{
                 schema = 'mapping.dataset-to-sdt'
@@ -123,10 +123,10 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         $null = New-Item -ItemType Directory -Path $tempRoot -Force
 
         try {
-            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'System=<<SDT:DE_SYSTEM_NAME>>' -Mappings @(
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'System=<<SDT:LNV.Lenovo.DE.System[ArrayName].Summary.SystemName>>' -Mappings @(
                 @{
                     dataset = 'datasets/systems.json'
-                    sdtTag = 'DE_SYSTEM_NAME'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Summary.SystemName'
                     required = $true
                     selectors = @('items', '0', 'name')
                 }
@@ -142,8 +142,8 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             if ($rendered -notmatch 'System=ArrayOne') { throw "Expected selector chain to resolve value, got '$rendered'" }
 
             $report = $output | ConvertFrom-Json -AsHashtable
-            $match = @($report.matches | Where-Object { $_.tag -eq 'DE_SYSTEM_NAME' }) | Select-Object -First 1
-            if ($null -eq $match) { throw 'Expected DE_SYSTEM_NAME match entry in report' }
+            $match = @($report.matches | Where-Object { $_.tag -eq 'LNV.Lenovo.DE.System[ArrayName].Summary.SystemName' }) | Select-Object -First 1
+            if ($null -eq $match) { throw 'Expected LNV.Lenovo.DE.System[ArrayName].Summary.SystemName match entry in report' }
             if ($match.selector -ne 'items -> 0 -> name') {
                 throw "Expected full selector chain in report match selector, got '$($match.selector)'"
             }
@@ -363,7 +363,7 @@ DNS1=<<SDT:DNS1>>
         $null = New-Item -ItemType Directory -Path $tempRoot -Force
 
         try {
-            $fixture = New-TestRenderFixture -Root $tempRoot -Template "Collected=<<SDT:DE_COLLECTION_COLLECTED_UTC>>;Mode=<<SDT:DE_COLLECTION_MODE>>" -DatasetRelativePath 'datasets/run_summary.json' -Dataset @{
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template "Collected=<<SDT:LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectedUTC>>;Mode=<<SDT:LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectionMode>>" -DatasetRelativePath 'datasets/run_summary.json' -Dataset @{
                 collectedUtc = '2026-03-21T15:38:55.2459138+11:00'
                 mode = 'Cli'
                 controller = '10.240.59.179'
@@ -372,13 +372,13 @@ DNS1=<<SDT:DNS1>>
             } -Mappings @(
                 @{
                     dataset = 'datasets/run_summary.json'
-                    sdtTag = 'DE_COLLECTION_COLLECTED_UTC'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectedUTC'
                     required = $true
                     selectors = @('collectedUtc')
                 },
                 @{
                     dataset = 'datasets/run_summary.json'
-                    sdtTag = 'DE_COLLECTION_MODE'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectionMode'
                     required = $true
                     selectors = @('mode')
                 }
@@ -427,7 +427,7 @@ DNS1=<<SDT:DNS1>>
         $null = New-Item -ItemType Directory -Path $tempRoot -Force
 
         try {
-            $fixture = New-TestRenderFixture -Root $tempRoot -Template "Controller=<<SDT:DE_COLLECTION_CONTROLLER>>;Port=<<SDT:DE_COLLECTION_PORT>>;SystemCount=<<SDT:DE_COLLECTION_SYSTEM_COUNT>>" -DatasetRelativePath 'datasets/run_summary.json' -Dataset @{
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template "Controller=<<SDT:LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectionController>>;Port=<<SDT:LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectionPort>>;SystemCount=<<SDT:LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.SystemCountReturned>>" -DatasetRelativePath 'datasets/run_summary.json' -Dataset @{
                 schema_version = 'lnv.collector.dataset.v1'
                 collector = @{ module = 'LNV.AsBuiltDoc.Lenovo.DE'; version = '1.0.0' }
                 source = @{ kind = 'Lenovo.DE'; endpoint = 'local'; file = 'run_summary.json' }
@@ -445,19 +445,19 @@ DNS1=<<SDT:DNS1>>
             } -Mappings @(
                 @{
                     dataset = 'datasets/run_summary.json'
-                    sdtTag = 'DE_COLLECTION_CONTROLLER'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectionController'
                     required = $true
                     selectors = @('controller')
                 },
                 @{
                     dataset = 'datasets/run_summary.json'
-                    sdtTag = 'DE_COLLECTION_PORT'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectionPort'
                     required = $true
                     selectors = @('port')
                 },
                 @{
                     dataset = 'datasets/run_summary.json'
-                    sdtTag = 'DE_COLLECTION_SYSTEM_COUNT'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.SystemCountReturned'
                     required = $true
                     selectors = @('systemCount')
                 }
@@ -481,9 +481,9 @@ DNS1=<<SDT:DNS1>>
             }
 
             $report = $output | ConvertFrom-Json -AsHashtable
-            $controllerMatch = @($report.matches | Where-Object { $_.tag -eq 'DE_COLLECTION_CONTROLLER' }) | Select-Object -First 1
+            $controllerMatch = @($report.matches | Where-Object { $_.tag -eq 'LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectionController' }) | Select-Object -First 1
             if ($null -eq $controllerMatch) {
-                throw 'Expected DE_COLLECTION_CONTROLLER match entry in report'
+                throw 'Expected LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectionController match entry in report'
             }
             if ($controllerMatch.selector -ne 'controller') {
                 throw "Expected existing selector 'controller' to remain in report, got '$($controllerMatch.selector)'"
@@ -509,7 +509,7 @@ DNS1=<<SDT:DNS1>>
         $null = New-Item -ItemType Directory -Path $tempRoot -Force
 
         try {
-            $fixture = New-TestRenderFixture -Root $tempRoot -Template "FC=<<SDT:DE_HOSTPORTS_FC_TABLE_JSON>>" -DatasetRelativePath 'datasets/host-ports.json' -Dataset @{
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template "FC=<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC>>" -DatasetRelativePath 'datasets/host-ports.json' -Dataset @{
                 schema_version = 'lnv.collector.dataset.v1'
                 collector = @{ module = 'test.module'; version = '1.0.0' }
                 source = @{ kind = 'integration-test'; endpoint = 'local' }
@@ -529,7 +529,7 @@ DNS1=<<SDT:DNS1>>
             } -Mappings @(
                 @{
                     dataset = 'datasets/host-ports.json'
-                    sdtTag = 'DE_HOSTPORTS_FC_TABLE_JSON'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC'
                     required = $true
                     selectors = @('items')
                 }
@@ -570,7 +570,7 @@ DNS1=<<SDT:DNS1>>
         $null = New-Item -ItemType Directory -Path $tempRoot -Force
 
         try {
-            $fixture = New-TestRenderFixture -Root $tempRoot -Template "Caps=<<SDT:DE_CAPABILITIES_SUMMARY_TABLE_JSON>>" -DatasetRelativePath 'datasets/capabilities-normalized.json' -Dataset @{
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template "Caps=<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary>>" -DatasetRelativePath 'datasets/capabilities-normalized.json' -Dataset @{
                 schema_version = 'lnv.collector.dataset.v1'
                 collector = @{ module = 'test.module'; version = '1.0.0' }
                 source = @{ kind = 'integration-test'; endpoint = 'local' }
@@ -591,7 +591,7 @@ DNS1=<<SDT:DNS1>>
             } -Mappings @(
                 @{
                     dataset = 'datasets/capabilities-normalized.json'
-                    sdtTag = 'DE_CAPABILITIES_SUMMARY_TABLE_JSON'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary'
                     required = $true
                     selectors = @('items')
                 }
@@ -661,18 +661,54 @@ DNS1=<<SDT:DNS1>>
         }
 
         foreach ($requiredSection in @(
-            'Tables.Hosts',
-            'Tables.HostGroups',
-            'Tables.HostsToHostGroups',
-            'Tables.HostGroupsToVolumes',
-            'Tables.HostsToVolumes',
-            'Tables.VolumeMappings',
-            'Tables.CapabilitiesSummary',
-            'Tables.CapabilitiesKeyFeatures',
-            'Tables.CapabilitiesLimits'
+            'LNV.Lenovo.DE.System[ArrayName].Summary',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.Controllers',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.Transport',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.Trays',
+            'LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory',
+            'LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory',
+            'LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.Hosts',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits',
+            'LNV.Lenovo.SAN.Fabric.Fabric[FabricName].Summary',
+            'LNV.Lenovo.SAN.Fabric.Fabric[FabricName].Tables.Zones'
         )) {
             if ($templateText -notmatch [regex]::Escape($requiredSection)) {
-                throw "Expected collector skeleton template to include section '$requiredSection'"
+                throw "Expected collector skeleton template to include canonical section '$requiredSection'"
+            }
+        }
+
+        foreach ($requiredTag in @(
+            'LNV.Lenovo.DE.System[ArrayName].Summary.SystemName',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.Controllers',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.Transport',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.Trays',
+            'LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory',
+            'LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory',
+            'LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.Hosts',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures',
+            'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits'
+        )) {
+            if (-not @($collectorMapping.mappings | Where-Object { $_.sdtTag -eq $requiredTag })) {
+                throw "Expected collector skeleton mapping to include canonical tag '$requiredTag'"
             }
         }
     }
