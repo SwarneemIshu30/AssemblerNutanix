@@ -251,7 +251,7 @@ function ConvertTo-PlainHashtable {
     param([Parameter(Mandatory = $false)]$InputObject)
 
     if ($null -eq $InputObject) { return $null }
-    if ($InputObject -is [string]) { return $InputObject }
+    if ($InputObject -is [string] -or $InputObject -is [ValueType]) { return $InputObject }
 
     if ($InputObject -is [System.Collections.IDictionary]) {
         $converted = [ordered]@{}
@@ -269,9 +269,14 @@ function ConvertTo-PlainHashtable {
         return $items
     }
 
-    if ($InputObject.PSObject -and $InputObject.PSObject.Properties.Count -gt 0 -and -not ($InputObject -is [ValueType])) {
+    $properties = $null
+    if ($InputObject.PSObject) {
+        $properties = @($InputObject.PSObject.Properties)
+    }
+
+    if ($null -ne $properties -and $properties.Count -gt 0) {
         $converted = [ordered]@{}
-        foreach ($property in $InputObject.PSObject.Properties) {
+        foreach ($property in $properties) {
             $converted[[string]$property.Name] = ConvertTo-PlainHashtable -InputObject $property.Value
         }
         return $converted
@@ -329,7 +334,7 @@ function Read-ProjectionContractFile {
         throw "Projection contract file not found: $Path"
     }
 
-    $raw = Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json
+    $raw = Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
     return (ConvertTo-PlainHashtable -InputObject $raw)
 }
 
