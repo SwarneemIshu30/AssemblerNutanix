@@ -78,6 +78,51 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
+    It 'keeps successful render reports schema-valid when matches are emitted' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-render-report-schema-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'System=<<SDT:LNV.Lenovo.DE.System[ArrayName].Summary.SystemName>>' -Mappings @(
+                @{
+                    dataset = 'datasets/systems.json'
+                    required = $true
+                    selectors = @('items', '0', 'name')
+                    target = @{ sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Summary.SystemName' }
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -ne 0) { throw 'Expected successful render exit code' }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            $schemaIssues = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SCHEMA-RENDERREPORT-INVALID' })
+            if ($schemaIssues.Count -ne 0) {
+                throw "Expected render report with matches to remain schema-valid, but found: $($schemaIssues[0].message)"
+            }
+
+            $match = @($report.matches | Where-Object { $_.tag -eq 'LNV.Lenovo.DE.System[ArrayName].Summary.SystemName' }) | Select-Object -First 1
+            if ($null -eq $match) {
+                throw 'Expected successful render report to include a match entry for the populated tag.'
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'assigns valid timestamps to skipped stages when execution stops during validation' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot '.deps/contracts'
