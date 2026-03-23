@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "dataset": "volume-mappings",
+  "presentationKind": "relationshipTable",
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    {
+      "name": "VolumeMappings",
+      "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "dataset": "systems",
+  "presentationKind": "summary",
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    {
+      "name": "Summary"
+    }
+  ]
+}

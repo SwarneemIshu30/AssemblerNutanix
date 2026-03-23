@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "dataset": "capabilities-normalized",
+  "presentationKind": "evidence",
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    {
+      "name": "CapabilitiesSummary",
+      "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary"
+    },
+    {
+      "name": "CapabilitiesKeyFeatures",
+      "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures"
+    },
+    {
+      "name": "CapabilitiesLimits",
+      "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits"
+    }
+  ]
+}
