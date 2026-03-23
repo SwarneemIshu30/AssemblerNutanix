@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "status": "ERROR",
-  "startedUtc": "2026-03-23T06:33:37.1521806Z",
-  "completedUtc": "2026-03-23T06:33:37.4493698Z",
+  "startedUtc": "2026-03-23T07:03:29.2137690Z",
+  "completedUtc": "2026-03-23T07:03:29.4961350Z",
   "bundleRoot": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a",
   "catalogPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.catalog.json",
   "outputRoot": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out",
@@ -45,59 +45,59 @@
   ],
   "runs": [
     {
-      "rendererOutputRaw": "{\r\n  \"schemaVersion\": 1,\r\n  \"status\": \"ERROR\",\r\n  \"startedUtc\": \"2026-03-23T06:33:37.4217167Z\",\r\n  \"completedUtc\": \"2026-03-23T06:33:37.4432610Z\",\r\n  \"bundleId\": null,\r\n  \"stages\": [\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Load\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T06:33:37.4218722Z\",\r\n      \"startedUtc\": \"2026-03-23T06:33:37.4218722Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Validate\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T06:33:37.4218722Z\",\r\n      \"startedUtc\": \"2026-03-23T06:33:37.4218722Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Transform\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T06:33:37.4218722Z\",\r\n      \"startedUtc\": \"2026-03-23T06:33:37.4218722Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Render\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T06:33:37.4218722Z\",\r\n      \"startedUtc\": \"2026-03-23T06:33:37.4218722Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Finalize\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T06:33:37.4218722Z\",\r\n      \"startedUtc\": \"2026-03-23T06:33:37.4218722Z\"\r\n    }\r\n  ],\r\n  \"issues\": [\r\n    {\r\n      \"severity\": \"ERROR\",\r\n      \"message\": \"message=The property 'Count' cannot be found on this object. Verify that the property exists. | position=At C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerSdtRender.ps1:332 char:13\\r\\n+     return (ConvertTo-PlainHashtable -InputObject $raw)\\r\\n+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ | stack=at ConvertTo-PlainHashtable, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerSdtRender.ps1: line 271\\r\\nat Read-ProjectionContractFile, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerSdtRender.ps1: line 332\\r\\nat <ScriptBlock>, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerSdtRender.ps1: line 719\\r\\nat <ScriptBlock>, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerBundleRender.ps1: line 535\\r\\nat Invoke-BundleRender, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\gui\\\\Start-AssemblerGui.Wpf.ps1: line 119\\r\\nat <ScriptBlock>, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\gui\\\\Start-AssemblerGui.Wpf.ps1: line 407\\r\\nat <ScriptBlock>, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\gui\\\\Start-AssemblerGui.Wpf.ps1: line 425\\r\\nat <ScriptBlock>, <No file>: line 1 | stage=Load\",\r\n      \"path\": null,\r\n      \"code\": \"ASB-ASM-SDT-UNHANDLED\"\r\n    }\r\n  ],\r\n  \"matches\": [],\r\n  \"outputs\": []\r\n}",
+      "rendererOutputRaw": "{\r\n  \"schemaVersion\": 1,\r\n  \"status\": \"ERROR\",\r\n  \"startedUtc\": \"2026-03-23T07:03:29.4706502Z\",\r\n  \"completedUtc\": \"2026-03-23T07:03:29.4887943Z\",\r\n  \"bundleId\": null,\r\n  \"stages\": [\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Load\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T07:03:29.4707126Z\",\r\n      \"startedUtc\": \"2026-03-23T07:03:29.4707126Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Validate\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T07:03:29.4707126Z\",\r\n      \"startedUtc\": \"2026-03-23T07:03:29.4707126Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Transform\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T07:03:29.4707126Z\",\r\n      \"startedUtc\": \"2026-03-23T07:03:29.4707126Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Render\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T07:03:29.4707126Z\",\r\n      \"startedUtc\": \"2026-03-23T07:03:29.4707126Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Finalize\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T07:03:29.4707126Z\",\r\n      \"startedUtc\": \"2026-03-23T07:03:29.4707126Z\"\r\n    }\r\n  ],\r\n  \"issues\": [\r\n    {\r\n      \"severity\": \"ERROR\",\r\n      \"message\": \"message=The property 'Count' cannot be found on this object. Verify that the property exists. | position=At C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerSdtRender.ps1:333 char:13\\r\\n+     return (ConvertTo-PlainHashtable -InputObject $raw)\\r\\n+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ | stack=at ConvertTo-PlainHashtable, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerSdtRender.ps1: line 272\\r\\nat Read-ProjectionContractFile, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerSdtRender.ps1: line 333\\r\\nat <ScriptBlock>, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerSdtRender.ps1: line 720\\r\\nat <ScriptBlock>, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerBundleRender.ps1: line 535\\r\\nat Invoke-BundleRender, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\gui\\\\Start-AssemblerGui.Wpf.ps1: line 119\\r\\nat <ScriptBlock>, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\gui\\\\Start-AssemblerGui.Wpf.ps1: line 407\\r\\nat <ScriptBlock>, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\gui\\\\Start-AssemblerGui.Wpf.ps1: line 425\\r\\nat <ScriptBlock>, <No file>: line 1 | stage=Load\",\r\n      \"path\": null,\r\n      \"code\": \"ASB-ASM-SDT-UNHANDLED\"\r\n    }\r\n  ],\r\n  \"matches\": [],\r\n  \"outputs\": []\r\n}",
       "variants": [
         {
-          "rendererOutputRaw": "{\r\n  \"schemaVersion\": 1,\r\n  \"status\": \"ERROR\",\r\n  \"startedUtc\": \"2026-03-23T06:33:37.4217167Z\",\r\n  \"completedUtc\": \"2026-03-23T06:33:37.4432610Z\",\r\n  \"bundleId\": null,\r\n  \"stages\": [\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Load\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T06:33:37.4218722Z\",\r\n      \"startedUtc\": \"2026-03-23T06:33:37.4218722Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Validate\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T06:33:37.4218722Z\",\r\n      \"startedUtc\": \"2026-03-23T06:33:37.4218722Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Transform\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T06:33:37.4218722Z\",\r\n      \"startedUtc\": \"2026-03-23T06:33:37.4218722Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Render\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T06:33:37.4218722Z\",\r\n      \"startedUtc\": \"2026-03-23T06:33:37.4218722Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Finalize\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T06:33:37.4218722Z\",\r\n      \"startedUtc\": \"2026-03-23T06:33:37.4218722Z\"\r\n    }\r\n  ],\r\n  \"issues\": [\r\n    {\r\n      \"severity\": \"ERROR\",\r\n      \"message\": \"message=The property 'Count' cannot be found on this object. Verify that the property exists. | position=At C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerSdtRender.ps1:332 char:13\\r\\n+     return (ConvertTo-PlainHashtable -InputObject $raw)\\r\\n+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ | stack=at ConvertTo-PlainHashtable, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerSdtRender.ps1: line 271\\r\\nat Read-ProjectionContractFile, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerSdtRender.ps1: line 332\\r\\nat <ScriptBlock>, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerSdtRender.ps1: line 719\\r\\nat <ScriptBlock>, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerBundleRender.ps1: line 535\\r\\nat Invoke-BundleRender, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\gui\\\\Start-AssemblerGui.Wpf.ps1: line 119\\r\\nat <ScriptBlock>, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\gui\\\\Start-AssemblerGui.Wpf.ps1: line 407\\r\\nat <ScriptBlock>, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\gui\\\\Start-AssemblerGui.Wpf.ps1: line 425\\r\\nat <ScriptBlock>, <No file>: line 1 | stage=Load\",\r\n      \"path\": null,\r\n      \"code\": \"ASB-ASM-SDT-UNHANDLED\"\r\n    }\r\n  ],\r\n  \"matches\": [],\r\n  \"outputs\": []\r\n}",
+          "rendererOutputRaw": "{\r\n  \"schemaVersion\": 1,\r\n  \"status\": \"ERROR\",\r\n  \"startedUtc\": \"2026-03-23T07:03:29.4706502Z\",\r\n  \"completedUtc\": \"2026-03-23T07:03:29.4887943Z\",\r\n  \"bundleId\": null,\r\n  \"stages\": [\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Load\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T07:03:29.4707126Z\",\r\n      \"startedUtc\": \"2026-03-23T07:03:29.4707126Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Validate\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T07:03:29.4707126Z\",\r\n      \"startedUtc\": \"2026-03-23T07:03:29.4707126Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Transform\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T07:03:29.4707126Z\",\r\n      \"startedUtc\": \"2026-03-23T07:03:29.4707126Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Render\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T07:03:29.4707126Z\",\r\n      \"startedUtc\": \"2026-03-23T07:03:29.4707126Z\"\r\n    },\r\n    {\r\n      \"details\": null,\r\n      \"name\": \"Finalize\",\r\n      \"status\": \"SKIPPED\",\r\n      \"completedUtc\": \"2026-03-23T07:03:29.4707126Z\",\r\n      \"startedUtc\": \"2026-03-23T07:03:29.4707126Z\"\r\n    }\r\n  ],\r\n  \"issues\": [\r\n    {\r\n      \"severity\": \"ERROR\",\r\n      \"message\": \"message=The property 'Count' cannot be found on this object. Verify that the property exists. | position=At C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerSdtRender.ps1:333 char:13\\r\\n+     return (ConvertTo-PlainHashtable -InputObject $raw)\\r\\n+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ | stack=at ConvertTo-PlainHashtable, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerSdtRender.ps1: line 272\\r\\nat Read-ProjectionContractFile, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerSdtRender.ps1: line 333\\r\\nat <ScriptBlock>, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerSdtRender.ps1: line 720\\r\\nat <ScriptBlock>, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\scripts\\\\Invoke-AssemblerBundleRender.ps1: line 535\\r\\nat Invoke-BundleRender, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\gui\\\\Start-AssemblerGui.Wpf.ps1: line 119\\r\\nat <ScriptBlock>, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\gui\\\\Start-AssemblerGui.Wpf.ps1: line 407\\r\\nat <ScriptBlock>, C:\\\\Github\\\\LNV.AsBuiltDoc.Assembler\\\\gui\\\\Start-AssemblerGui.Wpf.ps1: line 425\\r\\nat <ScriptBlock>, <No file>: line 1 | stage=Load\",\r\n      \"path\": null,\r\n      \"code\": \"ASB-ASM-SDT-UNHANDLED\"\r\n    }\r\n  ],\r\n  \"matches\": [],\r\n  \"outputs\": []\r\n}",
           "selectedTarget": "",
           "outputPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\Lenovo.DE\\DE-SDT-Collector.rendered.txt",
           "rendererOutput": {
             "schemaVersion": 1,
             "status": "ERROR",
-            "startedUtc": "2026-03-23T06:33:37.4217167Z",
-            "completedUtc": "2026-03-23T06:33:37.443261Z",
+            "startedUtc": "2026-03-23T07:03:29.4706502Z",
+            "completedUtc": "2026-03-23T07:03:29.4887943Z",
             "bundleId": null,
             "stages": [
               {
                 "details": null,
                 "name": "Load",
                 "status": "SKIPPED",
-                "completedUtc": "2026-03-23T06:33:37.4218722Z",
-                "startedUtc": "2026-03-23T06:33:37.4218722Z"
+                "completedUtc": "2026-03-23T07:03:29.4707126Z",
+                "startedUtc": "2026-03-23T07:03:29.4707126Z"
               },
               {
                 "details": null,
                 "name": "Validate",
                 "status": "SKIPPED",
-                "completedUtc": "2026-03-23T06:33:37.4218722Z",
-                "startedUtc": "2026-03-23T06:33:37.4218722Z"
+                "completedUtc": "2026-03-23T07:03:29.4707126Z",
+                "startedUtc": "2026-03-23T07:03:29.4707126Z"
               },
               {
                 "details": null,
                 "name": "Transform",
                 "status": "SKIPPED",
-                "completedUtc": "2026-03-23T06:33:37.4218722Z",
-                "startedUtc": "2026-03-23T06:33:37.4218722Z"
+                "completedUtc": "2026-03-23T07:03:29.4707126Z",
+                "startedUtc": "2026-03-23T07:03:29.4707126Z"
               },
               {
                 "details": null,
                 "name": "Render",
                 "status": "SKIPPED",
-                "completedUtc": "2026-03-23T06:33:37.4218722Z",
-                "startedUtc": "2026-03-23T06:33:37.4218722Z"
+                "completedUtc": "2026-03-23T07:03:29.4707126Z",
+                "startedUtc": "2026-03-23T07:03:29.4707126Z"
               },
               {
                 "details": null,
                 "name": "Finalize",
                 "status": "SKIPPED",
-                "completedUtc": "2026-03-23T06:33:37.4218722Z",
-                "startedUtc": "2026-03-23T06:33:37.4218722Z"
+                "completedUtc": "2026-03-23T07:03:29.4707126Z",
+                "startedUtc": "2026-03-23T07:03:29.4707126Z"
               }
             ],
             "issues": [
               {
                 "severity": "ERROR",
-                "message": "message=The property 'Count' cannot be found on this object. Verify that the property exists. | position=At C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1:332 char:13\r\n+     return (ConvertTo-PlainHashtable -InputObject $raw)\r\n+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ | stack=at ConvertTo-PlainHashtable, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 271\r\nat Read-ProjectionContractFile, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 332\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 719\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerBundleRender.ps1: line 535\r\nat Invoke-BundleRender, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 119\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 407\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 425\r\nat <ScriptBlock>, <No file>: line 1 | stage=Load",
+                "message": "message=The property 'Count' cannot be found on this object. Verify that the property exists. | position=At C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1:333 char:13\r\n+     return (ConvertTo-PlainHashtable -InputObject $raw)\r\n+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ | stack=at ConvertTo-PlainHashtable, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 272\r\nat Read-ProjectionContractFile, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 333\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 720\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerBundleRender.ps1: line 535\r\nat Invoke-BundleRender, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 119\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 407\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 425\r\nat <ScriptBlock>, <No file>: line 1 | stage=Load",
                 "path": null,
                 "code": "ASB-ASM-SDT-UNHANDLED"
               }
@@ -155,50 +155,50 @@
       "rendererOutput": {
         "schemaVersion": 1,
         "status": "ERROR",
-        "startedUtc": "2026-03-23T06:33:37.4217167Z",
-        "completedUtc": "2026-03-23T06:33:37.443261Z",
+        "startedUtc": "2026-03-23T07:03:29.4706502Z",
+        "completedUtc": "2026-03-23T07:03:29.4887943Z",
         "bundleId": null,
         "stages": [
           {
             "details": null,
             "name": "Load",
             "status": "SKIPPED",
-            "completedUtc": "2026-03-23T06:33:37.4218722Z",
-            "startedUtc": "2026-03-23T06:33:37.4218722Z"
+            "completedUtc": "2026-03-23T07:03:29.4707126Z",
+            "startedUtc": "2026-03-23T07:03:29.4707126Z"
           },
           {
             "details": null,
             "name": "Validate",
             "status": "SKIPPED",
-            "completedUtc": "2026-03-23T06:33:37.4218722Z",
-            "startedUtc": "2026-03-23T06:33:37.4218722Z"
+            "completedUtc": "2026-03-23T07:03:29.4707126Z",
+            "startedUtc": "2026-03-23T07:03:29.4707126Z"
           },
           {
             "details": null,
             "name": "Transform",
             "status": "SKIPPED",
-            "completedUtc": "2026-03-23T06:33:37.4218722Z",
-            "startedUtc": "2026-03-23T06:33:37.4218722Z"
+            "completedUtc": "2026-03-23T07:03:29.4707126Z",
+            "startedUtc": "2026-03-23T07:03:29.4707126Z"
           },
           {
             "details": null,
             "name": "Render",
             "status": "SKIPPED",
-            "completedUtc": "2026-03-23T06:33:37.4218722Z",
-            "startedUtc": "2026-03-23T06:33:37.4218722Z"
+            "completedUtc": "2026-03-23T07:03:29.4707126Z",
+            "startedUtc": "2026-03-23T07:03:29.4707126Z"
           },
           {
             "details": null,
             "name": "Finalize",
             "status": "SKIPPED",
-            "completedUtc": "2026-03-23T06:33:37.4218722Z",
-            "startedUtc": "2026-03-23T06:33:37.4218722Z"
+            "completedUtc": "2026-03-23T07:03:29.4707126Z",
+            "startedUtc": "2026-03-23T07:03:29.4707126Z"
           }
         ],
         "issues": [
           {
             "severity": "ERROR",
-            "message": "message=The property 'Count' cannot be found on this object. Verify that the property exists. | position=At C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1:332 char:13\r\n+     return (ConvertTo-PlainHashtable -InputObject $raw)\r\n+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ | stack=at ConvertTo-PlainHashtable, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 271\r\nat Read-ProjectionContractFile, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 332\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 719\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerBundleRender.ps1: line 535\r\nat Invoke-BundleRender, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 119\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 407\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 425\r\nat <ScriptBlock>, <No file>: line 1 | stage=Load",
+            "message": "message=The property 'Count' cannot be found on this object. Verify that the property exists. | position=At C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1:333 char:13\r\n+     return (ConvertTo-PlainHashtable -InputObject $raw)\r\n+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ | stack=at ConvertTo-PlainHashtable, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 272\r\nat Read-ProjectionContractFile, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 333\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 720\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerBundleRender.ps1: line 535\r\nat Invoke-BundleRender, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 119\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 407\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 425\r\nat <ScriptBlock>, <No file>: line 1 | stage=Load",
             "path": null,
             "code": "ASB-ASM-SDT-UNHANDLED"
           }
