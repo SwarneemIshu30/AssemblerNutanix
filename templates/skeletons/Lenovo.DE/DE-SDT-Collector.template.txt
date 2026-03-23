@@ -51,10 +51,13 @@ Describe controller A/B architecture, ownership behaviour, host interface presen
 Version Matrix
 Summarise array firmware, application, boot image, NVSRAM, controller firmware, and drive firmware baselines.
 
-<<SDT:DE_FIRMWARE_VERSION>>
-<<SDT:DE_APP_VERSION>>
-<<SDT:DE_BOOT_VERSION>>
-<<SDT:DE_NVSRAM_VERSION>>
+Validation Block - Version Matrix
+- Firmware Baseline      : <<SDT:DE_FIRMWARE_VERSION>>
+- Application Baseline   : <<SDT:DE_APP_VERSION>>
+- Boot Image Baseline    : <<SDT:DE_BOOT_VERSION>>
+- NVSRAM Baseline        : <<SDT:DE_NVSRAM_VERSION>>
+- Collection Mode        : <<SDT:DE_COLLECTION_MODE>>
+- Collected UTC          : <<SDT:DE_COLLECTION_COLLECTED_UTC>>
 
 Key Design Decisions
 Capture notable implementation decisions such as pool design, protocol choice, cache settings, snapshot use,
@@ -65,11 +68,29 @@ and replication posture.
 Management Context
 Clarify embedded management access, DNS / NTP scope, monitoring integration, and management-network boundaries.
 
+Validation Block - Management Context
+- Management System ID   : <<SDT:DE_SYSTEM_ID>>
+- Primary Management IP  : <<SDT:DE_MANAGEMENT_IP>>
+- Controller A Mgmt NIC  : <<SDT:DE_MGMT_1_CONTROLLER_LABEL>> / slot <<SDT:DE_MGMT_1_CONTROLLER_SLOT>> / <<SDT:DE_MGMT_1_PORT_LABEL>>
+- Controller A Mgmt Addr : <<SDT:DE_MGMT_1_IPV4_ADDRESS>> / <<SDT:DE_MGMT_1_IPV4_SUBNET_MASK>>
+- Controller A Link      : <<SDT:DE_MGMT_1_LINK_STATUS>> via <<SDT:DE_MGMT_1_INTERFACE_NAME>>
+- Controller B Mgmt NIC  : <<SDT:DE_MGMT_2_CONTROLLER_LABEL>> / slot <<SDT:DE_MGMT_2_CONTROLLER_SLOT>> / <<SDT:DE_MGMT_2_PORT_LABEL>>
+- Controller B Mgmt Addr : <<SDT:DE_MGMT_2_IPV4_ADDRESS>> / <<SDT:DE_MGMT_2_IPV4_SUBNET_MASK>>
+- Controller B Link      : <<SDT:DE_MGMT_2_LINK_STATUS>> via <<SDT:DE_MGMT_2_INTERFACE_NAME>>
+
 Management Interfaces
 <<SDT:DE_MANAGEMENT_INTERFACES_TABLE_JSON>>
 
+Validation Block - DNS Effective Settings
+- DNS Scope 1            : acquisition <<SDT:DE_SYSDNS_1_DNS_ACQ_TYPE>> / configured <<SDT:DE_SYSDNS_1_DNS_SERVERS>> / DHCP <<SDT:DE_SYSDNS_1_DHCP_ACQUIRED_SERVERS>>
+- DNS Scope 2            : acquisition <<SDT:DE_SYSDNS_2_DNS_ACQ_TYPE>> / configured <<SDT:DE_SYSDNS_2_DNS_SERVERS>> / DHCP <<SDT:DE_SYSDNS_2_DHCP_ACQUIRED_SERVERS>>
+
 DNS Configuration
 <<SDT:DE_DNS_TABLE_JSON>>
+
+Validation Block - Time Effective Settings
+- Time Scope 1           : NTP acquisition <<SDT:DE_SYSTIME_1_NTP_ACQ_TYPE>> / configured <<SDT:DE_SYSTIME_1_NTP_SERVERS>> / DHCP <<SDT:DE_SYSTIME_1_DHCP_ACQUIRED_SERVERS>> / router <<SDT:DE_SYSTIME_1_IPV4_DEFAULT_ROUTER>>
+- Time Scope 2           : NTP acquisition <<SDT:DE_SYSTIME_2_NTP_ACQ_TYPE>> / configured <<SDT:DE_SYSTIME_2_NTP_SERVERS>> / DHCP <<SDT:DE_SYSTIME_2_DHCP_ACQUIRED_SERVERS>> / router <<SDT:DE_SYSTIME_2_IPV4_DEFAULT_ROUTER>>
 
 Time Configuration
 <<SDT:DE_TIME_TABLE_JSON>>
@@ -208,6 +229,14 @@ Access Model
 Explain how administrators, applications, and hosts consume the platform, including intended protocol and pathing
 behaviour.
 
+Validation Block - Transport / Access Model
+- Transport System ID      : <<SDT:DE_TRANSPORT_SYSTEM_ID>>
+- Active Transport         : <<SDT:DE_TRANSPORT_ACTIVE>>
+- iSCSI IQN                : <<SDT:DE_TRANSPORT_ISCSI_IQN>>
+- Host Port 1              : tray <<SDT:DE_HOSTPORT_1_TRAY_ID>> / <<SDT:DE_HOSTPORT_1_CONTROLLER_LABEL>> slot <<SDT:DE_HOSTPORT_1_CONTROLLER_SLOT>> / port <<SDT:DE_HOSTPORT_1_PORT_LABEL>> / channel <<SDT:DE_HOSTPORT_1_CHANNEL>>
+- Host Port 1 Network      : <<SDT:DE_HOSTPORT_1_IPV4_ADDRESS>> / <<SDT:DE_HOSTPORT_1_IPV4_SUBNET_MASK>> / gateway <<SDT:DE_HOSTPORT_1_IPV4_GATEWAY>> / VLAN <<SDT:DE_HOSTPORT_1_VLAN_ENABLED>>:<<SDT:DE_HOSTPORT_1_VLAN_ID>>
+- Host Port 2              : tray <<SDT:DE_HOSTPORT_2_TRAY_ID>> / <<SDT:DE_HOSTPORT_2_CONTROLLER_LABEL>> slot <<SDT:DE_HOSTPORT_2_CONTROLLER_SLOT>> / port <<SDT:DE_HOSTPORT_2_PORT_LABEL>> / channel <<SDT:DE_HOSTPORT_2_CHANNEL>>
+- Host Port 2 Network      : <<SDT:DE_HOSTPORT_2_IPV4_ADDRESS>> / <<SDT:DE_HOSTPORT_2_IPV4_SUBNET_MASK>> / gateway <<SDT:DE_HOSTPORT_2_IPV4_GATEWAY>> / VLAN <<SDT:DE_HOSTPORT_2_VLAN_ENABLED>>:<<SDT:DE_HOSTPORT_2_VLAN_ID>>
 - Administrative Entrypoint : <<SDT:DE_MANAGEMENT_IP>>
 - Generated Evidence        : Review host definitions, host groups, transport summary, and port sections above.
 - Manual Note              : Summarise intended access model in the DOCX where narrative is needed.
@@ -281,6 +310,21 @@ Firmware & Component Inventory (Conditional)
 
 Node-Level Driver Alignment (Conditional)
 [Conditional manual note: include node-level driver alignment only when applicable to attached compute platforms.]
+
+Validation Block - Controller A / Controller B Summary
+- Controller A Summary    : <<SDT:DE_MGMT_1_CONTROLLER_LABEL>> slot <<SDT:DE_MGMT_1_CONTROLLER_SLOT>> / mgmt <<SDT:DE_MGMT_1_IPV4_ADDRESS>> / host port <<SDT:DE_HOSTPORT_1_PORT_LABEL>> channel <<SDT:DE_HOSTPORT_1_CHANNEL>>
+- Controller B Summary    : <<SDT:DE_MGMT_2_CONTROLLER_LABEL>> slot <<SDT:DE_MGMT_2_CONTROLLER_SLOT>> / mgmt <<SDT:DE_MGMT_2_IPV4_ADDRESS>> / host port <<SDT:DE_HOSTPORT_2_PORT_LABEL>> channel <<SDT:DE_HOSTPORT_2_CHANNEL>>
+
+SDT Inventory / Proposed DOCX Fields
+Use this appendix as a rehearsal area for future DOCX content controls backed by scalar Lenovo DE tags.
+
+- Candidate Field - Array Version Matrix      : firmware <<SDT:DE_FIRMWARE_VERSION>> / app <<SDT:DE_APP_VERSION>> / boot <<SDT:DE_BOOT_VERSION>> / NVSRAM <<SDT:DE_NVSRAM_VERSION>>
+- Candidate Field - Mgmt Controller A         : <<SDT:DE_MGMT_1_CONTROLLER_LABEL>> / <<SDT:DE_MGMT_1_IPV4_ADDRESS>> / <<SDT:DE_MGMT_1_LINK_STATUS>>
+- Candidate Field - Mgmt Controller B         : <<SDT:DE_MGMT_2_CONTROLLER_LABEL>> / <<SDT:DE_MGMT_2_IPV4_ADDRESS>> / <<SDT:DE_MGMT_2_LINK_STATUS>>
+- Candidate Field - Effective DNS / NTP 1     : DNS <<SDT:DE_SYSDNS_1_DNS_SERVERS>> / NTP <<SDT:DE_SYSTIME_1_NTP_SERVERS>>
+- Candidate Field - Effective DNS / NTP 2     : DNS <<SDT:DE_SYSDNS_2_DNS_SERVERS>> / NTP <<SDT:DE_SYSTIME_2_NTP_SERVERS>>
+- Candidate Field - Primary iSCSI Access Port : <<SDT:DE_HOSTPORT_1_CONTROLLER_LABEL>> <<SDT:DE_HOSTPORT_1_PORT_LABEL>> / <<SDT:DE_HOSTPORT_1_IPV4_ADDRESS>> / VLAN <<SDT:DE_HOSTPORT_1_VLAN_ID>>
+- Candidate Field - Secondary iSCSI Access Port : <<SDT:DE_HOSTPORT_2_CONTROLLER_LABEL>> <<SDT:DE_HOSTPORT_2_PORT_LABEL>> / <<SDT:DE_HOSTPORT_2_IPV4_ADDRESS>> / VLAN <<SDT:DE_HOSTPORT_2_VLAN_ID>>
 
 Notes for Review
 ----------------------------------------------------------------------------------------------------
