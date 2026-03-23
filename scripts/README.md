@@ -17,7 +17,7 @@ Runtime direction is **PowerShell 7**.
 1. explicit `-ContractsRoot`
 2. `./.deps/contracts`
 
-The SDT render script loads `standards/mapping.dataset-to-sdt.schema.v1.json` and `standards/assembler/assembler.render-report.schema.v1.json` from the resolved root and performs schema validation for mapping input and single-render output. It also loads tech-specific projection contracts from `tech/<techId>/assembler.projections.v1.json` when present so table shaping remains contract-owned. Bundle orchestration separately validates `standards/assembler/assembler.bundle-render-report.schema.v1.json` for its aggregate report.
+The SDT render script loads `standards/mapping.dataset-to-sdt.schema.v1.json` and `standards/assembler/assembler.render-report.schema.v1.json` from the resolved root and performs schema validation for mapping input and single-render output. It also requires a tech-specific projection contract at `tech/<techId>/assembler.projections.v1.json`; if that file is missing for the selected tech, render fails with an error explaining that contracts sync is incomplete so operators know to sync `tech/<techId>/assembler.projections.v1.json` into `.deps/contracts` outside this repo. Bundle orchestration separately validates `standards/assembler/assembler.bundle-render-report.schema.v1.json` for its aggregate report.
 
 Repo ownership note: tracked contract handoff artifacts live under `exports/LNV.AsBuiltDoc.Contracts/...`, including `exports/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/assembler.projections.v1.json`. The `.deps/contracts` tree is a repo-local synced runtime dependency populated by `Sync-AssemblerContractsToRepo.ps1`; do not make repo-managed contract edits there.
 
@@ -73,7 +73,9 @@ Each run writes or updates `contracts.snapshot.json` in the destination.
 
 Expected contracts layout at destination:
 - required: `standards/`
-- optional: `tech/` (sync continues if absent)
+- required at render time for each selected tech: `tech/<techId>/assembler.projections.v1.json`
+
+If `tech/<techId>/assembler.projections.v1.json` is missing from `.deps/contracts`, `Invoke-AssemblerSdtRender.ps1` now fails fast and tells the operator that contracts sync is incomplete.
 
 ## Examples
 
