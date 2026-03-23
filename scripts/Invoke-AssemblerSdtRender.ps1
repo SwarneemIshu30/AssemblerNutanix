@@ -251,6 +251,7 @@ function ConvertTo-PlainHashtable {
     param([Parameter(Mandatory = $false)]$InputObject)
 
     if ($null -eq $InputObject) { return $null }
+    if ($InputObject -is [string]) { return $InputObject }
 
     if ($InputObject -is [System.Collections.IDictionary]) {
         $converted = [ordered]@{}

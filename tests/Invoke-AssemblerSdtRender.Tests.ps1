@@ -1,4 +1,20 @@
 Describe 'Invoke-AssemblerSdtRender integration' {
+    BeforeAll {
+        $scriptUnderTest = Join-Path (Split-Path -Parent $PSScriptRoot) 'scripts/Invoke-AssemblerSdtRender.ps1'
+        $scriptSource = Get-Content -LiteralPath $scriptUnderTest -Raw -Encoding UTF8
+        $functionBlock = [regex]::Match(
+            $scriptSource,
+            '(?s)function ConvertTo-PlainHashtable \{.*?^}\s*.*?function Read-ProjectionContractFile \{.*?^}',
+            [System.Text.RegularExpressions.RegexOptions]::Multiline
+        ).Value
+
+        if ([string]::IsNullOrWhiteSpace($functionBlock)) {
+            throw 'Failed to load ConvertTo-PlainHashtable and Read-ProjectionContractFile from script under test.'
+        }
+
+        Invoke-Expression $functionBlock
+    }
+
     function New-TestRenderFixture {
         param(
             [Parameter(Mandatory = $true)][string]$Root,
@@ -111,6 +127,66 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
+
+    It 'normalizes projection contracts with nested strings without raising Count exceptions' {
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-projection-normalization-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $projectionContractPath = Join-Path $tempRoot 'assembler.projections.v1.json'
+            Set-Content -LiteralPath $projectionContractPath -Encoding UTF8 -Value (@{
+                schema = 'assembler.projections'
+                schemaVersion = 1
+                techId = 'Lenovo.DE'
+                displayName = 'nested string projection contract'
+                projections = @{
+                    TEST_TAG = @{
+                        filter = @(
+                            @{
+                                field = 'items.0.name'
+                                equals = 'ArrayOne'
+                            }
+                        )
+                        columns = @(
+                            @{
+                                name = 'summary'
+                                value = @{
+                                    text = 'alpha'
+                                    nested = @{
+                                        label = 'beta'
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+            } | ConvertTo-Json -Depth 10)
+
+            try {
+                $result = Read-ProjectionContractFile -Path $projectionContractPath
+            }
+            catch {
+                if ($_.Exception.Message -match 'Count') {
+                    throw "Unexpected Count exception while normalizing nested strings: $($_.Exception.Message)"
+                }
+
+                throw
+            }
+
+            if ([string]$result.projections.TEST_TAG.columns[0].value.text -ne 'alpha') {
+                throw 'Expected nested string leaf value to be preserved during normalization.'
+            }
+
+            if ([string]$result.projections.TEST_TAG.columns[0].value.nested.label -ne 'beta') {
+                throw 'Expected nested string leaf value to remain accessible after normalization.'
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
 
     It 'fails validation when the projection contract is schema-invalid' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
