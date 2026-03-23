@@ -1,10 +1,9 @@
 # Assembler docs
 
-This folder should hold:
+This folder holds repository-specific documentation such as:
 - architecture notes
 - lifecycle details
-- operator runbook
+- operator runbooks
 - troubleshooting
 
-Current repo-specific handoffs:
-- `lenovo-de-contract-handoff.md` - Lenovo.DE assembler alignment status and remaining Lenovo.DE/Core follow-up.
+Stale staging and handoff artifacts have been removed from the standalone repository. Add new docs here only when they reflect current assembler ownership and runtime behavior.

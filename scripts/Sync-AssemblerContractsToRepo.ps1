@@ -5,13 +5,13 @@ Sync Assembler contracts into deterministic local ingest path (`.deps/contracts`
 
 .DESCRIPTION
 Supports two modes only:
-1) Published release pack sync (default with no args): resolve latest release asset and download/extract zip
-2) Local export copy (when non-pack options are supplied): `export/repo-ready/contracts` -> `.deps/contracts`
+1) Published release pack sync (default): resolve latest release asset and download/extract zip
+2) Local copy (when `-ExportContractsPath` is explicitly supplied): `<source>` -> `.deps/contracts`
 #>
 
 [CmdletBinding()]
 param(
-    [string]$ExportContractsPath = (Join-Path $PSScriptRoot '..\export\repo-ready\contracts'),
+    [string]$ExportContractsPath,
 
     [string]$ContractsVersion,
 
@@ -100,9 +100,13 @@ if ($ContractsVersion -and $ContractsPackUrl) {
     throw "Specify either -ContractsVersion or -ContractsPackUrl, not both."
 }
 
-$invokedWithoutOptions = @($PSBoundParameters.Keys).Count -eq 0
+$useLocalCopy = $PSBoundParameters.ContainsKey('ExportContractsPath')
 
-if (-not $invokedWithoutOptions -and -not $ContractsVersion -and -not $ContractsPackUrl) {
+if ($useLocalCopy -and ($ContractsVersion -or $ContractsPackUrl)) {
+    throw "Specify either -ExportContractsPath for a local copy or a published-pack option, not both."
+}
+
+if ($useLocalCopy) {
     $sourceRoot = (Resolve-Path -LiteralPath $ExportContractsPath -ErrorAction Stop).Path
     Copy-Item -Recurse -Force -Path (Join-Path $sourceRoot '*') -Destination $DepsContractsPath
     Initialize-LnvRootLayout -Root $DepsContractsPath

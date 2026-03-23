@@ -1,8 +1,8 @@
 Describe 'Sync-AssemblerContractsToRepo' {
-    It 'copies local export contracts into deterministic destination by default' {
+    It 'copies an explicit local contracts source into the deterministic destination' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $scriptPath = Join-Path $repoRoot 'scripts/Sync-AssemblerContractsToRepo.ps1'
-        $sourceRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
+        $sourceRoot = Join-Path $repoRoot '.deps/contracts'
 
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
         if ([string]::IsNullOrWhiteSpace($pwshPath)) {

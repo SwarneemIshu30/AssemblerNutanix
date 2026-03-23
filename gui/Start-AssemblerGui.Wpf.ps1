@@ -71,7 +71,7 @@ function Resolve-DefaultCatalogPath {
 
 function Resolve-DefaultContractsRoot {
     param([Parameter(Mandatory = $true)][string]$RepoRoot)
-    foreach ($candidate in @((Join-Path $RepoRoot '.deps/contracts'), (Join-Path $RepoRoot 'export/repo-ready/contracts'))) {
+    foreach ($candidate in @((Join-Path $RepoRoot '.deps/contracts'))) {
         if (Test-Path -LiteralPath $candidate -PathType Container) { return $candidate }
     }
     return (Join-Path $RepoRoot '.deps/contracts')
