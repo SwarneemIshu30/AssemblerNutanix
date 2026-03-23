@@ -1,50 +1,50 @@
 {
   "schemaVersion": 1,
   "status": "ERROR",
-  "startedUtc": "2026-03-23T04:29:45.7052921Z",
-  "completedUtc": "2026-03-23T04:29:45.7128231Z",
+  "startedUtc": "2026-03-23T06:33:37.4217167Z",
+  "completedUtc": "2026-03-23T06:33:37.4432610Z",
   "bundleId": null,
   "stages": [
     {
       "details": null,
       "name": "Load",
       "status": "SKIPPED",
-      "completedUtc": "2026-03-23T04:29:45.7053580Z",
-      "startedUtc": "2026-03-23T04:29:45.7053580Z"
+      "completedUtc": "2026-03-23T06:33:37.4218722Z",
+      "startedUtc": "2026-03-23T06:33:37.4218722Z"
     },
     {
       "details": null,
       "name": "Validate",
       "status": "SKIPPED",
-      "completedUtc": "2026-03-23T04:29:45.7053580Z",
-      "startedUtc": "2026-03-23T04:29:45.7053580Z"
+      "completedUtc": "2026-03-23T06:33:37.4218722Z",
+      "startedUtc": "2026-03-23T06:33:37.4218722Z"
     },
     {
       "details": null,
       "name": "Transform",
       "status": "SKIPPED",
-      "completedUtc": "2026-03-23T04:29:45.7053580Z",
-      "startedUtc": "2026-03-23T04:29:45.7053580Z"
+      "completedUtc": "2026-03-23T06:33:37.4218722Z",
+      "startedUtc": "2026-03-23T06:33:37.4218722Z"
     },
     {
       "details": null,
       "name": "Render",
       "status": "SKIPPED",
-      "completedUtc": "2026-03-23T04:29:45.7053580Z",
-      "startedUtc": "2026-03-23T04:29:45.7053580Z"
+      "completedUtc": "2026-03-23T06:33:37.4218722Z",
+      "startedUtc": "2026-03-23T06:33:37.4218722Z"
     },
     {
       "details": null,
       "name": "Finalize",
       "status": "SKIPPED",
-      "completedUtc": "2026-03-23T04:29:45.7053580Z",
-      "startedUtc": "2026-03-23T04:29:45.7053580Z"
+      "completedUtc": "2026-03-23T06:33:37.4218722Z",
+      "startedUtc": "2026-03-23T06:33:37.4218722Z"
     }
   ],
   "issues": [
     {
       "severity": "ERROR",
-      "message": "The property 'Count' cannot be found on this object. Verify that the property exists.",
+      "message": "message=The property 'Count' cannot be found on this object. Verify that the property exists. | position=At C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1:332 char:13\r\n+     return (ConvertTo-PlainHashtable -InputObject $raw)\r\n+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ | stack=at ConvertTo-PlainHashtable, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 271\r\nat Read-ProjectionContractFile, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 332\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 719\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerBundleRender.ps1: line 535\r\nat Invoke-BundleRender, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 119\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 407\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 425\r\nat <ScriptBlock>, <No file>: line 1 | stage=Load",
       "path": null,
       "code": "ASB-ASM-SDT-UNHANDLED"
     }
