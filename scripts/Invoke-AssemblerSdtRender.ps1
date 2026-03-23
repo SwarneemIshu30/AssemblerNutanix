@@ -262,11 +262,11 @@ function ConvertTo-PlainHashtable {
     }
 
     if ($InputObject -is [System.Collections.IEnumerable] -and -not ($InputObject -is [string])) {
-        $items = @()
+        $items = [System.Collections.Generic.List[object]]::new()
         foreach ($item in $InputObject) {
-            $items += ,(ConvertTo-PlainHashtable -InputObject $item)
+            $items.Add((ConvertTo-PlainHashtable -InputObject $item))
         }
-        return $items
+        return ,$items.ToArray()
     }
 
     $properties = $null
@@ -283,6 +283,31 @@ function ConvertTo-PlainHashtable {
     }
 
     return $InputObject
+}
+
+function Test-ProjectionContractJsonArrayShape {
+    param([Parameter(Mandatory = $true)][string]$JsonText)
+
+    $projectionContract = $JsonText | ConvertFrom-Json -AsHashtable
+    if (-not ($projectionContract -is [System.Collections.IDictionary]) -or -not $projectionContract.ContainsKey('projections')) {
+        return [ordered]@{ isValid = $true; message = $null }
+    }
+
+    foreach ($projectionTag in @($projectionContract.projections.Keys)) {
+        $projection = $projectionContract.projections[[string]$projectionTag]
+        if (-not ($projection -is [System.Collections.IDictionary])) { continue }
+
+        foreach ($propertyName in @('filter', 'columns')) {
+            if ($projection.ContainsKey($propertyName) -and $null -ne $projection[$propertyName] -and -not ($projection[$propertyName] -is [System.Collections.IList])) {
+                return [ordered]@{
+                    isValid = $false
+                    message = "Projection '$projectionTag' property '$propertyName' must serialize as a JSON array."
+                }
+            }
+        }
+    }
+
+    return [ordered]@{ isValid = $true; message = $null }
 }
 
 
@@ -330,11 +355,7 @@ function Normalize-ProjectionDefinition {
 function Read-ProjectionContractFile {
     param([Parameter(Mandatory = $true)][string]$Path)
 
-    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
-        throw "Projection contract file not found: $Path"
-    }
-
-    $raw = Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+    $raw = Read-JsonFile -Path $Path
     return (ConvertTo-PlainHashtable -InputObject $raw)
 }
 
@@ -744,6 +765,14 @@ try {
     }
 
     $projectionContractJson = $projectionContract | ConvertTo-Json -Depth 20
+    $projectionContractJsonShape = Test-ProjectionContractJsonArrayShape -JsonText $projectionContractJson
+    if (-not $projectionContractJsonShape.isValid) {
+        Add-SchemaValidationIssue -Code 'ASB-ASM-PROJECTIONS-ARRAY-SHAPE-INVALID' -Message ([string]$projectionContractJsonShape.message) -PathValue $projectionContractPath
+        Complete-RenderStage -Stage $stageMap.Validate -Status 'ERROR'
+        $status = 'ERROR'
+        throw 'Projection contract JSON shape validation failed.'
+    }
+
     $projectionValidation = Test-AssemblerSchemaJson -JsonText $projectionContractJson -SchemaPath $projectionSchemaPath -DocumentLabel $projectionContractPath
     if (-not $projectionValidation.isValid) {
         Add-SchemaValidationIssue -Code 'ASB-ASM-SCHEMA-PROJECTIONS-INVALID' -Message ([string]$projectionValidation.message) -PathValue $projectionContractPath

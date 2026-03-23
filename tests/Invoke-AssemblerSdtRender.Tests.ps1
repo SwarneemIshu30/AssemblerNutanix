@@ -4,12 +4,12 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         $scriptSource = Get-Content -LiteralPath $scriptUnderTest -Raw -Encoding UTF8
         $functionBlock = [regex]::Match(
             $scriptSource,
-            '(?s)function ConvertTo-PlainHashtable \{.*?^}\s*.*?function Read-ProjectionContractFile \{.*?^}',
+            '(?s)function Read-JsonFile \{.*?^}\s*.*?function ConvertTo-PlainHashtable \{.*?^}\s*.*?function Test-ProjectionContractJsonArrayShape \{.*?^}\s*.*?function Read-ProjectionContractFile \{.*?^}',
             [System.Text.RegularExpressions.RegexOptions]::Multiline
         ).Value
 
         if ([string]::IsNullOrWhiteSpace($functionBlock)) {
-            throw 'Failed to load ConvertTo-PlainHashtable and Read-ProjectionContractFile from script under test.'
+            throw 'Failed to load projection contract helper functions from script under test.'
         }
 
         Invoke-Expression $functionBlock
@@ -224,6 +224,58 @@ Describe 'Invoke-AssemblerSdtRender integration' {
 
             if ([string]$result.projections.TEST_TAG.columns[0].value.nested.label -ne 'beta') {
                 throw 'Expected nested string leaf value to remain accessible after normalization.'
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+
+    It 'preserves one-item projection filter arrays through normalization and JSON reserialization' {
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-projection-array-shape-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $projectionContractPath = Join-Path $tempRoot 'assembler.projections.v1.json'
+            Set-Content -LiteralPath $projectionContractPath -Encoding UTF8 -Value (@{
+                schema = 'assembler.projections'
+                schemaVersion = 1
+                techId = 'Lenovo.DE'
+                displayName = 'single-item filter projection contract'
+                projections = @{
+                    'LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI' = @{
+                        filter = @(
+                            @{
+                                field = 'transport'
+                                equals = 'iscsi'
+                            }
+                        )
+                        columns = @(
+                            @{
+                                name = 'Port'
+                                value = 'name'
+                            }
+                        )
+                    }
+                }
+            } | ConvertTo-Json -Depth 10)
+
+            $result = Read-ProjectionContractFile -Path $projectionContractPath
+            if (-not ($result.projections['LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI'].filter -is [System.Collections.IList])) {
+                throw 'Expected single-item filter to remain an array after loading projection contract.'
+            }
+
+            if (@($result.projections['LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI'].filter).Count -ne 1) {
+                throw 'Expected exactly one filter entry after loading projection contract.'
+            }
+
+            $projectionContractJson = $result | ConvertTo-Json -Depth 10
+            $jsonShape = Test-ProjectionContractJsonArrayShape -JsonText $projectionContractJson
+            if (-not $jsonShape.isValid) {
+                throw "Expected projection contract JSON to preserve array shape, but got: $($jsonShape.message)"
             }
         }
         finally {
