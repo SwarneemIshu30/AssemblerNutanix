@@ -26,6 +26,20 @@
         }
       }
     },
+    "matches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["tag", "dataset", "selector", "valuePreview"],
+        "properties": {
+          "tag": { "type": "string" },
+          "dataset": { "type": "string" },
+          "selector": { "type": "string" },
+          "valuePreview": { "type": "string" }
+        }
+      }
+    },
     "issues": {
       "type": "array",
       "items": {
