@@ -188,6 +188,29 @@
         "view": {
           "type": "string",
           "minLength": 1
+        },
+        "renderMode": {
+          "type": "string",
+          "enum": [
+            "scalar",
+            "table",
+            "json-evidence",
+            "json-debug"
+          ]
+        },
+        "structuredValuePolicy": {
+          "type": "string",
+          "enum": [
+            "blank",
+            "placeholder"
+          ]
+        },
+        "missingProjectionPolicy": {
+          "type": "string",
+          "enum": [
+            "blank",
+            "placeholder"
+          ]
         }
       }
     }

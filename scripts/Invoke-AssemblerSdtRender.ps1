@@ -302,13 +302,122 @@ function Get-MappingRenderHint {
         }
     }
 
-    foreach ($legacyKey in @('projectionRef', 'renderAs', 'view')) {
+    foreach ($legacyKey in @('projectionRef', 'renderAs', 'view', 'renderMode', 'structuredValuePolicy', 'missingProjectionPolicy')) {
         if (-not $hint.Contains($legacyKey) -and $MappingEntry.ContainsKey($legacyKey) -and -not [string]::IsNullOrWhiteSpace([string]$MappingEntry[$legacyKey])) {
             $hint[$legacyKey] = [string]$MappingEntry[$legacyKey]
         }
     }
 
     return $hint
+}
+
+function Get-EffectiveRenderMode {
+    param(
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinition,
+        [Parameter(Mandatory = $false)][string]$Tag
+    )
+
+    if ($null -ne $ProjectionDefinition -and $ProjectionDefinition.ContainsKey('renderMode') -and -not [string]::IsNullOrWhiteSpace([string]$ProjectionDefinition.renderMode)) {
+        return [string]$ProjectionDefinition.renderMode
+    }
+
+    if ($null -ne $RenderHint) {
+        if ($RenderHint.Contains('renderMode') -and -not [string]::IsNullOrWhiteSpace([string]$RenderHint.renderMode)) {
+            return [string]$RenderHint.renderMode
+        }
+
+        if ($RenderHint.Contains('renderAs') -and -not [string]::IsNullOrWhiteSpace([string]$RenderHint.renderAs)) {
+            return [string]$RenderHint.renderAs
+        }
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($Tag) -and $Tag.EndsWith('_TABLE_JSON')) {
+        return 'table'
+    }
+
+    return 'scalar'
+}
+
+function Test-RenderModeWasExplicitlyDeclared {
+    param(
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinition
+    )
+
+    foreach ($source in @($ProjectionDefinition, $RenderHint)) {
+        if ($null -eq $source) { continue }
+        if ($source.ContainsKey('renderMode') -and -not [string]::IsNullOrWhiteSpace([string]$source.renderMode)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Get-StructuredValuePolicy {
+    param(
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinition,
+        [Parameter(Mandatory = $false)][string]$RenderMode
+    )
+
+    foreach ($source in @($ProjectionDefinition, $RenderHint)) {
+        if ($null -eq $source) { continue }
+        foreach ($key in @('structuredValuePolicy', 'missingProjectionPolicy')) {
+            if ($source.ContainsKey($key) -and -not [string]::IsNullOrWhiteSpace([string]$source[$key])) {
+                return [string]$source[$key]
+            }
+        }
+    }
+
+    if ($RenderMode -eq 'table') {
+        return 'blank'
+    }
+
+    return 'placeholder'
+}
+
+function New-RenderIssueRecord {
+    param(
+        [Parameter(Mandatory = $true)][string]$Code,
+        [Parameter(Mandatory = $true)][string]$Severity,
+        [Parameter(Mandatory = $true)][string]$Message,
+        [Parameter(Mandatory = $false)][string]$PathValue
+    )
+
+    return [ordered]@{ code = $Code; severity = $Severity; message = $Message; path = $PathValue }
+}
+
+function Add-RenderIssue {
+    param(
+        [Parameter(Mandatory = $true)][string]$Code,
+        [Parameter(Mandatory = $true)][string]$Severity,
+        [Parameter(Mandatory = $true)][string]$Message,
+        [Parameter(Mandatory = $false)][string]$PathValue
+    )
+
+    if ($null -ne $script:issues) {
+        $script:issues.Add((New-RenderIssueRecord -Code $Code -Severity $Severity -Message $Message -PathValue $PathValue))
+    }
+}
+
+function Get-StructuredValuePlaceholder {
+    param(
+        [Parameter(Mandatory = $true)][string]$RenderMode,
+        [Parameter(Mandatory = $true)][string]$Policy
+    )
+
+    if ($Policy -eq 'blank') {
+        return ''
+    }
+
+    switch ($RenderMode) {
+        'table' { return '[table data omitted: projection required]' }
+        'json-evidence' { return '[json evidence omitted]' }
+        'json-debug' { return '[debug json omitted]' }
+        default { return '[structured value omitted]' }
+    }
 }
 
 function Get-EffectiveSelectorsForMapping {
@@ -425,6 +534,14 @@ function Normalize-ProjectionDefinition {
 
     if (-not $normalized.Contains('filter')) { $normalized.filter = @() }
     if (-not $normalized.Contains('columns')) { $normalized.columns = @() }
+    if (-not $normalized.Contains('renderMode')) {
+        if (@($normalized.columns).Count -gt 0) {
+            $normalized.renderMode = 'table'
+        }
+        else {
+            $normalized.renderMode = 'scalar'
+        }
+    }
     return $normalized
 }
 
@@ -768,10 +885,19 @@ function Convert-ValueToString {
     if ($null -eq $Value) {
         return ''
     }
+
     $projectionDefinition = Get-ProjectionDefinitionForMapping -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases
-    $renderAs = if ($null -ne $RenderHint -and $RenderHint.Contains('renderAs')) { [string]$RenderHint.renderAs } else { '' }
+    $renderMode = Get-EffectiveRenderMode -RenderHint $RenderHint -ProjectionDefinition $projectionDefinition -Tag $Tag
+    $renderModeExplicit = Test-RenderModeWasExplicitlyDeclared -RenderHint $RenderHint -ProjectionDefinition $projectionDefinition
     $hasProjection = ($null -ne $projectionDefinition)
-    if ($renderAs -eq 'table' -or $hasProjection -or (-not [string]::IsNullOrWhiteSpace($Tag) -and $Tag.EndsWith('_TABLE_JSON'))) {
+
+    if ($renderMode -eq 'table' -or $hasProjection) {
+        if (-not $hasProjection) {
+            $policy = Get-StructuredValuePolicy -RenderHint $RenderHint -ProjectionDefinition $projectionDefinition -RenderMode $renderMode
+            Add-RenderIssue -Code 'ASB-ASM-SDT-TABLE-PROJECTION-MISSING' -Severity 'WARN' -Message "Tag '$Tag' declared renderMode '$renderMode' but no projection definition was found. Structured values will not be serialized as raw JSON." -PathValue $script:currentDatasetPath
+            return (Get-StructuredValuePlaceholder -RenderMode $renderMode -Policy $policy)
+        }
+
         return (Convert-ValueToTableString -Value $Value -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases)
     }
     if ($Value -is [string]) {
@@ -780,12 +906,22 @@ function Convert-ValueToString {
     if ($Value -is [ValueType]) {
         return [string]$Value
     }
-    if ($Value -is [System.Collections.IDictionary]) {
-        return ([string](ConvertTo-Json -InputObject $Value -Depth 10 -Compress))
-    }
-    if ($Value -is [System.Collections.IEnumerable] -and -not ($Value -is [string])) {
-        $items = @($Value)
-        return ([string](ConvertTo-Json -InputObject $items -Depth 10 -Compress))
+
+    $isStructured = ($Value -is [System.Collections.IDictionary]) -or (($Value -is [System.Collections.IEnumerable]) -and -not ($Value -is [string]))
+    if ($isStructured) {
+        if ($renderMode -in @('json-evidence', 'json-debug')) {
+            $jsonValue = if ($Value -is [System.Collections.IDictionary]) { $Value } else { @($Value) }
+            return ([string](ConvertTo-Json -InputObject $jsonValue -Depth 10 -Compress))
+        }
+
+        if (-not $renderModeExplicit) {
+            $jsonValue = if ($Value -is [System.Collections.IDictionary]) { $Value } else { @($Value) }
+            return ([string](ConvertTo-Json -InputObject $jsonValue -Depth 10 -Compress))
+        }
+
+        $policy = Get-StructuredValuePolicy -RenderHint $RenderHint -ProjectionDefinition $projectionDefinition -RenderMode $renderMode
+        Add-RenderIssue -Code 'ASB-ASM-SDT-STRUCTURED-VALUE-RENDERMODE-REQUIRED' -Severity 'WARN' -Message "Tag '$Tag' resolved to a structured value but renderMode '$renderMode' does not permit raw JSON output. Declare renderMode 'table', 'json-evidence', or 'json-debug'." -PathValue $script:currentDatasetPath
+        return (Get-StructuredValuePlaceholder -RenderMode $renderMode -Policy $policy)
     }
 
     return ([string](ConvertTo-Json -InputObject $Value -Depth 10 -Compress))
