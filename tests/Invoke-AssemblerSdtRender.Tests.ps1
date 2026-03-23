@@ -111,6 +111,68 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
+
+    It 'fails validation when the projection contract is schema-invalid' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-invalid-projection-contract-test-" + [guid]::NewGuid().ToString())
+        $tempContractsRoot = Join-Path $tempRoot 'contracts'
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            Copy-Item -LiteralPath $contractsRoot -Destination $tempContractsRoot -Recurse -Force
+            $projectionContractPath = Join-Path $tempContractsRoot 'tech/Lenovo.DE/assembler.projections.v1.json'
+            Set-Content -LiteralPath $projectionContractPath -Encoding UTF8 -Value (@{
+                schema = 'assembler.projections'
+                schemaVersion = 1
+                techId = 'Lenovo.DE'
+                displayName = 'invalid projection contract'
+                projections = @(
+                    @{
+                        sdtTag = 'BROKEN'
+                        columns = @(
+                            @{ name = 'OnlyName' }
+                        )
+                    }
+                )
+            } | ConvertTo-Json -Depth 10)
+
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'System=<<SDT:LNV.Lenovo.DE.System[ArrayName].Summary.SystemName>>' -Mappings @(
+                @{
+                    dataset = 'datasets/systems.json'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Summary.SystemName'
+                    required = $true
+                    selectors = @('items', '0', 'name')
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $tempContractsRoot
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -eq 0) { throw 'Expected non-zero exit code due to invalid projection schema' }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            $issue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SCHEMA-PROJECTIONS-INVALID' }) | Select-Object -First 1
+            if ($null -eq $issue) {
+                throw 'Expected projection schema validation issue in report'
+            }
+            if ([string]$issue.path -ne $projectionContractPath) {
+                throw "Expected projection schema issue path '$projectionContractPath', got '$($issue.path)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'applies selector chains sequentially and records the full selector chain in matches' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot '.deps/contracts'

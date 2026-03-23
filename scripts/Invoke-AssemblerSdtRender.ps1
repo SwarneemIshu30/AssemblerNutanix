@@ -322,10 +322,25 @@ function Get-ProjectionDefinitions {
     $projectionContractPath = Resolve-ProjectionContractPath -ContractsRoot $ContractsRoot -TechId $TechId
     $contract = Read-ProjectionContractFile -Path $projectionContractPath
     $definitions = @{}
-    if ($contract -is [hashtable] -and $contract.ContainsKey('projections') -and $contract.projections -is [System.Collections.IList]) {
-        foreach ($projection in @($contract.projections)) {
-            if ($projection -is [hashtable] -and $projection.ContainsKey('sdtTag') -and -not [string]::IsNullOrWhiteSpace([string]$projection.sdtTag)) {
-                $definitions[[string]$projection.sdtTag] = $projection
+    if ($contract -is [hashtable] -and $contract.ContainsKey('projections')) {
+        if ($contract.projections -is [hashtable]) {
+            foreach ($projectionTag in @($contract.projections.Keys)) {
+                if (-not [string]::IsNullOrWhiteSpace([string]$projectionTag)) {
+                    $definitions[[string]$projectionTag] = $contract.projections[$projectionTag]
+                }
+            }
+        }
+        elseif ($contract.projections -is [System.Collections.IList]) {
+            foreach ($projection in @($contract.projections)) {
+                if ($projection -is [hashtable] -and $projection.ContainsKey('sdtTag') -and -not [string]::IsNullOrWhiteSpace([string]$projection.sdtTag)) {
+                    $definition = @{}
+                    foreach ($key in @($projection.Keys)) {
+                        if ([string]$key -ne 'sdtTag') {
+                            $definition[[string]$key] = $projection[$key]
+                        }
+                    }
+                    $definitions[[string]$projection.sdtTag] = $definition
+                }
             }
         }
     }
@@ -643,10 +658,13 @@ try {
     $repoRoot = Split-Path -Parent $PSScriptRoot
     $effectiveContractsRoot = Resolve-AssemblerContractsRoot -ContractsRoot $ContractsRoot -RepoRoot $repoRoot
     $mappingSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards') 'mapping.dataset-to-sdt.schema.v1.json'
+    $projectionSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards/assembler') 'assembler.projections.schema.v1.json'
     $renderReportSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards/assembler') 'assembler.render-report.schema.v1.json'
 
     Start-RenderStage -Stage $stageMap.Load
     $mapping = Read-JsonFile -Path $MappingPath
+    $projectionContractPath = Resolve-ProjectionContractPath -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
+    $projectionContract = Read-ProjectionContractFile -Path $projectionContractPath
     $projectionDefinitions = Get-ProjectionDefinitions -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
     $mappingSchema = Read-JsonFile -Path $mappingSchemaPath
     $templateText = Get-Content -LiteralPath $TemplatePath -Raw -Encoding UTF8
@@ -656,7 +674,7 @@ try {
         $manifest = Read-JsonFile -Path $manifestPath
         $bundleId = $manifest.bundleId
     }
-    Complete-RenderStage -Stage $stageMap.Load -Status 'OK' -Details ([ordered]@{ mappingPath = $MappingPath; templatePath = $TemplatePath; contractsRoot = $effectiveContractsRoot; mappingSchemaPath = $mappingSchemaPath })
+    Complete-RenderStage -Stage $stageMap.Load -Status 'OK' -Details ([ordered]@{ mappingPath = $MappingPath; templatePath = $TemplatePath; contractsRoot = $effectiveContractsRoot; mappingSchemaPath = $mappingSchemaPath; projectionContractPath = $projectionContractPath; projectionSchemaPath = $projectionSchemaPath })
 
     Start-RenderStage -Stage $stageMap.Validate
     $mappingValidation = Test-AssemblerSchemaFile -DocumentPath $MappingPath -SchemaPath $mappingSchemaPath
@@ -666,7 +684,16 @@ try {
         $status = 'ERROR'
         throw 'Mapping schema validation failed.'
     }
-    Complete-RenderStage -Stage $stageMap.Validate -Status 'OK' -Details ([ordered]@{ mappingCount = @($mapping.mappings).Count })
+
+    $projectionContractJson = $projectionContract | ConvertTo-Json -Depth 20
+    $projectionValidation = Test-AssemblerSchemaJson -JsonText $projectionContractJson -SchemaPath $projectionSchemaPath -DocumentLabel $projectionContractPath
+    if (-not $projectionValidation.isValid) {
+        Add-SchemaValidationIssue -Code 'ASB-ASM-SCHEMA-PROJECTIONS-INVALID' -Message ([string]$projectionValidation.message) -PathValue $projectionContractPath
+        Complete-RenderStage -Stage $stageMap.Validate -Status 'ERROR'
+        $status = 'ERROR'
+        throw 'Projection schema validation failed.'
+    }
+    Complete-RenderStage -Stage $stageMap.Validate -Status 'OK' -Details ([ordered]@{ mappingCount = @($mapping.mappings).Count; projectionCount = @($projectionDefinitions.Keys).Count })
 
     Start-RenderStage -Stage $stageMap.Transform
     $replaceByTag = @{}
