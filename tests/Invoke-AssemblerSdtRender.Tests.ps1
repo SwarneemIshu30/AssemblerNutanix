@@ -620,7 +620,7 @@ DNS1=<<SDT:DNS1>>
         }
     }
 
-    It 'keeps Lenovo.DE collector skeleton aligned with the current contract table set' {
+    It 'keeps Lenovo.DE collector skeleton aligned with the current document contract coverage' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractMappingPath = Join-Path $repoRoot '.deps/contracts/tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml'
         $collectorMappingPath = Join-Path $repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json'
@@ -629,86 +629,116 @@ DNS1=<<SDT:DNS1>>
         $contractText = Get-Content -LiteralPath $contractMappingPath -Raw -Encoding UTF8
         $collectorMapping = Get-Content -LiteralPath $collectorMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
         $templateText = Get-Content -LiteralPath $templatePath -Raw -Encoding UTF8
+        $templateLines = $templateText -split "`r?`n"
 
-        $contractDatasets = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-        foreach ($match in [regex]::Matches($contractText, '^- dataset: (?<dataset>[^\r\n]+)', [System.Text.RegularExpressions.RegexOptions]::Multiline)) {
-            [void]$contractDatasets.Add([string]$match.Groups['dataset'].Value)
+        $contractByDataset = @{}
+        foreach ($match in [regex]::Matches($contractText, '- dataset: (?<dataset>[^\r\n]+)\r?\n\s+sdtTag: (?<sdtTag>[^\r\n]+)', [System.Text.RegularExpressions.RegexOptions]::Multiline)) {
+            $datasetName = [string]$match.Groups['dataset'].Value
+            $sdtTag = [string]$match.Groups['sdtTag'].Value
+            if (-not $contractByDataset.ContainsKey($datasetName)) {
+                $contractByDataset[$datasetName] = [System.Collections.Generic.List[string]]::new()
+            }
+            $contractByDataset[$datasetName].Add($sdtTag)
         }
 
-        $collectorDatasets = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        $collectorByDataset = @{}
         foreach ($entry in @($collectorMapping.mappings)) {
             $datasetName = [System.IO.Path]::GetFileNameWithoutExtension([string]$entry.dataset)
-            if (-not [string]::IsNullOrWhiteSpace($datasetName)) {
-                [void]$collectorDatasets.Add($datasetName)
+            if ([string]::IsNullOrWhiteSpace($datasetName)) {
+                continue
+            }
+            if (-not $collectorByDataset.ContainsKey($datasetName)) {
+                $collectorByDataset[$datasetName] = [System.Collections.Generic.List[string]]::new()
+            }
+            $collectorByDataset[$datasetName].Add([string]$entry.sdtTag)
+        }
+
+        $templatePlaceholders = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($match in [regex]::Matches($templateText, '<<SDT:(?<tag>[^>]+)>>')) {
+            [void]$templatePlaceholders.Add([string]$match.Groups['tag'].Value)
+        }
+
+        $normalizedTemplateHeadings = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($line in $templateLines) {
+            $trimmed = $line.Trim()
+            if ([string]::IsNullOrWhiteSpace($trimmed)) { continue }
+            if ($trimmed.StartsWith('<<SDT:')) { continue }
+            if ($trimmed.StartsWith('[')) { continue }
+            if ($trimmed.StartsWith('- ')) { continue }
+            if ($trimmed -match '^[=:.-]{3,}$') { continue }
+            if ($trimmed -match ' : ') { continue }
+            [void]$normalizedTemplateHeadings.Add($trimmed)
+        }
+
+        $requiredCoverage = @(
+            @{ Heading = 'Controller Topology'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.Controllers'); ContractDatasets = @('system-controllers') },
+            @{ Heading = 'Management Interfaces'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces'); ContractDatasets = @('management-interfaces') },
+            @{ Heading = 'DNS Configuration'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.DNS'); ContractDatasets = @('system-dns') },
+            @{ Heading = 'Time Configuration'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.Time'); ContractDatasets = @('system-time') },
+            @{ Heading = 'Tray / Shelf Inventory'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.Trays'); ContractDatasets = @('trays') },
+            @{ Heading = 'Drive Inventory'; TemplateTags = @('LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory'); ContractDatasets = @('drives') },
+            @{ Heading = 'Storage Containers / Pools / Volume Groups'; TemplateTags = @('LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory'); ContractDatasets = @('storage-containers') },
+            @{ Heading = 'Volumes'; TemplateTags = @('LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory'); ContractDatasets = @('volumes') },
+            @{ Heading = 'Volume Mapping Summary'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings'); ContractDatasets = @('volume-mappings') },
+            @{ Heading = 'Host Definitions'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.Hosts'); ContractDatasets = @('hosts') },
+            @{ Heading = 'Host Groups'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups'); ContractDatasets = @('host-groups') },
+            @{ Heading = 'Host to Host Group Relationships'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups'); ContractDatasets = @('hosts-to-host-groups') },
+            @{ Heading = 'Host Group to Volume Presentation'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes'); ContractDatasets = @('host-groups-to-volumes') },
+            @{ Heading = 'Direct Host to Volume Presentation'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes'); ContractDatasets = @('hosts-to-volumes') },
+            @{ Heading = 'Host Port Configuration - iSCSI'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI'); ContractDatasets = @('host-ports') },
+            @{ Heading = 'Host Port Configuration - Fibre Channel'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC'); ContractDatasets = @('host-ports') },
+            @{ Heading = 'Transport Summary'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.Transport'); ContractDatasets = @('transport') },
+            @{ Heading = 'Alerts & AutoSupport'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport'); ContractDatasets = @('system-asup') },
+            @{ Heading = 'Capabilities Summary'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary'); ContractDatasets = @('capabilities-normalized') },
+            @{ Heading = 'Key Features'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures'); ContractDatasets = @('capabilities-normalized') },
+            @{ Heading = 'Feature Limits / Consumption'; TemplateTags = @('LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits'); ContractDatasets = @('capabilities-normalized') }
+        )
+
+        foreach ($coverage in $requiredCoverage) {
+            if (-not $normalizedTemplateHeadings.Contains($coverage.Heading)) {
+                throw "Expected Lenovo.DE TXT skeleton to include document heading '$($coverage.Heading)'"
+            }
+
+            foreach ($templateTag in $coverage.TemplateTags) {
+                if (-not $templatePlaceholders.Contains($templateTag)) {
+                    throw "Expected Lenovo.DE TXT skeleton to include SDT placeholder '$templateTag' for heading '$($coverage.Heading)'"
+                }
+
+                $collectorMatches = @($collectorMapping.mappings | Where-Object { $_.sdtTag -eq $templateTag })
+                if ($collectorMatches.Count -eq 0) {
+                    throw "Expected collector skeleton mapping to include SDT tag '$templateTag' used by heading '$($coverage.Heading)'"
+                }
+            }
+
+            foreach ($datasetName in $coverage.ContractDatasets) {
+                if (-not $contractByDataset.ContainsKey($datasetName)) {
+                    throw "Expected Lenovo.DE contract mapping to include dataset '$datasetName' for heading '$($coverage.Heading)'"
+                }
+
+                if (-not $collectorByDataset.ContainsKey($datasetName)) {
+                    throw "Expected collector skeleton mapping to include dataset '$datasetName' for heading '$($coverage.Heading)'"
+                }
             }
         }
 
-        foreach ($requiredDataset in @(
-            'hosts',
-            'host-groups',
-            'hosts-to-host-groups',
-            'host-groups-to-volumes',
-            'hosts-to-volumes',
-            'volume-mappings',
-            'capabilities-normalized'
-        )) {
-            if (-not $contractDatasets.Contains($requiredDataset)) {
-                throw "Expected Lenovo.DE contract mapping to include dataset '$requiredDataset'"
-            }
-            if (-not $collectorDatasets.Contains($requiredDataset)) {
-                throw "Expected collector skeleton mapping to include dataset '$requiredDataset'"
-            }
-        }
+        $contractAliasExpectations = @(
+            @{ Dataset = 'system-asup'; ExpectedCollectorTag = 'LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport'; ContractTagPattern = '^LNV\.Lenovo\.DE\.System\[<SystemId>\]\.Tables\.ASUP$' },
+            @{ Dataset = 'storage-containers'; ExpectedCollectorTag = 'LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory'; ContractTagPattern = '^LNV\.Lenovo\.DE\.System\[<SystemId>\]\.Tables\.StorageContainers$' },
+            @{ Dataset = 'volumes'; ExpectedCollectorTag = 'LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory'; ContractTagPattern = '^LNV\.Lenovo\.DE\.System\[<SystemId>\]\.Tables\.Volumes$' }
+        )
 
-        foreach ($requiredSection in @(
-            'LNV.Lenovo.DE.System[ArrayName].Summary',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.Controllers',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.Transport',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.Trays',
-            'LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory',
-            'LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory',
-            'LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.Hosts',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits',
-            'LNV.Lenovo.SAN.Fabric.Fabric[FabricName].Summary',
-            'LNV.Lenovo.SAN.Fabric.Fabric[FabricName].Tables.Zones'
-        )) {
-            if ($templateText -notmatch [regex]::Escape($requiredSection)) {
-                throw "Expected collector skeleton template to include canonical section '$requiredSection'"
+        foreach ($expectation in $contractAliasExpectations) {
+            $contractTags = @($contractByDataset[$expectation.Dataset])
+            if ((@($contractTags | Where-Object { $_ -match $expectation.ContractTagPattern }).Count) -eq 0) {
+                throw "Expected Lenovo.DE contract mapping dataset '$($expectation.Dataset)' to advertise the current contract tag pattern '$($expectation.ContractTagPattern)'"
             }
-        }
 
-        foreach ($requiredTag in @(
-            'LNV.Lenovo.DE.System[ArrayName].Summary.SystemName',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.Controllers',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.Transport',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.Trays',
-            'LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory',
-            'LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory',
-            'LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.Hosts',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures',
-            'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits'
-        )) {
-            if (-not @($collectorMapping.mappings | Where-Object { $_.sdtTag -eq $requiredTag })) {
-                throw "Expected collector skeleton mapping to include canonical tag '$requiredTag'"
+            if (-not $templatePlaceholders.Contains($expectation.ExpectedCollectorTag)) {
+                throw "Expected Lenovo.DE TXT skeleton to expose reader-facing placeholder '$($expectation.ExpectedCollectorTag)' for dataset '$($expectation.Dataset)'"
+            }
+
+            if (-not @($collectorMapping.mappings | Where-Object { $_.sdtTag -eq $expectation.ExpectedCollectorTag })) {
+                throw "Expected collector skeleton mapping to expose reader-facing tag '$($expectation.ExpectedCollectorTag)' for dataset '$($expectation.Dataset)'"
             }
         }
     }
