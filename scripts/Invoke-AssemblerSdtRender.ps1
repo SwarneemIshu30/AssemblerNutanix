@@ -43,8 +43,7 @@ function Resolve-AssemblerContractsRoot {
     }
 
     $candidates = @(
-        (Join-Path $RepoRoot '.deps/contracts'),
-        (Join-Path $RepoRoot 'export/repo-ready/contracts')
+        (Join-Path $RepoRoot '.deps/contracts')
     )
 
     foreach ($candidate in $candidates) {
@@ -124,7 +123,7 @@ function Test-DatasetEnvelope {
     )
 
     # Validation rules are sourced from:
-    # export/repo-ready/contracts/standards/architecture.direct-v1.collector-contracts.md
+    # .deps/contracts/standards/architecture.direct-v1.collector-contracts.md
     $errors = [System.Collections.Generic.List[string]]::new()
 
     if (-not $Dataset.ContainsKey('schema_version') -or [string]::IsNullOrWhiteSpace([string]$Dataset.schema_version)) {

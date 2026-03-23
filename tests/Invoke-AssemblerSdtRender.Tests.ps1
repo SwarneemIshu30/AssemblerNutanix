@@ -64,7 +64,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
 
     It 'assigns valid timestamps to skipped stages when execution stops during validation' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
-        $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
         if ([string]::IsNullOrWhiteSpace($pwshPath)) {
             throw 'pwsh is required to execute scripts in this test'
@@ -113,7 +113,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
 
     It 'applies selector chains sequentially and records the full selector chain in matches' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
-        $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
         if ([string]::IsNullOrWhiteSpace($pwshPath)) {
             throw 'pwsh is required to execute scripts in this test'
@@ -157,7 +157,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
 
     It 'emits selector no-match ERROR for required mappings and warning for optional mappings' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
-        $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
         if ([string]::IsNullOrWhiteSpace($pwshPath)) {
             throw 'pwsh is required to execute scripts in this test'
@@ -211,7 +211,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
 
     It 'treats empty array selector values as successful resolutions for Lenovo.DE datasets' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
-        $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
         if ([string]::IsNullOrWhiteSpace($pwshPath)) {
             throw 'pwsh is required to execute scripts in this test'
@@ -290,7 +290,7 @@ DNS1=<<SDT:DNS1>>
 
     It 'emits envelope ERROR for required mappings and warning for optional mappings' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
-        $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
         if ([string]::IsNullOrWhiteSpace($pwshPath)) {
             throw 'pwsh is required to execute scripts in this test'
@@ -353,7 +353,7 @@ DNS1=<<SDT:DNS1>>
 
     It 'consumes legacy Lenovo.DE run_summary payloads without failing envelope validation' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
-        $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
         if ([string]::IsNullOrWhiteSpace($pwshPath)) {
             throw 'pwsh is required to execute scripts in this test'
@@ -417,7 +417,7 @@ DNS1=<<SDT:DNS1>>
 
     It 'extracts Lenovo.DE summary values from enveloped run_summary output using existing selectors' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
-        $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
         if ([string]::IsNullOrWhiteSpace($pwshPath)) {
             throw 'pwsh is required to execute scripts in this test'
@@ -499,7 +499,7 @@ DNS1=<<SDT:DNS1>>
 
     It 'renders an empty string when FC host-port projection filters out all rows' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
-        $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
         if ([string]::IsNullOrWhiteSpace($pwshPath)) {
             throw 'pwsh is required to execute scripts in this test'
@@ -560,7 +560,7 @@ DNS1=<<SDT:DNS1>>
 
     It 'renders an empty string when capabilities projection filters out all rows' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
-        $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
         if ([string]::IsNullOrWhiteSpace($pwshPath)) {
             throw 'pwsh is required to execute scripts in this test'

@@ -31,12 +31,7 @@ Describe 'Invoke-AssemblerBundleRender orchestration' {
                 throw 'Expected bundle render report file'
             }
 
-            $contractsRoot = if (Test-Path -LiteralPath (Join-Path $repoRoot '.deps/contracts/standards/assembler/assembler.bundle-render-report.schema.v1.json') -PathType Leaf) {
-                Join-Path $repoRoot '.deps/contracts'
-            }
-            else {
-                Join-Path $repoRoot 'export21/repo-ready/contracts'
-            }
+            $contractsRoot = Join-Path $repoRoot '.deps/contracts'
             $bundleSchemaPath = Join-Path $contractsRoot 'standards/assembler/assembler.bundle-render-report.schema.v1.json'
             $bundleReportValidation = Test-AssemblerSchemaFile -DocumentPath $bundleReportPath -SchemaPath $bundleSchemaPath
             if (-not $bundleReportValidation.isValid) {

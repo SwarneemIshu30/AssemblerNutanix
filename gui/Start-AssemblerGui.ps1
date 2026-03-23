@@ -76,8 +76,7 @@ function Resolve-DefaultContractsRoot {
     param([Parameter(Mandatory = $true)][string]$RepoRoot)
 
     $candidates = @(
-        (Join-Path $RepoRoot '.deps/contracts'),
-        (Join-Path $RepoRoot 'export/repo-ready/contracts')
+        (Join-Path $RepoRoot '.deps/contracts')
     )
 
     foreach ($candidate in $candidates) {

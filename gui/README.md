@@ -5,11 +5,11 @@ This folder contains side-by-side launcher options for bundle rendering via
 
 ## Standard GUI input locations
 
-Both GUI launchers now initialize with the same canonical defaults:
+Both GUI launchers initialize with the same canonical defaults:
 - `BundleRoot`: `<repo>/bundle` (if `objectIndex.json` is not directly under this folder, the renderer auto-selects the most recently updated child bundle folder containing `objectIndex.json`)
 - `CatalogPath`: `templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json` (or first `*.catalog.json` under `templates/`)
 - `OutputRoot`: `<repo>/out`
-- `ContractsRoot`: `<repo>/.deps/contracts` (fallback `<repo>/export/repo-ready/contracts` if present)
+- `ContractsRoot`: `<repo>/.deps/contracts`
 
 Mandatory inputs for execution are:
 - `BundleRoot` (existing folder)
@@ -28,7 +28,7 @@ Supports mode selection with `-Mode Auto|WinForms|Terminal`:
 A dedicated WPF launcher for Windows desktop environments. It loads WPF assemblies
 (`PresentationFramework`, `PresentationCore`, `WindowsBase`), renders a native
 WPF window, provides **Browse** buttons for path fields, and invokes
-`Invoke-AssemblerBundleRender.ps1` with the provided inputs. It also includes a
+`Invoke-AssemblerBundleRender.ps1` with the provided inputs. It also includes
 **Verbose** and **Debug** checkboxes that provide two-step feedback: concise findings summary by default, matched-tag details in Verbose mode, and full raw render JSON in Debug mode.
 
 ## Quick start

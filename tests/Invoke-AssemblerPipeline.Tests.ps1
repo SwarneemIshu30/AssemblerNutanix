@@ -27,7 +27,7 @@ Describe 'Invoke-AssemblerPipeline validation result handling' {
             throw "No valid sample bundle directory found under '$sampleRoot'"
         }
 
-        $contractsRoot = Join-Path $repoRoot 'export/repo-ready/contracts'
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
 
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
         if ([string]::IsNullOrWhiteSpace($pwshPath)) {

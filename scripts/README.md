@@ -11,19 +11,18 @@ Runtime direction is **PowerShell 7**.
 - `Sync-AssemblerContractsToRepo.ps1` - syncs contracts into deterministic repo-local ingest path (`.deps/contracts`).
 - `internal/AssemblerSchemaValidation.psm1` - shared helper for JSON schema validation against contracts under `standards/`.
 
-## Contract path resolution (SDT render)
+## Contract path resolution
 
-`Invoke-AssemblerSdtRender.ps1` resolves contracts in this order:
+`Invoke-AssemblerSdtRender.ps1` and `Invoke-AssemblerBundleRender.ps1` resolve contracts in this order:
 1. explicit `-ContractsRoot`
 2. `./.deps/contracts`
-3. `./export/repo-ready/contracts`
 
 The SDT render script loads `standards/mapping.dataset-to-sdt.schema.v1.json` and `standards/assembler/assembler.render-report.schema.v1.json` from the resolved root and performs schema validation for mapping input and single-render output. Bundle orchestration separately validates `standards/assembler/assembler.bundle-render-report.schema.v1.json` for its aggregate report.
 
 ## TemplateCatalog contract
 
 Schema file:
-- `export/repo-ready/contracts/standards/assembler/assembler.template-catalog.schema.v1.json`
+- `.deps/contracts/standards/assembler/assembler.template-catalog.schema.v1.json`
 
 Purpose:
 - external inventory of which template + mapping pair to run per `techId`
@@ -36,7 +35,7 @@ Current required entry fields:
 - `templatePath`
 - `outputFileName`
 
-## `Invoke-AssemblerBundleRender.ps1` (skeleton)
+## `Invoke-AssemblerBundleRender.ps1`
 
 Required parameters:
 - `-BundleRoot`
@@ -57,19 +56,18 @@ Behavior:
 
 ## `Sync-AssemblerContractsToRepo.ps1` modes
 
-Two supported sync modes:
-
-- **Published pack sync (default, no arguments):** resolve latest contracts release from GitHub and download matching zip asset to `.deps/contracts`
+Supported sync modes:
+- **Published pack sync (default):** resolve the latest contracts release from GitHub and download the matching zip asset to `.deps/contracts`
   - by version: `-ContractsVersion`
   - or by URL: `-ContractsPackUrl`
-- **Local export copy (when options are provided without pack args):** `export/repo-ready/contracts` -> `.deps/contracts`
-  - optional override: `-ExportContractsPath`
+- **Local copy (explicit source path):** copy a local contracts tree into `.deps/contracts`
+  - `-ExportContractsPath <path>`
 
 Shared options:
 - `-DepsContractsPath` destination path (default `./.deps/contracts`)
 - `-Clean` remove destination before sync
 
-Each run writes/updates `contracts.snapshot.json` in destination.
+Each run writes or updates `contracts.snapshot.json` in the destination.
 
 Expected contracts layout at destination:
 - required: `standards/`
@@ -81,14 +79,14 @@ Expected contracts layout at destination:
 # Default: latest published pack -> .deps
 pwsh ./scripts/Sync-AssemblerContractsToRepo.ps1
 
-# Local export -> .deps (explicit local mode trigger)
-pwsh ./scripts/Sync-AssemblerContractsToRepo.ps1 -Clean
+# Copy from an explicit local contracts tree -> .deps
+pwsh ./scripts/Sync-AssemblerContractsToRepo.ps1 -ExportContractsPath ./contracts-source -Clean
 ```
 
 ```powershell
 # Run orchestration for all detected tech
 pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
-  -BundleRoot ./sample/66694360-25ba-40de-8fbd-07ebce431c53 \
+  -BundleRoot ./bundle/417f4663-0922-423b-92a9-34d4e33ecd0e \
   -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json \
   -OutputRoot ./out/bundle-render
 ```
@@ -96,7 +94,7 @@ pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
 ```powershell
 # Run orchestration only for Lenovo.DE
 pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
-  -BundleRoot ./sample/66694360-25ba-40de-8fbd-07ebce431c53 \
+  -BundleRoot ./bundle/417f4663-0922-423b-92a9-34d4e33ecd0e \
   -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json \
   -OutputRoot ./out/bundle-render \
   -TechId Lenovo.DE
