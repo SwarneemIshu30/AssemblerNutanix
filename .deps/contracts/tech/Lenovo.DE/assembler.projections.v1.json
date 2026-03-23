@@ -1,0 +1,611 @@
+{
+  "schema": "assembler.projections",
+  "schemaVersion": 1,
+  "techId": "Lenovo.DE",
+  "displayName": "Lenovo DE assembler projection definitions",
+  "projections": [
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.Drives",
+      "columns": [
+        {
+          "name": "Slot",
+          "source": "slot"
+        },
+        {
+          "name": "Media Type",
+          "source": "driveMediaType"
+        },
+        {
+          "name": "Raw",
+          "source": "rawCapacityBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "Usable",
+          "source": "usableCapacityBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "Firmware",
+          "source": "firmwareVersion"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "SerialNumber",
+          "source": "serialNumber"
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.StorageContainers",
+      "columns": [
+        {
+          "name": "Name",
+          "source": "name"
+        },
+        {
+          "name": "ContainerType",
+          "source": "containerType"
+        },
+        {
+          "name": "RaidLevel",
+          "source": "raidLevel"
+        },
+        {
+          "name": "DriveMediaType",
+          "source": "driveMediaType"
+        },
+        {
+          "name": "Total",
+          "source": "totalBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "Used",
+          "source": "usedBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "Free",
+          "source": "freeBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.Volumes",
+      "columns": [
+        {
+          "name": "Name",
+          "source": "name"
+        },
+        {
+          "name": "Size",
+          "source": "sizeBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "RaidLevel",
+          "source": "raidLevel"
+        },
+        {
+          "name": "Container",
+          "source": "containerName"
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.Controllers",
+      "columns": [
+        {
+          "name": "Controller",
+          "source": "controllerLabel"
+        },
+        {
+          "name": "Slot",
+          "source": "controllerSlot"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "AppVersion",
+          "source": "appVersion"
+        },
+        {
+          "name": "BootVersion",
+          "source": "bootVersion"
+        },
+        {
+          "name": "SerialNumber",
+          "source": "serialNumber"
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces",
+      "columns": [
+        {
+          "name": "Controller",
+          "source": "controllerLabel"
+        },
+        {
+          "name": "Slot",
+          "source": "controllerSlot"
+        },
+        {
+          "name": "Port",
+          "source": "portLabel"
+        },
+        {
+          "name": "Interface",
+          "source": "interfaceName"
+        },
+        {
+          "name": "LinkStatus",
+          "source": "linkStatus"
+        },
+        {
+          "name": "Address",
+          "source": "ipv4Address"
+        },
+        {
+          "name": "Mask",
+          "source": "ipv4SubnetMask"
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.Transport",
+      "columns": [
+        {
+          "name": "SystemId",
+          "source": "systemId"
+        },
+        {
+          "name": "ActiveTransport",
+          "source": "activeTransport"
+        },
+        {
+          "name": "IscsiIqn",
+          "source": "iscsiIqn"
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI",
+      "filter": [
+        {
+          "field": "transport",
+          "equals": "iscsi"
+        }
+      ],
+      "columns": [
+        {
+          "name": "Controller",
+          "source": "controllerLabel"
+        },
+        {
+          "name": "Slot",
+          "source": "controllerSlot"
+        },
+        {
+          "name": "Port",
+          "source": "portLabel"
+        },
+        {
+          "name": "Channel",
+          "source": "channel"
+        },
+        {
+          "name": "LinkStatus",
+          "source": "linkStatus"
+        },
+        {
+          "name": "Address",
+          "source": "ipv4Address"
+        },
+        {
+          "name": "Mask",
+          "source": "ipv4SubnetMask"
+        },
+        {
+          "name": "Gateway",
+          "source": "ipv4Gateway"
+        },
+        {
+          "name": "TcpPort",
+          "source": "tcpPort"
+        },
+        {
+          "name": "IQN",
+          "source": "iqn"
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC",
+      "filter": [
+        {
+          "field": "transport",
+          "equals": "fc"
+        }
+      ],
+      "columns": [
+        {
+          "name": "Controller",
+          "source": "controllerLabel"
+        },
+        {
+          "name": "Slot",
+          "source": "controllerSlot"
+        },
+        {
+          "name": "Port",
+          "source": "portLabel"
+        },
+        {
+          "name": "Channel",
+          "source": "channel"
+        },
+        {
+          "name": "LinkStatus",
+          "source": "linkStatus"
+        },
+        {
+          "name": "CurrentSpeed",
+          "source": "currentSpeed"
+        },
+        {
+          "name": "MaxSpeed",
+          "source": "maxSpeed"
+        },
+        {
+          "name": "PortWWN",
+          "source": "portWwn"
+        },
+        {
+          "name": "NodeWWN",
+          "source": "nodeWwn"
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.DNS",
+      "columns": [
+        {
+          "name": "SystemId",
+          "source": "systemId"
+        },
+        {
+          "name": "Acquisition",
+          "source": "dnsAcquisitionType"
+        },
+        {
+          "name": "DnsServers",
+          "source": "dnsServers",
+          "format": "join",
+          "delimiter": ", "
+        },
+        {
+          "name": "DhcpServers",
+          "source": "dhcpAcquiredServers",
+          "format": "join",
+          "delimiter": ", "
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.Time",
+      "columns": [
+        {
+          "name": "SystemId",
+          "source": "systemId"
+        },
+        {
+          "name": "Acquisition",
+          "source": "ntpAcquisitionType"
+        },
+        {
+          "name": "NtpServers",
+          "source": "ntpServers",
+          "format": "join",
+          "delimiter": ", "
+        },
+        {
+          "name": "DhcpServers",
+          "source": "dhcpAcquiredServers",
+          "format": "join",
+          "delimiter": ", "
+        },
+        {
+          "name": "DefaultRouter",
+          "source": "ipv4DefaultRouter"
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts",
+      "columns": [
+        {
+          "name": "Name",
+          "source": "name"
+        },
+        {
+          "name": "HostId",
+          "source": "id"
+        },
+        {
+          "name": "HostType",
+          "source": "hostTypeName"
+        },
+        {
+          "name": "ClusterRef",
+          "source": "clusterRef"
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups",
+      "columns": [
+        {
+          "name": "Name",
+          "source": "name"
+        },
+        {
+          "name": "GroupId",
+          "source": "id"
+        },
+        {
+          "name": "Members",
+          "source": "memberNames",
+          "format": "join",
+          "delimiter": ", "
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups",
+      "columns": [
+        {
+          "name": "Host",
+          "source": "hostName"
+        },
+        {
+          "name": "HostGroup",
+          "source": "hostGroupName"
+        },
+        {
+          "name": "HostType",
+          "source": "hostType"
+        },
+        {
+          "name": "KeyType",
+          "source": "hostGroupKeyType"
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes",
+      "columns": [
+        {
+          "name": "HostGroup",
+          "source": "hostGroupName"
+        },
+        {
+          "name": "Volume",
+          "source": "volumeName"
+        },
+        {
+          "name": "Lun",
+          "source": "lun"
+        },
+        {
+          "name": "MappingRef",
+          "source": "mappingRef"
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes",
+      "columns": [
+        {
+          "name": "Host",
+          "source": "hostName"
+        },
+        {
+          "name": "Volume",
+          "source": "volumeName"
+        },
+        {
+          "name": "Lun",
+          "source": "lun"
+        },
+        {
+          "name": "MappingRef",
+          "source": "mappingRef"
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings",
+      "columns": [
+        {
+          "name": "Volume",
+          "source": "volumeName"
+        },
+        {
+          "name": "Lun",
+          "source": "lun"
+        },
+        {
+          "name": "TargetType",
+          "source": "mappedToType"
+        },
+        {
+          "name": "TargetRef",
+          "source": "mappedToRef"
+        },
+        {
+          "name": "MappingRef",
+          "source": "mappingRef"
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport",
+      "columns": [
+        {
+          "name": "AsupEnabled",
+          "source": "asupEnabled"
+        },
+        {
+          "name": "OnDemandEnabled",
+          "source": "onDemandEnabled"
+        },
+        {
+          "name": "RemoteDiags",
+          "source": "remoteDiagsEnabled"
+        },
+        {
+          "name": "DeliveryMethod",
+          "source": "deliveryMethod"
+        },
+        {
+          "name": "RoutingType",
+          "source": "routingType"
+        },
+        {
+          "name": "MaxHttps",
+          "source": "maxSizeLimitHttps",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "MaxSmtp",
+          "source": "maxSizeLimitSmtp",
+          "format": "bytesHuman"
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary",
+      "filter": [
+        {
+          "field": "includeInMainBody",
+          "equals": "True"
+        }
+      ],
+      "sortBy": "sortOrder",
+      "columns": [
+        {
+          "name": "Feature",
+          "source": "displayName"
+        },
+        {
+          "name": "Category",
+          "source": "category"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Compliance",
+          "source": "compliance"
+        },
+        {
+          "name": "Entitlement",
+          "source": "entitlement"
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures",
+      "filter": [
+        {
+          "field": "includeInMainBody",
+          "equals": "True"
+        }
+      ],
+      "sortBy": "sortOrder",
+      "columns": [
+        {
+          "name": "Feature",
+          "source": "displayName"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "License",
+          "source": "licenseType"
+        },
+        {
+          "name": "Notes",
+          "source": "notes"
+        }
+      ]
+    },
+    {
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits",
+      "filter": [
+        {
+          "anyOf": [
+            {
+              "field": "limit",
+              "isNull": false
+            },
+            {
+              "field": "limitUsed",
+              "isNull": false
+            },
+            {
+              "field": "includeInAppendix",
+              "equals": "True"
+            }
+          ]
+        }
+      ],
+      "sortBy": "sortOrder",
+      "columns": [
+        {
+          "name": "Feature",
+          "source": "displayName"
+        },
+        {
+          "name": "Limit",
+          "source": "limit"
+        },
+        {
+          "name": "Used",
+          "source": "limitUsed"
+        },
+        {
+          "name": "LimitState",
+          "source": "limitState"
+        },
+        {
+          "name": "Entitlement",
+          "source": "entitlement"
+        }
+      ]
+    }
+  ]
+}

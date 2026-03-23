@@ -4,80 +4,25 @@
   "title": "Assembler Render Report",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "schemaVersion",
-    "status",
-    "startedUtc",
-    "completedUtc",
-    "stages",
-    "issues"
-  ],
+  "required": ["schemaVersion", "status", "startedUtc", "completedUtc", "stages", "issues"],
   "properties": {
-    "schemaVersion": {
-      "type": "integer",
-      "const": 1
-    },
-    "status": {
-      "type": "string",
-      "enum": [
-        "OK",
-        "PARTIAL",
-        "ERROR"
-      ]
-    },
-    "startedUtc": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "completedUtc": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "bundleId": {
-      "type": [
-        "string",
-        "null"
-      ]
-    },
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "status": { "type": "string", "enum": ["OK", "PARTIAL", "ERROR"] },
+    "startedUtc": { "type": "string", "format": "date-time" },
+    "completedUtc": { "type": "string", "format": "date-time" },
+    "bundleId": { "type": ["string", "null"] },
     "stages": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "name",
-          "status",
-          "startedUtc",
-          "completedUtc"
-        ],
+        "required": ["name", "status", "startedUtc", "completedUtc"],
         "properties": {
-          "name": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "OK",
-              "WARN",
-              "ERROR",
-              "SKIPPED"
-            ]
-          },
-          "startedUtc": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "completedUtc": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "details": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": true
-          }
+          "name": { "type": "string" },
+          "status": { "type": "string", "enum": ["OK", "WARN", "ERROR", "SKIPPED"] },
+          "startedUtc": { "type": "string", "format": "date-time" },
+          "completedUtc": { "type": "string", "format": "date-time" },
+          "details": { "type": ["object", "null"], "additionalProperties": true }
         }
       }
     },
@@ -86,32 +31,12 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "code",
-          "severity",
-          "message"
-        ],
+        "required": ["code", "severity", "message"],
         "properties": {
-          "code": {
-            "type": "string"
-          },
-          "severity": {
-            "type": "string",
-            "enum": [
-              "INFO",
-              "WARN",
-              "ERROR"
-            ]
-          },
-          "message": {
-            "type": "string"
-          },
-          "path": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
+          "code": { "type": "string" },
+          "severity": { "type": "string", "enum": ["INFO", "WARN", "ERROR"] },
+          "message": { "type": "string" },
+          "path": { "type": ["string", "null"] }
         }
       }
     },
@@ -120,46 +45,10 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "path"
-        ],
+        "required": ["path"],
         "properties": {
-          "path": {
-            "type": "string"
-          },
-          "type": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
-        }
-      }
-    },
-    "matches": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "tag",
-          "dataset",
-          "selector",
-          "valuePreview"
-        ],
-        "properties": {
-          "tag": {
-            "type": "string"
-          },
-          "dataset": {
-            "type": "string"
-          },
-          "selector": {
-            "type": "string"
-          },
-          "valuePreview": {
-            "type": "string"
-          }
+          "path": { "type": "string" },
+          "type": { "type": ["string", "null"] }
         }
       }
     }
