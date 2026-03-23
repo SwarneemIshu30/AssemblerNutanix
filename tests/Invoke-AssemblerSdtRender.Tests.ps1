@@ -620,6 +620,66 @@ DNS1=<<SDT:DNS1>>
         }
     }
 
+    It 'uses Lenovo.DE projection aliases so reader-facing drive inventory tags render projected tabular columns' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-drive-projection-alias-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template "Drive=<<SDT:LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory>>" -DatasetRelativePath 'datasets/drives.json' -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'drives'
+                item_count = 1
+                items = @(
+                    @{
+                        slot = 1
+                        driveMediaType = 'ssd'
+                        rawCapacityBytes = 2000398934016
+                        usableCapacityBytes = 1800398934016
+                        firmwareVersion = 'LE00'
+                        status = 'optimal'
+                        serialNumber = 'SN123'
+                        hiddenRef = 'internal-only'
+                    }
+                )
+            } -Mappings @(
+                @{
+                    dataset = 'datasets/drives.json'
+                    sdtTag = 'LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory'
+                    required = $true
+                    selectors = @('items')
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode" }
+
+            $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
+            if ($rendered -notmatch 'Slot\s+Media Type\s+Raw\s+Usable\s+Firmware\s+Status\s+SerialNumber') {
+                throw "Expected projected drive inventory table header, got '$rendered'"
+            }
+            if ($rendered -match 'rawCapacityBytes|usableCapacityBytes|hiddenRef') {
+                throw "Expected reader-facing drive projection to hide raw/internal columns, got '$rendered'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'keeps Lenovo.DE collector skeleton aligned with the current document contract coverage' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractMappingPath = Join-Path $repoRoot '.deps/contracts/tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml'

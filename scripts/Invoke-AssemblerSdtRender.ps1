@@ -334,6 +334,36 @@ function Get-ProjectionDefinitions {
     return $definitions
 }
 
+function Get-ProjectionDefinitionForTag {
+    param(
+        [Parameter(Mandatory = $false)][string]$Tag,
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions
+    )
+
+    if ($null -eq $ProjectionDefinitions -or [string]::IsNullOrWhiteSpace($Tag)) {
+        return $null
+    }
+
+    if ($ProjectionDefinitions.ContainsKey($Tag)) {
+        return $ProjectionDefinitions[$Tag]
+    }
+
+    $aliasMap = @{
+        'LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory' = 'LNV.Lenovo.DE.System[ArrayName].Tables.Drives'
+        'LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory' = 'LNV.Lenovo.DE.System[ArrayName].Tables.StorageContainers'
+        'LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory' = 'LNV.Lenovo.DE.System[ArrayName].Tables.Volumes'
+    }
+
+    if ($aliasMap.ContainsKey($Tag)) {
+        $projectionTag = [string]$aliasMap[$Tag]
+        if ($ProjectionDefinitions.ContainsKey($projectionTag)) {
+            return $ProjectionDefinitions[$projectionTag]
+        }
+    }
+
+    return $null
+}
+
 function Test-ProjectionCondition {
     param(
         [Parameter(Mandatory = $true)]$Row,
@@ -440,8 +470,9 @@ function Convert-TableRowsForTag {
         [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions
     )
 
-    if ($null -ne $ProjectionDefinitions -and $ProjectionDefinitions.ContainsKey($Tag)) {
-        return @(Invoke-TableProjection -Rows $Rows -Definition $ProjectionDefinitions[$Tag])
+    $projectionDefinition = Get-ProjectionDefinitionForTag -Tag $Tag -ProjectionDefinitions $ProjectionDefinitions
+    if ($null -ne $projectionDefinition) {
+        return @(Invoke-TableProjection -Rows $Rows -Definition $projectionDefinition)
     }
 
     return $Rows
@@ -542,7 +573,8 @@ function Convert-ValueToString {
     if ($null -eq $Value) {
         return ''
     }
-    $hasProjection = ($null -ne $ProjectionDefinitions -and -not [string]::IsNullOrWhiteSpace($Tag) -and $ProjectionDefinitions.ContainsKey($Tag))
+    $projectionDefinition = Get-ProjectionDefinitionForTag -Tag $Tag -ProjectionDefinitions $ProjectionDefinitions
+    $hasProjection = ($null -ne $projectionDefinition)
     if ($hasProjection -or (-not [string]::IsNullOrWhiteSpace($Tag) -and $Tag.EndsWith('_TABLE_JSON'))) {
         return (Convert-ValueToTableString -Value $Value -Tag $Tag -ProjectionDefinitions $ProjectionDefinitions)
     }
