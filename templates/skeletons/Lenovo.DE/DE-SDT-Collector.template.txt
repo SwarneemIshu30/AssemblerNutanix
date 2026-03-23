@@ -3,8 +3,32 @@ Mode: As-Built Draft
 # Lenovo DE As-Built Configuration Reference: <<SDT:DE_SYSTEM_NAME>>
 ====================================================================================================
 
-1. Platform Summary
+Document Control
 ----------------------------------------------------------------------------------------------------
+Document Title          : Lenovo DE As-Built Configuration Reference
+Solution Name           : [Manually populated in DOCX by delivery team]
+Customer / Environment  : [Manually populated in DOCX by delivery team]
+Document Version        : [Manually populated in DOCX by delivery team]
+Configuration Snapshot  : <<SDT:DE_COLLECTION_COLLECTED_UTC>>
+Reference ID            : [Manually populated in DOCX by delivery team]
+
+Revision History
+- Version              : [Manual]
+  Date                 : [Manual]
+  Author               : [Manual]
+  Reason for Issue     : Manually maintained document revision history.
+
+Authors
+- Prepared By          : [Manually populated in DOCX by delivery team]
+- Reviewed By          : [Manually populated in DOCX by delivery team]
+- Practice / Team      : [Manually populated in DOCX by delivery team]
+
+System Overview
+----------------------------------------------------------------------------------------------------
+Purpose
+Provide a high-level orientation enabling a technical reader to understand the environment quickly.
+
+Platform Summary
 System Name             : <<SDT:DE_SYSTEM_NAME>>
 Model                   : <<SDT:DE_SYSTEM_MODEL>>
 Operational Status      : <<SDT:DE_SYSTEM_STATUS>>
@@ -16,109 +40,250 @@ Management IP           : <<SDT:DE_MANAGEMENT_IP>>
 Drive Count             : <<SDT:DE_DRIVE_COUNT>>
 Storage Container Count : <<SDT:DE_CONTAINER_COUNT>>
 Volume Count            : <<SDT:DE_VOLUME_COUNT>>
-
-2. Collection Context
-----------------------------------------------------------------------------------------------------
-Collected UTC           : <<SDT:DE_COLLECTION_COLLECTED_UTC>>
-Collection Mode         : <<SDT:DE_COLLECTION_MODE>>
 Collection Endpoint     : <<SDT:DE_COLLECTION_CONTROLLER>>:<<SDT:DE_COLLECTION_PORT>>
 System Count Returned   : <<SDT:DE_COLLECTION_SYSTEM_COUNT>>
 
-3. System Overview
-----------------------------------------------------------------------------------------------------
-3.1 Controller Inventory
+Controller Topology
+Describe controller A/B architecture, ownership behaviour, host interface presentation, and redundancy model.
 
 <<SDT:DE_CONTROLLERS_TABLE_JSON>>
 
-3.2 Management Interfaces
+Version Matrix
+Summarise array firmware, application, boot image, NVSRAM, controller firmware, and drive firmware baselines.
 
+<<SDT:DE_FIRMWARE_VERSION>>
+<<SDT:DE_APP_VERSION>>
+<<SDT:DE_BOOT_VERSION>>
+<<SDT:DE_NVSRAM_VERSION>>
+
+Key Design Decisions
+Capture notable implementation decisions such as pool design, protocol choice, cache settings, snapshot use,
+and replication posture.
+
+- Manual Note            : Summarise pool/container strategy, access protocol, and protection design decisions in the DOCX.
+
+Management Context
+Clarify embedded management access, DNS / NTP scope, monitoring integration, and management-network boundaries.
+
+Management Interfaces
 <<SDT:DE_MANAGEMENT_INTERFACES_TABLE_JSON>>
 
-3.3 Transport Summary
-
-<<SDT:DE_TRANSPORT_TABLE_JSON>>
-
-3.4 DNS Configuration
-
+DNS Configuration
 <<SDT:DE_DNS_TABLE_JSON>>
 
-3.5 Time Configuration
-
+Time Configuration
 <<SDT:DE_TIME_TABLE_JSON>>
 
-4. Platform Configuration
+Architecture
 ----------------------------------------------------------------------------------------------------
-4.1 Tray / Shelf Inventory
+Describe structural relationships between controllers, shelves, pools, volumes, hosts, and SAN dependencies.
 
-<<SDT:DE_TRAYS_TABLE_JSON>>
-
-4.2 Host Port Configuration - iSCSI
-
-<<SDT:DE_HOSTPORTS_ISCSI_TABLE_JSON>>
-
-4.3 Host Port Configuration - Fibre Channel
-
-<<SDT:DE_HOSTPORTS_FC_TABLE_JSON>>
-
-4.4 Host Definitions
-
-<<SDT:DE_HOSTS_TABLE_JSON>>
-
-4.5 Host Groups
-
-<<SDT:DE_HOST_GROUPS_TABLE_JSON>>
-
-4.6 Host to Host Group Relationships
-
-<<SDT:DE_HOSTS_TO_HOST_GROUPS_TABLE_JSON>>
-
-4.7 Host Group to Volume Presentation
-
-<<SDT:DE_HOST_GROUPS_TO_VOLUMES_TABLE_JSON>>
-
-4.8 Direct Host to Volume Presentation
-
-<<SDT:DE_HOSTS_TO_VOLUMES_TABLE_JSON>>
-
-5. Storage Configuration
-----------------------------------------------------------------------------------------------------
-5.1 Drive Inventory
-
-<<SDT:DE_DRIVES_TABLE_JSON>>
-
-5.2 Storage Containers / Pools / Volume Groups
+Logical Architecture
+Insert or describe the logical architecture showing controller roles, storage containers, volumes, and host access.
 
 <<SDT:DE_STORAGE_CONTAINERS_TABLE_JSON>>
-
-5.3 Volumes
-
 <<SDT:DE_VOLUMES_TABLE_JSON>>
-
-5.4 Volume Mapping Summary
-
 <<SDT:DE_VOLUME_MAPPINGS_TABLE_JSON>>
 
-6. Operations, Support, and Feature State
+Physical Layout
+Document rack / room placement, tray ordering, controller shelves, and expansion-shelf relationships.
+
+<<SDT:DE_TRAYS_TABLE_JSON>>
+<<SDT:DE_DRIVES_TABLE_JSON>>
+
+SAN Fabric Architecture (Conditional)
+Describe FC fabric topology, zoning model, switch redundancy, and host-to-array path diversity when Fibre Channel
+is in scope.
+
+<<SDT:DE_HOSTPORTS_FC_TABLE_JSON>>
+[Conditional manual note: describe SAN fabrics, zoning intent, and switch redundancy in the DOCX when FC is in scope.]
+
+Platform Configuration
 ----------------------------------------------------------------------------------------------------
-6.1 AutoSupport Configuration
+Document authoritative configuration state only. Avoid design narrative or procedural instructions.
 
-<<SDT:DE_SYSTEM_ASUP_TABLE_JSON>>
+Hardware Configuration
+Include shelf inventory, drive media, enclosure placement, and underlying node hardware where applicable.
 
-6.2 Capabilities Summary
+Tray / Shelf Inventory
+<<SDT:DE_TRAYS_TABLE_JSON>>
 
+Drive Inventory
+<<SDT:DE_DRIVES_TABLE_JSON>>
+
+Underlying Node Hardware (Conditional)
+[Conditional manual note: add supporting node hardware detail only when the implementation includes dependent server/node inventory.]
+
+Controller Configuration
+Document management interfaces, controller network settings, host ports, and controller-level parameters.
+
+Management Interfaces
+<<SDT:DE_MANAGEMENT_INTERFACES_TABLE_JSON>>
+
+Host Port Configuration - iSCSI
+<<SDT:DE_HOSTPORTS_ISCSI_TABLE_JSON>>
+
+Host Port Configuration - Fibre Channel
+<<SDT:DE_HOSTPORTS_FC_TABLE_JSON>>
+
+Transport Summary
+<<SDT:DE_TRANSPORT_TABLE_JSON>>
+
+Storage Configuration
+Describe pools / volume groups, volumes, capacity utilisation, provisioning settings, and pool-to-volume
+relationships.
+
+Storage Containers / Pools / Volume Groups
+<<SDT:DE_STORAGE_CONTAINERS_TABLE_JSON>>
+
+Volumes
+<<SDT:DE_VOLUMES_TABLE_JSON>>
+
+Volume Mapping Summary
+<<SDT:DE_VOLUME_MAPPINGS_TABLE_JSON>>
+
+Host Connectivity
+Document host definitions, host groups, host-to-group relationships, and LUN presentation.
+
+Host Definitions
+<<SDT:DE_HOSTS_TABLE_JSON>>
+
+Host Groups
+<<SDT:DE_HOST_GROUPS_TABLE_JSON>>
+
+Host to Host Group Relationships
+<<SDT:DE_HOSTS_TO_HOST_GROUPS_TABLE_JSON>>
+
+Host Group to Volume Presentation
+<<SDT:DE_HOST_GROUPS_TO_VOLUMES_TABLE_JSON>>
+
+Direct Host to Volume Presentation
+<<SDT:DE_HOSTS_TO_VOLUMES_TABLE_JSON>>
+
+Performance & Cache Configuration
+Document array-level and volume-level cache behaviour, performance features, and notable limits or consumption.
+
+Capabilities Summary
 <<SDT:DE_CAPABILITIES_SUMMARY_TABLE_JSON>>
 
-6.3 Key Features
-
+Key Features
 <<SDT:DE_CAPABILITIES_KEY_FEATURES_TABLE_JSON>>
 
-6.4 Feature Limits / Consumption
-
+Feature Limits / Consumption
 <<SDT:DE_CAPABILITIES_LIMITS_TABLE_JSON>>
 
-7. Notes for Review
+Volume Cache / Performance Policy
+[Use volume detail, capabilities output, or manual notes in the DOCX to describe any cache/performance settings not captured elsewhere.]
+
+Security Configuration
+Document administrative access, identity sources, certificate posture, and security-relevant service settings.
+
+Authentication Sources
+[Manual note: document authentication sources or state that local array authentication is in use.]
+
+Administrative Accounts / Roles
+[Manual note: list administrative roles, groups, or access model details that are intentionally documented outside generated output.]
+
+Certificates
+[Manual note: document certificate issuer, subject, and expiry if this content is required in the DOCX.]
+
+Alerts & AutoSupport
+<<SDT:DE_SYSTEM_ASUP_TABLE_JSON>>
+[Use AutoSupport output above and add manual monitoring-path notes in the DOCX as required.]
+
+Data Protection
+Describe snapshots, remote replication, recovery dependencies, and protection features enabled on the platform.
+
+Snapshot / Copy Services
+[Manual note: describe snapshot/copy-service configuration here if collected evidence is being attached separately.]
+
+Replication Configuration
+[Manual note: describe replication configuration or state that replication is not configured.]
+
+Operational Behaviour (Day-2)
 ----------------------------------------------------------------------------------------------------
-- Review host definitions and host-group mappings to verify host type / OS personality is populated as expected.
-- Review transport and host-port sections together to validate the intended access model (iSCSI vs FC).
-- Review storage-container, volume, and mapping sections together to confirm pool/container-to-volume relationships.
-- This text template is intended as a richer local validation layout before moving equivalent structure into the DOCX skeleton.
+Describe expected operating behaviour. Keep this section descriptive rather than procedural.
+
+Access Model
+Explain how administrators, applications, and hosts consume the platform, including intended protocol and pathing
+behaviour.
+
+- Administrative Entrypoint : <<SDT:DE_MANAGEMENT_IP>>
+- Generated Evidence        : Review host definitions, host groups, transport summary, and port sections above.
+- Manual Note              : Summarise intended access model in the DOCX where narrative is needed.
+
+Monitoring & Alert Flow
+Describe how alerts surface from the array into AutoSupport, email, SNMP, or external monitoring systems.
+
+<<SDT:DE_SYSTEM_ASUP_TABLE_JSON>>
+[Use AutoSupport output above and add manual monitoring-path notes in the DOCX as required.]
+
+Backup / Restore Expectations
+Summarise snapshot / replication usage, operational backup boundaries, and restore responsibility assumptions.
+
+[Manual note: describe snapshot/copy-service configuration here if collected evidence is being attached separately.]
+[Manual note: describe replication configuration or state that replication is not configured.]
+
+Supportability & Firmware Lifecycle
+Summarise upgrade posture, support integration, log collection approach, and lifecycle guardrails.
+
+- Manual Note              : This section is manually authored in the DOCX using project support, patching, and runbook information.
+
+Failure Scenarios
+Summarise expected behaviour for controller, disk, shelf, path, and management-service failure conditions.
+
+- Manual Note              : Describe expected controller, disk, shelf, and path failure behaviour in the DOCX.
+
+Recovery Expectations
+Document expected recovery posture after common fault conditions or planned maintenance events.
+
+- Manual Note              : Recovery expectations are manually maintained in the DOCX using operational guidance from the delivery team.
+
+Shutdown / Startup Expectations
+Reference the intended operational expectations for planned shutdown, planned startup, and emergency actions.
+
+- Manual Note              : Planned shutdown / startup / emergency actions are manually populated in the DOCX by the team rather than generated.
+
+Appendix
+----------------------------------------------------------------------------------------------------
+Detailed Inventory
+Use this section for exhaustive component listings and raw inventory data retained for audit or support use.
+
+<<SDT:DE_DRIVES_TABLE_JSON>>
+<<SDT:DE_TRAYS_TABLE_JSON>>
+<<SDT:DE_CONTROLLERS_TABLE_JSON>>
+
+Version Summary
+Use this section for consolidated firmware, software, and component version baselines.
+
+<<SDT:DE_FIRMWARE_VERSION>>
+<<SDT:DE_APP_VERSION>>
+<<SDT:DE_BOOT_VERSION>>
+<<SDT:DE_NVSRAM_VERSION>>
+
+Configuration Exports
+Reference placeholder blocks for command captures, JSON exports, support bundles, or evidence attachments.
+
+[Manual placeholder: attach exported configuration evidence, support bundles, or command output references in the DOCX.]
+
+References
+List external documents, implementation references, support records, and architecture dependencies.
+
+- Manual placeholder       : Add implementation references, support records, and dependency documents in the DOCX.
+
+Operational Procedures
+Reserved for links or placeholders to planned shutdown, startup, and emergency operating runbooks.
+
+- Manual placeholder      : Link or paste delivery-team runbooks for shutdown, startup, and emergency operations in the DOCX.
+
+Firmware & Component Inventory (Conditional)
+[Conditional manual note: include XCC or adjacent platform firmware inventory only when applicable to the solution.]
+
+Node-Level Driver Alignment (Conditional)
+[Conditional manual note: include node-level driver alignment only when applicable to attached compute platforms.]
+
+Notes for Review
+----------------------------------------------------------------------------------------------------
+- The plain-text section names and ordering intentionally parallel the Lenovo DE DOCX draft for SDT rehearsal.
+- Keep placeholders text-friendly and stable so the TXT variant can validate section sequencing before DOCX SDT placement.
+- Conditional sections should remain present as rehearsal anchors even when their downstream datasets are not populated.
