@@ -279,6 +279,48 @@ function ConvertTo-PlainHashtable {
     return $InputObject
 }
 
+
+function ConvertTo-ObjectArray {
+    param([Parameter(Mandatory = $false)]$InputObject)
+
+    if ($null -eq $InputObject) { return @() }
+    if ($InputObject -is [System.Array]) { return @($InputObject) }
+    if ($InputObject -is [System.Collections.IList]) { return @($InputObject) }
+    if ($InputObject -is [System.Collections.IEnumerable] -and -not ($InputObject -is [string]) -and -not ($InputObject -is [System.Collections.IDictionary])) {
+        return @($InputObject)
+    }
+
+    return @($InputObject)
+}
+
+function Normalize-ProjectionDefinition {
+    param([Parameter(Mandatory = $false)]$Definition)
+
+    if ($null -eq $Definition) { return $null }
+    if (-not ($Definition -is [hashtable])) {
+        throw 'Projection definition must deserialize to an object.'
+    }
+
+    $normalized = [ordered]@{}
+    foreach ($key in @($Definition.Keys)) {
+        switch ([string]$key) {
+            'filter' {
+                $normalized.filter = @(ConvertTo-ObjectArray -InputObject $Definition[$key] | Where-Object { $null -ne $_ })
+            }
+            'columns' {
+                $normalized.columns = @(ConvertTo-ObjectArray -InputObject $Definition[$key] | Where-Object { $null -ne $_ })
+            }
+            default {
+                $normalized[[string]$key] = $Definition[$key]
+            }
+        }
+    }
+
+    if (-not $normalized.Contains('filter')) { $normalized.filter = @() }
+    if (-not $normalized.Contains('columns')) { $normalized.columns = @() }
+    return $normalized
+}
+
 function Read-ProjectionContractFile {
     param([Parameter(Mandatory = $true)][string]$Path)
 
@@ -326,7 +368,7 @@ function Get-ProjectionDefinitions {
         if ($contract.projections -is [hashtable]) {
             foreach ($projectionTag in @($contract.projections.Keys)) {
                 if (-not [string]::IsNullOrWhiteSpace([string]$projectionTag)) {
-                    $definitions[[string]$projectionTag] = $contract.projections[$projectionTag]
+                    $definitions[[string]$projectionTag] = Normalize-ProjectionDefinition -Definition $contract.projections[$projectionTag]
                 }
             }
         }
@@ -339,7 +381,7 @@ function Get-ProjectionDefinitions {
                             $definition[[string]$key] = $projection[$key]
                         }
                     }
-                    $definitions[[string]$projection.sdtTag] = $definition
+                    $definitions[[string]$projection.sdtTag] = Normalize-ProjectionDefinition -Definition $definition
                 }
             }
         }
@@ -449,25 +491,27 @@ function Invoke-TableProjection {
         [Parameter(Mandatory = $true)][hashtable]$Definition
     )
 
-    $projectedRows = @($Rows)
-    if ($Definition.ContainsKey('filter') -and $Definition.filter -is [System.Collections.IList]) {
-        foreach ($condition in @($Definition.filter)) {
+    $normalizedRows = @(ConvertTo-ObjectArray -InputObject $Rows)
+    $normalizedDefinition = Normalize-ProjectionDefinition -Definition $Definition
+    $projectedRows = @($normalizedRows)
+    if (@($normalizedDefinition.filter).Count -gt 0) {
+        foreach ($condition in @($normalizedDefinition.filter)) {
             $projectedRows = @($projectedRows | Where-Object { Test-ProjectionCondition -Row $_ -Condition $condition })
         }
     }
-    if ($Definition.ContainsKey('sortBy') -and -not [string]::IsNullOrWhiteSpace([string]$Definition.sortBy)) {
-        $projectedRows = @($projectedRows | Sort-Object -Property ([string]$Definition.sortBy))
+    if ($normalizedDefinition.ContainsKey('sortBy') -and -not [string]::IsNullOrWhiteSpace([string]$normalizedDefinition.sortBy)) {
+        $projectedRows = @($projectedRows | Sort-Object -Property ([string]$normalizedDefinition.sortBy))
     }
 
-    if (-not $Definition.ContainsKey('columns') -or -not ($Definition.columns -is [System.Collections.IList])) {
-        return $projectedRows
+    if (@($normalizedDefinition.columns).Count -eq 0) {
+        return @($projectedRows)
     }
 
     return @(
         $projectedRows | ForEach-Object {
             $row = $_
             $projected = [ordered]@{}
-            foreach ($column in @($Definition.columns)) {
+            foreach ($column in @($normalizedDefinition.columns)) {
                 if (-not ($column -is [hashtable]) -or -not $column.ContainsKey('name')) {
                     throw 'Projection column is missing required name property.'
                 }
@@ -485,12 +529,13 @@ function Convert-TableRowsForTag {
         [Parameter(Mandatory = $false)][hashtable]$ProjectionDefinitions
     )
 
+    $normalizedRows = @(ConvertTo-ObjectArray -InputObject $Rows)
     $projectionDefinition = Get-ProjectionDefinitionForTag -Tag $Tag -ProjectionDefinitions $ProjectionDefinitions
     if ($null -ne $projectionDefinition) {
-        return @(Invoke-TableProjection -Rows $Rows -Definition $projectionDefinition)
+        return @(ConvertTo-ObjectArray -InputObject (Invoke-TableProjection -Rows $normalizedRows -Definition $projectionDefinition))
     }
 
-    return $Rows
+    return @($normalizedRows)
 }
 
 function Get-DisplayColumnsForTable {
@@ -562,7 +607,7 @@ function Convert-ValueToTableString {
         return (Convert-CellValueToString -Value $Value)
     }
 
-    $rows = @(Convert-TableRowsForTag -Tag $Tag -Rows $rows -ProjectionDefinitions $ProjectionDefinitions)
+    $rows = @(ConvertTo-ObjectArray -InputObject (Convert-TableRowsForTag -Tag $Tag -Rows $rows -ProjectionDefinitions $ProjectionDefinitions))
 
     if (@($rows).Count -eq 0) {
         return ''
@@ -617,6 +662,11 @@ $outputs = [System.Collections.Generic.List[hashtable]]::new()
 $matches = [System.Collections.Generic.List[hashtable]]::new()
 $status = 'OK'
 $bundleId = $null
+$currentStageName = $null
+$currentTag = $null
+$currentDatasetRelativePath = $null
+$currentDatasetPath = $null
+$currentSelectorChain = ''
 
 $stageMap = [ordered]@{}
 $stageInitializationUtc = Get-UtcTimestamp
@@ -628,6 +678,7 @@ foreach ($stageName in @('Load','Validate','Transform','Render','Finalize')) {
 
 function Start-RenderStage {
     param([Parameter(Mandatory = $true)][hashtable]$Stage)
+    $script:currentStageName = [string]$Stage.name
     $Stage.startedUtc = Get-UtcTimestamp
     $Stage.completedUtc = $null
     $Stage.status = 'OK'
@@ -640,6 +691,7 @@ function Complete-RenderStage {
         [Parameter(Mandatory = $false)][hashtable]$Details
     )
     $Stage.status = $Status
+    if ($Status -ne 'ERROR') { $script:currentStageName = $null }
     $Stage.completedUtc = Get-UtcTimestamp
     if ($PSBoundParameters.ContainsKey('Details')) { $Stage.details = $Details }
 }
@@ -698,7 +750,11 @@ try {
     Start-RenderStage -Stage $stageMap.Transform
     $replaceByTag = @{}
     foreach ($entry in @($mapping.mappings)) {
+        $currentDatasetRelativePath = [string]$entry.dataset
+        $currentDatasetPath = $null
+        $currentSelectorChain = ''
         $tag = if ($entry.ContainsKey('sdtTag')) { [string]$entry.sdtTag } elseif ($entry.ContainsKey('target') -and $entry.target.ContainsKey('sdtTag')) { [string]$entry.target.sdtTag } else { '' }
+        $currentTag = $tag
         if ([string]::IsNullOrWhiteSpace($tag)) {
             $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-MAPPING-NOTAG'; severity = 'WARN'; message = "Skipping mapping with missing sdtTag for dataset '$($entry.dataset)'"; path = $MappingPath })
             continue
@@ -706,6 +762,7 @@ try {
 
         $datasetResolution = Resolve-DatasetFilePath -BundleRoot $BundleRoot -DatasetRelativePath ([string]$entry.dataset) -TechId ([string]$mapping.techId)
         $datasetPath = [string]$datasetResolution.path
+        $currentDatasetPath = $datasetPath
         if (-not (Test-Path -LiteralPath $datasetPath -PathType Leaf)) {
             $severity = if ($entry.required) { 'ERROR' } else { 'WARN' }
             $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-DATASET-MISSING'; severity = $severity; message = "Dataset '$($entry.dataset)' not found for tag '$tag'"; path = $datasetPath })
@@ -738,14 +795,15 @@ try {
         }
 
         $resolved = $null
-        $selectors = @($entry.selectors)
+        $selectors = @(ConvertTo-ObjectArray -InputObject $entry.selectors)
+        $currentSelectorChain = if (@($selectors).Count -gt 0) { (($selectors | ForEach-Object { [string]$_ }) -join ' -> ') } else { '' }
         if (@($selectors).Count -gt 0) {
             $selectorResult = Resolve-SelectorWithSummaryCompatibility -Dataset $dataset -Selectors @($selectors | ForEach-Object { [string]$_ }) -DatasetPath $datasetPath
             $resolved = $selectorResult.value
             $selectorFailed = [bool]$selectorResult.selectorFailed
 
             if ($selectorFailed) {
-                $selectorChain = ($selectors | ForEach-Object { [string]$_ }) -join ' -> '
+                $selectorChain = $currentSelectorChain
                 $severity = if ($entry.required) { 'ERROR' } else { 'WARN' }
                 $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-SELECTOR-NOMATCH'; severity = $severity; message = "Selector chain '$selectorChain' did not resolve for tag '$tag'"; path = $datasetPath })
                 if ($severity -eq 'ERROR') { $status = 'ERROR' }
@@ -766,7 +824,11 @@ try {
         $replaceByTag[$tag] = $resolvedText
         $resolvedTextLength = if ($null -eq $resolvedText) { 0 } else { $resolvedText.Length }
         $valuePreview = if ($resolvedTextLength -gt 80) { $resolvedText.Substring(0, 80) + '...' } else { $resolvedText }
-        $matches.Add([ordered]@{ tag = $tag; dataset = [string]$entry.dataset; selector = if (@($selectors).Count -gt 0) { (($selectors | ForEach-Object { [string]$_ }) -join ' -> ') } else { '' }; valuePreview = $valuePreview })
+        $matches.Add([ordered]@{ tag = $tag; dataset = [string]$entry.dataset; selector = $currentSelectorChain; valuePreview = $valuePreview })
+        $currentTag = $null
+        $currentDatasetRelativePath = $null
+        $currentDatasetPath = $null
+        $currentSelectorChain = ''
     }
 
     $transformStatus = if ($status -eq 'ERROR') { 'ERROR' } elseif (@($issues | Where-Object { $_.severity -eq 'WARN' }).Count -gt 0) { 'WARN' } else { 'OK' }
@@ -793,7 +855,17 @@ try {
 }
 catch {
     $status = 'ERROR'
-    $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-UNHANDLED'; severity = 'ERROR'; message = $_.Exception.Message; path = $null })
+    $exception = $_
+    $diagnostics = [System.Collections.Generic.List[string]]::new()
+    if (-not [string]::IsNullOrWhiteSpace([string]$exception.Exception.Message)) { $diagnostics.Add("message=$([string]$exception.Exception.Message)") }
+    if (-not [string]::IsNullOrWhiteSpace([string]$exception.InvocationInfo.PositionMessage)) { $diagnostics.Add("position=$([string]$exception.InvocationInfo.PositionMessage)") }
+    if (-not [string]::IsNullOrWhiteSpace([string]$exception.ScriptStackTrace)) { $diagnostics.Add("stack=$([string]$exception.ScriptStackTrace)") }
+    if (-not [string]::IsNullOrWhiteSpace([string]$currentStageName)) { $diagnostics.Add("stage=$currentStageName") }
+    if (-not [string]::IsNullOrWhiteSpace([string]$currentTag)) { $diagnostics.Add("tag=$currentTag") }
+    if (-not [string]::IsNullOrWhiteSpace([string]$currentDatasetRelativePath)) { $diagnostics.Add("dataset=$currentDatasetRelativePath") }
+    if (-not [string]::IsNullOrWhiteSpace([string]$currentDatasetPath)) { $diagnostics.Add("datasetPath=$currentDatasetPath") }
+    if (-not [string]::IsNullOrWhiteSpace([string]$currentSelectorChain)) { $diagnostics.Add("selectors=$currentSelectorChain") }
+    $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-UNHANDLED'; severity = 'ERROR'; message = ($diagnostics -join ' | '); path = $(if (-not [string]::IsNullOrWhiteSpace([string]$currentDatasetPath)) { $currentDatasetPath } else { $null }) })
 
     foreach ($stageName in @('Load','Validate','Transform','Render','Finalize')) {
         $stage = $stageMap[$stageName]
