@@ -91,10 +91,11 @@ mappings:
 - dataset: host-ports
   sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.HostPortsFC
   required: false
-  notes: placement=Main; minInfoLevel=2; objectKey=FibreChannel; scope=PerSystem
+  notes: placement=Main; minInfoLevel=2; objectKey=FibreChannel; scope=PerSystem; emptyDataset=NotConfiguredRow
   renderHint:
     renderAs: table
     projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC
+    emptyBehavior: placeholder
 - dataset: hosts
   sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Hosts
   required: false

@@ -1030,6 +1030,12 @@ function Convert-ValueToTableString {
 
     if ($null -eq $Value) { return '' }
 
+    $projectionDefinition = Get-ProjectionDefinitionForMapping -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases
+    $projectionEmptyBehavior = ''
+    if ($null -ne $projectionDefinition -and (Test-MapHasKey -Map $projectionDefinition -Key 'emptyBehavior') -and -not [string]::IsNullOrWhiteSpace([string]$projectionDefinition.emptyBehavior)) {
+        $projectionEmptyBehavior = [string]$projectionDefinition.emptyBehavior
+    }
+
     $rows = @()
     if ($Value -is [System.Collections.IList]) {
         foreach ($item in $Value) {
@@ -1060,7 +1066,34 @@ function Convert-ValueToTableString {
     $rows = @(ConvertTo-ObjectArray -InputObject (Convert-TableRowsForTag -Tag $Tag -Rows $rows -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases))
 
     if (@($rows).Count -eq 0) {
-        return ''
+        if ($projectionEmptyBehavior -eq 'placeholder' -and $null -ne $projectionDefinition -and @($projectionDefinition.columns).Count -gt 0) {
+            $placeholderRow = [ordered]@{}
+            $isFirstColumn = $true
+            foreach ($column in @($projectionDefinition.columns)) {
+                if (-not ($column -is [System.Collections.IDictionary]) -or -not (Test-MapHasKey -Map $column -Key 'name')) {
+                    continue
+                }
+
+                $columnName = [string]$column.name
+                if ($isFirstColumn) {
+                    $placeholderRow[$columnName] = 'Not configured'
+                    $isFirstColumn = $false
+                }
+                else {
+                    $placeholderRow[$columnName] = ''
+                }
+            }
+
+            if (@($placeholderRow.Keys).Count -gt 0) {
+                $rows = @([pscustomobject]$placeholderRow)
+            }
+            else {
+                return ''
+            }
+        }
+        else {
+            return ''
+        }
     }
 
     $allColumns = @($rows[0].PSObject.Properties.Name)
