@@ -1,6 +1,9 @@
 Mode: As-Built Draft
 
-# Lenovo DE As-Built Configuration Reference: <<SDT:LNV.Lenovo.DE.System[ArrayName].Summary.SystemName>>
+# Lenovo DE As-Built Configuration Reference: 
+SystemName   Model  Status  FirmwareVersion ApplicationVersion BootVersion NvsramVersion    ManagementIP
+----------   -----  ------  --------------- ------------------ ----------- -------------    ------------
+DE4200_Rack4 DE4200 optimal 08.90.09.00     08.90.09.00        08.90.09.00 N4000-890870-D03 192.0.2.12
 ====================================================================================================
 
 Document Control
@@ -9,7 +12,10 @@ Document Title          : Lenovo DE As-Built Configuration Reference
 Solution Name           : [Manually populated in DOCX by delivery team]
 Customer / Environment  : [Manually populated in DOCX by delivery team]
 Document Version        : [Manually populated in DOCX by delivery team]
-Configuration Snapshot  : <<SDT:LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectedUTC>>
+Configuration Snapshot  : 
+SystemName   Model  Status  FirmwareVersion ApplicationVersion BootVersion NvsramVersion    ManagementIP
+----------   -----  ------  --------------- ------------------ ----------- -------------    ------------
+DE4200_Rack4 DE4200 optimal 08.90.09.00     08.90.09.00        08.90.09.00 N4000-890870-D03 192.0.2.12
 Reference ID            : [Manually populated in DOCX by delivery team]
 
 Revision History
@@ -29,19 +35,24 @@ Purpose
 Provide a high-level orientation enabling a technical reader to understand the environment quickly.
 
 Platform Summary
-System Name             : <<SDT:LNV.Lenovo.DE.System[ArrayName].Summary.SystemName>>
-Model                   : <<SDT:LNV.Lenovo.DE.System[ArrayName].Summary.Model>>
-Operational Status      : <<SDT:LNV.Lenovo.DE.System[ArrayName].Summary.OperationalStatus>>
-Firmware Version        : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Version.FirmwareVersion>>
-Application Version     : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Version.ApplicationVersion>>
-Boot Version            : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Version.BootVersion>>
-NVSRAM Version          : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Version.NVSRAMVersion>>
-Management IP           : <<SDT:LNV.Lenovo.DE.System[ArrayName].Config.ManagementIP>>
-Drive Count             : <<SDT:LNV.Lenovo.DE.System[ArrayName].Summary.DriveCount>>
-Storage Container Count : <<SDT:LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory.Count>>
-Volume Count            : <<SDT:LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory.Count>>
-Collection Endpoint     : <<SDT:LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectionController>>:<<SDT:LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectionPort>>
-System Count Returned   : <<SDT:LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.SystemCountReturned>>
+Use the contract-backed summary block for top-level system identity and lifecycle details.
+
+
+SystemName   Model  Status  FirmwareVersion ApplicationVersion BootVersion NvsramVersion    ManagementIP
+----------   -----  ------  --------------- ------------------ ----------- -------------    ------------
+DE4200_Rack4 DE4200 optimal 08.90.09.00     08.90.09.00        08.90.09.00 N4000-890870-D03 192.0.2.12
+
+Name       ContainerType RaidLevel DriveMediaType Total    Used     Free      State    Status
+----       ------------- --------- -------------- -----    ----     ----      -----    ------
+SampleVG_1 VolumeGroup   raid6     ssd            20.93 TB 19.53 TB 1.40 TB   complete optimal
+SampleVG_2 VolumeGroup   raid6     ssd            10.45 TB 9.77 TB  697.98 GB complete optimal
+SampleVG_3 VolumeGroup   raid6     hdd            13.07 TB 11.72 TB 1.35 TB   complete optimal
+
+Name          Size     Status  RaidLevel Container
+----          ----     ------  --------- ---------
+VeeamVol1     11.72 TB optimal raid6     SampleVG_3
+Hyper-V_Vol01 19.53 TB optimal raid6     SampleVG_1
+Hyper-V_Vol02 9.77 TB  optimal raid6     SampleVG_2
 
 Controller Topology
 Describe controller A/B architecture, ownership behaviour, host interface presentation, and redundancy model.
@@ -56,12 +67,15 @@ Version Matrix
 Summarise array firmware, application, boot image, NVSRAM, controller firmware, and drive firmware baselines.
 
 Validation Block - Version Matrix
-- Firmware Baseline      : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Version.FirmwareVersion>>
-- Application Baseline   : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Version.ApplicationVersion>>
-- Boot Image Baseline    : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Version.BootVersion>>
-- NVSRAM Baseline        : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Version.NVSRAMVersion>>
-- Collection Mode        : <<SDT:LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectionMode>>
-- Collected UTC          : <<SDT:LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectedUTC>>
+- Firmware / App / Boot Baseline : 
+Controller Slot Status  AppVersion  BootVersion SerialNumber
+---------- ---- ------  ----------  ----------- ------------
+B          2    optimal 08.90.09.00 08.90.09.00 952529000077
+A          1    optimal 08.90.09.00 08.90.09.00 952529000086
+- Array Summary Evidence          : 
+SystemName   Model  Status  FirmwareVersion ApplicationVersion BootVersion NvsramVersion    ManagementIP
+----------   -----  ------  --------------- ------------------ ----------- -------------    ------------
+DE4200_Rack4 DE4200 optimal 08.90.09.00     08.90.09.00        08.90.09.00 N4000-890870-D03 192.0.2.12
 
 Key Design Decisions
 Capture notable implementation decisions such as pool design, protocol choice, cache settings, snapshot use,
@@ -73,14 +87,15 @@ Management Context
 Clarify embedded management access, DNS / NTP scope, monitoring integration, and management-network boundaries.
 
 Validation Block - Management Context
-- Management System ID   : <<SDT:LNV.Lenovo.DE.System[ArrayName].Summary.SystemId>>
-- Primary Management IP  : <<SDT:LNV.Lenovo.DE.System[ArrayName].Config.ManagementIP>>
-- Controller A Mgmt NIC  : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerA.ControllerLabel>> / slot <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerA.ControllerSlot>> / <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerA.PortLabel>>
-- Controller A Mgmt Addr : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerA.IPv4Address>> / <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerA.IPv4SubnetMask>>
-- Controller A Link      : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerA.LinkStatus>> via <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerA.InterfaceName>>
-- Controller B Mgmt NIC  : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerB.ControllerLabel>> / slot <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerB.ControllerSlot>> / <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerB.PortLabel>>
-- Controller B Mgmt Addr : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerB.IPv4Address>> / <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerB.IPv4SubnetMask>>
-- Controller B Link      : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerB.LinkStatus>> via <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerB.InterfaceName>>
+- Management Summary     : 
+SystemName   Model  Status  FirmwareVersion ApplicationVersion BootVersion NvsramVersion    ManagementIP
+----------   -----  ------  --------------- ------------------ ----------- -------------    ------------
+DE4200_Rack4 DE4200 optimal 08.90.09.00     08.90.09.00        08.90.09.00 N4000-890870-D03 192.0.2.12
+- Management Interfaces  : 
+Controller Slot Port Interface LinkStatus Address       Mask
+---------- ---- ---- --------- ---------- -------       ----
+B          2    P1   wan0      up         10.240.59.179 255.255.252.0
+A          1    P1   wan0      up         10.240.59.30  255.255.252.0
 
 Management Interfaces
 
@@ -90,8 +105,11 @@ B          2    P1   wan0      up         10.240.59.179 255.255.252.0
 A          1    P1   wan0      up         10.240.59.30  255.255.252.0
 
 Validation Block - DNS Effective Settings
-- DNS Scope 1            : acquisition <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.DNS.Scope1.DNSAcquisitionType>> / configured <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.DNS.Scope1.DNSServers>> / DHCP <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.DNS.Scope1.DHCPAcquiredServers>>
-- DNS Scope 2            : acquisition <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.DNS.Scope2.DNSAcquisitionType>> / configured <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.DNS.Scope2.DNSServers>> / DHCP <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.DNS.Scope2.DHCPAcquiredServers>>
+- DNS Effective Table    : 
+Acquisition DnsServers DhcpServers
+----------- ---------- -----------
+dhcp                   ["10.240.2.27","10.240.2.21"]
+dhcp                   ["10.240.2.27","10.240.2.21"]
 
 DNS Configuration
 
@@ -101,8 +119,11 @@ dhcp                   ["10.240.2.27","10.240.2.21"]
 dhcp                   ["10.240.2.27","10.240.2.21"]
 
 Validation Block - Time Effective Settings
-- Time Scope 1           : NTP acquisition <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Time.Scope1.NTPAcquisitionType>> / configured <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Time.Scope1.NTPServers>> / DHCP <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Time.Scope1.DHCPAcquiredServers>> / router <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Time.Scope1.IPv4DefaultRouter>>
-- Time Scope 2           : NTP acquisition <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Time.Scope2.NTPAcquisitionType>> / configured <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Time.Scope2.NTPServers>> / DHCP <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Time.Scope2.DHCPAcquiredServers>> / router <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Time.Scope2.IPv4DefaultRouter>>
+- Time Effective Table   : 
+Acquisition NtpServers DhcpServers DefaultRouter
+----------- ---------- ----------- -------------
+disabled                           10.240.56.1
+disabled                           10.240.56.1
 
 Time Configuration
 
@@ -177,7 +198,7 @@ Describe FC fabric topology, zoning model, switch redundancy, and host-to-array 
 is in scope.
 
 
-[Future canonical SAN SDTs: <<SDT:LNV.Lenovo.SAN.Fabric.Fabric[FabricName].Summary>> and <<SDT:LNV.Lenovo.SAN.Fabric.Fabric[FabricName].Tables.Zones>> once SAN datasets are added.]
+[Future note: SAN-specific SDTs are intentionally excluded from production templates until SAN datasets are contract-defined.]
 
 Platform Configuration
 ----------------------------------------------------------------------------------------------------
@@ -420,14 +441,37 @@ Explain how administrators, applications, and hosts consume the platform, includ
 behaviour.
 
 Validation Block - Transport / Access Model
-- Transport System ID      : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Transport.SystemId>>
-- Active Transport         : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Transport.ActiveTransport>>
-- iSCSI IQN                : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Transport.iSCSIIQN>>
-- Host Port 1              : tray <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port1.TrayId>> / <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port1.ControllerLabel>> slot <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port1.ControllerSlot>> / port <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port1.PortLabel>> / channel <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port1.Channel>>
-- Host Port 1 Network      : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port1.IPv4Address>> / <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port1.IPv4SubnetMask>> / gateway <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port1.IPv4Gateway>> / VLAN <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port1.VLANEnabled>>:<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port1.VLANId>>
-- Host Port 2              : tray <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port2.TrayId>> / <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port2.ControllerLabel>> slot <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port2.ControllerSlot>> / port <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port2.PortLabel>> / channel <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port2.Channel>>
-- Host Port 2 Network      : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port2.IPv4Address>> / <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port2.IPv4SubnetMask>> / gateway <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port2.IPv4Gateway>> / VLAN <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port2.VLANEnabled>>:<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port2.VLANId>>
-- Administrative Entrypoint : <<SDT:LNV.Lenovo.DE.System[ArrayName].Config.ManagementIP>>
+- Transport System ID      : 
+ActiveTransport IscsiIqn
+--------------- --------
+iscsi           iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f018000000006949701c
+- Active Transport         : 
+ActiveTransport IscsiIqn
+--------------- --------
+iscsi           iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f018000000006949701c
+- iSCSI IQN                : 
+ActiveTransport IscsiIqn
+--------------- --------
+iscsi           iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f018000000006949701c
+- Host Ports               : 
+Controller Slot Port Channel LinkStatus Address         Mask          Gateway TcpPort IQN
+---------- ---- ---- ------- ---------- -------         ----          ------- ------- ---
+B          2    e1a  3       down       192.168.132.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+B          2    e0a  1       down       192.168.130.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+B          2    e1d  6       down       192.168.135.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+B          2    e1b  4       down       192.168.133.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+B          2    e1c  5       down       192.168.134.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+B          2    e0b  2       down       192.168.131.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+A          1    e1b  4       down       192.168.133.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+A          1    e0b  2       down       192.168.131.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+A          1    e0a  1       down       192.168.130.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+A          1    e1a  3       down       192.168.132.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+A          1    e1c  5       down       192.168.134.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+A          1    e1d  6       down       192.168.135.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+- Administrative Entrypoint : 
+SystemName   Model  Status  FirmwareVersion ApplicationVersion BootVersion NvsramVersion    ManagementIP
+----------   -----  ------  --------------- ------------------ ----------- -------------    ------------
+DE4200_Rack4 DE4200 optimal 08.90.09.00     08.90.09.00        08.90.09.00 N4000-890870-D03 192.0.2.12
 - Generated Evidence        : Review host definitions, host groups, transport summary, and port sections above.
 - Manual Note              : Summarise intended access model in the DOCX where narrative is needed.
 
@@ -511,10 +555,10 @@ A          1    optimal 08.90.09.00 08.90.09.00 952529000086
 Version Summary
 Use this section for consolidated firmware, software, and component version baselines.
 
-<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Version.FirmwareVersion>>
-<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Version.ApplicationVersion>>
-<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Version.BootVersion>>
-<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Version.NVSRAMVersion>>
+
+SystemName   Model  Status  FirmwareVersion ApplicationVersion BootVersion NvsramVersion    ManagementIP
+----------   -----  ------  --------------- ------------------ ----------- -------------    ------------
+DE4200_Rack4 DE4200 optimal 08.90.09.00     08.90.09.00        08.90.09.00 N4000-890870-D03 192.0.2.12
 
 Configuration Exports
 Reference placeholder blocks for command captures, JSON exports, support bundles, or evidence attachments.
@@ -538,19 +582,31 @@ Node-Level Driver Alignment (Conditional)
 [Conditional manual note: include node-level driver alignment only when applicable to attached compute platforms.]
 
 Validation Block - Controller A / Controller B Summary
-- Controller A Summary    : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerA.ControllerLabel>> slot <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerA.ControllerSlot>> / mgmt <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerA.IPv4Address>> / host port <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port1.PortLabel>> channel <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port1.Channel>>
-- Controller B Summary    : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerB.ControllerLabel>> slot <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerB.ControllerSlot>> / mgmt <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerB.IPv4Address>> / host port <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port2.PortLabel>> channel <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port2.Channel>>
+- Controller Management Table : 
+Controller Slot Port Interface LinkStatus Address       Mask
+---------- ---- ---- --------- ---------- -------       ----
+B          2    P1   wan0      up         10.240.59.179 255.255.252.0
+A          1    P1   wan0      up         10.240.59.30  255.255.252.0
+- Host Port Evidence Table    : 
+Controller Slot Port Channel LinkStatus Address         Mask          Gateway TcpPort IQN
+---------- ---- ---- ------- ---------- -------         ----          ------- ------- ---
+B          2    e1a  3       down       192.168.132.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+B          2    e0a  1       down       192.168.130.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+B          2    e1d  6       down       192.168.135.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+B          2    e1b  4       down       192.168.133.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+B          2    e1c  5       down       192.168.134.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+B          2    e0b  2       down       192.168.131.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+A          1    e1b  4       down       192.168.133.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+A          1    e0b  2       down       192.168.131.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+A          1    e0a  1       down       192.168.130.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+A          1    e1a  3       down       192.168.132.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+A          1    e1c  5       down       192.168.134.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
+A          1    e1d  6       down       192.168.135.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
 
 SDT Inventory / Proposed DOCX Fields
 Use this appendix as a rehearsal area for future DOCX content controls backed by scalar Lenovo DE tags.
 
-- Candidate Field - Array Version Matrix      : firmware <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Version.FirmwareVersion>> / app <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Version.ApplicationVersion>> / boot <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Version.BootVersion>> / NVSRAM <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Version.NVSRAMVersion>>
-- Candidate Field - Mgmt Controller A         : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerA.ControllerLabel>> / <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerA.IPv4Address>> / <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerA.LinkStatus>>
-- Candidate Field - Mgmt Controller B         : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerB.ControllerLabel>> / <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerB.IPv4Address>> / <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces.ControllerB.LinkStatus>>
-- Candidate Field - Effective DNS / NTP 1     : DNS <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.DNS.Scope1.DNSServers>> / NTP <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Time.Scope1.NTPServers>>
-- Candidate Field - Effective DNS / NTP 2     : DNS <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.DNS.Scope2.DNSServers>> / NTP <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Time.Scope2.NTPServers>>
-- Candidate Field - Primary iSCSI Access Port : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port1.ControllerLabel>> <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port1.PortLabel>> / <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port1.IPv4Address>> / VLAN <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port1.VLANId>>
-- Candidate Field - Secondary iSCSI Access Port : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port2.ControllerLabel>> <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port2.PortLabel>> / <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port2.IPv4Address>> / VLAN <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPorts.Port2.VLANId>>
+- Reserved for future contract-backed scalar SDTs once corresponding datasets and projections are introduced.
 
 Notes for Review
 ----------------------------------------------------------------------------------------------------

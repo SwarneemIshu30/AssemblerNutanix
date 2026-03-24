@@ -1,43 +1,43 @@
 {
   "schemaVersion": 1,
   "status": "OK",
-  "startedUtc": "2026-03-24T04:20:57.8618232Z",
-  "completedUtc": "2026-03-24T04:20:58.5430981Z",
+  "startedUtc": "2026-03-24T07:14:16.8139833Z",
+  "completedUtc": "2026-03-24T07:14:17.3631599Z",
   "bundleId": "bc8e726c-0b55-4b6e-af58-c84fa426a26a",
   "stages": [
     {
       "details": null,
-      "completedUtc": "2026-03-24T04:20:57.8619074Z",
+      "completedUtc": "2026-03-24T07:14:16.8140848Z",
       "name": "Load",
-      "startedUtc": "2026-03-24T04:20:57.8619074Z",
+      "startedUtc": "2026-03-24T07:14:16.8140848Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-24T04:20:57.8619074Z",
+      "completedUtc": "2026-03-24T07:14:16.8140848Z",
       "name": "Validate",
-      "startedUtc": "2026-03-24T04:20:57.8619074Z",
+      "startedUtc": "2026-03-24T07:14:16.8140848Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-24T04:20:57.8619074Z",
+      "completedUtc": "2026-03-24T07:14:16.8140848Z",
       "name": "Transform",
-      "startedUtc": "2026-03-24T04:20:57.8619074Z",
+      "startedUtc": "2026-03-24T07:14:16.8140848Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-24T04:20:57.8619074Z",
+      "completedUtc": "2026-03-24T07:14:16.8140848Z",
       "name": "Render",
-      "startedUtc": "2026-03-24T04:20:57.8619074Z",
+      "startedUtc": "2026-03-24T07:14:16.8140848Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-24T04:20:57.8619074Z",
+      "completedUtc": "2026-03-24T07:14:16.8140848Z",
       "name": "Finalize",
-      "startedUtc": "2026-03-24T04:20:57.8619074Z",
+      "startedUtc": "2026-03-24T07:14:16.8140848Z",
       "status": "SKIPPED"
     }
   ],
@@ -46,7 +46,7 @@
     {
       "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json",
       "selector": "items",
-      "valuePreview": "{\"id\":\"1\",\"name\":\"DE4200_Rack4\",\"model\":\"DE4200\",\"status\":\"optimal\",\"fwVersion\":...",
+      "valuePreview": "\r\nSystemName   Model  Status  FirmwareVersion ApplicationVersion BootVersion Nvs...",
       "tag": "LNV.Lenovo.DE.System[ArrayName].Summary"
     },
     {
@@ -174,6 +174,72 @@
       "selector": "items",
       "valuePreview": "\r\nFeature                Limit Used LimitState    Entitlement\r\n-------          ...",
       "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "selector": "items.0.ipv4Address",
+      "valuePreview": "10.240.59.179",
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerA"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
+      "selector": "items.1.ipv4Address",
+      "valuePreview": "10.240.59.30",
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerB"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "selector": "items.0.dnsAcquisitionType",
+      "valuePreview": "dhcp",
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope1"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
+      "selector": "items.1.dnsAcquisitionType",
+      "valuePreview": "dhcp",
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope2"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "selector": "items.0.ntpAcquisitionType",
+      "valuePreview": "disabled",
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope1"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
+      "selector": "items.1.ntpAcquisitionType",
+      "valuePreview": "disabled",
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope2"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "selector": "items.0.portLabel",
+      "valuePreview": "e1a",
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port1"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
+      "selector": "items.1.portLabel",
+      "valuePreview": "e0a",
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port2"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json",
+      "selector": "items.0.appVersion",
+      "valuePreview": "08.90.09.00",
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Version"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json",
+      "selector": "items.0.model",
+      "valuePreview": "DE4200",
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Config"
+    },
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/transport.json",
+      "selector": "items.0.activeTransport",
+      "valuePreview": "iscsi",
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence"
     }
   ],
   "outputs": [
