@@ -565,7 +565,12 @@ function Get-EffectiveSelectorsForMapping {
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$DatasetPresentation
     )
 
-    $selectors = @(ConvertTo-ObjectArray -InputObject $MappingEntry.selectors | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | ForEach-Object { [string]$_ })
+    $selectorsInput = $null
+    if (Test-MapHasKey -Map $MappingEntry -Key 'selectors') {
+        $selectorsInput = $MappingEntry['selectors']
+    }
+
+    $selectors = @(ConvertTo-ObjectArray -InputObject $selectorsInput | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | ForEach-Object { [string]$_ })
     if (@($selectors).Count -gt 0) {
         return @($selectors)
     }
