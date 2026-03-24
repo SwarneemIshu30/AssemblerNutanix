@@ -11,6 +11,17 @@ strictContracts:
   requireAllMappings: false
   forbidUnmappedDatasets: false
   requireSelectors: false
+syncPolicy:
+  collectorSkeletonMapping:
+    allowedRenderAs:
+    - table
+    selectors:
+      defaultByRenderAs:
+        table:
+        - items
+    unsupportedRenderShape:
+      documentFacing: fail
+      nonDocumentFacing: skip
 collectorSdtTagPolicy:
   required: true
   tokenRewrites:

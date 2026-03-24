@@ -510,6 +510,121 @@ function Get-CollectorDatasetPathFromTemplate {
     return $resolvedPath
 }
 
+function New-CollectorMappingSyncPolicyFromContract {
+    param(
+        [Parameter(Mandatory = $true)][string]$MappingContractPath,
+        [Parameter(Mandatory = $true)]$Contract
+    )
+
+    $defaultPolicy = [ordered]@{
+        allowedRenderAs = @('table')
+        selectorsByRenderAs = [ordered]@{
+            table = @('items')
+        }
+        unsupportedRenderShape = [ordered]@{
+            documentFacing = 'fail'
+            nonDocumentFacing = 'skip'
+        }
+    }
+
+    $syncPolicyRoot = ConvertTo-Dictionary -Value $Contract.syncPolicy
+    if ($null -eq $syncPolicyRoot) {
+        return $defaultPolicy
+    }
+
+    $collectorPolicy = ConvertTo-Dictionary -Value $syncPolicyRoot.collectorSkeletonMapping
+    if ($null -eq $collectorPolicy) {
+        return $defaultPolicy
+    }
+
+    $policy = [ordered]@{
+        allowedRenderAs = @($defaultPolicy.allowedRenderAs)
+        selectorsByRenderAs = [ordered]@{}
+        unsupportedRenderShape = [ordered]@{
+            documentFacing = [string]$defaultPolicy.unsupportedRenderShape.documentFacing
+            nonDocumentFacing = [string]$defaultPolicy.unsupportedRenderShape.nonDocumentFacing
+        }
+    }
+
+    foreach ($renderAsKey in @($defaultPolicy.selectorsByRenderAs.Keys)) {
+        $policy.selectorsByRenderAs[[string]$renderAsKey] = @($defaultPolicy.selectorsByRenderAs[$renderAsKey])
+    }
+
+    if ($collectorPolicy.ContainsKey('allowedRenderAs')) {
+        $allowed = @($collectorPolicy.allowedRenderAs)
+        if ($allowed.Count -eq 0) {
+            throw "Mapping contract '$MappingContractPath' declares syncPolicy.collectorSkeletonMapping.allowedRenderAs but it is empty."
+        }
+
+        $resolvedAllowed = New-Object System.Collections.Generic.List[string]
+        foreach ($candidate in $allowed) {
+            $value = [string]$candidate
+            if ([string]::IsNullOrWhiteSpace($value)) {
+                throw "Mapping contract '$MappingContractPath' has blank allowedRenderAs value under syncPolicy.collectorSkeletonMapping.allowedRenderAs."
+            }
+
+            if (-not $resolvedAllowed.Contains($value)) {
+                $resolvedAllowed.Add($value)
+            }
+        }
+
+        $policy.allowedRenderAs = @($resolvedAllowed)
+    }
+
+    $selectorsPolicy = ConvertTo-Dictionary -Value $collectorPolicy.selectors
+    if ($null -ne $selectorsPolicy -and $selectorsPolicy.ContainsKey('defaultByRenderAs')) {
+        $selectorsByRenderAs = ConvertTo-Dictionary -Value $selectorsPolicy.defaultByRenderAs
+        if ($null -eq $selectorsByRenderAs) {
+            throw "Mapping contract '$MappingContractPath' has syncPolicy.collectorSkeletonMapping.selectors.defaultByRenderAs but it is not an object."
+        }
+
+        $policy.selectorsByRenderAs = [ordered]@{}
+        foreach ($renderAs in @($selectorsByRenderAs.Keys)) {
+            $renderAsValue = [string]$renderAs
+            if ([string]::IsNullOrWhiteSpace($renderAsValue)) {
+                throw "Mapping contract '$MappingContractPath' has blank renderAs key in syncPolicy.collectorSkeletonMapping.selectors.defaultByRenderAs."
+            }
+
+            $selectorCandidates = @($selectorsByRenderAs[$renderAs])
+            if ($selectorCandidates.Count -eq 0) {
+                throw "Mapping contract '$MappingContractPath' has empty selector list for renderAs '$renderAsValue' in syncPolicy.collectorSkeletonMapping.selectors.defaultByRenderAs."
+            }
+
+            $selectorList = New-Object System.Collections.Generic.List[string]
+            foreach ($selector in $selectorCandidates) {
+                $selectorValue = [string]$selector
+                if ([string]::IsNullOrWhiteSpace($selectorValue)) {
+                    throw "Mapping contract '$MappingContractPath' has blank selector for renderAs '$renderAsValue' in syncPolicy.collectorSkeletonMapping.selectors.defaultByRenderAs."
+                }
+
+                if (-not $selectorList.Contains($selectorValue)) {
+                    $selectorList.Add($selectorValue)
+                }
+            }
+
+            $policy.selectorsByRenderAs[$renderAsValue] = @($selectorList)
+        }
+    }
+
+    $unsupportedPolicy = ConvertTo-Dictionary -Value $collectorPolicy.unsupportedRenderShape
+    if ($null -ne $unsupportedPolicy) {
+        foreach ($policyKey in @('documentFacing', 'nonDocumentFacing')) {
+            if (-not $unsupportedPolicy.ContainsKey($policyKey)) {
+                continue
+            }
+
+            $policyValue = [string]$unsupportedPolicy[$policyKey]
+            if ($policyValue -notin @('skip', 'warn', 'fail')) {
+                throw "Mapping contract '$MappingContractPath' has unsupported value '$policyValue' for syncPolicy.collectorSkeletonMapping.unsupportedRenderShape.$policyKey. Expected one of: skip, warn, fail."
+            }
+
+            $policy.unsupportedRenderShape[$policyKey] = $policyValue
+        }
+    }
+
+    return $policy
+}
+
 function Sync-CollectorSkeletonMappingFromContract {
     param(
         [Parameter(Mandatory = $true)][string]$ContractsRoot,
@@ -538,6 +653,7 @@ function Sync-CollectorSkeletonMappingFromContract {
     }
 
     $tagPolicy = New-CollectorSdtTagPolicyFromContract -MappingContractPath $contractMappingPath -Contract $contract
+    $syncPolicy = New-CollectorMappingSyncPolicyFromContract -MappingContractPath $contractMappingPath -Contract $contract
     $datasetPathTemplateMap = Get-CollectorDatasetPathTemplateMap -ContractsRoot $ContractsRoot -ResolvedTechId $ResolvedTechId
     $generatedMappings = [System.Collections.Generic.List[hashtable]]::new()
     $processedCount = 0
@@ -615,15 +731,6 @@ function Sync-CollectorSkeletonMappingFromContract {
                 }
             }
 
-            if ($null -ne $renderHintSource -and $renderHintSource.ContainsKey('renderAs')) {
-                $renderAs = [string]$renderHintSource.renderAs
-                if (-not [string]::IsNullOrWhiteSpace($renderAs) -and $renderAs -ne 'table') {
-                    $skipReasonCounters.unsupportedShape++
-                    Write-Verbose ("[collector-mapping-sync] skip mapping[{0}] sourceKey={1} reason=unsupported shape renderAs={2}" -f $mappingIndex, $sourceKey, $renderAs)
-                    continue
-                }
-            }
-
             $renderHint = [ordered]@{}
             if ($null -ne $renderHintSource) {
                 foreach ($renderHintKey in @('renderAs', 'projectionRef', 'view')) {
@@ -634,8 +741,50 @@ function Sync-CollectorSkeletonMappingFromContract {
             }
 
             if ($renderHint.Count -gt 0) {
+                $resolvedRenderAs = if ($renderHint.ContainsKey('renderAs')) { [string]$renderHint.renderAs } else { '' }
+                if (-not [string]::IsNullOrWhiteSpace($resolvedRenderAs) -and $resolvedRenderAs -notin @($syncPolicy.allowedRenderAs)) {
+                    $unsupportedAction = if ([bool]$entryTable.required) {
+                        [string]$syncPolicy.unsupportedRenderShape.documentFacing
+                    }
+                    else {
+                        [string]$syncPolicy.unsupportedRenderShape.nonDocumentFacing
+                    }
+
+                    if ([string]::IsNullOrWhiteSpace($unsupportedAction)) {
+                        $unsupportedAction = if ([bool]$entryTable.required) { 'fail' } else { 'skip' }
+                    }
+
+                    $skipReasonCounters.unsupportedShape++
+                    $message = "unsupported render shape renderAs='$resolvedRenderAs' action='$unsupportedAction' allowedRenderAs='$(@($syncPolicy.allowedRenderAs) -join ',')'"
+                    switch ($unsupportedAction) {
+                        'warn' {
+                            Write-Warning ("[collector-mapping-sync] mapping[{0}] sourceKey={1} {2}; skipping mapping." -f $mappingIndex, $sourceKey, $message)
+                            continue
+                        }
+                        'skip' {
+                            Write-Verbose ("[collector-mapping-sync] skip mapping[{0}] sourceKey={1} reason={2}" -f $mappingIndex, $sourceKey, $message)
+                            continue
+                        }
+                        default {
+                            throw "Contract policy rejected mapping[$mappingIndex] key '$sourceKey': $message"
+                        }
+                    }
+                }
+
+                if (-not [string]::IsNullOrWhiteSpace($resolvedRenderAs)) {
+                    if (-not $syncPolicy.selectorsByRenderAs.ContainsKey($resolvedRenderAs)) {
+                        throw "Contract policy missing selectors for renderAs '$resolvedRenderAs' at mapping[$mappingIndex] key '$sourceKey'. Define syncPolicy.collectorSkeletonMapping.selectors.defaultByRenderAs.$resolvedRenderAs."
+                    }
+
+                    $selectors = @($syncPolicy.selectorsByRenderAs[$resolvedRenderAs])
+                    if ($selectors.Count -eq 0) {
+                        throw "Contract policy resolved empty selector defaults for renderAs '$resolvedRenderAs' at mapping[$mappingIndex] key '$sourceKey'."
+                    }
+
+                    $mappingEntry.selectors = @($selectors)
+                }
+
                 $mappingEntry.renderHint = $renderHint
-                $mappingEntry.selectors = @('items')
             }
 
             $generatedMappings.Add($mappingEntry)
