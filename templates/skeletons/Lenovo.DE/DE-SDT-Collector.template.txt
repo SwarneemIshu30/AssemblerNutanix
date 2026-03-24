@@ -43,6 +43,9 @@ Describe controller A/B architecture, ownership behaviour, host interface presen
 Version Matrix
 Summarise array firmware, application, boot image, NVSRAM, controller firmware, and drive firmware baselines.
 
+Version Summary Narrative
+<<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.Version>>
+
 Validation Block - Version Matrix
 - Firmware / App / Boot Baseline : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Controllers>>
 - Array Summary Evidence          : <<SDT:LNV.Lenovo.DE.System[ArrayName].Summary>>
@@ -51,10 +54,17 @@ Key Design Decisions
 Capture notable implementation decisions such as pool design, protocol choice, cache settings, snapshot use,
 and replication posture.
 
+Configuration Narrative
+<<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.Config>>
+
 - Manual Note            : Summarise pool/container strategy, access protocol, and protection design decisions in the DOCX.
 
 Management Context
 Clarify embedded management access, DNS / NTP scope, monitoring integration, and management-network boundaries.
+
+Management Narrative
+- Controller A Context : <<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerA>>
+- Controller B Context : <<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerB>>
 
 Validation Block - Management Context
 - Management Summary     : <<SDT:LNV.Lenovo.DE.System[ArrayName].Summary>>
@@ -67,12 +77,20 @@ Validation Block - DNS Effective Settings
 - DNS Effective Table    : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.DNS>>
 
 DNS Configuration
+DNS Narrative
+- Scope 1 : <<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope1>>
+- Scope 2 : <<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope2>>
+
 <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.DNS>>
 
 Validation Block - Time Effective Settings
 - Time Effective Table   : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Time>>
 
 Time Configuration
+Time Narrative
+- Scope 1 : <<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope1>>
+- Scope 2 : <<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope2>>
+
 <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Time>>
 
 Architecture
@@ -122,6 +140,10 @@ Management Interfaces
 <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces>>
 
 Host Port Configuration - iSCSI
+Host Port Narrative
+- Port 1 : <<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port1>>
+- Port 2 : <<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port2>>
+
 <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI>>
 
 Host Port Configuration - Fibre Channel
@@ -254,6 +276,9 @@ Appendix
 ----------------------------------------------------------------------------------------------------
 Detailed Inventory
 Use this section for exhaustive component listings and raw inventory data retained for audit or support use.
+
+Evidence Narrative
+<<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence>>
 
 <<SDT:LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory>>
 <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Trays>>
