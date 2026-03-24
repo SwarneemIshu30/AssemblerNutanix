@@ -30,7 +30,29 @@ The assembler resolves contracts from:
 1. an explicit `-ContractsRoot` argument
 2. `./.deps/contracts`
 
-The historical export-based handoff layout is no longer used in this repository.
+`.deps/contracts` is a synced runtime dependency used by the assembler at render time. It is **not** the long-term source of truth for contract authoring.
+
+When assembler work requires editing or adding contract files under `.deps/contracts` in this repo, mirror the same owned artifacts under:
+- `exports/LNV.AsBuiltDoc.Contracts/...`
+
+That export tree exists so contract changes can be handed off offline to the contracts repo that owns them.
+
+## Contract-driven projection model
+
+The current assembler direction is to keep rendering behavior declarative and contract-owned:
+
+- dataset-to-SDT mappings may declare render intent such as `projectionRef`, `renderAs`, and `view`
+- tech projection contracts declare aliases, filters, ordering, columns, and output behavior
+- dataset presentation sidecars under `tech/<techId>/dataset/*.assembler.meta.json` describe document intent such as `summary`, `table`, `relationshipTable`, or `evidence`
+- document-facing SDTs should resolve through explicit projection/view metadata rather than ad hoc technology-specific renderer logic
+- raw JSON output is reserved for evidence/debug use cases, not as the preferred fallback for document-facing tables
+
+For Lenovo.DE specifically, the authoritative mapping and projection intent now lives in the contracts snapshot under:
+- `.deps/contracts/tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml`
+- `.deps/contracts/tech/Lenovo.DE/assembler.projections.v1.json`
+- `.deps/contracts/tech/Lenovo.DE/dataset/*.assembler.meta.json`
+
+The runtime skeleton mapping under `templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json` should stay aligned with that contract data.
 
 ## Current runtime coverage
 

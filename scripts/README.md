@@ -21,6 +21,16 @@ The SDT render script loads `standards/mapping.dataset-to-sdt.schema.v1.json` an
 
 Repo ownership note: tracked contract handoff artifacts live under `exports/LNV.AsBuiltDoc.Contracts/...`, including `exports/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/assembler.projections.v1.json` and dataset presentation sidecars under `exports/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/dataset/*.assembler.meta.json`. The `.deps/contracts` tree is a repo-local synced runtime dependency populated by `Sync-AssemblerContractsToRepo.ps1`; do not make repo-managed contract edits there unless you also mirror the owned contract changes into `exports/...` for offline handoff.
 
+## Projection/view ownership direction
+
+Assembler documentation and runtime behavior should align to these rules:
+- `mapping.dataset-to-sdt` entries may declare render hints such as `projectionRef`, `renderAs`, `view`, `structuredValuePolicy`, and `missingProjectionPolicy`.
+- `tech/<techId>/assembler.projections.v1.json` is where projection/view behavior belongs, including aliases, ordering, empty-state behavior, and table shaping.
+- `tech/<techId>/dataset/*.assembler.meta.json` carries dataset presentation intent so collectors can inform assembler how normalized data should be treated without pushing more tech logic into invoke scripts.
+- document-facing table outputs should be driven by explicit view/projection metadata; raw JSON output should be limited to declared evidence/debug scenarios.
+
+For Lenovo.DE, the authoritative contract mapping source is `.deps/contracts/tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml`; `templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json` is the runtime-facing/generated copy that must stay aligned with it.
+
 ## TemplateCatalog contract
 
 Schema file:
