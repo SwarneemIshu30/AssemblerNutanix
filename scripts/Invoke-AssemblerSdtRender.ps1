@@ -666,7 +666,7 @@ function Normalize-ProjectionDefinition {
     param([Parameter(Mandatory = $false)]$Definition)
 
     if ($null -eq $Definition) { return $null }
-    if (-not ($Definition -is [hashtable])) {
+    if (-not ($Definition -is [System.Collections.IDictionary])) {
         throw 'Projection definition must deserialize to an object.'
     }
 
@@ -739,9 +739,9 @@ function Get-ProjectionDefinitions {
     $contract = Read-ProjectionContractFile -Path $projectionContractPath
     $definitions = @{}
     $aliases = @{}
-    if ($contract -is [hashtable]) {
-        if ($contract.ContainsKey('projections')) {
-            if ($contract.projections -is [hashtable]) {
+    if ($contract -is [System.Collections.IDictionary]) {
+        if (Test-MapHasKey -Map $contract -Key 'projections') {
+            if ($contract.projections -is [System.Collections.IDictionary]) {
                 foreach ($projectionTag in @($contract.projections.Keys)) {
                     if (-not [string]::IsNullOrWhiteSpace([string]$projectionTag)) {
                         $definitions[[string]$projectionTag] = Normalize-ProjectionDefinition -Definition $contract.projections[$projectionTag]
@@ -750,7 +750,7 @@ function Get-ProjectionDefinitions {
             }
             elseif ($contract.projections -is [System.Collections.IList]) {
                 foreach ($projection in @($contract.projections)) {
-                    if ($projection -is [hashtable] -and $projection.ContainsKey('sdtTag') -and -not [string]::IsNullOrWhiteSpace([string]$projection.sdtTag)) {
+                    if ($projection -is [System.Collections.IDictionary] -and (Test-MapHasKey -Map $projection -Key 'sdtTag') -and -not [string]::IsNullOrWhiteSpace([string]$projection.sdtTag)) {
                         $definition = @{}
                         foreach ($key in @($projection.Keys)) {
                             if ([string]$key -ne 'sdtTag') {
@@ -763,7 +763,7 @@ function Get-ProjectionDefinitions {
             }
         }
 
-        if ($contract.ContainsKey('aliases') -and $contract.aliases -is [hashtable]) {
+        if ((Test-MapHasKey -Map $contract -Key 'aliases') -and $contract.aliases -is [System.Collections.IDictionary]) {
             foreach ($aliasTag in @($contract.aliases.Keys)) {
                 if (-not [string]::IsNullOrWhiteSpace([string]$aliasTag)) {
                     $aliases[[string]$aliasTag] = [string]$contract.aliases[$aliasTag]
@@ -823,35 +823,35 @@ function Get-ProjectionDefinitionForTag {
 function Test-ProjectionCondition {
     param(
         [Parameter(Mandatory = $true)]$Row,
-        [Parameter(Mandatory = $true)][hashtable]$Condition
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Condition
     )
 
-    if ($Condition.ContainsKey('anyOf') -and $Condition.anyOf -is [System.Collections.IList]) {
+    if ((Test-MapHasKey -Map $Condition -Key 'anyOf') -and $Condition.anyOf -is [System.Collections.IList]) {
         foreach ($nested in @($Condition.anyOf)) {
             if (Test-ProjectionCondition -Row $Row -Condition $nested) { return $true }
         }
         return $false
     }
 
-    if ($Condition.ContainsKey('allOf') -and $Condition.allOf -is [System.Collections.IList]) {
+    if ((Test-MapHasKey -Map $Condition -Key 'allOf') -and $Condition.allOf -is [System.Collections.IList]) {
         foreach ($nested in @($Condition.allOf)) {
             if (-not (Test-ProjectionCondition -Row $Row -Condition $nested)) { return $false }
         }
         return $true
     }
 
-    if (-not $Condition.ContainsKey('field')) {
+    if (-not (Test-MapHasKey -Map $Condition -Key 'field')) {
         throw 'Projection condition is missing required field property.'
     }
 
     $actual = $Row.([string]$Condition.field)
-    if ($Condition.ContainsKey('equals')) {
+    if (Test-MapHasKey -Map $Condition -Key 'equals') {
         return ([string]$actual -eq [string]$Condition.equals)
     }
-    if ($Condition.ContainsKey('notEquals')) {
+    if (Test-MapHasKey -Map $Condition -Key 'notEquals') {
         return ([string]$actual -ne [string]$Condition.notEquals)
     }
-    if ($Condition.ContainsKey('isNull')) {
+    if (Test-MapHasKey -Map $Condition -Key 'isNull') {
         return (($null -eq $actual) -eq [bool]$Condition.isNull)
     }
 
@@ -861,20 +861,20 @@ function Test-ProjectionCondition {
 function Resolve-ProjectionColumnValue {
     param(
         [Parameter(Mandatory = $true)]$Row,
-        [Parameter(Mandatory = $true)][hashtable]$Column
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Column
     )
 
     $value = $null
-    if ($Column.ContainsKey('source')) {
+    if (Test-MapHasKey -Map $Column -Key 'source') {
         $value = $Row.([string]$Column.source)
     }
 
-    if ($Column.ContainsKey('format')) {
+    if (Test-MapHasKey -Map $Column -Key 'format') {
         switch ([string]$Column.format) {
             'bytesHuman' { return (Format-SizeHuman -Bytes $value) }
             'join' {
                 if ($null -eq $value) { return '' }
-                $delimiter = if ($Column.ContainsKey('delimiter')) { [string]$Column.delimiter } else { ', ' }
+                $delimiter = if (Test-MapHasKey -Map $Column -Key 'delimiter') { [string]$Column.delimiter } else { ', ' }
                 return (@($value) -join $delimiter)
             }
             default { throw "Unsupported projection column format '$([string]$Column.format)'." }
@@ -887,7 +887,7 @@ function Resolve-ProjectionColumnValue {
 function Invoke-TableProjection {
     param(
         [Parameter(Mandatory = $true)][object[]]$Rows,
-        [Parameter(Mandatory = $true)][hashtable]$Definition
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Definition
     )
 
     $normalizedRows = @(ConvertTo-ObjectArray -InputObject $Rows)
@@ -898,7 +898,7 @@ function Invoke-TableProjection {
             $projectedRows = @($projectedRows | Where-Object { Test-ProjectionCondition -Row $_ -Condition $condition })
         }
     }
-    if ($normalizedDefinition.ContainsKey('sortBy') -and -not [string]::IsNullOrWhiteSpace([string]$normalizedDefinition.sortBy)) {
+    if ((Test-MapHasKey -Map $normalizedDefinition -Key 'sortBy') -and -not [string]::IsNullOrWhiteSpace([string]$normalizedDefinition.sortBy)) {
         $projectedRows = @($projectedRows | Sort-Object -Property ([string]$normalizedDefinition.sortBy))
     }
 
@@ -911,7 +911,7 @@ function Invoke-TableProjection {
             $row = $_
             $projected = [ordered]@{}
             foreach ($column in @($normalizedDefinition.columns)) {
-                if (-not ($column -is [hashtable]) -or -not $column.ContainsKey('name')) {
+                if (-not ($column -is [System.Collections.IDictionary]) -or -not (Test-MapHasKey -Map $column -Key 'name')) {
                     throw 'Projection column is missing required name property.'
                 }
                 $projected[[string]$column.name] = Convert-CellValueToString -Value (Resolve-ProjectionColumnValue -Row $row -Column $column)
