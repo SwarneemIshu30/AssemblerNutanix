@@ -320,30 +320,122 @@ function Write-Snapshot {
     return $snapshotPath
 }
 
+function ConvertTo-Dictionary {
+    param([Parameter(Mandatory = $false)]$Value)
+
+    if ($null -eq $Value) {
+        return $null
+    }
+
+    if ($Value -is [System.Collections.IDictionary]) {
+        return $Value
+    }
+
+    if ($null -ne $Value.PSObject) {
+        $converted = [ordered]@{}
+        foreach ($property in @($Value.PSObject.Properties)) {
+            $converted[[string]$property.Name] = $property.Value
+        }
+        return $converted
+    }
+
+    return $null
+}
+
+function New-CollectorSdtTagPolicyFromContract {
+    param(
+        [Parameter(Mandatory = $true)][string]$MappingContractPath,
+        [Parameter(Mandatory = $true)][hashtable]$Contract
+    )
+
+    $policySource = ConvertTo-Dictionary -Value $Contract.collectorSdtTagPolicy
+    if ($null -eq $policySource) {
+        return [ordered]@{
+            required = $false
+            tokenRewrites = [ordered]@{}
+            tagAliases = [ordered]@{}
+        }
+    }
+
+    $required = $false
+    if ($policySource.ContainsKey('required')) {
+        $required = [bool]$policySource.required
+    }
+
+    $tokenRewritesSource = ConvertTo-Dictionary -Value $policySource.tokenRewrites
+    if ($null -eq $tokenRewritesSource) {
+        if ($required) {
+            throw "Mapping contract '$MappingContractPath' requires collectorSdtTagPolicy.tokenRewrites, but it is missing or not a mapping object."
+        }
+
+        $tokenRewritesSource = [ordered]@{}
+    }
+
+    $tagAliasesSource = ConvertTo-Dictionary -Value $policySource.tagAliases
+    if ($null -eq $tagAliasesSource) {
+        if ($required) {
+            throw "Mapping contract '$MappingContractPath' requires collectorSdtTagPolicy.tagAliases, but it is missing or not a mapping object."
+        }
+
+        $tagAliasesSource = [ordered]@{}
+    }
+
+    $tokenRewrites = [ordered]@{}
+    foreach ($token in @($tokenRewritesSource.Keys)) {
+        $tokenName = [string]$token
+        $replacement = [string]$tokenRewritesSource[$token]
+        if ([string]::IsNullOrWhiteSpace($tokenName) -or [string]::IsNullOrWhiteSpace($replacement)) {
+            throw "Mapping contract '$MappingContractPath' has invalid collectorSdtTagPolicy.tokenRewrites entry ('$tokenName' => '$replacement')."
+        }
+
+        $tokenRewrites[$tokenName] = $replacement
+    }
+
+    $tagAliases = [ordered]@{}
+    foreach ($aliasFrom in @($tagAliasesSource.Keys)) {
+        $sourceTag = [string]$aliasFrom
+        $targetTag = [string]$tagAliasesSource[$aliasFrom]
+        if ([string]::IsNullOrWhiteSpace($sourceTag) -or [string]::IsNullOrWhiteSpace($targetTag)) {
+            throw "Mapping contract '$MappingContractPath' has invalid collectorSdtTagPolicy.tagAliases entry ('$sourceTag' => '$targetTag')."
+        }
+
+        $tagAliases[$sourceTag] = $targetTag
+    }
+
+    if ($required -and $tokenRewrites.Count -eq 0 -and $tagAliases.Count -eq 0) {
+        throw "Mapping contract '$MappingContractPath' requires collectorSdtTagPolicy, but both tokenRewrites and tagAliases are empty."
+    }
+
+    return [ordered]@{
+        required = $required
+        tokenRewrites = $tokenRewrites
+        tagAliases = $tagAliases
+    }
+}
+
 function Get-CollectorSdtTagFromContract {
     param(
         [Parameter(Mandatory = $true)][hashtable]$MappingEntry,
-        [Parameter(Mandatory = $true)][string]$ResolvedTechId
+        [Parameter(Mandatory = $true)][hashtable]$TagPolicy
     )
+
+    $overrideTag = if ($MappingEntry.ContainsKey('outputSdtTag')) { [string]$MappingEntry.outputSdtTag } else { '' }
+    if (-not [string]::IsNullOrWhiteSpace($overrideTag)) {
+        return $overrideTag
+    }
 
     $contractTag = if ($MappingEntry.ContainsKey('sdtTag')) { [string]$MappingEntry.sdtTag } else { '' }
     if ([string]::IsNullOrWhiteSpace($contractTag)) {
         return ''
     }
 
-    $normalized = $contractTag.Replace('[<SystemId>]', '[ArrayName]')
-    $aliases = @{}
-    if ($ResolvedTechId -eq 'Lenovo.DE') {
-        $aliases = @{
-            'LNV.Lenovo.DE.System[ArrayName].Tables.Drives' = 'LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory'
-            'LNV.Lenovo.DE.System[ArrayName].Tables.StorageContainers' = 'LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory'
-            'LNV.Lenovo.DE.System[ArrayName].Tables.Volumes' = 'LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory'
-            'LNV.Lenovo.DE.System[ArrayName].Tables.ASUP' = 'LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport'
-        }
+    $normalized = $contractTag
+    foreach ($sourceToken in @($TagPolicy.tokenRewrites.Keys)) {
+        $normalized = $normalized.Replace([string]$sourceToken, [string]$TagPolicy.tokenRewrites[$sourceToken])
     }
 
-    if ($aliases.ContainsKey($normalized)) {
-        return [string]$aliases[$normalized]
+    if ($TagPolicy.tagAliases.ContainsKey($normalized)) {
+        return [string]$TagPolicy.tagAliases[$normalized]
     }
 
     return $normalized
@@ -393,6 +485,7 @@ function Sync-CollectorSkeletonMappingFromContract {
         throw "Mapping contract '$contractMappingPath' failed validation (expected schema=mapping.dataset-to-sdt, schemaVersion=1, techId=$ResolvedTechId)."
     }
 
+    $tagPolicy = New-CollectorSdtTagPolicyFromContract -MappingContractPath $contractMappingPath -Contract $contract
     $generatedMappings = [System.Collections.Generic.List[hashtable]]::new()
     $processedCount = 0
     $generatedCount = 0
@@ -436,7 +529,7 @@ function Sync-CollectorSkeletonMappingFromContract {
             Write-Verbose ("[collector-mapping-sync] processing mapping[{0}] sourceKey={1}" -f $mappingIndex, $sourceKey)
 
             $datasetName = $sourceDataset
-            $resolvedTag = Get-CollectorSdtTagFromContract -MappingEntry $entryTable -ResolvedTechId $ResolvedTechId
+            $resolvedTag = Get-CollectorSdtTagFromContract -MappingEntry $entryTable -TagPolicy $tagPolicy
 
             if ([string]::IsNullOrWhiteSpace($datasetName)) {
                 $skipReasonCounters.missingDataset++
