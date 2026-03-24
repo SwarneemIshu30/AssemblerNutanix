@@ -28,6 +28,12 @@ param(
 
     [string]$PackNamePattern = 'asbuiltdoc-contracts-v{0}.zip',
 
+    [ValidateRange(1, 600)]
+    [int]$DownloadTimeoutSec = 120,
+
+    [ValidateRange(1, 10)]
+    [int]$DownloadRetryCount = 3,
+
     [string]$DepsContractsPath = (Join-Path $PSScriptRoot '..\.deps\contracts'),
 
     [string]$SkeletonMappingOutputPath = (Join-Path $PSScriptRoot '..\templates\skeletons\Lenovo.DE\DE-SDT-Collector.mapping.json'),
@@ -57,6 +63,101 @@ function Resolve-LatestContractsPack {
         packUrl = [string]$asset[0].browser_download_url
         releaseUrl = [string]$latest.html_url
     }
+}
+
+function Invoke-ContractsPackDownload {
+    param(
+        [Parameter(Mandatory = $true)][string]$PackUrl,
+        [Parameter(Mandatory = $true)][string]$DestinationPath,
+        [Parameter(Mandatory = $true)][int]$TimeoutSec,
+        [Parameter(Mandatory = $true)][int]$RetryCount
+    )
+
+    $requestHeaders = @{ 'User-Agent' = 'LNV.AsBuiltDoc.Assembler/Sync-AssemblerContractsToRepo' }
+    $lastError = $null
+
+    for ($attempt = 1; $attempt -le $RetryCount; $attempt++) {
+        try {
+            Write-Verbose ("Download attempt {0}/{1}: {2}" -f $attempt, $RetryCount, $PackUrl)
+            Invoke-WebRequest -Uri $PackUrl -OutFile $DestinationPath -UseBasicParsing -Headers $requestHeaders -TimeoutSec $TimeoutSec
+
+            if (-not (Test-Path -LiteralPath $DestinationPath -PathType Leaf)) {
+                throw "Downloaded file was not created at '$DestinationPath'."
+            }
+
+            $downloadedFile = Get-Item -LiteralPath $DestinationPath -ErrorAction Stop
+            if ($downloadedFile.Length -le 0) {
+                throw "Downloaded file is empty at '$DestinationPath'."
+            }
+
+            $extension = [IO.Path]::GetExtension($DestinationPath)
+            if ($extension -ne '.zip') {
+                throw "Downloaded file extension '$extension' is not supported; expected '.zip'."
+            }
+
+            $signatureBytes = [System.IO.File]::ReadAllBytes($DestinationPath)
+            if ($signatureBytes.Length -lt 4) {
+                throw "Downloaded file is too small to be a valid zip archive."
+            }
+
+            $hasZipSignature = (
+                ($signatureBytes[0] -eq 0x50 -and $signatureBytes[1] -eq 0x4B -and $signatureBytes[2] -eq 0x03 -and $signatureBytes[3] -eq 0x04) -or
+                ($signatureBytes[0] -eq 0x50 -and $signatureBytes[1] -eq 0x4B -and $signatureBytes[2] -eq 0x05 -and $signatureBytes[3] -eq 0x06) -or
+                ($signatureBytes[0] -eq 0x50 -and $signatureBytes[1] -eq 0x4B -and $signatureBytes[2] -eq 0x07 -and $signatureBytes[3] -eq 0x08)
+            )
+
+            if (-not $hasZipSignature) {
+                throw "Downloaded file signature does not match a zip archive (expected PK header)."
+            }
+
+            return [ordered]@{
+                path = $DestinationPath
+                bytes = $downloadedFile.Length
+                attempts = $attempt
+            }
+        }
+        catch {
+            $lastError = $_
+            $isTransient = $false
+
+            if ($null -ne $_.Exception) {
+                if ($_.Exception -is [System.TimeoutException]) {
+                    $isTransient = $true
+                }
+                elseif ($_.Exception -is [System.Net.WebException]) {
+                    $isTransient = $true
+                }
+                elseif ($_.Exception.PSObject.Properties.Match('Response').Count -gt 0) {
+                    try {
+                        $statusCode = [int]$_.Exception.Response.StatusCode
+                        if ($statusCode -eq 429 -or $statusCode -ge 500) {
+                            $isTransient = $true
+                        }
+                    }
+                    catch {
+                        $isTransient = $true
+                    }
+                }
+            }
+
+            if ((-not $isTransient) -or $attempt -ge $RetryCount) {
+                break
+            }
+
+            $delaySeconds = [Math]::Pow(2, $attempt - 1)
+            Write-Verbose ("Transient download failure on attempt {0}/{1}. Retrying in {2} second(s). Error: {3}" -f $attempt, $RetryCount, $delaySeconds, $_.Exception.Message)
+            Start-Sleep -Seconds $delaySeconds
+        }
+    }
+
+    $errorMessage = if ($null -ne $lastError -and $null -ne $lastError.Exception -and -not [string]::IsNullOrWhiteSpace($lastError.Exception.Message)) {
+        $lastError.Exception.Message
+    }
+    else {
+        'Unknown download failure.'
+    }
+
+    throw "[download] Failed to download contracts pack from '$PackUrl' after $RetryCount attempt(s). Last error: $errorMessage. Hints: verify URL correctness, check proxy configuration, validate authentication/access to the release asset."
 }
 
 function Write-SyncStep {
@@ -491,18 +592,21 @@ try {
         $tmpBase = if ($env:TEMP) { $env:TEMP } elseif ($env:TMPDIR) { $env:TMPDIR } else { '/tmp' }
         $tmpZip = Join-Path $tmpBase $zipLeaf
 
-        $stage = 'network-download'
+        $stage = 'download'
         $stepTimer.Restart()
         Update-SyncProgress -ProgressContext $progressContext -StageName 'Download/copy' -Status 'Downloading contracts pack' -Position 0.5
         Write-Information "Downloading contracts pack: $packUrl" -InformationAction Continue
-        Invoke-WebRequest -Uri $packUrl -OutFile $tmpZip -UseBasicParsing
-        $downloadBytes = (Get-Item -LiteralPath $tmpZip).Length
+        $downloadResult = Invoke-ContractsPackDownload -PackUrl $packUrl -DestinationPath $tmpZip -TimeoutSec $DownloadTimeoutSec -RetryCount $DownloadRetryCount
+        $downloadBytes = [long]$downloadResult.bytes
         $stepTimer.Stop()
         Update-SyncProgress -ProgressContext $progressContext -StageName 'Download/copy' -Status 'Downloaded contracts pack' -Position 1
         Write-SyncStep -Stage 'copy/download' -Message 'Downloaded contracts package.' -Details ([ordered]@{
                 packUrl = $packUrl
                 localPackPath = $tmpZip
                 bytes = $downloadBytes
+                attempts = $downloadResult.attempts
+                timeoutSec = $DownloadTimeoutSec
+                retryCount = $DownloadRetryCount
                 durationMs = $stepTimer.ElapsedMilliseconds
             })
 
@@ -605,7 +709,7 @@ catch {
             $exitCode = 10
             $recommendedAction = 'Fix parameter combinations/values and rerun.'
         }
-        'network-download|resolve-pack-url' {
+        'download|resolve-pack-url' {
             $exitCode = 20
             $recommendedAction = 'Verify release URL, version/tag, and network connectivity; then rerun.'
         }
