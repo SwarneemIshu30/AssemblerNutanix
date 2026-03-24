@@ -9,6 +9,7 @@ Runtime direction is **PowerShell 7**.
 - `Invoke-AssemblerBundleRender.ps1` - bundle-aware orchestration skeleton that discovers tech in bundle and runs renderer once per TemplateCatalog entry.
 - `New-AssemblerSkeleton.ps1` - copies a built-in skeleton pack (mapping + template) into a local ingest folder.
 - `Sync-AssemblerContractsToRepo.ps1` - syncs contracts into deterministic repo-local ingest path (`.deps/contracts`) and regenerates `templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json` from `tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml`.
+  - Collector mapping generation now honors contract-owned `syncPolicy.collectorSkeletonMapping` (allowed `renderAs`, selector defaults, and unsupported-shape behavior) instead of script-side hardcoded render assumptions.
 - `internal/AssemblerSchemaValidation.psm1` - shared helper for JSON schema validation against contracts under `standards/`.
 
 ## Contract path resolution

@@ -41,6 +41,9 @@
     },
     "strictContracts": {
       "$ref": "#/$defs/strictContracts"
+    },
+    "syncPolicy": {
+      "$ref": "#/$defs/syncPolicy"
     }
   },
   "$defs": {
@@ -170,6 +173,69 @@
         },
         "requireSelectors": {
           "type": "boolean"
+        }
+      }
+    },
+    "syncPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "collectorSkeletonMapping": {
+          "$ref": "#/$defs/collectorSkeletonMappingSyncPolicy"
+        }
+      }
+    },
+    "collectorSkeletonMappingSyncPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allowedRenderAs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "selectors": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "defaultByRenderAs": {
+              "type": "object",
+              "minProperties": 1,
+              "additionalProperties": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        },
+        "unsupportedRenderShape": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "documentFacing": {
+              "type": "string",
+              "enum": [
+                "skip",
+                "warn",
+                "fail"
+              ]
+            },
+            "nonDocumentFacing": {
+              "type": "string",
+              "enum": [
+                "skip",
+                "warn",
+                "fail"
+              ]
+            }
+          }
         }
       }
     },

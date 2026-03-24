@@ -229,6 +229,88 @@ Describe 'Sync-AssemblerContractsToRepo' {
         }
     }
 
+    It 'uses contract syncPolicy selector defaults instead of hardcoded items selector' {
+        $tempRoot = New-DeterministicTempRoot -Name 'sync-policy-selectors'
+        $contractsSourceRoot = Join-Path $tempRoot 'contracts-source'
+        $destinationRoot = Join-Path $tempRoot '.deps/contracts'
+        $skeletonMappingPath = Join-Path $tempRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json'
+        $mappingContractPath = Join-Path $contractsSourceRoot 'tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml'
+
+        Copy-Item -LiteralPath $sourceRoot -Destination $contractsSourceRoot -Recurse -Force
+
+        $contractText = Get-Content -LiteralPath $mappingContractPath -Raw -Encoding UTF8
+        $contractText = $contractText -replace "(?ms)allowedRenderAs:\s*\n\s*-\s*table", "allowedRenderAs:`n    - table`n    - list"
+        $contractText = $contractText -replace "(?ms)(defaultByRenderAs:\s*\n\s*table:\s*\n\s*-\s*items)", "`$1`n        list:`n        - rows"
+        $contractText = $contractText -replace "(?ms)(- dataset: system-controllers.*?renderHint:\s*\n\s*renderAs: )table", '${1}list'
+        Set-Content -LiteralPath $mappingContractPath -Value $contractText -Encoding UTF8
+
+        try {
+            $result = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $contractsSourceRoot,
+                '-DepsContractsPath', $destinationRoot,
+                '-SkeletonMappingOutputPath', $skeletonMappingPath,
+                '-Clean'
+            )
+
+            if ($result.ExitCode -ne 0) {
+                throw "Expected exit code 0 from sync with list renderAs policy, got $($result.ExitCode)"
+            }
+
+            $generatedMapping = Get-Content -LiteralPath $skeletonMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            $controllers = @($generatedMapping.mappings | Where-Object { $_.sdtTag -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.Controllers' }) | Select-Object -First 1
+            if ($null -eq $controllers) {
+                throw 'Expected generated mapping for Controllers entry'
+            }
+            if ([string]$controllers.renderHint.renderAs -ne 'list') {
+                throw "Expected controllers renderAs to be list, got '$($controllers.renderHint.renderAs)'"
+            }
+            if ((@($controllers.selectors) -join ',') -ne 'rows') {
+                throw "Expected controllers selectors to resolve from syncPolicy defaultByRenderAs.list (rows), got '$(@($controllers.selectors) -join ',')'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'fails closed for required mappings when renderAs is unsupported by policy' {
+        $tempRoot = New-DeterministicTempRoot -Name 'sync-policy-required-fail-closed'
+        $contractsSourceRoot = Join-Path $tempRoot 'contracts-source'
+        $destinationRoot = Join-Path $tempRoot '.deps/contracts'
+        $mappingContractPath = Join-Path $contractsSourceRoot 'tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml'
+
+        Copy-Item -LiteralPath $sourceRoot -Destination $contractsSourceRoot -Recurse -Force
+
+        $contractText = Get-Content -LiteralPath $mappingContractPath -Raw -Encoding UTF8
+        $contractText = $contractText -replace "(?ms)(- dataset: system-controllers.*?renderHint:\s*\n\s*renderAs: )table", '${1}matrix'
+        Set-Content -LiteralPath $mappingContractPath -Value $contractText -Encoding UTF8
+
+        try {
+            $result = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $contractsSourceRoot,
+                '-DepsContractsPath', $destinationRoot,
+                '-Clean'
+            )
+
+            if ($result.ExitCode -eq 0) {
+                throw 'Expected non-zero exit code when required mapping renderAs is unsupported by policy'
+            }
+            if ($result.Json.stage -ne 'mapping-generation') {
+                throw "Expected mapping-generation stage, got '$($result.Json.stage)'"
+            }
+            if ([string]$result.Json.message -notmatch 'Contract policy rejected mapping') {
+                throw "Expected contract policy rejection message, got '$($result.Json.message)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'emits actionable error when ConvertFrom-Yaml is unavailable' {
         $tempRoot = New-DeterministicTempRoot -Name 'missing-convertfromyaml'
         $destinationRoot = Join-Path $tempRoot '.deps/contracts'

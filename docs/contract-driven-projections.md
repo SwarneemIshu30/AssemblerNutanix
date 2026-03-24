@@ -47,6 +47,16 @@ Relevant files:
 - `.deps/contracts/standards/mapping.dataset-to-sdt.schema.v1.json`
 - `.deps/contracts/tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml`
 
+### 1b. Mapping sync policy (contract-owned)
+`mapping.dataset-to-sdt` also carries sync policy for generating runtime skeleton mapping copies:
+- `syncPolicy.collectorSkeletonMapping.allowedRenderAs`: allowed render shapes for this sync target
+- `syncPolicy.collectorSkeletonMapping.selectors.defaultByRenderAs`: default selectors by render shape
+- `syncPolicy.collectorSkeletonMapping.unsupportedRenderShape.documentFacing`: explicit policy (`fail`, `warn`, or `skip`) for required/document-facing mappings
+- `syncPolicy.collectorSkeletonMapping.unsupportedRenderShape.nonDocumentFacing`: explicit policy (`fail`, `warn`, or `skip`) for optional/non-document mappings
+
+The sync script must consume this policy instead of hardcoding render shape assumptions (`table`) or selector defaults (`items`).
+For document-facing mappings, fail-closed behavior is the default unless policy explicitly changes it.
+
 ### 2. Projection/view contracts
 Projection definitions now carry more than just column lists. They are the right place for:
 - alias resolution
@@ -107,6 +117,8 @@ The file:
 
 is the assembler runtime-facing copy used with the skeleton/template pack. It should remain aligned with the authoritative contract mapping at:
 - `.deps/contracts/tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml`
+
+When onboarding a new technology, update mapping contracts (including `syncPolicy`) and dataset metadata first; do not add technology-specific branches to sync scripts for render-shape handling.
 
 Do not document or implement a design where the template-local mapping becomes the only source of truth.
 
