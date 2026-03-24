@@ -66,6 +66,9 @@ A          1    optimal 08.90.09.00 08.90.09.00 952529000086
 Version Matrix
 Summarise array firmware, application, boot image, NVSRAM, controller firmware, and drive firmware baselines.
 
+Version Summary Narrative
+08.90.09.00
+
 Validation Block - Version Matrix
 - Firmware / App / Boot Baseline : 
 Controller Slot Status  AppVersion  BootVersion SerialNumber
@@ -81,10 +84,17 @@ Key Design Decisions
 Capture notable implementation decisions such as pool design, protocol choice, cache settings, snapshot use,
 and replication posture.
 
+Configuration Narrative
+DE4200
+
 - Manual Note            : Summarise pool/container strategy, access protocol, and protection design decisions in the DOCX.
 
 Management Context
 Clarify embedded management access, DNS / NTP scope, monitoring integration, and management-network boundaries.
+
+Management Narrative
+- Controller A Context : 10.240.59.179
+- Controller B Context : 10.240.59.30
 
 Validation Block - Management Context
 - Management Summary     : 
@@ -112,6 +122,10 @@ dhcp                   ["10.240.2.27","10.240.2.21"]
 dhcp                   ["10.240.2.27","10.240.2.21"]
 
 DNS Configuration
+DNS Narrative
+- Scope 1 : dhcp
+- Scope 2 : dhcp
+
 
 Acquisition DnsServers DhcpServers
 ----------- ---------- -----------
@@ -126,6 +140,10 @@ disabled                           10.240.56.1
 disabled                           10.240.56.1
 
 Time Configuration
+Time Narrative
+- Scope 1 : disabled
+- Scope 2 : disabled
+
 
 Acquisition NtpServers DhcpServers DefaultRouter
 ----------- ---------- ----------- -------------
@@ -256,6 +274,10 @@ B          2    P1   wan0      up         10.240.59.179 255.255.252.0
 A          1    P1   wan0      up         10.240.59.30  255.255.252.0
 
 Host Port Configuration - iSCSI
+Host Port Narrative
+- Port 1 : e1a
+- Port 2 : e0a
+
 
 Controller Slot Port Channel LinkStatus Address         Mask          Gateway TcpPort IQN
 ---------- ---- ---- ------- ---------- -------         ----          ------- ------- ---
@@ -514,6 +536,9 @@ Appendix
 ----------------------------------------------------------------------------------------------------
 Detailed Inventory
 Use this section for exhaustive component listings and raw inventory data retained for audit or support use.
+
+Evidence Narrative
+iscsi
 
 
 Slot Media Type Raw     Usable  Firmware Status  SerialNumber
