@@ -1,54 +1,61 @@
 {
   "schemaVersion": 1,
   "status": "ERROR",
-  "startedUtc": "2026-03-24T02:34:30.7341380Z",
-  "completedUtc": "2026-03-24T02:34:30.8203762Z",
+  "startedUtc": "2026-03-24T04:14:56.6636636Z",
+  "completedUtc": "2026-03-24T04:14:56.8306949Z",
   "bundleId": "bc8e726c-0b55-4b6e-af58-c84fa426a26a",
   "stages": [
     {
       "details": null,
-      "completedUtc": "2026-03-24T02:34:30.7342651Z",
+      "completedUtc": "2026-03-24T04:14:56.6637367Z",
       "name": "Load",
-      "startedUtc": "2026-03-24T02:34:30.7342651Z",
+      "startedUtc": "2026-03-24T04:14:56.6637367Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-24T02:34:30.7342651Z",
+      "completedUtc": "2026-03-24T04:14:56.6637367Z",
       "name": "Validate",
-      "startedUtc": "2026-03-24T02:34:30.7342651Z",
+      "startedUtc": "2026-03-24T04:14:56.6637367Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-24T02:34:30.7342651Z",
+      "completedUtc": "2026-03-24T04:14:56.6637367Z",
       "name": "Transform",
-      "startedUtc": "2026-03-24T02:34:30.7342651Z",
+      "startedUtc": "2026-03-24T04:14:56.6637367Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-24T02:34:30.7342651Z",
+      "completedUtc": "2026-03-24T04:14:56.6637367Z",
       "name": "Render",
-      "startedUtc": "2026-03-24T02:34:30.7342651Z",
+      "startedUtc": "2026-03-24T04:14:56.6637367Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-24T02:34:30.7342651Z",
+      "completedUtc": "2026-03-24T04:14:56.6637367Z",
       "name": "Finalize",
-      "startedUtc": "2026-03-24T02:34:30.7342651Z",
+      "startedUtc": "2026-03-24T04:14:56.6637367Z",
       "status": "SKIPPED"
     }
   ],
   "issues": [
     {
-      "message": "message=Method invocation failed because [System.Collections.Specialized.OrderedDictionary] does not contain a method named 'ContainsKey'. | position=At C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1:1203 char:23\r\n+ … enderHint = Get-MappingRenderHint -MappingEntry $entry -DatasetPresen …\r\n+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ | stack=at Get-MappingRenderHint, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 387\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 1203\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerBundleRender.ps1: line 535\r\nat Invoke-BundleRender, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 119\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 407\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 425\r\nat <ScriptBlock>, <No file>: line 1 | stage=Transform | tag=LNV.Lenovo.DE.System[ArrayName].Summary | dataset=datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json | datasetPath=C:\\Github\\LNV.AsBuiltDoc.Assembler\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01\\systems.json",
-      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01\\systems.json",
+      "message": "message=Method invocation failed because [System.Collections.Specialized.OrderedDictionary] does not contain a method named 'ContainsKey'. | position=At C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1:936 char:54\r\n+ … nputObject (Invoke-TableProjection -Rows $normalizedRows -Definition  …\r\n+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ | stack=at Invoke-TableProjection, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 901\r\nat Convert-TableRowsForTag, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 936\r\nat Convert-ValueToTableString, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 1013\r\nat Convert-ValueToString, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 1054\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 1260\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerBundleRender.ps1: line 535\r\nat Invoke-BundleRender, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 119\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 407\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 425\r\nat <ScriptBlock>, <No file>: line 1 | stage=Transform | tag=LNV.Lenovo.DE.System[ArrayName].Tables.Controllers | dataset=datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json | datasetPath=C:\\Github\\LNV.AsBuiltDoc.Assembler\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01\\system_1_DE4200_Rack4\\system-controllers.json | selectors=items",
+      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01\\system_1_DE4200_Rack4\\system-controllers.json",
       "severity": "ERROR",
       "code": "ASB-ASM-SDT-UNHANDLED"
     }
   ],
-  "matches": [],
+  "matches": [
+    {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json",
+      "selector": "items",
+      "valuePreview": "{\"id\":\"1\",\"name\":\"DE4200_Rack4\",\"model\":\"DE4200\",\"status\":\"optimal\",\"fwVersion\":...",
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Summary"
+    }
+  ],
   "outputs": []
 }
