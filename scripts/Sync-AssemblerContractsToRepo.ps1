@@ -23,6 +23,8 @@ param(
 
     [string]$DepsContractsPath = (Join-Path $PSScriptRoot '..\.deps\contracts'),
 
+    [string]$SkeletonMappingOutputPath = (Join-Path $PSScriptRoot '..\templates\skeletons\Lenovo.DE\DE-SDT-Collector.mapping.json'),
+
     [switch]$Clean
 )
 
@@ -91,6 +93,145 @@ function Write-Snapshot {
     return $snapshotPath
 }
 
+function Get-LenovoCollectorSdtTagFromContract {
+    param([Parameter(Mandatory = $true)][hashtable]$MappingEntry)
+
+    $contractTag = if ($MappingEntry.ContainsKey('sdtTag')) { [string]$MappingEntry.sdtTag } else { '' }
+    if ([string]::IsNullOrWhiteSpace($contractTag)) {
+        return ''
+    }
+
+    $normalized = $contractTag.Replace('[<SystemId>]', '[ArrayName]')
+    $aliases = @{
+        'LNV.Lenovo.DE.System[ArrayName].Tables.Drives' = 'LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory'
+        'LNV.Lenovo.DE.System[ArrayName].Tables.StorageContainers' = 'LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory'
+        'LNV.Lenovo.DE.System[ArrayName].Tables.Volumes' = 'LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory'
+        'LNV.Lenovo.DE.System[ArrayName].Tables.ASUP' = 'LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport'
+    }
+
+    if ($aliases.ContainsKey($normalized)) {
+        return [string]$aliases[$normalized]
+    }
+
+    return $normalized
+}
+
+function Get-LenovoCollectorDatasetPathFromContract {
+    param([Parameter(Mandatory = $true)][string]$DatasetName)
+
+    if ([string]::IsNullOrWhiteSpace($DatasetName)) {
+        return ''
+    }
+
+    if ($DatasetName -eq 'systems') {
+        return "datasets/Lenovo.DE/__TARGET__/$DatasetName.json"
+    }
+
+    return "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/$DatasetName.json"
+}
+
+function Sync-LenovoCollectorSkeletonMappingFromContract {
+    param(
+        [Parameter(Mandatory = $true)][string]$ContractsRoot,
+        [Parameter(Mandatory = $true)][string]$OutputPath
+    )
+
+    $contractMappingPath = Join-Path $ContractsRoot 'tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml'
+    if (-not (Test-Path -LiteralPath $contractMappingPath -PathType Leaf)) {
+        throw "Required Lenovo.DE mapping contract not found at '$contractMappingPath'."
+    }
+
+    if (-not (Get-Command ConvertFrom-Yaml -ErrorAction SilentlyContinue)) {
+        throw "ConvertFrom-Yaml is required to sync Lenovo.DE skeleton mapping from '$contractMappingPath'."
+    }
+
+    $contract = Get-Content -LiteralPath $contractMappingPath -Raw -Encoding UTF8 | ConvertFrom-Yaml
+    if ($null -eq $contract -or [string]$contract.schema -ne 'mapping.dataset-to-sdt' -or [string]$contract.techId -ne 'Lenovo.DE') {
+        throw "Lenovo.DE mapping contract '$contractMappingPath' is not in expected mapping.dataset-to-sdt format."
+    }
+
+    $generatedMappings = [System.Collections.Generic.List[hashtable]]::new()
+    foreach ($entry in @($contract.mappings)) {
+        if ($null -eq $entry) { continue }
+        $entryTable = if ($entry -is [System.Collections.IDictionary]) {
+            $entry
+        }
+        else {
+            $converted = [ordered]@{}
+            foreach ($property in @($entry.PSObject.Properties)) {
+                $converted[[string]$property.Name] = $property.Value
+            }
+            $converted
+        }
+        $datasetName = if ($entryTable.ContainsKey('dataset')) { [string]$entryTable.dataset } else { '' }
+        $resolvedTag = Get-LenovoCollectorSdtTagFromContract -MappingEntry $entryTable
+        if ([string]::IsNullOrWhiteSpace($datasetName) -or [string]::IsNullOrWhiteSpace($resolvedTag)) { continue }
+
+        $mappingEntry = [ordered]@{
+            dataset = (Get-LenovoCollectorDatasetPathFromContract -DatasetName $datasetName)
+            sdtTag = $resolvedTag
+            required = [bool]$entryTable.required
+        }
+
+        $renderHintSource = $null
+        if ($entryTable.ContainsKey('renderHint')) {
+            if ($entryTable.renderHint -is [System.Collections.IDictionary]) {
+                $renderHintSource = $entryTable.renderHint
+            }
+            elseif ($null -ne $entryTable.renderHint -and $entryTable.renderHint.PSObject) {
+                $renderHintSource = [ordered]@{}
+                foreach ($property in @($entryTable.renderHint.PSObject.Properties)) {
+                    $renderHintSource[[string]$property.Name] = $property.Value
+                }
+            }
+        }
+
+        $renderHint = [ordered]@{}
+        if ($null -ne $renderHintSource) {
+            foreach ($renderHintKey in @('renderAs', 'projectionRef', 'view')) {
+                if ($renderHintSource.ContainsKey($renderHintKey) -and -not [string]::IsNullOrWhiteSpace([string]$renderHintSource[$renderHintKey])) {
+                    $renderHint[$renderHintKey] = [string]$renderHintSource[$renderHintKey]
+                }
+            }
+        }
+
+        if ($renderHint.Count -gt 0) {
+            $mappingEntry.renderHint = $renderHint
+            $mappingEntry.selectors = @('items')
+        }
+
+        $generatedMappings.Add($mappingEntry)
+    }
+
+    $outputDir = Split-Path -Parent $OutputPath
+    if (-not (Test-Path -LiteralPath $outputDir -PathType Container)) {
+        New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
+    }
+
+    $generatedMapping = [ordered]@{
+        schema = 'mapping.dataset-to-sdt'
+        schemaVersion = 1
+        techId = 'Lenovo.DE'
+        displayName = 'Lenovo DE collector blueprint mapping'
+        compatibility = [ordered]@{
+            contracts = [ordered]@{
+                version = 'v1'
+            }
+        }
+        strictContracts = [ordered]@{
+            enabled = $true
+            requireAllMappings = $true
+        }
+        generatedFromContract = [ordered]@{
+            path = 'tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml'
+        }
+        mappings = @($generatedMappings)
+    }
+
+    $generatedMapping | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $OutputPath -Encoding UTF8
+    return $OutputPath
+}
+
 if ($Clean -and (Test-Path -LiteralPath $DepsContractsPath -PathType Container)) {
     Remove-Item -Recurse -Force -LiteralPath $DepsContractsPath
 }
@@ -117,6 +258,7 @@ if ($useLocalCopy) {
             source = 'local-export-copy'
             exportContractsPath = $sourceRoot
         })
+    $skeletonMappingPath = Sync-LenovoCollectorSkeletonMappingFromContract -ContractsRoot $DepsContractsPath -OutputPath $SkeletonMappingOutputPath
 
     [ordered]@{
         status = 'ok'
@@ -124,6 +266,7 @@ if ($useLocalCopy) {
         sourceRoot = $sourceRoot
         destinationRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
         snapshotPath = $snapshotPath
+        skeletonMappingPath = (Resolve-Path -LiteralPath $skeletonMappingPath).Path
     } | ConvertTo-Json -Depth 5
     exit 0
 }
@@ -173,6 +316,7 @@ $snapshotPath = Write-Snapshot -DestinationPath $DepsContractsPath -Snapshot ([o
         releaseUrl = $releasePageUrl
         packPath = $tmpZip
     })
+$skeletonMappingPath = Sync-LenovoCollectorSkeletonMappingFromContract -ContractsRoot $DepsContractsPath -OutputPath $SkeletonMappingOutputPath
 
 [ordered]@{
     status = 'ok'
@@ -183,4 +327,5 @@ $snapshotPath = Write-Snapshot -DestinationPath $DepsContractsPath -Snapshot ([o
     releaseUrl = $releasePageUrl
     destinationRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
     snapshotPath = $snapshotPath
+    skeletonMappingPath = (Resolve-Path -LiteralPath $skeletonMappingPath).Path
 } | ConvertTo-Json -Depth 5
