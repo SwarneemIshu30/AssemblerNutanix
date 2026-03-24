@@ -659,6 +659,118 @@ DNS1=<<SDT:DNS1>>
         }
     }
 
+    It 'fails with unresolved-tag ERROR when required SDT placeholders remain in rendered output' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-unresolved-required-tag-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template @'
+First=<<SDT:REQ_NAME>>
+Second=<<SDT:REQ_NAME>>
+'@ -Mappings @(
+                @{
+                    dataset = 'datasets/systems.json'
+                    sdtTag = 'REQ_NAME'
+                    required = $true
+                    selectors = @('items', '0', 'missingField')
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -eq 0) { throw 'Expected non-zero exit code when required unresolved tags remain' }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            if ($report.status -ne 'ERROR') { throw "Expected report.status ERROR, got '$($report.status)'" }
+
+            $issue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-UNRESOLVED-TAG' -and $_.message -match "tag 'REQ_NAME'" }) | Select-Object -First 1
+            if ($null -eq $issue) { throw 'Expected unresolved-tag issue for required REQ_NAME token' }
+            if ($issue.severity -ne 'ERROR') { throw "Expected unresolved required tag severity ERROR, got '$($issue.severity)'" }
+            if ($issue.message -notmatch '2 occurrence\(s\)') { throw "Expected unresolved issue to include occurrence count, got '$($issue.message)'" }
+            if ($issue.message -notmatch 'L1:C7') { throw "Expected unresolved issue to include sample location, got '$($issue.message)'" }
+
+            $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
+            if ($null -eq $renderStage) { throw 'Expected render stage entry in report' }
+            if ($null -eq $renderStage.details -or $null -eq $renderStage.details.unresolved) {
+                throw 'Expected unresolved summary under Render stage details'
+            }
+            if ([int]$renderStage.details.unresolved.unresolvedTagCount -ne 1) {
+                throw "Expected unresolvedTagCount 1, got '$($renderStage.details.unresolved.unresolvedTagCount)'"
+            }
+            if ([int]$renderStage.details.unresolved.unresolvedOccurrences -ne 2) {
+                throw "Expected unresolvedOccurrences 2, got '$($renderStage.details.unresolved.unresolvedOccurrences)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'marks report PARTIAL when only optional unresolved SDT placeholders remain' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-unresolved-optional-tag-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template @'
+Req=<<SDT:REQ_NAME>>
+Opt=<<SDT:OPT_NAME>>
+'@ -Mappings @(
+                @{
+                    dataset = 'datasets/systems.json'
+                    sdtTag = 'REQ_NAME'
+                    required = $true
+                    selectors = @('items', '0', 'name')
+                },
+                @{
+                    dataset = 'datasets/systems.json'
+                    sdtTag = 'OPT_NAME'
+                    required = $false
+                    selectors = @('items', '0', 'missingField')
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -ne 0) { throw "Expected zero exit code for optional unresolved placeholder case, got $exitCode" }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            if ($report.status -ne 'PARTIAL') { throw "Expected report.status PARTIAL, got '$($report.status)'" }
+
+            $unresolvedIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-UNRESOLVED-TAG' -and $_.message -match "tag 'OPT_NAME'" }) | Select-Object -First 1
+            if ($null -eq $unresolvedIssue) { throw 'Expected unresolved-tag issue for optional OPT_NAME token' }
+            if ($unresolvedIssue.severity -ne 'WARN') { throw "Expected unresolved optional tag severity WARN, got '$($unresolvedIssue.severity)'" }
+
+            if ($report.status -eq 'OK') {
+                throw 'Expected unresolved placeholders to prevent report.status OK'
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'consumes legacy Lenovo.DE run_summary payloads without failing envelope validation' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot '.deps/contracts'
