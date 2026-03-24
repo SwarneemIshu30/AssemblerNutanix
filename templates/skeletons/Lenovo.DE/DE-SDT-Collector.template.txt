@@ -52,6 +52,9 @@ Key Design Decisions
 Capture notable implementation decisions such as pool design, protocol choice, cache settings, snapshot use,
 and replication posture.
 
+Configuration Narrative
+<<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.Config>>
+
 - Manual Note            : Summarise pool/container strategy, access protocol, and protection design decisions in the DOCX.
 
 Management Context
@@ -259,6 +262,9 @@ Appendix
 ----------------------------------------------------------------------------------------------------
 Detailed Inventory
 Use this section for exhaustive component listings and raw inventory data retained for audit or support use.
+
+Evidence Narrative
+<<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence>>
 
 <<SDT:LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory>>
 <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Trays>>
