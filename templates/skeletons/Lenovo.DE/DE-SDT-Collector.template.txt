@@ -43,8 +43,6 @@ Describe controller A/B architecture, ownership behaviour, host interface presen
 Version Matrix
 Summarise array firmware, application, boot image, NVSRAM, controller firmware, and drive firmware baselines.
 
-Version Summary Narrative
-<<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.Version>>
 
 Validation Block - Version Matrix
 - Firmware / App / Boot Baseline : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Controllers>>
@@ -62,9 +60,6 @@ Configuration Narrative
 Management Context
 Clarify embedded management access, DNS / NTP scope, monitoring integration, and management-network boundaries.
 
-Management Narrative
-- Controller A Context : <<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerA>>
-- Controller B Context : <<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerB>>
 
 Validation Block - Management Context
 - Management Summary     : <<SDT:LNV.Lenovo.DE.System[ArrayName].Summary>>
@@ -77,9 +72,6 @@ Validation Block - DNS Effective Settings
 - DNS Effective Table    : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.DNS>>
 
 DNS Configuration
-DNS Narrative
-- Scope 1 : <<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope1>>
-- Scope 2 : <<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope2>>
 
 <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.DNS>>
 
@@ -87,9 +79,6 @@ Validation Block - Time Effective Settings
 - Time Effective Table   : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Time>>
 
 Time Configuration
-Time Narrative
-- Scope 1 : <<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope1>>
-- Scope 2 : <<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope2>>
 
 <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Time>>
 
@@ -140,9 +129,6 @@ Management Interfaces
 <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces>>
 
 Host Port Configuration - iSCSI
-Host Port Narrative
-- Port 1 : <<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port1>>
-- Port 2 : <<SDT:LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port2>>
 
 <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI>>
 

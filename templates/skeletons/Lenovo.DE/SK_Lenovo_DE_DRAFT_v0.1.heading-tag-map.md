@@ -109,9 +109,6 @@ Use this as:
 # Platform Configuration / Security Configuration / RBAC
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits>>
 
-# Appendices / Detailed Inventory
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence>>
-
 # Appendices / SAN Fabric Detail (Conditional) / Shelf Failure
 <<SDT: LNV.Lenovo.SAN.Fabric.Fabric[FabricName].Tables.Zones>>
 
@@ -123,3 +120,11 @@ Use this as:
 
 # Appendices / Node-Level Driver Alignment (Critical Components) / Emergency Shutdown
 <<SDT: LNV.VMware.vSphere.Host[HostFQDN].Tables.CriticalDrivers>>
+
+## Available but not placed in template (for future insertion)
+
+# System Overview / Key Design Decisions (optional future)
+<<SDT: LNV.Lenovo.DE.System[ArrayName].Narrative.Config>>
+
+# Platform Configuration / Controller Configuration / Host Port Configuration - iSCSI (optional future transport callout)
+<<SDT: LNV.Lenovo.DE.System[ArrayName].Narrative.ActiveTransport>>

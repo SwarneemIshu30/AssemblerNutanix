@@ -277,114 +277,6 @@
       ]
     },
     {
-      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/management-interfaces.json",
-      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerA",
-      "required": false,
-      "renderHint": {
-        "renderAs": "scalar",
-        "view": "ControllerA"
-      },
-      "selectors": [
-        "items.0.ipv4Address"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/management-interfaces.json",
-      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerB",
-      "required": false,
-      "renderHint": {
-        "renderAs": "scalar",
-        "view": "ControllerB"
-      },
-      "selectors": [
-        "items.1.ipv4Address"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/system-dns.json",
-      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope1",
-      "required": false,
-      "renderHint": {
-        "renderAs": "scalar",
-        "view": "Scope1"
-      },
-      "selectors": [
-        "items.0.dnsAcquisitionType"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/system-dns.json",
-      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope2",
-      "required": false,
-      "renderHint": {
-        "renderAs": "scalar",
-        "view": "Scope2"
-      },
-      "selectors": [
-        "items.1.dnsAcquisitionType"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/system-time.json",
-      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope1",
-      "required": false,
-      "renderHint": {
-        "renderAs": "scalar",
-        "view": "Scope1"
-      },
-      "selectors": [
-        "items.0.ntpAcquisitionType"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/system-time.json",
-      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope2",
-      "required": false,
-      "renderHint": {
-        "renderAs": "scalar",
-        "view": "Scope2"
-      },
-      "selectors": [
-        "items.1.ntpAcquisitionType"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/host-ports.json",
-      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port1",
-      "required": false,
-      "renderHint": {
-        "renderAs": "scalar",
-        "view": "Port1"
-      },
-      "selectors": [
-        "items.0.portLabel"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/host-ports.json",
-      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port2",
-      "required": false,
-      "renderHint": {
-        "renderAs": "scalar",
-        "view": "Port2"
-      },
-      "selectors": [
-        "items.1.portLabel"
-      ]
-    },
-    {
-      "dataset": "datasets/Lenovo.DE/__TARGET__/systems.json",
-      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Version",
-      "required": false,
-      "renderHint": {
-        "renderAs": "scalar",
-        "view": "Version"
-      },
-      "selectors": [
-        "items.0.appVersion"
-      ]
-    },
-    {
       "dataset": "datasets/Lenovo.DE/__TARGET__/systems.json",
       "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Config",
       "required": false,
@@ -398,11 +290,11 @@
     },
     {
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/transport.json",
-      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence",
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Narrative.ActiveTransport",
       "required": false,
       "renderHint": {
         "renderAs": "scalar",
-        "view": "Evidence"
+        "view": "ActiveTransport"
       },
       "selectors": [
         "items.0.activeTransport"
