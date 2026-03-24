@@ -43,6 +43,7 @@ Describe controller A/B architecture, ownership behaviour, host interface presen
 Version Matrix
 Summarise array firmware, application, boot image, NVSRAM, controller firmware, and drive firmware baselines.
 
+
 Validation Block - Version Matrix
 - Firmware / App / Boot Baseline : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Controllers>>
 - Array Summary Evidence          : <<SDT:LNV.Lenovo.DE.System[ArrayName].Summary>>
@@ -56,6 +57,7 @@ and replication posture.
 Management Context
 Clarify embedded management access, DNS / NTP scope, monitoring integration, and management-network boundaries.
 
+
 Validation Block - Management Context
 - Management Summary     : <<SDT:LNV.Lenovo.DE.System[ArrayName].Summary>>
 - Management Interfaces  : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces>>
@@ -67,12 +69,14 @@ Validation Block - DNS Effective Settings
 - DNS Effective Table    : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.DNS>>
 
 DNS Configuration
+
 <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.DNS>>
 
 Validation Block - Time Effective Settings
 - Time Effective Table   : <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Time>>
 
 Time Configuration
+
 <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Time>>
 
 Architecture
@@ -122,6 +126,7 @@ Management Interfaces
 <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces>>
 
 Host Port Configuration - iSCSI
+
 <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI>>
 
 Host Port Configuration - Fibre Channel

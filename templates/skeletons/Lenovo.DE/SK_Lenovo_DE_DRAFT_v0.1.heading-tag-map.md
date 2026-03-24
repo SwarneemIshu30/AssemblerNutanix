@@ -79,27 +79,6 @@ Use this as:
 # Platform Configuration / Security Configuration / RBAC
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits>>
 
-# Platform Configuration / Security Configuration / Certificates
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerA>>
-
-# Platform Configuration / Security Configuration / Alerts & AutoSupport
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerB>>
-
-# Platform Configuration / Data Protection / Alerts & AutoSupport
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope1>>
-
-# Platform Configuration / Data Protection / Alerts & AutoSupport
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope2>>
-
-# Appendices / Detailed Inventory / Shelf Failure
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope1>>
-
-# Appendices / Version Summary / Shelf Failure
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope2>>
-
-# Appendices / Configuration Exports / Shelf Failure
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port1>>
-
 # Appendices / SAN Fabric Detail (Conditional) / Shelf Failure
 <<SDT: LNV.Lenovo.SAN.Fabric.Fabric[FabricName].Tables.Zones>>
 
@@ -112,36 +91,10 @@ Use this as:
 # Appendices / Node-Level Driver Alignment (Critical Components) / Emergency Shutdown
 <<SDT: LNV.VMware.vSphere.Host[HostFQDN].Tables.CriticalDrivers>>
 
-## Add after last Lenovo.DE placeholder
+## Available but not placed in template (for future insertion)
 
-# Appendices / Configuration Exports (additional insert)
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port2>>
-
-# Appendices / Configuration Exports (additional insert)
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Narrative.Version>>
-
-# Appendices / Configuration Exports (additional insert)
+# System Overview / Key Design Decisions (optional future)
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Narrative.Config>>
 
-# Appendices / Configuration Exports (additional insert)
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence>>
-
-## Keep unchanged (cross-technology)
-
-# Architecture / SAN Fabric Architecture (Conditional)
-<<SDT: LNV.Lenovo.SAN.Fabric.Fabric[FabricName].Summary>>
-
-# Platform Configuration / Hardware Configuration
-<<SDT: LNV.Lenovo.XCC.Node[NodeName].Tables.Hardware>>
-
-# Appendices / SAN Fabric Detail (Conditional) / Shelf Failure
-<<SDT: LNV.Lenovo.SAN.Fabric.Fabric[FabricName].Tables.Zones>>
-
-# Appendices / Firmware & Component Inventory (XCC) / Emergency Shutdown
-<<SDT: LNV.Lenovo.XCC.Node[NodeName].Tables.FirmwareInventory>>
-
-# Appendices / Node-Level Driver Alignment (Critical Components) / Emergency Shutdown
-<<SDT: LNV.Microsoft.WindowsS2D.Node[NodeName].Tables.CriticalDrivers>>
-
-# Appendices / Node-Level Driver Alignment (Critical Components) / Emergency Shutdown
-<<SDT: LNV.VMware.vSphere.Host[HostFQDN].Tables.CriticalDrivers>>
+# Platform Configuration / Controller Configuration / Host Port Configuration - iSCSI (optional future transport callout)
+<<SDT: LNV.Lenovo.DE.System[ArrayName].Narrative.ActiveTransport>>
