@@ -38,7 +38,9 @@ param(
 
     [string]$SkeletonMappingOutputPath = (Join-Path $PSScriptRoot '..\templates\skeletons\Lenovo.DE\DE-SDT-Collector.mapping.json'),
 
-    [switch]$Clean
+    [switch]$Clean,
+
+    [switch]$KeepTempArtifacts
 )
 
 Set-StrictMode -Version Latest
@@ -424,6 +426,7 @@ $exitCode = 0
 $result = $null
 $errorPayload = $null
 $tmpZip = $null
+$tempArtifacts = [System.Collections.Generic.List[string]]::new()
 $progressStarted = $false
 $progressContext = $null
 $syncStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
@@ -590,7 +593,11 @@ try {
         }
 
         $tmpBase = if ($env:TEMP) { $env:TEMP } elseif ($env:TMPDIR) { $env:TMPDIR } else { '/tmp' }
-        $tmpZip = Join-Path $tmpBase $zipLeaf
+        $zipLeafBase = [IO.Path]::GetFileNameWithoutExtension($zipLeaf)
+        $zipLeafExtension = [IO.Path]::GetExtension($zipLeaf)
+        $zipLeafWithGuid = '{0}-{1}{2}' -f $zipLeafBase, ([guid]::NewGuid().ToString('N')), $zipLeafExtension
+        $tmpZip = Join-Path $tmpBase $zipLeafWithGuid
+        $tempArtifacts.Add($tmpZip) | Out-Null
 
         $stage = 'download'
         $stepTimer.Restart()
@@ -757,8 +764,26 @@ finally {
         Complete-SyncProgress -ProgressContext $progressContext
     }
 
-    if ($tmpZip -and (Test-Path -LiteralPath $tmpZip -PathType Leaf)) {
-        Remove-Item -LiteralPath $tmpZip -Force -ErrorAction SilentlyContinue
+    if ($KeepTempArtifacts) {
+        Write-Verbose ("Retaining temporary artifacts because -KeepTempArtifacts was supplied.")
+    }
+    else {
+        foreach ($tempArtifactPath in $tempArtifacts) {
+            if ([string]::IsNullOrWhiteSpace($tempArtifactPath)) {
+                continue
+            }
+
+            if (-not (Test-Path -LiteralPath $tempArtifactPath)) {
+                continue
+            }
+
+            try {
+                Remove-Item -LiteralPath $tempArtifactPath -Force -ErrorAction Stop
+            }
+            catch {
+                Write-Warning ("Failed to clean up temporary artifact: {0}" -f $tempArtifactPath)
+            }
+        }
     }
 }
 
