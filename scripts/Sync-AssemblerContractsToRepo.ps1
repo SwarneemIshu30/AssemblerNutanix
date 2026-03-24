@@ -441,21 +441,73 @@ function Get-CollectorSdtTagFromContract {
     return $normalized
 }
 
-function Get-CollectorDatasetPathFromContract {
+function Get-CollectorDatasetPathTemplateMap {
+    param(
+        [Parameter(Mandatory = $true)][string]$ContractsRoot,
+        [Parameter(Mandatory = $true)][string]$ResolvedTechId
+    )
+
+    $datasetRoot = Join-Path (Join-Path (Join-Path $ContractsRoot 'tech') $ResolvedTechId) 'dataset'
+    if (-not (Test-Path -LiteralPath $datasetRoot -PathType Container)) {
+        throw "Dataset metadata directory not found at '$datasetRoot'."
+    }
+
+    $templateMap = @{}
+    foreach ($metadataPath in @(Get-ChildItem -LiteralPath $datasetRoot -Filter '*.assembler.meta.json' -File | Sort-Object -Property Name)) {
+        $metadata = Get-Content -LiteralPath $metadataPath.FullName -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+        if ($null -eq $metadata) { continue }
+
+        $datasetId = if ($metadata.ContainsKey('dataset')) { [string]$metadata.dataset } else { '' }
+        if ([string]::IsNullOrWhiteSpace($datasetId)) {
+            continue
+        }
+
+        $pathTemplate = ''
+        if ($metadata.ContainsKey('datasetPathTemplate') -and -not [string]::IsNullOrWhiteSpace([string]$metadata.datasetPathTemplate)) {
+            $pathTemplate = [string]$metadata.datasetPathTemplate
+        }
+        elseif ($metadata.ContainsKey('datasetPath') -and $metadata.datasetPath -is [System.Collections.IDictionary] -and $metadata.datasetPath.ContainsKey('template') -and -not [string]::IsNullOrWhiteSpace([string]$metadata.datasetPath.template)) {
+            $pathTemplate = [string]$metadata.datasetPath.template
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($pathTemplate)) {
+            $templateMap[$datasetId] = [ordered]@{
+                template = $pathTemplate
+                metadataPath = $metadataPath.FullName
+            }
+        }
+    }
+
+    return $templateMap
+}
+
+function Get-CollectorDatasetPathFromTemplate {
     param(
         [Parameter(Mandatory = $true)][string]$DatasetName,
-        [Parameter(Mandatory = $true)][string]$ResolvedTechId
+        [Parameter(Mandatory = $true)][string]$ResolvedTechId,
+        [Parameter(Mandatory = $true)][hashtable]$DatasetPathTemplateMap
     )
 
     if ([string]::IsNullOrWhiteSpace($DatasetName)) {
         return ''
     }
 
-    if ($DatasetName -eq 'systems') {
-        return "datasets/$ResolvedTechId/__TARGET__/$DatasetName.json"
+    if (-not $DatasetPathTemplateMap.ContainsKey($DatasetName)) {
+        throw "Dataset '$DatasetName' is missing datasetPath.template metadata under tech '$ResolvedTechId'."
     }
 
-    return "datasets/$ResolvedTechId/__TARGET__/__SYSTEM__/$DatasetName.json"
+    $templateInfo = $DatasetPathTemplateMap[$DatasetName]
+    $datasetTemplate = [string]$templateInfo.template
+    if ([string]::IsNullOrWhiteSpace($datasetTemplate)) {
+        throw "Dataset '$DatasetName' declared empty datasetPath.template metadata in '$($templateInfo.metadataPath)'."
+    }
+
+    $resolvedPath = $datasetTemplate.Replace('__TECH_ID__', $ResolvedTechId).Replace('__DATASET__', $DatasetName)
+    if ([string]::IsNullOrWhiteSpace($resolvedPath)) {
+        throw "Dataset '$DatasetName' resolved to an empty path from template '$datasetTemplate'."
+    }
+
+    return $resolvedPath
 }
 
 function Sync-CollectorSkeletonMappingFromContract {
@@ -486,6 +538,7 @@ function Sync-CollectorSkeletonMappingFromContract {
     }
 
     $tagPolicy = New-CollectorSdtTagPolicyFromContract -MappingContractPath $contractMappingPath -Contract $contract
+    $datasetPathTemplateMap = Get-CollectorDatasetPathTemplateMap -ContractsRoot $ContractsRoot -ResolvedTechId $ResolvedTechId
     $generatedMappings = [System.Collections.Generic.List[hashtable]]::new()
     $processedCount = 0
     $generatedCount = 0
@@ -544,7 +597,7 @@ function Sync-CollectorSkeletonMappingFromContract {
             }
 
             $mappingEntry = [ordered]@{
-                dataset = (Get-CollectorDatasetPathFromContract -DatasetName $datasetName -ResolvedTechId $ResolvedTechId)
+                dataset = (Get-CollectorDatasetPathFromTemplate -DatasetName $datasetName -ResolvedTechId $ResolvedTechId -DatasetPathTemplateMap $datasetPathTemplateMap)
                 sdtTag = $resolvedTag
                 required = [bool]$entryTable.required
             }

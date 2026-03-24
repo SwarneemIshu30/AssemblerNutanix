@@ -1,14 +1,9 @@
 {
   "schemaVersion": 1,
-  "dataset": "volume-mappings",
-  "presentationKind": "relationshipTable",
+  "dataset": "system-asup",
+  "presentationKind": "table",
   "defaultItemRoot": "items",
-  "preferredProjectionViews": [
-    {
-      "name": "VolumeMappings",
-      "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings"
-    }
-  ],
+  "preferredProjectionViews": [],
   "datasetPath": {
     "template": "datasets/__TECH_ID__/__TARGET__/__SYSTEM__/__DATASET__.json",
     "scope": "system",
