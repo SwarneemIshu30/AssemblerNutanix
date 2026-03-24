@@ -19,6 +19,31 @@ Import-Module (Join-Path $PSScriptRoot 'internal/AssemblerSchemaValidation.psm1'
 
 function Get-UtcTimestamp { (Get-Date).ToUniversalTime().ToString('o') }
 
+function Test-MapHasKey {
+    param(
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$Map,
+        [Parameter(Mandatory = $true)][string]$Key
+    )
+
+    if ($null -eq $Map) { return $false }
+
+    if ($null -ne $Map.PSObject.Methods['ContainsKey']) {
+        return [bool]$Map.ContainsKey($Key)
+    }
+
+    if ($null -ne $Map.PSObject.Methods['Contains']) {
+        return [bool]$Map.Contains($Key)
+    }
+
+    foreach ($candidateKey in @($Map.Keys)) {
+        if ([string]$candidateKey -eq $Key) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
 function Read-JsonFile {
     param([Parameter(Mandatory = $true)][string]$Path)
 
@@ -69,8 +94,8 @@ function Resolve-Selector {
             break
         }
 
-        if ($current -is [hashtable]) {
-            if (-not $current.ContainsKey($segment)) {
+        if ($current -is [System.Collections.IDictionary]) {
+            if (-not (Test-MapHasKey -Map $current -Key $segment)) {
                 $resolved = $false
                 break
             }
@@ -300,7 +325,7 @@ function Get-DatasetContractKey {
             return [string]$datasetValue
         }
 
-        if ($datasetValue -is [System.Collections.IDictionary] -and $datasetValue.ContainsKey('key') -and -not [string]::IsNullOrWhiteSpace([string]$datasetValue.key)) {
+        if ($datasetValue -is [System.Collections.IDictionary] -and (Test-MapHasKey -Map $datasetValue -Key 'key') -and -not [string]::IsNullOrWhiteSpace([string]$datasetValue.key)) {
             return [string]$datasetValue.key
         }
     }
@@ -348,7 +373,7 @@ function Resolve-PreferredProjectionFromMetadata {
         [Parameter(Mandatory = $false)][string]$Tag
     )
 
-    if ($null -eq $DatasetPresentation -or -not $DatasetPresentation.ContainsKey('preferredProjectionViews')) {
+    if ($null -eq $DatasetPresentation -or -not (Test-MapHasKey -Map $DatasetPresentation -Key 'preferredProjectionViews')) {
         return $null
     }
 
@@ -359,8 +384,8 @@ function Resolve-PreferredProjectionFromMetadata {
 
     if (-not [string]::IsNullOrWhiteSpace($Tag)) {
         foreach ($view in $views) {
-            $viewName = if ($view.ContainsKey('name')) { [string]$view.name } else { '' }
-            $projectionRef = if ($view.ContainsKey('projectionRef')) { [string]$view.projectionRef } else { '' }
+            $viewName = if (Test-MapHasKey -Map $view -Key 'name') { [string]$view.name } else { '' }
+            $projectionRef = if (Test-MapHasKey -Map $view -Key 'projectionRef') { [string]$view.projectionRef } else { '' }
             if ((-not [string]::IsNullOrWhiteSpace($viewName) -and $Tag.IndexOf($viewName, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) -or (-not [string]::IsNullOrWhiteSpace($projectionRef) -and $Tag.IndexOf($projectionRef, [System.StringComparison]::OrdinalIgnoreCase) -ge 0)) {
                 return $view
             }
@@ -384,7 +409,7 @@ function Get-MappingRenderHint {
     $hint = [ordered]@{}
 
     if ($null -ne $DatasetPresentation) {
-        $presentationKind = if ($DatasetPresentation.ContainsKey('presentationKind')) { [string]$DatasetPresentation.presentationKind } else { '' }
+        $presentationKind = if (Test-MapHasKey -Map $DatasetPresentation -Key 'presentationKind') { [string]$DatasetPresentation.presentationKind } else { '' }
         switch ($presentationKind) {
             'table' { $hint.renderAs = 'table' }
             'relationshipTable' { $hint.renderAs = 'table' }
@@ -394,10 +419,10 @@ function Get-MappingRenderHint {
 
         $preferredProjection = Resolve-PreferredProjectionFromMetadata -DatasetPresentation $DatasetPresentation -Tag $Tag
         if ($null -ne $preferredProjection) {
-            if ($preferredProjection.ContainsKey('projectionRef') -and -not [string]::IsNullOrWhiteSpace([string]$preferredProjection.projectionRef)) {
+            if ((Test-MapHasKey -Map $preferredProjection -Key 'projectionRef') -and -not [string]::IsNullOrWhiteSpace([string]$preferredProjection.projectionRef)) {
                 $hint.projectionRef = [string]$preferredProjection.projectionRef
             }
-            if ($preferredProjection.ContainsKey('name') -and -not [string]::IsNullOrWhiteSpace([string]$preferredProjection.name)) {
+            if ((Test-MapHasKey -Map $preferredProjection -Key 'name') -and -not [string]::IsNullOrWhiteSpace([string]$preferredProjection.name)) {
                 $hint.view = [string]$preferredProjection.name
             }
         }
@@ -407,7 +432,7 @@ function Get-MappingRenderHint {
         return $hint
     }
 
-    if ($MappingEntry.ContainsKey('renderHint') -and $MappingEntry.renderHint -is [System.Collections.IDictionary]) {
+    if ((Test-MapHasKey -Map $MappingEntry -Key 'renderHint') -and $MappingEntry.renderHint -is [System.Collections.IDictionary]) {
         foreach ($key in @($MappingEntry.renderHint.Keys)) {
             if (-not [string]::IsNullOrWhiteSpace([string]$key)) {
                 $hint[[string]$key] = $MappingEntry.renderHint[$key]
@@ -416,7 +441,7 @@ function Get-MappingRenderHint {
     }
 
     foreach ($legacyKey in @('projectionRef', 'renderAs', 'view', 'renderMode', 'structuredValuePolicy', 'missingProjectionPolicy')) {
-        if (-not $hint.Contains($legacyKey) -and $MappingEntry.ContainsKey($legacyKey) -and -not [string]::IsNullOrWhiteSpace([string]$MappingEntry[$legacyKey])) {
+        if (-not $hint.Contains($legacyKey) -and (Test-MapHasKey -Map $MappingEntry -Key $legacyKey) -and -not [string]::IsNullOrWhiteSpace([string]$MappingEntry[$legacyKey])) {
             $hint[$legacyKey] = [string]$MappingEntry[$legacyKey]
         }
     }
@@ -460,7 +485,7 @@ function Test-RenderModeWasExplicitlyDeclared {
 
     foreach ($source in @($ProjectionDefinition, $RenderHint)) {
         if ($null -eq $source) { continue }
-        if ($source.ContainsKey('renderMode') -and -not [string]::IsNullOrWhiteSpace([string]$source.renderMode)) {
+        if ((Test-MapHasKey -Map $source -Key 'renderMode') -and -not [string]::IsNullOrWhiteSpace([string]$source.renderMode)) {
             return $true
         }
     }
@@ -478,7 +503,7 @@ function Get-StructuredValuePolicy {
     foreach ($source in @($ProjectionDefinition, $RenderHint)) {
         if ($null -eq $source) { continue }
         foreach ($key in @('structuredValuePolicy', 'missingProjectionPolicy')) {
-            if ($source.ContainsKey($key) -and -not [string]::IsNullOrWhiteSpace([string]$source[$key])) {
+            if ((Test-MapHasKey -Map $source -Key $key) -and -not [string]::IsNullOrWhiteSpace([string]$source[$key])) {
                 return [string]$source[$key]
             }
         }
@@ -546,7 +571,7 @@ function Get-EffectiveSelectorsForMapping {
     }
 
     $defaultItemRoot = ''
-    if ($null -ne $DatasetPresentation -and $DatasetPresentation.ContainsKey('defaultItemRoot') -and -not [string]::IsNullOrWhiteSpace([string]$DatasetPresentation.defaultItemRoot)) {
+    if ($null -ne $DatasetPresentation -and (Test-MapHasKey -Map $DatasetPresentation -Key 'defaultItemRoot') -and -not [string]::IsNullOrWhiteSpace([string]$DatasetPresentation.defaultItemRoot)) {
         $defaultItemRoot = [string]$DatasetPresentation.defaultItemRoot
     }
 
@@ -596,7 +621,7 @@ function Test-ProjectionContractJsonArrayShape {
     param([Parameter(Mandatory = $true)][string]$JsonText)
 
     $projectionContract = $JsonText | ConvertFrom-Json -AsHashtable
-    if (-not ($projectionContract -is [System.Collections.IDictionary]) -or -not $projectionContract.ContainsKey('projections')) {
+    if (-not ($projectionContract -is [System.Collections.IDictionary]) -or -not (Test-MapHasKey -Map $projectionContract -Key 'projections')) {
         return [ordered]@{ isValid = $true; message = $null }
     }
 
@@ -605,7 +630,7 @@ function Test-ProjectionContractJsonArrayShape {
         if (-not ($projection -is [System.Collections.IDictionary])) { continue }
 
         foreach ($propertyName in @('filter', 'columns')) {
-            if ($projection.ContainsKey($propertyName) -and $null -ne $projection[$propertyName] -and -not ($projection[$propertyName] -is [System.Collections.IList])) {
+            if ((Test-MapHasKey -Map $projection -Key $propertyName) -and $null -ne $projection[$propertyName] -and -not ($projection[$propertyName] -is [System.Collections.IList])) {
                 return [ordered]@{
                     isValid = $false
                     message = "Projection '$projectionTag' property '$propertyName' must serialize as a JSON array."
