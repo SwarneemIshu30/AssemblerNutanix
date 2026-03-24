@@ -4,6 +4,17 @@
   "displayName": "Lenovo.DE collector blueprint catalog",
   "entries": [
     {
+      "id": "lenovo-de-collector-summary-docx",
+      "techId": "Lenovo.DE",
+      "displayName": "Lenovo DE Collector Blueprint Skeleton (DOCX)",
+      "docType": "collector-blueprint",
+      "mappingPath": "DE-SDT-Collector.mapping.json",
+      "templatePath": "SK_Lenovo_DE_DRAFT_v0.1.docx",
+      "outputFileName": "DE-SDT-Collector.rendered.docx",
+      "enabled": true,
+      "priority": 20
+    },
+    {
       "id": "lenovo-de-collector-summary",
       "techId": "Lenovo.DE",
       "displayName": "Lenovo DE Collector Blueprint Skeleton",
