@@ -4,7 +4,7 @@ Describe 'Invoke-AssemblerSdtRender render hint helpers' {
         $scriptSource = Get-Content -LiteralPath $scriptUnderTest -Raw -Encoding UTF8
         $functionBlock = [regex]::Match(
             $scriptSource,
-            '(?s)function Test-MapHasKey \{.*?^}\s*.*?function Resolve-PreferredProjectionFromMetadata \{.*?^}\s*.*?function Get-MappingRenderHint \{.*?^}',
+            '(?s)function Test-MapHasKey \{.*?^}\s*.*?function Resolve-PreferredProjectionFromMetadata \{.*?^}\s*.*?function Get-MappingRenderHint \{.*?^}\s*.*?function Get-EffectiveRenderMode \{.*?^}\s*.*?function Get-ProjectionDefinitionForMapping \{.*?^}\s*.*?function Get-ProjectionDefinitionForTag \{.*?^}',
             [System.Text.RegularExpressions.RegexOptions]::Multiline
         ).Value
 
@@ -62,5 +62,37 @@ Describe 'Invoke-AssemblerSdtRender render hint helpers' {
         $hint.renderAs | Should -Be 'table'
         $hint.projectionRef | Should -Be 'Projection.From.Ordered.Mapping'
         $hint.view | Should -Be 'Summary'
+    }
+
+    It 'resolves render mode from OrderedDictionary render hints and projection fragments' {
+        $renderHint = [ordered]@{}
+        $renderHint['renderAs'] = 'table'
+
+        $projection = [ordered]@{}
+        $projection['renderMode'] = 'json-evidence'
+
+        (Get-EffectiveRenderMode -RenderHint $renderHint -ProjectionDefinition $projection -Tag 'Sample.Tag') | Should -Be 'json-evidence'
+        (Get-EffectiveRenderMode -RenderHint $renderHint -ProjectionDefinition $null -Tag 'Sample.Tag') | Should -Be 'table'
+    }
+
+    It 'resolves projection definitions from Hashtable and OrderedDictionary inputs' {
+        $projectionTag = 'Projection.Ref.Sample'
+
+        $projectionFragment = [ordered]@{}
+        $projectionFragment['renderMode'] = 'table'
+
+        $projectionDefinitions = [ordered]@{}
+        $projectionDefinitions[$projectionTag] = $projectionFragment
+
+        $projectionAliases = @{ 'Alias.Sample' = $projectionTag }
+
+        $renderHint = @{ projectionRef = $projectionTag }
+        $resolved = Get-ProjectionDefinitionForMapping -Tag 'Fallback.Tag' -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases
+        $resolved['renderMode'] | Should -Be 'table'
+
+        $renderHintOrdered = [ordered]@{}
+        $renderHintOrdered['view'] = 'Alias.Sample'
+        $resolvedByAlias = Get-ProjectionDefinitionForMapping -Tag 'Fallback.Tag' -RenderHint $renderHintOrdered -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases
+        $resolvedByAlias['renderMode'] | Should -Be 'table'
     }
 }
