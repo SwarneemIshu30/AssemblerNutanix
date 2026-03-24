@@ -232,100 +232,205 @@ function Sync-LenovoCollectorSkeletonMappingFromContract {
     return $OutputPath
 }
 
-if ($Clean -and (Test-Path -LiteralPath $DepsContractsPath -PathType Container)) {
-    Remove-Item -Recurse -Force -LiteralPath $DepsContractsPath
+$stage = 'initialization'
+$exitCode = 0
+$result = $null
+$errorPayload = $null
+$tmpZip = $null
+$progressStarted = $false
+
+try {
+    $progressStarted = $true
+    Write-Progress -Activity 'Syncing contracts' -Status 'Starting' -PercentComplete 0
+
+    $stage = 'argument-validation'
+    if ($ContractsVersion -and $ContractsPackUrl) {
+        throw "Specify either -ContractsVersion or -ContractsPackUrl, not both."
+    }
+
+    $useLocalCopy = $PSBoundParameters.ContainsKey('ExportContractsPath')
+
+    if ($useLocalCopy -and ($ContractsVersion -or $ContractsPackUrl)) {
+        throw "Specify either -ExportContractsPath for a local copy or a published-pack option, not both."
+    }
+
+    $stage = 'prepare-destination'
+    Write-Progress -Activity 'Syncing contracts' -Status 'Preparing destination' -PercentComplete 10
+    if ($Clean -and (Test-Path -LiteralPath $DepsContractsPath -PathType Container)) {
+        Remove-Item -Recurse -Force -LiteralPath $DepsContractsPath
+    }
+    New-Item -ItemType Directory -Force -Path $DepsContractsPath | Out-Null
+
+    if ($useLocalCopy) {
+        $stage = 'local-copy'
+        Write-Progress -Activity 'Syncing contracts' -Status 'Copying local export' -PercentComplete 45
+        $sourceRoot = (Resolve-Path -LiteralPath $ExportContractsPath -ErrorAction Stop).Path
+        Copy-Item -Recurse -Force -Path (Join-Path $sourceRoot '*') -Destination $DepsContractsPath
+
+        $stage = 'archive-layout-validation'
+        Initialize-LnvRootLayout -Root $DepsContractsPath
+
+        $stage = 'snapshot-write'
+        $snapshotPath = Write-Snapshot -DestinationPath $DepsContractsPath -Snapshot ([ordered]@{
+                schemaVersion = 1
+                syncedUtc = (Get-Date).ToUniversalTime().ToString('o')
+                source = 'local-export-copy'
+                exportContractsPath = $sourceRoot
+            })
+
+        $stage = 'mapping-generation'
+        Write-Progress -Activity 'Syncing contracts' -Status 'Generating skeleton mapping' -PercentComplete 80
+        $skeletonMappingPath = Sync-LenovoCollectorSkeletonMappingFromContract -ContractsRoot $DepsContractsPath -OutputPath $SkeletonMappingOutputPath
+
+        $result = [ordered]@{
+            status = 'ok'
+            mode = 'LocalExport'
+            sourceRoot = $sourceRoot
+            destinationRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
+            snapshotPath = $snapshotPath
+            skeletonMappingPath = (Resolve-Path -LiteralPath $skeletonMappingPath).Path
+        }
+    }
+    else {
+        $resolvedVersion = $ContractsVersion
+        $resolvedTag = if ($ContractsVersion) { "v$ContractsVersion" } else { $null }
+        $releasePageUrl = $null
+
+        $stage = 'resolve-pack-url'
+        Write-Progress -Activity 'Syncing contracts' -Status 'Resolving package source' -PercentComplete 20
+        $packUrl = if ($ContractsPackUrl) {
+            $ContractsPackUrl
+        }
+        elseif ($ContractsVersion) {
+            $zipName = [string]::Format($PackNamePattern, $ContractsVersion)
+            "$ReleaseBaseUrl/v$ContractsVersion/$zipName"
+        }
+        else {
+            $latest = Resolve-LatestContractsPack -ReleaseBaseUrl $ReleaseBaseUrl
+            $resolvedVersion = $latest.version
+            $resolvedTag = $latest.tag
+            $releasePageUrl = $latest.releaseUrl
+            Write-Information "Resolved latest contracts release: tag=$($latest.tag), asset=$($latest.packName)" -InformationAction Continue
+            $latest.packUrl
+        }
+
+        $zipLeaf = [IO.Path]::GetFileName(($packUrl -split '\?')[0])
+        if ([string]::IsNullOrWhiteSpace($zipLeaf)) {
+            $zipLeaf = 'asbuiltdoc-contracts.zip'
+        }
+
+        $tmpBase = if ($env:TEMP) { $env:TEMP } elseif ($env:TMPDIR) { $env:TMPDIR } else { '/tmp' }
+        $tmpZip = Join-Path $tmpBase $zipLeaf
+
+        $stage = 'network-download'
+        Write-Progress -Activity 'Syncing contracts' -Status 'Downloading contracts pack' -PercentComplete 45
+        Write-Information "Downloading contracts pack: $packUrl" -InformationAction Continue
+        Invoke-WebRequest -Uri $packUrl -OutFile $tmpZip -UseBasicParsing
+
+        $stage = 'archive-layout-validation'
+        Write-Progress -Activity 'Syncing contracts' -Status 'Extracting contracts pack' -PercentComplete 65
+        Write-Information "Extracting contracts pack to $DepsContractsPath" -InformationAction Continue
+        Expand-Archive -LiteralPath $tmpZip -DestinationPath $DepsContractsPath -Force
+        Initialize-LnvRootLayout -Root $DepsContractsPath
+
+        $stage = 'snapshot-write'
+        $snapshotPath = Write-Snapshot -DestinationPath $DepsContractsPath -Snapshot ([ordered]@{
+                schemaVersion = 1
+                syncedUtc = (Get-Date).ToUniversalTime().ToString('o')
+                source = 'published-pack'
+                version = $resolvedVersion
+                tag = $resolvedTag
+                packUrl = $packUrl
+                releaseUrl = $releasePageUrl
+                packPath = $tmpZip
+            })
+
+        $stage = 'mapping-generation'
+        Write-Progress -Activity 'Syncing contracts' -Status 'Generating skeleton mapping' -PercentComplete 85
+        $skeletonMappingPath = Sync-LenovoCollectorSkeletonMappingFromContract -ContractsRoot $DepsContractsPath -OutputPath $SkeletonMappingOutputPath
+
+        $result = [ordered]@{
+            status = 'ok'
+            mode = if ($ContractsPackUrl) { 'PackUrl' } elseif ($ContractsVersion) { 'PackVersion' } else { 'PackLatest' }
+            version = $resolvedVersion
+            tag = $resolvedTag
+            packUrl = $packUrl
+            releaseUrl = $releasePageUrl
+            destinationRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
+            snapshotPath = $snapshotPath
+            skeletonMappingPath = (Resolve-Path -LiteralPath $skeletonMappingPath).Path
+        }
+    }
+
+    Write-Progress -Activity 'Syncing contracts' -Status 'Completed' -PercentComplete 100
 }
-New-Item -ItemType Directory -Force -Path $DepsContractsPath | Out-Null
+catch {
+    $caught = $_
+    $exceptionType = if ($null -ne $caught.Exception) { $caught.Exception.GetType().FullName } else { 'UnknownException' }
+    $message = if ($null -ne $caught.Exception -and -not [string]::IsNullOrWhiteSpace($caught.Exception.Message)) {
+        $caught.Exception.Message
+    }
+    else {
+        [string]$caught
+    }
 
-if ($ContractsVersion -and $ContractsPackUrl) {
-    throw "Specify either -ContractsVersion or -ContractsPackUrl, not both."
+    $recommendedAction = 'Review script output, correct the input/environment issue, then rerun the sync.'
+    switch -Regex ($stage) {
+        '^argument-validation$' {
+            $exitCode = 10
+            $recommendedAction = 'Fix parameter combinations/values and rerun.'
+        }
+        'network-download|resolve-pack-url' {
+            $exitCode = 20
+            $recommendedAction = 'Verify release URL, version/tag, and network connectivity; then rerun.'
+        }
+        'archive-layout-validation|prepare-destination|local-copy' {
+            $exitCode = 30
+            $recommendedAction = 'Validate archive/export layout and destination permissions; then rerun.'
+        }
+        'mapping-generation|snapshot-write' {
+            $exitCode = 40
+            $recommendedAction = 'Validate mapping contract/schema and required PowerShell modules; then rerun.'
+        }
+        default {
+            $exitCode = 1
+        }
+    }
+
+    $errorPayload = [ordered]@{
+        status = 'error'
+        stage = $stage
+        message = $message
+        exceptionType = $exceptionType
+        recommendedAction = $recommendedAction
+        exitCode = $exitCode
+    }
+
+    Write-Error "Contracts sync failed at stage '$stage': $message"
+    if ($VerbosePreference -ne 'SilentlyContinue') {
+        Write-Verbose ("Exception type: {0}" -f $exceptionType)
+        if ($null -ne $caught.ScriptStackTrace -and -not [string]::IsNullOrWhiteSpace($caught.ScriptStackTrace)) {
+            Write-Verbose ("Script stack trace: {0}" -f $caught.ScriptStackTrace)
+        }
+        if ($null -ne $caught.Exception -and $null -ne $caught.Exception.InnerException) {
+            Write-Verbose ("Inner exception: {0}" -f $caught.Exception.InnerException.Message)
+        }
+    }
+}
+finally {
+    if ($progressStarted) {
+        Write-Progress -Activity 'Syncing contracts' -Completed
+    }
+
+    if ($tmpZip -and (Test-Path -LiteralPath $tmpZip -PathType Leaf)) {
+        Remove-Item -LiteralPath $tmpZip -Force -ErrorAction SilentlyContinue
+    }
 }
 
-$useLocalCopy = $PSBoundParameters.ContainsKey('ExportContractsPath')
-
-if ($useLocalCopy -and ($ContractsVersion -or $ContractsPackUrl)) {
-    throw "Specify either -ExportContractsPath for a local copy or a published-pack option, not both."
-}
-
-if ($useLocalCopy) {
-    $sourceRoot = (Resolve-Path -LiteralPath $ExportContractsPath -ErrorAction Stop).Path
-    Copy-Item -Recurse -Force -Path (Join-Path $sourceRoot '*') -Destination $DepsContractsPath
-    Initialize-LnvRootLayout -Root $DepsContractsPath
-
-    $snapshotPath = Write-Snapshot -DestinationPath $DepsContractsPath -Snapshot ([ordered]@{
-            schemaVersion = 1
-            syncedUtc = (Get-Date).ToUniversalTime().ToString('o')
-            source = 'local-export-copy'
-            exportContractsPath = $sourceRoot
-        })
-    $skeletonMappingPath = Sync-LenovoCollectorSkeletonMappingFromContract -ContractsRoot $DepsContractsPath -OutputPath $SkeletonMappingOutputPath
-
-    [ordered]@{
-        status = 'ok'
-        mode = 'LocalExport'
-        sourceRoot = $sourceRoot
-        destinationRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
-        snapshotPath = $snapshotPath
-        skeletonMappingPath = (Resolve-Path -LiteralPath $skeletonMappingPath).Path
-    } | ConvertTo-Json -Depth 5
+if ($null -ne $result) {
+    $result | ConvertTo-Json -Depth 5
     exit 0
 }
 
-$resolvedVersion = $ContractsVersion
-$resolvedTag = if ($ContractsVersion) { "v$ContractsVersion" } else { $null }
-$releasePageUrl = $null
-
-$packUrl = if ($ContractsPackUrl) {
-    $ContractsPackUrl
-}
-elseif ($ContractsVersion) {
-    $zipName = [string]::Format($PackNamePattern, $ContractsVersion)
-    "$ReleaseBaseUrl/v$ContractsVersion/$zipName"
-}
-else {
-    $latest = Resolve-LatestContractsPack -ReleaseBaseUrl $ReleaseBaseUrl
-    $resolvedVersion = $latest.version
-    $resolvedTag = $latest.tag
-    $releasePageUrl = $latest.releaseUrl
-    Write-Information "Resolved latest contracts release: tag=$($latest.tag), asset=$($latest.packName)" -InformationAction Continue
-    $latest.packUrl
-}
-
-$zipLeaf = [IO.Path]::GetFileName(($packUrl -split '\?')[0])
-if ([string]::IsNullOrWhiteSpace($zipLeaf)) {
-    $zipLeaf = 'asbuiltdoc-contracts.zip'
-}
-
-$tmpBase = if ($env:TEMP) { $env:TEMP } elseif ($env:TMPDIR) { $env:TMPDIR } else { '/tmp' }
-$tmpZip = Join-Path $tmpBase $zipLeaf
-
-Write-Information "Downloading contracts pack: $packUrl" -InformationAction Continue
-Invoke-WebRequest -Uri $packUrl -OutFile $tmpZip -UseBasicParsing
-
-Write-Information "Extracting contracts pack to $DepsContractsPath" -InformationAction Continue
-Expand-Archive -LiteralPath $tmpZip -DestinationPath $DepsContractsPath -Force
-Initialize-LnvRootLayout -Root $DepsContractsPath
-
-$snapshotPath = Write-Snapshot -DestinationPath $DepsContractsPath -Snapshot ([ordered]@{
-        schemaVersion = 1
-        syncedUtc = (Get-Date).ToUniversalTime().ToString('o')
-        source = 'published-pack'
-        version = $resolvedVersion
-        tag = $resolvedTag
-        packUrl = $packUrl
-        releaseUrl = $releasePageUrl
-        packPath = $tmpZip
-    })
-$skeletonMappingPath = Sync-LenovoCollectorSkeletonMappingFromContract -ContractsRoot $DepsContractsPath -OutputPath $SkeletonMappingOutputPath
-
-[ordered]@{
-    status = 'ok'
-    mode = if ($ContractsPackUrl) { 'PackUrl' } elseif ($ContractsVersion) { 'PackVersion' } else { 'PackLatest' }
-    version = $resolvedVersion
-    tag = $resolvedTag
-    packUrl = $packUrl
-    releaseUrl = $releasePageUrl
-    destinationRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
-    snapshotPath = $snapshotPath
-    skeletonMappingPath = (Resolve-Path -LiteralPath $skeletonMappingPath).Path
-} | ConvertTo-Json -Depth 5
+$errorPayload | ConvertTo-Json -Depth 6
+exit $exitCode
