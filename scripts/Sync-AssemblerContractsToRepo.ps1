@@ -36,7 +36,11 @@ param(
 
     [string]$DepsContractsPath = (Join-Path $PSScriptRoot '..\.deps\contracts'),
 
-    [string]$SkeletonMappingOutputPath = (Join-Path $PSScriptRoot '..\templates\skeletons\Lenovo.DE\DE-SDT-Collector.mapping.json'),
+    [string]$TechId,
+
+    [string]$MappingContractRelativePath,
+
+    [string]$SkeletonMappingOutputPath,
 
     [switch]$Clean,
 
@@ -45,6 +49,40 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+function Get-DefaultSkeletonMappingOutputPath {
+    param(
+        [Parameter(Mandatory = $true)][string]$RepoRoot,
+        [Parameter(Mandatory = $true)][string]$ResolvedTechId
+    )
+
+    $techSlug = $ResolvedTechId
+    $techTail = if ($ResolvedTechId -match '\.') { ($ResolvedTechId -split '\.')[-1] } else { $ResolvedTechId }
+    $fileName = "{0}-SDT-Collector.mapping.json" -f $techTail
+    return Join-Path $RepoRoot ("templates/skeletons/{0}/{1}" -f $techSlug, $fileName)
+}
+
+function Resolve-TechIdsToProcess {
+    param(
+        [Parameter(Mandatory = $true)][string]$ContractsRoot,
+        [string]$RequestedTechId
+    )
+
+    if (-not [string]::IsNullOrWhiteSpace($RequestedTechId)) {
+        return @($RequestedTechId.Trim())
+    }
+
+    $techRoot = Join-Path $ContractsRoot 'tech'
+    if (-not (Test-Path -LiteralPath $techRoot -PathType Container)) {
+        return @()
+    }
+
+    $discovered = @(
+        Get-ChildItem -LiteralPath $techRoot -Directory -ErrorAction SilentlyContinue |
+            Select-Object -ExpandProperty Name
+    )
+    return @($discovered | Sort-Object -Unique)
+}
 
 function Resolve-LatestContractsPack {
     param([Parameter(Mandatory = $true)][string]$ReleaseBaseUrl)
@@ -282,8 +320,11 @@ function Write-Snapshot {
     return $snapshotPath
 }
 
-function Get-LenovoCollectorSdtTagFromContract {
-    param([Parameter(Mandatory = $true)][hashtable]$MappingEntry)
+function Get-CollectorSdtTagFromContract {
+    param(
+        [Parameter(Mandatory = $true)][hashtable]$MappingEntry,
+        [Parameter(Mandatory = $true)][string]$ResolvedTechId
+    )
 
     $contractTag = if ($MappingEntry.ContainsKey('sdtTag')) { [string]$MappingEntry.sdtTag } else { '' }
     if ([string]::IsNullOrWhiteSpace($contractTag)) {
@@ -291,11 +332,14 @@ function Get-LenovoCollectorSdtTagFromContract {
     }
 
     $normalized = $contractTag.Replace('[<SystemId>]', '[ArrayName]')
-    $aliases = @{
-        'LNV.Lenovo.DE.System[ArrayName].Tables.Drives' = 'LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory'
-        'LNV.Lenovo.DE.System[ArrayName].Tables.StorageContainers' = 'LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory'
-        'LNV.Lenovo.DE.System[ArrayName].Tables.Volumes' = 'LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory'
-        'LNV.Lenovo.DE.System[ArrayName].Tables.ASUP' = 'LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport'
+    $aliases = @{}
+    if ($ResolvedTechId -eq 'Lenovo.DE') {
+        $aliases = @{
+            'LNV.Lenovo.DE.System[ArrayName].Tables.Drives' = 'LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory'
+            'LNV.Lenovo.DE.System[ArrayName].Tables.StorageContainers' = 'LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory'
+            'LNV.Lenovo.DE.System[ArrayName].Tables.Volumes' = 'LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory'
+            'LNV.Lenovo.DE.System[ArrayName].Tables.ASUP' = 'LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport'
+        }
     }
 
     if ($aliases.ContainsKey($normalized)) {
@@ -305,38 +349,48 @@ function Get-LenovoCollectorSdtTagFromContract {
     return $normalized
 }
 
-function Get-LenovoCollectorDatasetPathFromContract {
-    param([Parameter(Mandatory = $true)][string]$DatasetName)
+function Get-CollectorDatasetPathFromContract {
+    param(
+        [Parameter(Mandatory = $true)][string]$DatasetName,
+        [Parameter(Mandatory = $true)][string]$ResolvedTechId
+    )
 
     if ([string]::IsNullOrWhiteSpace($DatasetName)) {
         return ''
     }
 
     if ($DatasetName -eq 'systems') {
-        return "datasets/Lenovo.DE/__TARGET__/$DatasetName.json"
+        return "datasets/$ResolvedTechId/__TARGET__/$DatasetName.json"
     }
 
-    return "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/$DatasetName.json"
+    return "datasets/$ResolvedTechId/__TARGET__/__SYSTEM__/$DatasetName.json"
 }
 
-function Sync-LenovoCollectorSkeletonMappingFromContract {
+function Sync-CollectorSkeletonMappingFromContract {
     param(
         [Parameter(Mandatory = $true)][string]$ContractsRoot,
-        [Parameter(Mandatory = $true)][string]$OutputPath
+        [Parameter(Mandatory = $true)][string]$OutputPath,
+        [Parameter(Mandatory = $true)][string]$ResolvedTechId,
+        [Parameter(Mandatory = $true)][string]$ResolvedMappingContractRelativePath
     )
 
-    $contractMappingPath = Join-Path $ContractsRoot 'tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml'
+    $contractMappingPath = Join-Path $ContractsRoot $ResolvedMappingContractRelativePath
     if (-not (Test-Path -LiteralPath $contractMappingPath -PathType Leaf)) {
-        throw "Required Lenovo.DE mapping contract not found at '$contractMappingPath'."
+        throw "Required mapping contract not found at '$contractMappingPath'."
     }
 
     if (-not (Get-Command ConvertFrom-Yaml -ErrorAction SilentlyContinue)) {
-        throw "ConvertFrom-Yaml is required to sync Lenovo.DE skeleton mapping from '$contractMappingPath'."
+        throw "ConvertFrom-Yaml is required to sync collector skeleton mapping from '$contractMappingPath'."
     }
 
     $contract = Get-Content -LiteralPath $contractMappingPath -Raw -Encoding UTF8 | ConvertFrom-Yaml
-    if ($null -eq $contract -or [string]$contract.schema -ne 'mapping.dataset-to-sdt' -or [string]$contract.techId -ne 'Lenovo.DE') {
-        throw "Lenovo.DE mapping contract '$contractMappingPath' is not in expected mapping.dataset-to-sdt format."
+    if (
+        $null -eq $contract -or
+        [string]$contract.schema -ne 'mapping.dataset-to-sdt' -or
+        [int]$contract.schemaVersion -ne 1 -or
+        [string]$contract.techId -ne $ResolvedTechId
+    ) {
+        throw "Mapping contract '$contractMappingPath' failed validation (expected schema=mapping.dataset-to-sdt, schemaVersion=1, techId=$ResolvedTechId)."
     }
 
     $generatedMappings = [System.Collections.Generic.List[hashtable]]::new()
@@ -359,7 +413,7 @@ function Sync-LenovoCollectorSkeletonMappingFromContract {
             if ($null -eq $entry) {
                 $skipReasonCounters.missingDataset++
                 $skipReasonCounters.missingTag++
-                Write-Verbose ("[lenovo-mapping-sync] skip mapping[{0}] sourceKey={1} reason=missing dataset+tag (null entry)" -f $mappingIndex, $sourceKey)
+                Write-Verbose ("[collector-mapping-sync] skip mapping[{0}] sourceKey={1} reason=missing dataset+tag (null entry)" -f $mappingIndex, $sourceKey)
                 continue
             }
 
@@ -379,25 +433,25 @@ function Sync-LenovoCollectorSkeletonMappingFromContract {
             $sourceDatasetKey = if ([string]::IsNullOrWhiteSpace($sourceDataset)) { '<missing-dataset>' } else { $sourceDataset }
             $sourceTagKey = if ([string]::IsNullOrWhiteSpace($sourceTag)) { '<missing-tag>' } else { $sourceTag }
             $sourceKey = "$sourceDatasetKey|$sourceTagKey"
-            Write-Verbose ("[lenovo-mapping-sync] processing mapping[{0}] sourceKey={1}" -f $mappingIndex, $sourceKey)
+            Write-Verbose ("[collector-mapping-sync] processing mapping[{0}] sourceKey={1}" -f $mappingIndex, $sourceKey)
 
             $datasetName = $sourceDataset
-            $resolvedTag = Get-LenovoCollectorSdtTagFromContract -MappingEntry $entryTable
+            $resolvedTag = Get-CollectorSdtTagFromContract -MappingEntry $entryTable -ResolvedTechId $ResolvedTechId
 
             if ([string]::IsNullOrWhiteSpace($datasetName)) {
                 $skipReasonCounters.missingDataset++
-                Write-Verbose ("[lenovo-mapping-sync] skip mapping[{0}] sourceKey={1} reason=missing dataset" -f $mappingIndex, $sourceKey)
+                Write-Verbose ("[collector-mapping-sync] skip mapping[{0}] sourceKey={1} reason=missing dataset" -f $mappingIndex, $sourceKey)
                 continue
             }
 
             if ([string]::IsNullOrWhiteSpace($resolvedTag)) {
                 $skipReasonCounters.missingTag++
-                Write-Verbose ("[lenovo-mapping-sync] skip mapping[{0}] sourceKey={1} reason=missing tag" -f $mappingIndex, $sourceKey)
+                Write-Verbose ("[collector-mapping-sync] skip mapping[{0}] sourceKey={1} reason=missing tag" -f $mappingIndex, $sourceKey)
                 continue
             }
 
             $mappingEntry = [ordered]@{
-                dataset = (Get-LenovoCollectorDatasetPathFromContract -DatasetName $datasetName)
+                dataset = (Get-CollectorDatasetPathFromContract -DatasetName $datasetName -ResolvedTechId $ResolvedTechId)
                 sdtTag = $resolvedTag
                 required = [bool]$entryTable.required
             }
@@ -419,7 +473,7 @@ function Sync-LenovoCollectorSkeletonMappingFromContract {
                 $renderAs = [string]$renderHintSource.renderAs
                 if (-not [string]::IsNullOrWhiteSpace($renderAs) -and $renderAs -ne 'table') {
                     $skipReasonCounters.unsupportedShape++
-                    Write-Verbose ("[lenovo-mapping-sync] skip mapping[{0}] sourceKey={1} reason=unsupported shape renderAs={2}" -f $mappingIndex, $sourceKey, $renderAs)
+                    Write-Verbose ("[collector-mapping-sync] skip mapping[{0}] sourceKey={1} reason=unsupported shape renderAs={2}" -f $mappingIndex, $sourceKey, $renderAs)
                     continue
                 }
             }
@@ -448,13 +502,13 @@ function Sync-LenovoCollectorSkeletonMappingFromContract {
             else {
                 [string]$_
             }
-            throw "Lenovo.DE mapping generation failed for contract '$contractMappingPath' at mapping[$mappingIndex] key '$sourceKey': $message"
+            throw "Mapping generation failed for contract '$contractMappingPath' at mapping[$mappingIndex] key '$sourceKey': $message"
         }
     }
 
     $skippedCount = $processedCount - $generatedCount
-    Write-Verbose ("[lenovo-mapping-sync] totals: processed={0}; skipped={1}; generated={2}" -f $processedCount, $skippedCount, $generatedCount)
-    Write-Verbose ("[lenovo-mapping-sync] skip reasons: missingDataset={0}; missingTag={1}; unsupportedShape={2}" -f $skipReasonCounters.missingDataset, $skipReasonCounters.missingTag, $skipReasonCounters.unsupportedShape)
+    Write-Verbose ("[collector-mapping-sync] totals: processed={0}; skipped={1}; generated={2}" -f $processedCount, $skippedCount, $generatedCount)
+    Write-Verbose ("[collector-mapping-sync] skip reasons: missingDataset={0}; missingTag={1}; unsupportedShape={2}" -f $skipReasonCounters.missingDataset, $skipReasonCounters.missingTag, $skipReasonCounters.unsupportedShape)
 
     $outputDir = Split-Path -Parent $OutputPath
     if (-not (Test-Path -LiteralPath $outputDir -PathType Container)) {
@@ -464,8 +518,8 @@ function Sync-LenovoCollectorSkeletonMappingFromContract {
     $generatedMapping = [ordered]@{
         schema = 'mapping.dataset-to-sdt'
         schemaVersion = 1
-        techId = 'Lenovo.DE'
-        displayName = 'Lenovo DE collector blueprint mapping'
+        techId = $ResolvedTechId
+        displayName = "$ResolvedTechId collector blueprint mapping"
         compatibility = [ordered]@{
             contracts = [ordered]@{
                 version = 'v1'
@@ -476,7 +530,7 @@ function Sync-LenovoCollectorSkeletonMappingFromContract {
             requireAllMappings = $true
         }
         generatedFromContract = [ordered]@{
-            path = 'tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml'
+            path = $ResolvedMappingContractRelativePath
         }
         mappings = @($generatedMappings)
     }
@@ -512,10 +566,25 @@ try {
     if ($useLocalCopy -and ($ContractsVersion -or $ContractsPackUrl)) {
         throw "Specify either -ExportContractsPath for a local copy or a published-pack option, not both."
     }
+
+    if ($PSBoundParameters.ContainsKey('TechId') -and [string]::IsNullOrWhiteSpace($TechId)) {
+        throw "TechId cannot be empty when provided."
+    }
+
+    if ($PSBoundParameters.ContainsKey('MappingContractRelativePath') -and -not $PSBoundParameters.ContainsKey('TechId')) {
+        throw "MappingContractRelativePath requires TechId; it cannot be used in auto-discovery mode."
+    }
+
+    if ($PSBoundParameters.ContainsKey('SkeletonMappingOutputPath') -and -not $PSBoundParameters.ContainsKey('TechId')) {
+        throw "SkeletonMappingOutputPath requires TechId; it cannot be used in auto-discovery mode."
+    }
     $stepTimer.Stop()
     Update-SyncProgress -ProgressContext $progressContext -StageName 'Validate params' -Status 'Validated parameters' -Position 1
     Write-SyncStep -Stage 'input validation' -Message 'Validated parameter combinations and operating mode.' -Details ([ordered]@{
             useLocalCopy = $useLocalCopy
+            techId = if ($PSBoundParameters.ContainsKey('TechId')) { $TechId.Trim() } else { '<auto-discover-under-tech-root>' }
+            mappingContractRelativePath = if ($PSBoundParameters.ContainsKey('MappingContractRelativePath')) { $MappingContractRelativePath } else { '<derived-per-tech>' }
+            skeletonMappingOutputPath = if ($PSBoundParameters.ContainsKey('SkeletonMappingOutputPath')) { $SkeletonMappingOutputPath } else { '<derived-per-tech>' }
             contractsVersion = $ContractsVersion
             contractsPackUrl = $ContractsPackUrl
             durationMs = $stepTimer.ElapsedMilliseconds
@@ -600,12 +669,41 @@ try {
         $stage = 'mapping-generation'
         $stepTimer.Restart()
         Update-SyncProgress -ProgressContext $progressContext -StageName 'Snapshot + mapping' -Status 'Generating skeleton mapping' -Position 0.8
-        $skeletonMappingPath = Sync-LenovoCollectorSkeletonMappingFromContract -ContractsRoot $DepsContractsPath -OutputPath $SkeletonMappingOutputPath
+        $techIdsToProcess = Resolve-TechIdsToProcess -ContractsRoot $DepsContractsPath -RequestedTechId $TechId
+        $generatedMappings = [System.Collections.Generic.List[string]]::new()
+        $skippedTechIds = [System.Collections.Generic.List[string]]::new()
+
+        foreach ($currentTechId in @($techIdsToProcess)) {
+            $resolvedMappingContractRelativePath = if ($PSBoundParameters.ContainsKey('MappingContractRelativePath') -and -not [string]::IsNullOrWhiteSpace($MappingContractRelativePath)) {
+                $MappingContractRelativePath
+            }
+            else {
+                "tech/$currentTechId/mapping.dataset-to-sdt.v1.yaml"
+            }
+            $resolvedSkeletonMappingOutputPath = if ($PSBoundParameters.ContainsKey('SkeletonMappingOutputPath') -and -not [string]::IsNullOrWhiteSpace($SkeletonMappingOutputPath)) {
+                $SkeletonMappingOutputPath
+            }
+            else {
+                Get-DefaultSkeletonMappingOutputPath -RepoRoot (Join-Path $PSScriptRoot '..') -ResolvedTechId $currentTechId
+            }
+
+            $resolvedContractPath = Join-Path $DepsContractsPath $resolvedMappingContractRelativePath
+            if (-not (Test-Path -LiteralPath $resolvedContractPath -PathType Leaf)) {
+                $skippedTechIds.Add($currentTechId) | Out-Null
+                Write-Verbose ("[collector-mapping-sync] skip techId={0} reason=missing mapping contract path={1}" -f $currentTechId, $resolvedContractPath)
+                continue
+            }
+
+            $generatedPath = Sync-CollectorSkeletonMappingFromContract -ContractsRoot $DepsContractsPath -OutputPath $resolvedSkeletonMappingOutputPath -ResolvedTechId $currentTechId -ResolvedMappingContractRelativePath $resolvedMappingContractRelativePath
+            $generatedMappings.Add((Resolve-Path -LiteralPath $generatedPath).Path) | Out-Null
+        }
         $stepTimer.Stop()
         Update-SyncProgress -ProgressContext $progressContext -StageName 'Snapshot + mapping' -Status 'Snapshot and mapping complete' -Position 1
-        Write-SyncStep -Stage 'mapping generation' -Message 'Generated skeleton mapping from Lenovo.DE contract.' -Details ([ordered]@{
+        Write-SyncStep -Stage 'mapping generation' -Message 'Generated skeleton mapping from mapping contract.' -Details ([ordered]@{
                 contractsRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
-                outputPath = (Resolve-Path -LiteralPath $skeletonMappingPath).Path
+                generatedMappingCount = $generatedMappings.Count
+                skippedTechCount = $skippedTechIds.Count
+                techIdsProcessed = if ($techIdsToProcess.Count -gt 0) { ($techIdsToProcess -join ', ') } else { '<none>' }
                 durationMs = $stepTimer.ElapsedMilliseconds
             })
 
@@ -615,7 +713,8 @@ try {
             sourceRoot = $sourceRoot
             destinationRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
             snapshotPath = $snapshotPath
-            skeletonMappingPath = (Resolve-Path -LiteralPath $skeletonMappingPath).Path
+            skeletonMappingPaths = @($generatedMappings)
+            skippedTechIds = @($skippedTechIds)
         }
     }
     else {
@@ -731,12 +830,41 @@ try {
         $stage = 'mapping-generation'
         $stepTimer.Restart()
         Update-SyncProgress -ProgressContext $progressContext -StageName 'Snapshot + mapping' -Status 'Generating skeleton mapping' -Position 0.8
-        $skeletonMappingPath = Sync-LenovoCollectorSkeletonMappingFromContract -ContractsRoot $DepsContractsPath -OutputPath $SkeletonMappingOutputPath
+        $techIdsToProcess = Resolve-TechIdsToProcess -ContractsRoot $DepsContractsPath -RequestedTechId $TechId
+        $generatedMappings = [System.Collections.Generic.List[string]]::new()
+        $skippedTechIds = [System.Collections.Generic.List[string]]::new()
+
+        foreach ($currentTechId in @($techIdsToProcess)) {
+            $resolvedMappingContractRelativePath = if ($PSBoundParameters.ContainsKey('MappingContractRelativePath') -and -not [string]::IsNullOrWhiteSpace($MappingContractRelativePath)) {
+                $MappingContractRelativePath
+            }
+            else {
+                "tech/$currentTechId/mapping.dataset-to-sdt.v1.yaml"
+            }
+            $resolvedSkeletonMappingOutputPath = if ($PSBoundParameters.ContainsKey('SkeletonMappingOutputPath') -and -not [string]::IsNullOrWhiteSpace($SkeletonMappingOutputPath)) {
+                $SkeletonMappingOutputPath
+            }
+            else {
+                Get-DefaultSkeletonMappingOutputPath -RepoRoot (Join-Path $PSScriptRoot '..') -ResolvedTechId $currentTechId
+            }
+
+            $resolvedContractPath = Join-Path $DepsContractsPath $resolvedMappingContractRelativePath
+            if (-not (Test-Path -LiteralPath $resolvedContractPath -PathType Leaf)) {
+                $skippedTechIds.Add($currentTechId) | Out-Null
+                Write-Verbose ("[collector-mapping-sync] skip techId={0} reason=missing mapping contract path={1}" -f $currentTechId, $resolvedContractPath)
+                continue
+            }
+
+            $generatedPath = Sync-CollectorSkeletonMappingFromContract -ContractsRoot $DepsContractsPath -OutputPath $resolvedSkeletonMappingOutputPath -ResolvedTechId $currentTechId -ResolvedMappingContractRelativePath $resolvedMappingContractRelativePath
+            $generatedMappings.Add((Resolve-Path -LiteralPath $generatedPath).Path) | Out-Null
+        }
         $stepTimer.Stop()
         Update-SyncProgress -ProgressContext $progressContext -StageName 'Snapshot + mapping' -Status 'Snapshot and mapping complete' -Position 1
-        Write-SyncStep -Stage 'mapping generation' -Message 'Generated skeleton mapping from Lenovo.DE contract.' -Details ([ordered]@{
+        Write-SyncStep -Stage 'mapping generation' -Message 'Generated skeleton mapping from mapping contract.' -Details ([ordered]@{
                 contractsRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
-                outputPath = (Resolve-Path -LiteralPath $skeletonMappingPath).Path
+                generatedMappingCount = $generatedMappings.Count
+                skippedTechCount = $skippedTechIds.Count
+                techIdsProcessed = if ($techIdsToProcess.Count -gt 0) { ($techIdsToProcess -join ', ') } else { '<none>' }
                 durationMs = $stepTimer.ElapsedMilliseconds
             })
 
@@ -749,7 +877,8 @@ try {
             releaseUrl = $releasePageUrl
             destinationRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
             snapshotPath = $snapshotPath
-            skeletonMappingPath = (Resolve-Path -LiteralPath $skeletonMappingPath).Path
+            skeletonMappingPaths = @($generatedMappings)
+            skippedTechIds = @($skippedTechIds)
         }
     }
 
@@ -759,7 +888,7 @@ try {
             mode = $result.mode
             destinationRoot = $result.destinationRoot
             snapshotPath = $result.snapshotPath
-            skeletonMappingPath = $result.skeletonMappingPath
+            skeletonMappingPaths = if ($result.ContainsKey('skeletonMappingPaths')) { ($result.skeletonMappingPaths -join ', ') } else { '<none>' }
             totalDurationMs = $syncStopwatch.ElapsedMilliseconds
         })
     Update-SyncProgress -ProgressContext $progressContext -StageName 'Finalize' -Status 'Completed' -Position 1
