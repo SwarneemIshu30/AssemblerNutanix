@@ -67,4 +67,21 @@ Describe 'Invoke-AssemblerSdtRender selectors helpers' {
 
         $selectors | Should -Be @('items', '0')
     }
+
+    It 'supports OrderedDictionary mapping entries, render hints, and dataset presentation' {
+        $mappingEntry = [ordered]@{}
+        $mappingEntry['dataset'] = 'datasets/host-ports.json'
+        $mappingEntry['sdtTag'] = 'LNV.Test.Tag'
+        $mappingEntry['selectors'] = @()
+
+        $renderHint = [ordered]@{}
+        $renderHint['projectionRef'] = 'LNV.Test.Projection'
+
+        $datasetPresentation = [ordered]@{}
+        $datasetPresentation['defaultItemRoot'] = 'rows'
+
+        $selectors = @(Get-EffectiveSelectorsForMapping -MappingEntry $mappingEntry -RenderHint $renderHint -DatasetPresentation $datasetPresentation)
+
+        $selectors | Should -Be @('rows')
+    }
 }
