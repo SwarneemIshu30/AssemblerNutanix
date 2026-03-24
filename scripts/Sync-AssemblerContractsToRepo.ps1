@@ -7,6 +7,13 @@ Sync Assembler contracts into deterministic local ingest path (`.deps/contracts`
 Supports two modes only:
 1) Published release pack sync (default): resolve latest release asset and download/extract zip
 2) Local copy (when `-ExportContractsPath` is explicitly supplied): `<source>` -> `.deps/contracts`
+
+Output behavior:
+- Normal mode emits concise milestone messages for each major stage (validation, source resolution,
+  cleanup, copy/download, extraction, layout normalization, snapshot generation, mapping generation,
+  and final report).
+- Verbose mode (`-Verbose`) includes additional diagnostic details such as resolved paths/URIs,
+  item counts, and per-stage durations to support operator troubleshooting.
 #>
 
 [CmdletBinding()]
@@ -49,6 +56,26 @@ function Resolve-LatestContractsPack {
         packName = [string]$asset[0].name
         packUrl = [string]$asset[0].browser_download_url
         releaseUrl = [string]$latest.html_url
+    }
+}
+
+function Write-SyncStep {
+    param(
+        [Parameter(Mandatory = $true)][string]$Stage,
+        [Parameter(Mandatory = $true)][string]$Message,
+        [hashtable]$Details
+    )
+
+    Write-Information ("[{0}] {1}" -f $Stage, $Message) -InformationAction Continue
+
+    if ($VerbosePreference -eq 'SilentlyContinue' -or $null -eq $Details -or $Details.Count -eq 0) {
+        return
+    }
+
+    foreach ($key in @($Details.Keys | Sort-Object)) {
+        $value = $Details[$key]
+        if ($null -eq $value) { continue }
+        Write-Verbose ("{0}: {1}" -f $key, $value)
     }
 }
 
@@ -238,12 +265,15 @@ $result = $null
 $errorPayload = $null
 $tmpZip = $null
 $progressStarted = $false
+$syncStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+$stepTimer = [System.Diagnostics.Stopwatch]::new()
 
 try {
     $progressStarted = $true
     Write-Progress -Activity 'Syncing contracts' -Status 'Starting' -PercentComplete 0
 
     $stage = 'argument-validation'
+    $stepTimer.Restart()
     if ($ContractsVersion -and $ContractsPackUrl) {
         throw "Specify either -ContractsVersion or -ContractsPackUrl, not both."
     }
@@ -253,34 +283,95 @@ try {
     if ($useLocalCopy -and ($ContractsVersion -or $ContractsPackUrl)) {
         throw "Specify either -ExportContractsPath for a local copy or a published-pack option, not both."
     }
+    $stepTimer.Stop()
+    Write-SyncStep -Stage 'input validation' -Message 'Validated parameter combinations and operating mode.' -Details ([ordered]@{
+            useLocalCopy = $useLocalCopy
+            contractsVersion = $ContractsVersion
+            contractsPackUrl = $ContractsPackUrl
+            durationMs = $stepTimer.ElapsedMilliseconds
+        })
 
     $stage = 'prepare-destination'
+    $stepTimer.Restart()
     Write-Progress -Activity 'Syncing contracts' -Status 'Preparing destination' -PercentComplete 10
+    $cleanupPerformed = $false
     if ($Clean -and (Test-Path -LiteralPath $DepsContractsPath -PathType Container)) {
         Remove-Item -Recurse -Force -LiteralPath $DepsContractsPath
+        $cleanupPerformed = $true
     }
     New-Item -ItemType Directory -Force -Path $DepsContractsPath | Out-Null
+    $stepTimer.Stop()
+    Write-SyncStep -Stage 'cleanup' -Message 'Prepared destination contracts root.' -Details ([ordered]@{
+            destinationRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
+            cleanRequested = [bool]$Clean
+            removedExistingDestination = $cleanupPerformed
+            durationMs = $stepTimer.ElapsedMilliseconds
+        })
 
     if ($useLocalCopy) {
         $stage = 'local-copy'
-        Write-Progress -Activity 'Syncing contracts' -Status 'Copying local export' -PercentComplete 45
+        $stepTimer.Restart()
         $sourceRoot = (Resolve-Path -LiteralPath $ExportContractsPath -ErrorAction Stop).Path
+        $stepTimer.Stop()
+        Write-SyncStep -Stage 'source resolution' -Message 'Resolved local export source path.' -Details ([ordered]@{
+                sourceRoot = $sourceRoot
+                durationMs = $stepTimer.ElapsedMilliseconds
+            })
+
+        $stepTimer.Restart()
+        Write-Progress -Activity 'Syncing contracts' -Status 'Copying local export' -PercentComplete 45
         Copy-Item -Recurse -Force -Path (Join-Path $sourceRoot '*') -Destination $DepsContractsPath
+        $localCopyCount = @((Get-ChildItem -LiteralPath $DepsContractsPath -Recurse -File -ErrorAction SilentlyContinue)).Count
+        $stepTimer.Stop()
+        Write-SyncStep -Stage 'copy/download' -Message 'Copied local contracts export into destination.' -Details ([ordered]@{
+                sourceRoot = $sourceRoot
+                destinationRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
+                copiedFileCount = $localCopyCount
+                durationMs = $stepTimer.ElapsedMilliseconds
+            })
+        Write-SyncStep -Stage 'extraction' -Message 'No extraction required for local copy mode.' -Details ([ordered]@{
+                mode = 'LocalExport'
+            })
 
         $stage = 'archive-layout-validation'
+        $stepTimer.Restart()
         Initialize-LnvRootLayout -Root $DepsContractsPath
+        $layoutTechRoot = Join-Path $DepsContractsPath 'tech'
+        $layoutStandardsRoot = Join-Path $DepsContractsPath 'standards'
+        $stepTimer.Stop()
+        Write-SyncStep -Stage 'layout normalization' -Message 'Validated and normalized contracts root layout.' -Details ([ordered]@{
+                root = (Resolve-Path -LiteralPath $DepsContractsPath).Path
+                standardsPath = $layoutStandardsRoot
+                techPath = $layoutTechRoot
+                hasTechFolder = (Test-Path -LiteralPath $layoutTechRoot -PathType Container)
+                durationMs = $stepTimer.ElapsedMilliseconds
+            })
 
         $stage = 'snapshot-write'
+        $stepTimer.Restart()
         $snapshotPath = Write-Snapshot -DestinationPath $DepsContractsPath -Snapshot ([ordered]@{
                 schemaVersion = 1
                 syncedUtc = (Get-Date).ToUniversalTime().ToString('o')
                 source = 'local-export-copy'
                 exportContractsPath = $sourceRoot
             })
+        $stepTimer.Stop()
+        Write-SyncStep -Stage 'snapshot generation' -Message 'Wrote contracts snapshot metadata.' -Details ([ordered]@{
+                snapshotPath = $snapshotPath
+                source = 'local-export-copy'
+                durationMs = $stepTimer.ElapsedMilliseconds
+            })
 
         $stage = 'mapping-generation'
+        $stepTimer.Restart()
         Write-Progress -Activity 'Syncing contracts' -Status 'Generating skeleton mapping' -PercentComplete 80
         $skeletonMappingPath = Sync-LenovoCollectorSkeletonMappingFromContract -ContractsRoot $DepsContractsPath -OutputPath $SkeletonMappingOutputPath
+        $stepTimer.Stop()
+        Write-SyncStep -Stage 'mapping generation' -Message 'Generated skeleton mapping from Lenovo.DE contract.' -Details ([ordered]@{
+                contractsRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
+                outputPath = (Resolve-Path -LiteralPath $skeletonMappingPath).Path
+                durationMs = $stepTimer.ElapsedMilliseconds
+            })
 
         $result = [ordered]@{
             status = 'ok'
@@ -297,6 +388,7 @@ try {
         $releasePageUrl = $null
 
         $stage = 'resolve-pack-url'
+        $stepTimer.Restart()
         Write-Progress -Activity 'Syncing contracts' -Status 'Resolving package source' -PercentComplete 20
         $packUrl = if ($ContractsPackUrl) {
             $ContractsPackUrl
@@ -313,6 +405,14 @@ try {
             Write-Information "Resolved latest contracts release: tag=$($latest.tag), asset=$($latest.packName)" -InformationAction Continue
             $latest.packUrl
         }
+        $stepTimer.Stop()
+        Write-SyncStep -Stage 'source resolution' -Message 'Resolved published contracts package source.' -Details ([ordered]@{
+                contractsVersion = $resolvedVersion
+                contractsTag = $resolvedTag
+                packUrl = $packUrl
+                releaseUrl = $releasePageUrl
+                durationMs = $stepTimer.ElapsedMilliseconds
+            })
 
         $zipLeaf = [IO.Path]::GetFileName(($packUrl -split '\?')[0])
         if ([string]::IsNullOrWhiteSpace($zipLeaf)) {
@@ -323,17 +423,46 @@ try {
         $tmpZip = Join-Path $tmpBase $zipLeaf
 
         $stage = 'network-download'
+        $stepTimer.Restart()
         Write-Progress -Activity 'Syncing contracts' -Status 'Downloading contracts pack' -PercentComplete 45
         Write-Information "Downloading contracts pack: $packUrl" -InformationAction Continue
         Invoke-WebRequest -Uri $packUrl -OutFile $tmpZip -UseBasicParsing
+        $downloadBytes = (Get-Item -LiteralPath $tmpZip).Length
+        $stepTimer.Stop()
+        Write-SyncStep -Stage 'copy/download' -Message 'Downloaded contracts package.' -Details ([ordered]@{
+                packUrl = $packUrl
+                localPackPath = $tmpZip
+                bytes = $downloadBytes
+                durationMs = $stepTimer.ElapsedMilliseconds
+            })
 
         $stage = 'archive-layout-validation'
+        $stepTimer.Restart()
         Write-Progress -Activity 'Syncing contracts' -Status 'Extracting contracts pack' -PercentComplete 65
         Write-Information "Extracting contracts pack to $DepsContractsPath" -InformationAction Continue
         Expand-Archive -LiteralPath $tmpZip -DestinationPath $DepsContractsPath -Force
+        $stepTimer.Stop()
+        Write-SyncStep -Stage 'extraction' -Message 'Extracted downloaded contracts package.' -Details ([ordered]@{
+                archivePath = $tmpZip
+                destinationRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
+                durationMs = $stepTimer.ElapsedMilliseconds
+            })
+
+        $stepTimer.Restart()
         Initialize-LnvRootLayout -Root $DepsContractsPath
+        $layoutTechRoot = Join-Path $DepsContractsPath 'tech'
+        $layoutStandardsRoot = Join-Path $DepsContractsPath 'standards'
+        $stepTimer.Stop()
+        Write-SyncStep -Stage 'layout normalization' -Message 'Validated and normalized contracts root layout.' -Details ([ordered]@{
+                root = (Resolve-Path -LiteralPath $DepsContractsPath).Path
+                standardsPath = $layoutStandardsRoot
+                techPath = $layoutTechRoot
+                hasTechFolder = (Test-Path -LiteralPath $layoutTechRoot -PathType Container)
+                durationMs = $stepTimer.ElapsedMilliseconds
+            })
 
         $stage = 'snapshot-write'
+        $stepTimer.Restart()
         $snapshotPath = Write-Snapshot -DestinationPath $DepsContractsPath -Snapshot ([ordered]@{
                 schemaVersion = 1
                 syncedUtc = (Get-Date).ToUniversalTime().ToString('o')
@@ -344,10 +473,24 @@ try {
                 releaseUrl = $releasePageUrl
                 packPath = $tmpZip
             })
+        $stepTimer.Stop()
+        Write-SyncStep -Stage 'snapshot generation' -Message 'Wrote contracts snapshot metadata.' -Details ([ordered]@{
+                snapshotPath = $snapshotPath
+                source = 'published-pack'
+                version = $resolvedVersion
+                durationMs = $stepTimer.ElapsedMilliseconds
+            })
 
         $stage = 'mapping-generation'
+        $stepTimer.Restart()
         Write-Progress -Activity 'Syncing contracts' -Status 'Generating skeleton mapping' -PercentComplete 85
         $skeletonMappingPath = Sync-LenovoCollectorSkeletonMappingFromContract -ContractsRoot $DepsContractsPath -OutputPath $SkeletonMappingOutputPath
+        $stepTimer.Stop()
+        Write-SyncStep -Stage 'mapping generation' -Message 'Generated skeleton mapping from Lenovo.DE contract.' -Details ([ordered]@{
+                contractsRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
+                outputPath = (Resolve-Path -LiteralPath $skeletonMappingPath).Path
+                durationMs = $stepTimer.ElapsedMilliseconds
+            })
 
         $result = [ordered]@{
             status = 'ok'
@@ -362,6 +505,14 @@ try {
         }
     }
 
+    $syncStopwatch.Stop()
+    Write-SyncStep -Stage 'final report' -Message 'Contracts sync completed successfully.' -Details ([ordered]@{
+            mode = $result.mode
+            destinationRoot = $result.destinationRoot
+            snapshotPath = $result.snapshotPath
+            skeletonMappingPath = $result.skeletonMappingPath
+            totalDurationMs = $syncStopwatch.ElapsedMilliseconds
+        })
     Write-Progress -Activity 'Syncing contracts' -Status 'Completed' -PercentComplete 100
 }
 catch {
@@ -407,6 +558,12 @@ catch {
     }
 
     Write-Error "Contracts sync failed at stage '$stage': $message"
+    $syncStopwatch.Stop()
+    Write-SyncStep -Stage 'final report' -Message 'Contracts sync failed.' -Details ([ordered]@{
+            stage = $stage
+            exitCode = $exitCode
+            totalDurationMs = $syncStopwatch.ElapsedMilliseconds
+        })
     if ($VerbosePreference -ne 'SilentlyContinue') {
         Write-Verbose ("Exception type: {0}" -f $exceptionType)
         if ($null -ne $caught.ScriptStackTrace -and -not [string]::IsNullOrWhiteSpace($caught.ScriptStackTrace)) {
