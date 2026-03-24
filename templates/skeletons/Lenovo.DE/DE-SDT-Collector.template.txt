@@ -104,6 +104,7 @@ Describe FC fabric topology, zoning model, switch redundancy, and host-to-array 
 is in scope.
 
 <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC>>
+[Policy: if no FC host-port rows are present, render the FC table with a single first data row value of "Not configured".]
 [Future note: SAN-specific SDTs are intentionally excluded from production templates until SAN datasets are contract-defined.]
 
 Platform Configuration
@@ -134,6 +135,7 @@ Host Port Configuration - iSCSI
 
 Host Port Configuration - Fibre Channel
 <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC>>
+[Policy: if no FC host-port rows are present, render the FC table with a single first data row value of "Not configured".]
 
 Transport Summary
 <<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Transport>>

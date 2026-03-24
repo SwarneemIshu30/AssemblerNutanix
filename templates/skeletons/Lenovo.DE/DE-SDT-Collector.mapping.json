@@ -111,7 +111,8 @@
       "required": false,
       "renderHint": {
         "renderAs": "table",
-        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC"
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC",
+        "emptyBehavior": "placeholder"
       },
       "selectors": [
         "items"

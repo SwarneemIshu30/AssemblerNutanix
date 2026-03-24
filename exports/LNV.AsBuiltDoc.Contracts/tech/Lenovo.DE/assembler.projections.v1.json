@@ -360,7 +360,7 @@
       ],
       "renderMode": "table",
       "renderAs": "table",
-      "emptyBehavior": "render-empty",
+      "emptyBehavior": "placeholder",
       "identityKeys": [
         "controllerLabel",
         "portLabel"
