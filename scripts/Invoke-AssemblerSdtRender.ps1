@@ -255,6 +255,53 @@ function Convert-CellValueToString {
     return ($Value | ConvertTo-Json -Depth 10 -Compress)
 }
 
+function Get-UnresolvedSdtTagOccurrences {
+    param(
+        [Parameter(Mandatory = $true)][string]$RenderedText
+    )
+
+    $matches = [regex]::Matches($RenderedText, '<<SDT:(?<tag>[^>]+)>>')
+    $occurrencesByTag = @{}
+    if ($matches.Count -eq 0) { return $occurrencesByTag }
+
+    $lineStartIndices = [System.Collections.Generic.List[int]]::new()
+    $lineStartIndices.Add(0)
+    for ($idx = 0; $idx -lt $RenderedText.Length; $idx++) {
+        if ($RenderedText[$idx] -eq "`n") {
+            $lineStartIndices.Add($idx + 1)
+        }
+    }
+
+    foreach ($tokenMatch in $matches) {
+        $tag = [string]$tokenMatch.Groups['tag'].Value
+        if ([string]::IsNullOrWhiteSpace($tag)) { continue }
+
+        if (-not (Test-MapHasKey -Map $occurrencesByTag -Key $tag)) {
+            $occurrencesByTag[$tag] = [ordered]@{
+                tag = $tag
+                count = 0
+                locations = [System.Collections.Generic.List[hashtable]]::new()
+            }
+        }
+
+        $occurrence = $occurrencesByTag[$tag]
+        $occurrence.count = [int]$occurrence.count + 1
+
+        $lineNumber = 1
+        for ($lineIdx = 0; $lineIdx -lt $lineStartIndices.Count; $lineIdx++) {
+            if ($lineIdx -eq ($lineStartIndices.Count - 1) -or $lineStartIndices[$lineIdx + 1] -gt $tokenMatch.Index) {
+                $lineNumber = $lineIdx + 1
+                break
+            }
+        }
+
+        $columnNumber = ($tokenMatch.Index - $lineStartIndices[$lineNumber - 1]) + 1
+        $occurrence.locations.Add([ordered]@{ line = $lineNumber; column = $columnNumber })
+    }
+
+    return $occurrencesByTag
+}
+
 
 function Format-SizeHuman {
     param([Parameter(Mandatory = $false)]$Bytes)
@@ -1277,8 +1324,58 @@ try {
         $token = "<<SDT:$tag>>"
         $rendered = $rendered.Replace($token, [string]$replaceByTag[$tag])
     }
-    $renderStatus = if ($status -eq 'ERROR') { 'ERROR' } else { 'OK' }
-    Complete-RenderStage -Stage $stageMap.Render -Status $renderStatus -Details ([ordered]@{ tagsPopulated = $replaceByTag.Count })
+    $unresolvedByTag = Get-UnresolvedSdtTagOccurrences -RenderedText $rendered
+    $unresolvedSummary = [ordered]@{
+        unresolvedTagCount = @($unresolvedByTag.Keys).Count
+        unresolvedOccurrences = 0
+        tags = @()
+    }
+    $requiredTagLookup = @{}
+    foreach ($entry in @($mapping.mappings)) {
+        $requiredTag = if (Test-MapHasKey -Map $entry -Key 'sdtTag') { [string]$entry['sdtTag'] } elseif ((Test-MapHasKey -Map $entry -Key 'target') -and $entry['target'] -is [System.Collections.IDictionary] -and (Test-MapHasKey -Map $entry['target'] -Key 'sdtTag')) { [string]$entry['target']['sdtTag'] } else { '' }
+        if ([string]::IsNullOrWhiteSpace($requiredTag)) { continue }
+        if ([bool]$entry.required) {
+            $requiredTagLookup[$requiredTag] = $true
+        }
+    }
+
+    foreach ($tag in @($unresolvedByTag.Keys | Sort-Object)) {
+        $occurrence = $unresolvedByTag[$tag]
+        $sampleLocations = @($occurrence.locations | Select-Object -First 3 | ForEach-Object { "L$($_.line):C$($_.column)" })
+        $sampleLocationsText = if (@($sampleLocations).Count -gt 0) { $sampleLocations -join ', ' } else { 'n/a' }
+        $isRequiredTag = Test-MapHasKey -Map $requiredTagLookup -Key $tag
+        $isKnownOptionalTag = (-not $isRequiredTag) -and (Test-MapHasKey -Map $replaceByTag -Key $tag)
+        $severity = if ($isKnownOptionalTag) { 'WARN' } else { 'ERROR' }
+        if ($severity -eq 'ERROR') {
+            $status = 'ERROR'
+        }
+
+        $issues.Add([ordered]@{
+            code = 'ASB-ASM-SDT-UNRESOLVED-TAG'
+            severity = $severity
+            message = "Unresolved SDT tag '$tag' remained after rendering ($($occurrence.count) occurrence(s); sample locations: $sampleLocationsText)."
+            path = $TemplatePath
+        })
+
+        $unresolvedSummary.unresolvedOccurrences = [int]$unresolvedSummary.unresolvedOccurrences + [int]$occurrence.count
+        $unresolvedSummary.tags += [ordered]@{
+            tag = $tag
+            count = [int]$occurrence.count
+            severity = $severity
+            required = $isRequiredTag
+            sampleLocations = @($occurrence.locations | Select-Object -First 3)
+        }
+    }
+
+    $renderStatus = if ($status -eq 'ERROR') { 'ERROR' } elseif (@($issues | Where-Object { $_.severity -eq 'WARN' }).Count -gt 0) { 'WARN' } else { 'OK' }
+    Complete-RenderStage -Stage $stageMap.Render -Status $renderStatus -Details ([ordered]@{
+        tagsPopulated = $replaceByTag.Count
+        unresolved = $unresolvedSummary
+        unresolvedPolicy = [ordered]@{
+            requiredOrUnknown = 'ERROR'
+            optionalMapped = 'WARN'
+        }
+    })
 
     Start-RenderStage -Stage $stageMap.Finalize
     $outDir = Split-Path -Path $OutputPath -Parent
