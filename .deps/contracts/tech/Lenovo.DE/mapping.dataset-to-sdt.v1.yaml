@@ -11,6 +11,15 @@ strictContracts:
   requireAllMappings: false
   forbidUnmappedDatasets: false
   requireSelectors: false
+collectorSdtTagPolicy:
+  required: true
+  tokenRewrites:
+    '[<SystemId>]': '[ArrayName]'
+  tagAliases:
+    LNV.Lenovo.DE.System[ArrayName].Tables.Drives: LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory
+    LNV.Lenovo.DE.System[ArrayName].Tables.StorageContainers: LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory
+    LNV.Lenovo.DE.System[ArrayName].Tables.Volumes: LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory
+    LNV.Lenovo.DE.System[ArrayName].Tables.ASUP: LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport
 mappings:
 - dataset: systems
   sdtTag: LNV.Lenovo.DE.System[<SystemId>].Summary
