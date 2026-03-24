@@ -917,7 +917,7 @@ Opt=<<SDT:OPT_NAME>>
     }
 
 
-    It 'renders an empty string when FC host-port projection filters out all rows' {
+    It 'renders FC host-port placeholder row when projection filters out all rows' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot '.deps/contracts'
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
@@ -962,8 +962,11 @@ Opt=<<SDT:OPT_NAME>>
             if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode" }
 
             $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
-            if ($rendered -ne 'FC=') {
-                throw "Expected empty FC table rendering after projection filter removes all rows, got '$rendered'"
+            if (-not $rendered.StartsWith('FC=')) {
+                throw "Expected FC output prefix to remain intact, got '$rendered'"
+            }
+            if ($rendered -notmatch 'Not configured') {
+                throw "Expected FC table placeholder row with 'Not configured' after projection filter removes all rows, got '$rendered'"
             }
 
             $report = $output | ConvertFrom-Json -AsHashtable
