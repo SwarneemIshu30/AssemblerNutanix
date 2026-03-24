@@ -340,57 +340,121 @@ function Sync-LenovoCollectorSkeletonMappingFromContract {
     }
 
     $generatedMappings = [System.Collections.Generic.List[hashtable]]::new()
-    foreach ($entry in @($contract.mappings)) {
-        if ($null -eq $entry) { continue }
-        $entryTable = if ($entry -is [System.Collections.IDictionary]) {
-            $entry
-        }
-        else {
-            $converted = [ordered]@{}
-            foreach ($property in @($entry.PSObject.Properties)) {
-                $converted[[string]$property.Name] = $property.Value
-            }
-            $converted
-        }
-        $datasetName = if ($entryTable.ContainsKey('dataset')) { [string]$entryTable.dataset } else { '' }
-        $resolvedTag = Get-LenovoCollectorSdtTagFromContract -MappingEntry $entryTable
-        if ([string]::IsNullOrWhiteSpace($datasetName) -or [string]::IsNullOrWhiteSpace($resolvedTag)) { continue }
-
-        $mappingEntry = [ordered]@{
-            dataset = (Get-LenovoCollectorDatasetPathFromContract -DatasetName $datasetName)
-            sdtTag = $resolvedTag
-            required = [bool]$entryTable.required
-        }
-
-        $renderHintSource = $null
-        if ($entryTable.ContainsKey('renderHint')) {
-            if ($entryTable.renderHint -is [System.Collections.IDictionary]) {
-                $renderHintSource = $entryTable.renderHint
-            }
-            elseif ($null -ne $entryTable.renderHint -and $entryTable.renderHint.PSObject) {
-                $renderHintSource = [ordered]@{}
-                foreach ($property in @($entryTable.renderHint.PSObject.Properties)) {
-                    $renderHintSource[[string]$property.Name] = $property.Value
-                }
-            }
-        }
-
-        $renderHint = [ordered]@{}
-        if ($null -ne $renderHintSource) {
-            foreach ($renderHintKey in @('renderAs', 'projectionRef', 'view')) {
-                if ($renderHintSource.ContainsKey($renderHintKey) -and -not [string]::IsNullOrWhiteSpace([string]$renderHintSource[$renderHintKey])) {
-                    $renderHint[$renderHintKey] = [string]$renderHintSource[$renderHintKey]
-                }
-            }
-        }
-
-        if ($renderHint.Count -gt 0) {
-            $mappingEntry.renderHint = $renderHint
-            $mappingEntry.selectors = @('items')
-        }
-
-        $generatedMappings.Add($mappingEntry)
+    $processedCount = 0
+    $generatedCount = 0
+    $skipReasonCounters = [ordered]@{
+        missingDataset = 0
+        missingTag = 0
+        unsupportedShape = 0
     }
+
+    foreach ($entry in @($contract.mappings)) {
+        $processedCount++
+        $mappingIndex = $processedCount - 1
+        $sourceDataset = ''
+        $sourceTag = ''
+        $sourceKey = "<missing-dataset>|<missing-tag>"
+
+        try {
+            if ($null -eq $entry) {
+                $skipReasonCounters.missingDataset++
+                $skipReasonCounters.missingTag++
+                Write-Verbose ("[lenovo-mapping-sync] skip mapping[{0}] sourceKey={1} reason=missing dataset+tag (null entry)" -f $mappingIndex, $sourceKey)
+                continue
+            }
+
+            $entryTable = if ($entry -is [System.Collections.IDictionary]) {
+                $entry
+            }
+            else {
+                $converted = [ordered]@{}
+                foreach ($property in @($entry.PSObject.Properties)) {
+                    $converted[[string]$property.Name] = $property.Value
+                }
+                $converted
+            }
+
+            $sourceDataset = if ($entryTable.ContainsKey('dataset')) { [string]$entryTable.dataset } else { '' }
+            $sourceTag = if ($entryTable.ContainsKey('sdtTag')) { [string]$entryTable.sdtTag } else { '' }
+            $sourceDatasetKey = if ([string]::IsNullOrWhiteSpace($sourceDataset)) { '<missing-dataset>' } else { $sourceDataset }
+            $sourceTagKey = if ([string]::IsNullOrWhiteSpace($sourceTag)) { '<missing-tag>' } else { $sourceTag }
+            $sourceKey = "$sourceDatasetKey|$sourceTagKey"
+            Write-Verbose ("[lenovo-mapping-sync] processing mapping[{0}] sourceKey={1}" -f $mappingIndex, $sourceKey)
+
+            $datasetName = $sourceDataset
+            $resolvedTag = Get-LenovoCollectorSdtTagFromContract -MappingEntry $entryTable
+
+            if ([string]::IsNullOrWhiteSpace($datasetName)) {
+                $skipReasonCounters.missingDataset++
+                Write-Verbose ("[lenovo-mapping-sync] skip mapping[{0}] sourceKey={1} reason=missing dataset" -f $mappingIndex, $sourceKey)
+                continue
+            }
+
+            if ([string]::IsNullOrWhiteSpace($resolvedTag)) {
+                $skipReasonCounters.missingTag++
+                Write-Verbose ("[lenovo-mapping-sync] skip mapping[{0}] sourceKey={1} reason=missing tag" -f $mappingIndex, $sourceKey)
+                continue
+            }
+
+            $mappingEntry = [ordered]@{
+                dataset = (Get-LenovoCollectorDatasetPathFromContract -DatasetName $datasetName)
+                sdtTag = $resolvedTag
+                required = [bool]$entryTable.required
+            }
+
+            $renderHintSource = $null
+            if ($entryTable.ContainsKey('renderHint')) {
+                if ($entryTable.renderHint -is [System.Collections.IDictionary]) {
+                    $renderHintSource = $entryTable.renderHint
+                }
+                elseif ($null -ne $entryTable.renderHint -and $entryTable.renderHint.PSObject) {
+                    $renderHintSource = [ordered]@{}
+                    foreach ($property in @($entryTable.renderHint.PSObject.Properties)) {
+                        $renderHintSource[[string]$property.Name] = $property.Value
+                    }
+                }
+            }
+
+            if ($null -ne $renderHintSource -and $renderHintSource.ContainsKey('renderAs')) {
+                $renderAs = [string]$renderHintSource.renderAs
+                if (-not [string]::IsNullOrWhiteSpace($renderAs) -and $renderAs -ne 'table') {
+                    $skipReasonCounters.unsupportedShape++
+                    Write-Verbose ("[lenovo-mapping-sync] skip mapping[{0}] sourceKey={1} reason=unsupported shape renderAs={2}" -f $mappingIndex, $sourceKey, $renderAs)
+                    continue
+                }
+            }
+
+            $renderHint = [ordered]@{}
+            if ($null -ne $renderHintSource) {
+                foreach ($renderHintKey in @('renderAs', 'projectionRef', 'view')) {
+                    if ($renderHintSource.ContainsKey($renderHintKey) -and -not [string]::IsNullOrWhiteSpace([string]$renderHintSource[$renderHintKey])) {
+                        $renderHint[$renderHintKey] = [string]$renderHintSource[$renderHintKey]
+                    }
+                }
+            }
+
+            if ($renderHint.Count -gt 0) {
+                $mappingEntry.renderHint = $renderHint
+                $mappingEntry.selectors = @('items')
+            }
+
+            $generatedMappings.Add($mappingEntry)
+            $generatedCount++
+        }
+        catch {
+            $message = if ($null -ne $_.Exception -and -not [string]::IsNullOrWhiteSpace($_.Exception.Message)) {
+                $_.Exception.Message
+            }
+            else {
+                [string]$_
+            }
+            throw "Lenovo.DE mapping generation failed for contract '$contractMappingPath' at mapping[$mappingIndex] key '$sourceKey': $message"
+        }
+    }
+
+    $skippedCount = $processedCount - $generatedCount
+    Write-Verbose ("[lenovo-mapping-sync] totals: processed={0}; skipped={1}; generated={2}" -f $processedCount, $skippedCount, $generatedCount)
+    Write-Verbose ("[lenovo-mapping-sync] skip reasons: missingDataset={0}; missingTag={1}; unsupportedShape={2}" -f $skipReasonCounters.missingDataset, $skipReasonCounters.missingTag, $skipReasonCounters.unsupportedShape)
 
     $outputDir = Split-Path -Parent $OutputPath
     if (-not (Test-Path -LiteralPath $outputDir -PathType Container)) {
