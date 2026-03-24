@@ -1,56 +1,50 @@
 {
   "schemaVersion": 1,
   "status": "ERROR",
-  "startedUtc": "2026-03-24T02:09:58.1570359Z",
-  "completedUtc": "2026-03-24T02:09:58.1889435Z",
+  "startedUtc": "2026-03-24T02:34:30.7341380Z",
+  "completedUtc": "2026-03-24T02:34:30.8203762Z",
   "bundleId": "bc8e726c-0b55-4b6e-af58-c84fa426a26a",
   "stages": [
     {
       "details": null,
-      "completedUtc": "2026-03-24T02:09:58.1571023Z",
+      "completedUtc": "2026-03-24T02:34:30.7342651Z",
       "name": "Load",
-      "startedUtc": "2026-03-24T02:09:58.1571023Z",
+      "startedUtc": "2026-03-24T02:34:30.7342651Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-24T02:09:58.1571023Z",
+      "completedUtc": "2026-03-24T02:34:30.7342651Z",
       "name": "Validate",
-      "startedUtc": "2026-03-24T02:09:58.1571023Z",
+      "startedUtc": "2026-03-24T02:34:30.7342651Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-24T02:09:58.1571023Z",
+      "completedUtc": "2026-03-24T02:34:30.7342651Z",
       "name": "Transform",
-      "startedUtc": "2026-03-24T02:09:58.1571023Z",
+      "startedUtc": "2026-03-24T02:34:30.7342651Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-24T02:09:58.1571023Z",
+      "completedUtc": "2026-03-24T02:34:30.7342651Z",
       "name": "Render",
-      "startedUtc": "2026-03-24T02:09:58.1571023Z",
+      "startedUtc": "2026-03-24T02:34:30.7342651Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-24T02:09:58.1571023Z",
+      "completedUtc": "2026-03-24T02:34:30.7342651Z",
       "name": "Finalize",
-      "startedUtc": "2026-03-24T02:09:58.1571023Z",
+      "startedUtc": "2026-03-24T02:34:30.7342651Z",
       "status": "SKIPPED"
     }
   ],
   "issues": [
     {
-      "message": "JSON schema validation failed for 'C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\.resolved-mappings\\DE-SDT-Collector.mapping.system_1_DE4200_Rack4.resolved.json' against 'C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts\\standards\\mapping.dataset-to-sdt.schema.v1.json': The JSON is not valid with the schema: All values fail against the false schema at '/generatedFromContract'",
-      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\.resolved-mappings\\DE-SDT-Collector.mapping.system_1_DE4200_Rack4.resolved.json",
-      "severity": "ERROR",
-      "code": "ASB-ASM-SCHEMA-MAPPING-INVALID"
-    },
-    {
-      "message": "message=Mapping schema validation failed. | position=At C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1:1132 char:9\r\n+         throw 'Mapping schema validation failed.'\r\n+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ | stack=at <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 1132\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerBundleRender.ps1: line 535\r\nat Invoke-BundleRender, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 119\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 407\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 425\r\nat <ScriptBlock>, <No file>: line 1 | stage=Validate",
-      "path": null,
+      "message": "message=Method invocation failed because [System.Collections.Specialized.OrderedDictionary] does not contain a method named 'ContainsKey'. | position=At C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1:1203 char:23\r\n+ … enderHint = Get-MappingRenderHint -MappingEntry $entry -DatasetPresen …\r\n+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ | stack=at Get-MappingRenderHint, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 387\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 1203\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerBundleRender.ps1: line 535\r\nat Invoke-BundleRender, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 119\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 407\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 425\r\nat <ScriptBlock>, <No file>: line 1 | stage=Transform | tag=LNV.Lenovo.DE.System[ArrayName].Summary | dataset=datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json | datasetPath=C:\\Github\\LNV.AsBuiltDoc.Assembler\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01\\systems.json",
+      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01\\systems.json",
       "severity": "ERROR",
       "code": "ASB-ASM-SDT-UNHANDLED"
     }
