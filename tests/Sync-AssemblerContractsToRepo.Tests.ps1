@@ -184,6 +184,51 @@ Describe 'Sync-AssemblerContractsToRepo' {
         }
     }
 
+
+    It 'fails mapping generation when dataset path template metadata is missing' {
+        $tempRoot = New-DeterministicTempRoot -Name 'missing-dataset-path-template'
+        $contractsSourceRoot = Join-Path $tempRoot 'contracts-source'
+        $destinationRoot = Join-Path $tempRoot '.deps/contracts'
+        $skeletonMappingPath = Join-Path $tempRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json'
+
+        Copy-Item -LiteralPath $sourceRoot -Destination $contractsSourceRoot -Recurse -Force
+        Remove-Item -LiteralPath (Join-Path $contractsSourceRoot 'tech/Lenovo.DE/dataset/systems.assembler.meta.json') -Force
+
+        try {
+            $result = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $contractsSourceRoot,
+                '-DepsContractsPath', $destinationRoot,
+                '-SkeletonMappingOutputPath', $skeletonMappingPath,
+                '-Clean'
+            )
+
+            if ($result.ExitCode -eq 0) {
+                throw 'Expected non-zero exit code when dataset path template metadata is missing'
+            }
+            if ($result.Json.status -ne 'error') {
+                throw "Expected status=error, got '$($result.Json.status)'"
+            }
+            if ($result.Json.stage -ne 'mapping-generation') {
+                throw "Expected stage mapping-generation, got '$($result.Json.stage)'"
+            }
+            if ([int]$result.Json.exitCode -ne 40) {
+                throw "Expected exitCode 40 for mapping-generation failure, got '$($result.Json.exitCode)'"
+            }
+            if ([string]$result.Json.message -notmatch 'datasetPath.template metadata') {
+                throw "Expected missing dataset template guidance, got '$($result.Json.message)'"
+            }
+
+            if (Test-Path -LiteralPath $skeletonMappingPath -PathType Leaf) {
+                throw 'Did not expect skeleton mapping output when dataset path template metadata is missing'
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'emits actionable error when ConvertFrom-Yaml is unavailable' {
         $tempRoot = New-DeterministicTempRoot -Name 'missing-convertfromyaml'
         $destinationRoot = Join-Path $tempRoot '.deps/contracts'
