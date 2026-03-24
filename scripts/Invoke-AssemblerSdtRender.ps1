@@ -279,7 +279,7 @@ function ConvertTo-PlainHashtable {
     if ($InputObject -is [string] -or $InputObject -is [ValueType]) { return $InputObject }
 
     if ($InputObject -is [System.Collections.IDictionary]) {
-        $converted = [ordered]@{}
+        $converted = @{}
         foreach ($key in $InputObject.Keys) {
             $converted[[string]$key] = ConvertTo-PlainHashtable -InputObject $InputObject[$key]
         }
@@ -300,7 +300,7 @@ function ConvertTo-PlainHashtable {
     }
 
     if ($null -ne $properties -and $properties.Count -gt 0) {
-        $converted = [ordered]@{}
+        $converted = @{}
         foreach ($property in $properties) {
             $converted[[string]$property.Name] = ConvertTo-PlainHashtable -InputObject $property.Value
         }
