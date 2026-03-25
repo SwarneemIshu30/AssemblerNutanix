@@ -4,7 +4,7 @@ Runtime direction is **PowerShell 7**.
 
 ## Implemented scripts
 
-- `Invoke-AssemblerPipeline.ps1` - bootstraps Direct-v1 input ingest and minimum contract checks.
+- `Invoke-AssemblerPipeline.ps1` - bootstraps Direct-v1 input ingest and minimum contract checks; by default it validates-only and emits explicit next-step render guidance. Optional render handoff parameters can invoke bundle render directly.
 - `Invoke-AssemblerSdtRender.ps1` - reads a dataset-to-SDT mapping and skeleton template, validates mapping contract shape, resolves dataset selectors, and renders SDT placeholders.
 - `Invoke-AssemblerBundleRender.ps1` - bundle-aware orchestration skeleton that discovers tech in bundle and runs renderer once per TemplateCatalog entry.
 - `New-AssemblerSkeleton.ps1` - copies a built-in skeleton pack (mapping + template) into a local ingest folder.
@@ -67,6 +67,22 @@ Behavior:
 - filters enabled catalog entries by detected/requested `techId`
 - invokes `Invoke-AssemblerSdtRender.ps1` once per selected entry
 - writes aggregate report to `assembler-bundle-render-report.json`
+
+## `Invoke-AssemblerPipeline.ps1`
+
+Required parameters:
+- `-BundleRoot`
+- `-ContractsRoot`
+
+Optional:
+- `-OutputPath`
+- `-RenderCatalogPath` + `-RenderOutputRoot` (must be supplied together; enables render handoff to `Invoke-AssemblerBundleRender.ps1`)
+- `-RenderTechId` (optional tech filter forwarded during render handoff)
+
+Behavior:
+- always performs bootstrap load + schema validation for `manifest.json`, `objectIndex.json`, and `config/solution.plan.json`
+- when render handoff options are **not** supplied, marks render as skipped and emits an explicit diagnostic with the next command (`Invoke-AssemblerBundleRender.ps1`)
+- when render handoff options are supplied, invokes `Invoke-AssemblerBundleRender.ps1` and includes handoff status/details in pipeline output
 
 ## `Sync-AssemblerContractsToRepo.ps1` modes
 

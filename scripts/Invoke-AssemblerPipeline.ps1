@@ -19,6 +19,16 @@ Path to the contracts root containing `standards/solution.plan.schema.v1.json`.
 .PARAMETER OutputPath
 Optional output file path for the JSON report. If omitted, report JSON is written to stdout.
 
+.PARAMETER RenderCatalogPath
+Optional TemplateCatalog path. When provided with `RenderOutputRoot`, the pipeline hands off to
+`Invoke-AssemblerBundleRender.ps1` after validation.
+
+.PARAMETER RenderOutputRoot
+Optional render output root. Must be supplied together with `RenderCatalogPath` to enable render handoff.
+
+.PARAMETER RenderTechId
+Optional one-or-more tech filters forwarded to `Invoke-AssemblerBundleRender.ps1` when render handoff is enabled.
+
 .NOTES
 Exit code is `0` when `status=ok` and `1` when `status=error`.
 #>
@@ -26,7 +36,10 @@ Exit code is `0` when `status=ok` and `1` when `status=error`.
 param(
     [Parameter(Mandatory = $true)][string]$BundleRoot,
     [Parameter(Mandatory = $true)][string]$ContractsRoot,
-    [Parameter(Mandatory = $false)][string]$OutputPath
+    [Parameter(Mandatory = $false)][string]$OutputPath,
+    [Parameter(Mandatory = $false)][string]$RenderCatalogPath,
+    [Parameter(Mandatory = $false)][string]$RenderOutputRoot,
+    [Parameter(Mandatory = $false)][string[]]$RenderTechId
 )
 
 Set-StrictMode -Version Latest
@@ -90,7 +103,10 @@ function Invoke-AssemblerPipeline {
     param(
         [Parameter(Mandatory = $true)][string]$BundleRoot,
         [Parameter(Mandatory = $true)][string]$ContractsRoot,
-        [Parameter(Mandatory = $false)][string]$OutputPath
+        [Parameter(Mandatory = $false)][string]$OutputPath,
+        [Parameter(Mandatory = $false)][string]$RenderCatalogPath,
+        [Parameter(Mandatory = $false)][string]$RenderOutputRoot,
+        [Parameter(Mandatory = $false)][string[]]$RenderTechId
     )
 
     $diagnostics = [System.Collections.Generic.List[hashtable]]::new()
@@ -103,10 +119,17 @@ function Invoke-AssemblerPipeline {
     }
 
     $report = $null
+    $renderReport = $null
     $manifest = $null
     $objectIndex = $null
     $solutionPlan = $null
     try {
+        $renderCatalogProvided = -not [string]::IsNullOrWhiteSpace($RenderCatalogPath)
+        $renderOutputProvided = -not [string]::IsNullOrWhiteSpace($RenderOutputRoot)
+        if ($renderCatalogProvided -xor $renderOutputProvided) {
+            throw 'ASB-ASM-RENDER-PARAMS-INCOMPLETE: supply both -RenderCatalogPath and -RenderOutputRoot to enable render handoff.'
+        }
+
         Start-Stage -Stage $stages.Load
         $diagnostics.Add((New-Diagnostic -Stage 'Load' -Level 'INFO' -Code 'ASB-ASM-INPUT-LOAD' -Message 'Resolving required Direct-v1 input paths'))
 
@@ -157,7 +180,63 @@ function Invoke-AssemblerPipeline {
         Complete-Stage -Stage $stages.Transform -Status 'SKIPPED' -Details ([ordered]@{ reason = 'No transform operation in bootstrap pipeline.' })
 
         Start-Stage -Stage $stages.Render
-        Complete-Stage -Stage $stages.Render -Status 'SKIPPED' -Details ([ordered]@{ reason = 'No render operation in bootstrap pipeline.' })
+        if ($renderCatalogProvided -and $renderOutputProvided) {
+            $invokeBundleRenderScript = Join-Path $PSScriptRoot 'Invoke-AssemblerBundleRender.ps1'
+            if (-not (Test-Path -LiteralPath $invokeBundleRenderScript -PathType Leaf)) {
+                throw "ASB-ASM-RENDER-HANDOFF-MISSING: required script not found: $invokeBundleRenderScript"
+            }
+
+            $renderArguments = @(
+                '-NoLogo', '-NoProfile',
+                '-File', $invokeBundleRenderScript,
+                '-BundleRoot', $BundleRoot,
+                '-CatalogPath', $RenderCatalogPath,
+                '-OutputRoot', $RenderOutputRoot,
+                '-ContractsRoot', $ContractsRoot
+            )
+            if ($RenderTechId -and @($RenderTechId).Count -gt 0) {
+                $renderArguments += @('-TechId')
+                $renderArguments += @($RenderTechId)
+            }
+
+            $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+            if ([string]::IsNullOrWhiteSpace([string]$pwshPath)) {
+                throw 'ASB-ASM-RENDER-HANDOFF-PWSH-MISSING: pwsh is required to execute Invoke-AssemblerBundleRender.ps1.'
+            }
+
+            $renderOutputJson = & $pwshPath @renderArguments
+            if ($LASTEXITCODE -ne 0) {
+                throw "ASB-ASM-RENDER-HANDOFF-FAILED: Invoke-AssemblerBundleRender.ps1 exited with code $LASTEXITCODE."
+            }
+
+            $renderReport = $renderOutputJson | ConvertFrom-Json -AsHashtable
+            $renderStatus = if ($renderReport.ContainsKey('status')) { [string]$renderReport.status } else { 'OK' }
+            $renderStageStatus = switch ($renderStatus) {
+                'ERROR' { 'ERROR' }
+                'WARN' { 'WARN' }
+                'PARTIAL' { 'WARN' }
+                default { 'OK' }
+            }
+            $renderIssueCount = if ($renderReport.ContainsKey('issues')) { @($renderReport.issues).Count } else { 0 }
+            $diagnostics.Add((New-Diagnostic -Stage 'Render' -Level 'INFO' -Code 'ASB-ASM-RENDER-HANDOFF' -Message "Render handoff executed via Invoke-AssemblerBundleRender.ps1 (status=$renderStatus, issues=$renderIssueCount)."))
+            Complete-Stage -Stage $stages.Render -Status $renderStageStatus -Details ([ordered]@{
+                handoffScript = $invokeBundleRenderScript
+                catalogPath = $RenderCatalogPath
+                outputRoot = $RenderOutputRoot
+                techId = @($RenderTechId)
+                renderStatus = $renderStatus
+                issueCount = $renderIssueCount
+            })
+        }
+        else {
+            $guidanceCommand = "pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 -BundleRoot '$BundleRoot' -CatalogPath <catalog.json> -OutputRoot <out>"
+            $diagnostics.Add((New-Diagnostic -Stage 'Render' -Level 'INFO' -Code 'ASB-ASM-RENDER-NEXT-COMMAND' -Message "Render step skipped. Next command: $guidanceCommand"))
+            Complete-Stage -Stage $stages.Render -Status 'SKIPPED' -Details ([ordered]@{
+                reason = 'Render handoff not requested.'
+                nextCommand = $guidanceCommand
+                requires = @('-RenderCatalogPath', '-RenderOutputRoot')
+            })
+        }
 
         $report = [ordered]@{
             schemaVersion = 1
@@ -170,6 +249,7 @@ function Invoke-AssemblerPipeline {
                 targetCount = @($solutionPlan.targets).Count
                 collectorCount = @($solutionPlan.collectors).Count
             }
+            render = if ($null -ne $renderReport) { $renderReport } else { $null }
             stages = @($stages.Load, $stages.Validate, $stages.Transform, $stages.Render, $stages.Finalize)
             diagnostics = $diagnostics
         }
@@ -200,4 +280,4 @@ function Invoke-AssemblerPipeline {
     if ($report.status -eq 'error') { exit 1 }
 }
 
-Invoke-AssemblerPipeline -BundleRoot $BundleRoot -ContractsRoot $ContractsRoot -OutputPath $OutputPath
+Invoke-AssemblerPipeline -BundleRoot $BundleRoot -ContractsRoot $ContractsRoot -OutputPath $OutputPath -RenderCatalogPath $RenderCatalogPath -RenderOutputRoot $RenderOutputRoot -RenderTechId $RenderTechId
