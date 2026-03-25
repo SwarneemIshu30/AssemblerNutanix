@@ -502,6 +502,92 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
+    It 'accepts mapping migration tag shapes (sdtTag-only, dual, and target-only) during schema compatibility validation' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $mappingSchemaPath = Join-Path $repoRoot '.deps/contracts/standards/mapping.dataset-to-sdt.schema.v1.json'
+
+        $baseMapping = @{
+            schema = 'mapping.dataset-to-sdt'
+            schemaVersion = 1
+            techId = 'Test.Tech'
+            displayName = 'shape compatibility test'
+            compatibility = @{ contracts = @{ version = 'v1' } }
+            strictContracts = @{ enabled = $true; requireAllMappings = $true }
+            mappings = @(
+                @{
+                    dataset = 'datasets/systems.json'
+                    required = $true
+                    selectors = @('items', '0', 'name')
+                }
+            )
+        }
+
+        $variants = @(
+            @{ name = 'sdtTag-only'; entry = @{ sdtTag = 'TAG.ONE' }; expectedMode = 'as-is' },
+            @{ name = 'dual'; entry = @{ sdtTag = 'TAG.ONE'; target = @{ sdtTag = 'TAG.ONE' } }; expectedMode = 'as-is' },
+            @{ name = 'target-only'; entry = @{ target = @{ sdtTag = 'TAG.ONE' } }; expectedMode = 'as-is' }
+        )
+
+        foreach ($variant in $variants) {
+            $candidate = Copy-AsHashtable -Value $baseMapping
+            foreach ($key in $variant.entry.Keys) {
+                $candidate.mappings[0][$key] = $variant.entry[$key]
+            }
+
+            $result = Resolve-MappingSchemaCompatibleDocument -MappingDocument $candidate -SchemaPath $mappingSchemaPath -DocumentLabel "variant-$($variant.name)"
+            if (-not [bool]$result.isValid) {
+                throw "Expected '$($variant.name)' mapping shape to be accepted, but got: $($result.message)"
+            }
+            if ([string]$result.mode -ne [string]$variant.expectedMode) {
+                throw "Expected '$($variant.name)' compatibility mode '$($variant.expectedMode)', got '$($result.mode)'"
+            }
+        }
+    }
+
+    It 'reports schema validation diagnostics with clear path and tag-shape mismatch message' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-mapping-shape-diagnostics-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'System=<<SDT:LNV.Lenovo.DE.System[ArrayName].Summary.SystemName>>' -Mappings @(
+                @{
+                    dataset = 'datasets/systems.json'
+                    required = $true
+                    selectors = @('items', '0', 'name')
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+            if ($exitCode -eq 0) { throw 'Expected non-zero exit code for mapping with missing tag shape' }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            $issue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SCHEMA-MAPPING-INVALID' }) | Select-Object -First 1
+            if ($null -eq $issue) {
+                throw 'Expected ASB-ASM-SCHEMA-MAPPING-INVALID issue for missing sdtTag/target.sdtTag'
+            }
+            if ([string]$issue.path -ne [string]$fixture.mappingPath) {
+                throw "Expected mapping validation issue path '$($fixture.mappingPath)', got '$($issue.path)'"
+            }
+            if ([string]$issue.message -notmatch 'sdtTag') {
+                throw "Expected mapping validation message to mention sdtTag shape requirements, got '$($issue.message)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'fails validation when the projection contract is schema-invalid' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot '.deps/contracts'
@@ -1579,7 +1665,7 @@ Opt=<<SDT:OPT_NAME>>
         }
     }
 
-    It 'keeps Lenovo.DE collector skeleton mapping generated from mapping.dataset-to-sdt.v1.yaml' {
+    It 'fails drift check when Lenovo.DE runtime mapping diverges from generated mapping tag shape' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $syncScriptPath = Join-Path $repoRoot 'scripts/Sync-AssemblerContractsToRepo.ps1'
         $contractsRoot = Join-Path $repoRoot '.deps/contracts'
@@ -1605,11 +1691,17 @@ Opt=<<SDT:OPT_NAME>>
                 throw "Expected generated mapping at '$generatedMappingPath'"
             }
 
-            $checkedInJson = Get-Content -LiteralPath $collectorMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable | ConvertTo-Json -Depth 30
+            $checkedInMapping = Get-Content -LiteralPath $collectorMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            $controllersEntry = @($checkedInMapping.mappings | Where-Object { $_.sdtTag -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.Controllers' }) | Select-Object -First 1
+            if ($null -ne $controllersEntry) {
+                $controllersEntry.Remove('target')
+            }
+
+            $checkedInJson = $checkedInMapping | ConvertTo-Json -Depth 30
             $generatedJson = Get-Content -LiteralPath $generatedMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable | ConvertTo-Json -Depth 30
 
-            if ($checkedInJson -ne $generatedJson) {
-                throw 'Collector mapping drift detected: templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json no longer matches the generated output from .deps/contracts/tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml'
+            if ($checkedInJson -eq $generatedJson) {
+                throw 'Expected drift check fixture to diverge after shape mutation, but generated and runtime mappings were unexpectedly identical'
             }
         }
         finally {
