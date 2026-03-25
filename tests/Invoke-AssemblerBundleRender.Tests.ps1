@@ -167,6 +167,58 @@ Describe 'Invoke-AssemblerBundleRender orchestration' {
         }
     }
 
+    It 'renders one variant per discovered system folder when mapping uses __SYSTEM__' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $sourceBundleRoot = Join-Path $repoRoot 'bundle/bc8e726c-0b55-4b6e-af58-c84fa426a26a'
+        $catalogPath = Join-Path $repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json'
+
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-bundle-render-system-variants-test-" + [guid]::NewGuid().ToString())
+        $bundleRoot = Join-Path $tempRoot 'bundle-copy'
+        $outputRoot = Join-Path $tempRoot 'out'
+
+        try {
+            Copy-Item -LiteralPath $sourceBundleRoot -Destination $bundleRoot -Recurse -Force
+
+            $selectedTargetRoot = Join-Path $bundleRoot 'datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01'
+            $sourceSystemRoot = Join-Path $selectedTargetRoot 'system_1_DE4200_Rack4'
+            $addedSystemRoot = Join-Path $selectedTargetRoot 'system_2_DE4200_Rack4'
+            Copy-Item -LiteralPath $sourceSystemRoot -Destination $addedSystemRoot -Recurse -Force
+
+            $scriptPath = Join-Path $repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1'
+            $json = & $pwshPath -NoLogo -NoProfile -File $scriptPath -BundleRoot $bundleRoot -CatalogPath $catalogPath -OutputRoot $outputRoot -TechId 'Lenovo.DE'
+            if ($LASTEXITCODE -eq 0) {
+                throw 'Expected non-zero exit code for known failing Lenovo.DE collector render fixture'
+            }
+
+            $report = $json | ConvertFrom-Json -AsHashtable
+            if (-not $report.ContainsKey('runs') -or @($report.runs).Count -lt 1) {
+                throw 'Expected at least one run in bundle report'
+            }
+
+            $run = @($report.runs)[0]
+            $variantNames = @(@($run.variants) | ForEach-Object { [string]$_.variant } | Sort-Object)
+            $expectedVariants = @('system_1_DE4200_Rack4', 'system_2_DE4200_Rack4')
+            if ($variantNames.Count -ne $expectedVariants.Count) {
+                throw "Expected $($expectedVariants.Count) variants, got $($variantNames.Count)"
+            }
+            foreach ($expectedVariant in $expectedVariants) {
+                if ($variantNames -notcontains $expectedVariant) {
+                    throw "Expected variant '$expectedVariant' in output variants: $($variantNames -join ', ')"
+                }
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'resolves Lenovo.DE datasets from single-target-per-folder layout' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $bundleRoot = Join-Path $repoRoot 'bundle/417f4663-0922-423b-92a9-34d4e33ecd0e'

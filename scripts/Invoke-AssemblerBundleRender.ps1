@@ -284,31 +284,6 @@ function Resolve-TechDatasetContext {
     }
 }
 
-function Resolve-MappingPathForBundle {
-    param(
-        [Parameter(Mandatory = $true)][string]$BundleRoot,
-        [Parameter(Mandatory = $true)][string]$MappingPath,
-        [Parameter(Mandatory = $true)][string]$TechId,
-        [Parameter(Mandatory = $true)][string]$OutputRoot,
-        [Parameter(Mandatory = $false)][string]$EntryId,
-        [Parameter(Mandatory = $false)][hashtable]$CatalogEntry
-    )
-
-    $effectiveEntryId = if ([string]::IsNullOrWhiteSpace($EntryId)) {
-        [System.IO.Path]::GetFileNameWithoutExtension($MappingPath)
-    }
-    else {
-        $EntryId
-    }
-
-    $variants = Resolve-MappingVariantsForBundle -BundleRoot $BundleRoot -MappingPath $MappingPath -TechId $TechId -OutputRoot $OutputRoot -EntryId $effectiveEntryId -CatalogEntry $CatalogEntry
-    if (@($variants).Count -lt 1) {
-        throw "Failed to resolve mapping variants for '$MappingPath'."
-    }
-
-    return [string]$variants[0].mappingPath
-}
-
 function Resolve-MappingVariantsForBundle {
     param(
         [Parameter(Mandatory = $true)][string]$BundleRoot,
@@ -510,7 +485,6 @@ try {
             Complete-BundleStage -Stage $runStageMap.Validate -Status 'OK'
 
             Start-BundleStage -Stage $runStageMap.Transform
-            $mappingPath = Resolve-MappingPathForBundle -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TechId ([string]$entry.techId) -OutputRoot $OutputRoot -CatalogEntry $entry
             $mappingVariants = Resolve-MappingVariantsForBundle -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TechId ([string]$entry.techId) -OutputRoot $OutputRoot -EntryId ([string]$entry.id) -CatalogEntry $entry
             $selectionReason = if (@($mappingVariants).Count -gt 0) { [string]$mappingVariants[0].targetSelectionReason } else { $null }
             $selectedTarget = if (@($mappingVariants).Count -gt 0) { [string]$mappingVariants[0].selectedTarget } else { $null }
