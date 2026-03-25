@@ -408,7 +408,7 @@ function Convert-TableModelToWordTableXml {
     [void]$sb.Append('<w:tbl>')
     [void]$sb.Append('<w:tblPr>')
     if (-not [string]::IsNullOrWhiteSpace($TableStyleId)) {
-        [void]$sb.Append("<w:tblStyle w:val=""$([ConvertTo-WordXmlEscapedText -Text $TableStyleId])""/>")
+        [void]$sb.Append("<w:tblStyle w:val=""$(ConvertTo-WordXmlEscapedText -Text $TableStyleId)""/>")
     }
     [void]$sb.Append('<w:tblW w:w="0" w:type="auto"/>')
     [void]$sb.Append('<w:tblLook w:firstRow="1" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="0" w:noVBand="1" w:val="04A0"/>')
@@ -1625,9 +1625,14 @@ try {
         $rendered = $templateText
         foreach ($tag in $replaceByTag.Keys) {
             $token = "<<SDT:$tag>>"
-            $rendered = $rendered.Replace($token, [string]$replaceByTag[$tag])
+            $rendered = $rendered.Replace($token, "$token`n$([string]$replaceByTag[$tag])")
         }
         $unresolvedByTag = Get-UnresolvedSdtTagOccurrences -RenderedText $rendered
+        foreach ($resolvedTag in @($replaceByTag.Keys)) {
+            if (Test-MapHasKey -Map $unresolvedByTag -Key ([string]$resolvedTag)) {
+                $unresolvedByTag.Remove([string]$resolvedTag)
+            }
+        }
     }
     $unresolvedSummary = [ordered]@{
         unresolvedTagCount = @($unresolvedByTag.Keys).Count
