@@ -519,7 +519,37 @@ Describe 'Sync-AssemblerContractsToRepo' {
         }
     }
 
-    It 'emits actionable error when ConvertFrom-Yaml is unavailable' {
+    It 'sync succeeds when a YAML parser is available' {
+        $tempRoot = New-DeterministicTempRoot -Name 'yaml-parser-available'
+        $destinationRoot = Join-Path $tempRoot '.deps/contracts'
+        $skeletonMappingPath = Join-Path $tempRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json'
+
+        try {
+            $result = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $sourceRoot,
+                '-DepsContractsPath', $destinationRoot,
+                '-SkeletonMappingOutputPath', $skeletonMappingPath,
+                '-Clean'
+            )
+
+            if ($result.ExitCode -ne 0) {
+                throw "Expected exit code 0 when YAML parser is available, got $($result.ExitCode). Output: $($result.Output)"
+            }
+            if ($result.Json.status -ne 'ok') {
+                throw "Expected status=ok when YAML parser is available, got '$($result.Json.status)'"
+            }
+            if (-not (Test-Path -LiteralPath $skeletonMappingPath -PathType Leaf)) {
+                throw 'Expected skeleton mapping output when YAML parser is available'
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'emits actionable error when YAML parser is unavailable' {
         $tempRoot = New-DeterministicTempRoot -Name 'missing-convertfromyaml'
         $destinationRoot = Join-Path $tempRoot '.deps/contracts'
         $skeletonMappingPath = Join-Path $tempRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json'
@@ -560,8 +590,14 @@ function Get-Command {
             if ([int]$report.exitCode -ne 40) {
                 throw "Expected mapping-generation exit code 40, got '$($report.exitCode)'"
             }
-            if ([string]$report.message -notmatch 'ConvertFrom-Yaml is required') {
-                throw "Expected actionable ConvertFrom-Yaml guidance, got '$($report.message)'"
+            if ([string]$report.message -notmatch 'Detected PowerShell edition/version') {
+                throw "Expected detected PowerShell edition/version details in parser error, got '$($report.message)'"
+            }
+            if ([string]$report.message -notmatch 'Install-Module powershell-yaml -Scope CurrentUser') {
+                throw "Expected powershell-yaml install hint in parser error, got '$($report.message)'"
+            }
+            if ([string]$report.message -notmatch 'run this script under pwsh 7\+') {
+                throw "Expected pwsh 7+ recommendation in parser error, got '$($report.message)'"
             }
 
             if (-not (Test-Path -LiteralPath (Join-Path $destinationRoot 'contracts.snapshot.json') -PathType Leaf)) {

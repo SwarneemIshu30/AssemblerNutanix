@@ -409,7 +409,7 @@ function Invoke-PostSyncProcessing {
         $resolvedGeneratedPath = (Resolve-Path -LiteralPath $generationResult.outputPath).Path
         $generatedMappings.Add($resolvedGeneratedPath) | Out-Null
 
-        $contract = Get-Content -LiteralPath $resolvedContractPath -Raw -Encoding UTF8 | ConvertFrom-Yaml
+        $contract = ConvertFrom-YamlSafe -YamlText (Get-Content -LiteralPath $resolvedContractPath -Raw -Encoding UTF8) -Context $resolvedContractPath
         $runtimeMapping = Get-Content -LiteralPath $resolvedGeneratedPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
         $contractDashboard = Get-MappingShapeDashboard -Mappings @($contract.mappings)
         $runtimeDashboard = Get-MappingShapeDashboard -Mappings @($runtimeMapping.mappings)
@@ -472,6 +472,28 @@ function ConvertTo-Dictionary {
     }
 
     return $null
+}
+
+function ConvertFrom-YamlSafe {
+    param(
+        [Parameter(Mandatory = $true)][string]$YamlText,
+        [Parameter(Mandatory = $true)][string]$Context
+    )
+
+    $yamlParser = Get-Command ConvertFrom-Yaml -ErrorAction SilentlyContinue
+    if ($null -ne $yamlParser) {
+        return $YamlText | ConvertFrom-Yaml
+    }
+
+    Import-Module powershell-yaml -ErrorAction SilentlyContinue | Out-Null
+    $yamlParser = Get-Command ConvertFrom-Yaml -ErrorAction SilentlyContinue
+    if ($null -ne $yamlParser) {
+        return $YamlText | ConvertFrom-Yaml
+    }
+
+    $detectedEdition = if ($PSVersionTable.ContainsKey('PSEdition')) { [string]$PSVersionTable.PSEdition } else { '<unknown>' }
+    $detectedVersion = if ($PSVersionTable.ContainsKey('PSVersion')) { [string]$PSVersionTable.PSVersion } else { '<unknown>' }
+    throw "Unable to parse YAML for '$Context' because no ConvertFrom-Yaml parser is available. Detected PowerShell edition/version: $detectedEdition $detectedVersion. Install-Module powershell-yaml -Scope CurrentUser. Recommendation: run this script under pwsh 7+."
 }
 
 function New-CollectorSdtTagPolicyFromContract {
@@ -862,11 +884,7 @@ function Sync-CollectorSkeletonMappingFromContract {
         throw "Required mapping contract not found at '$contractMappingPath'."
     }
 
-    if (-not (Get-Command ConvertFrom-Yaml -ErrorAction SilentlyContinue)) {
-        throw "ConvertFrom-Yaml is required to sync collector skeleton mapping from '$contractMappingPath'."
-    }
-
-    $contract = Get-Content -LiteralPath $contractMappingPath -Raw -Encoding UTF8 | ConvertFrom-Yaml
+    $contract = ConvertFrom-YamlSafe -YamlText (Get-Content -LiteralPath $contractMappingPath -Raw -Encoding UTF8) -Context $contractMappingPath
     if (
         $null -eq $contract -or
         [string]$contract.schema -ne 'mapping.dataset-to-sdt' -or
