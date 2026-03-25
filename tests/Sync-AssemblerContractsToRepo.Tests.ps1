@@ -364,6 +364,77 @@ Describe 'Sync-AssemblerContractsToRepo' {
         }
     }
 
+    It 'supports rollout mode legacy and reports migration dashboard counts' {
+        $tempRoot = New-DeterministicTempRoot -Name 'mapping-shape-mode-legacy'
+        $destinationRoot = Join-Path $tempRoot '.deps/contracts'
+        $skeletonMappingPath = Join-Path $tempRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json'
+
+        try {
+            $result = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $sourceRoot,
+                '-DepsContractsPath', $destinationRoot,
+                '-SkeletonMappingOutputPath', $skeletonMappingPath,
+                '-OutputShapeMode', 'legacy',
+                '-Clean'
+            )
+
+            if ($result.ExitCode -ne 0) {
+                throw "Expected success for legacy rollout mode, got $($result.ExitCode)"
+            }
+
+            $generatedMapping = Get-Content -LiteralPath $skeletonMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            $firstEntry = @($generatedMapping.mappings)[0]
+            if (-not $firstEntry.ContainsKey('sdtTag') -or $firstEntry.ContainsKey('target')) {
+                throw 'Expected legacy rollout mode to emit sdtTag-only runtime mappings'
+            }
+
+            $dashboard = $result.Json.mappingShapeDashboard.'Lenovo.DE'
+            if ($null -eq $dashboard) {
+                throw 'Expected mappingShapeDashboard entry for Lenovo.DE'
+            }
+            if ([int]$dashboard.contract.sdtTagOnly -le 0) {
+                throw "Expected contract dashboard to report sdtTag-only mappings, got '$($dashboard.contract.sdtTagOnly)'"
+            }
+            if ([int]$dashboard.runtime.dual -ne 0 -or [int]$dashboard.runtime.targetOnly -ne 0) {
+                throw "Expected runtime dashboard to remain legacy-only, got dual=$($dashboard.runtime.dual), targetOnly=$($dashboard.runtime.targetOnly)"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'fails when rollout mode enforcement is dual but contract is legacy-shaped' {
+        $tempRoot = New-DeterministicTempRoot -Name 'mapping-shape-mode-dual-fail'
+        $destinationRoot = Join-Path $tempRoot '.deps/contracts'
+
+        try {
+            $result = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $sourceRoot,
+                '-DepsContractsPath', $destinationRoot,
+                '-OutputShapeMode', 'dual',
+                '-Clean'
+            )
+
+            if ($result.ExitCode -eq 0) {
+                throw 'Expected failure when enforcing dual mode against legacy contract mappings'
+            }
+            if ($result.Json.stage -ne 'mapping-generation') {
+                throw "Expected mapping-generation stage on rollout validation failure, got '$($result.Json.stage)'"
+            }
+            if ([string]$result.Json.message -notmatch "Output shape mode 'dual' violated") {
+                throw "Expected dual-mode enforcement message, got '$($result.Json.message)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'emits actionable error when ConvertFrom-Yaml is unavailable' {
         $tempRoot = New-DeterministicTempRoot -Name 'missing-convertfromyaml'
         $destinationRoot = Join-Path $tempRoot '.deps/contracts'

@@ -29,6 +29,15 @@ Optional render output root. Must be supplied together with `RenderCatalogPath` 
 .PARAMETER RenderTechId
 Optional one-or-more tech filters forwarded to `Invoke-AssemblerBundleRender.ps1` when render handoff is enabled.
 
+.PARAMETER MappingShapeMode
+Optional rollout mode (`legacy`, `dual`, `target`) used to enforce mapping output shape in both contract and runtime mapping files.
+
+.PARAMETER ContractMappingPath
+Optional path to the contract mapping file for shape-mode validation. Requires `-MappingShapeMode`.
+
+.PARAMETER RuntimeMappingPath
+Optional path to the runtime/generated mapping file for shape-mode validation. Requires `-MappingShapeMode`.
+
 .NOTES
 Exit code is `0` when `status=ok` and `1` when `status=error`.
 #>
@@ -39,7 +48,10 @@ param(
     [Parameter(Mandatory = $false)][string]$OutputPath,
     [Parameter(Mandatory = $false)][string]$RenderCatalogPath,
     [Parameter(Mandatory = $false)][string]$RenderOutputRoot,
-    [Parameter(Mandatory = $false)][string[]]$RenderTechId
+    [Parameter(Mandatory = $false)][string[]]$RenderTechId,
+    [Parameter(Mandatory = $false)][ValidateSet('legacy', 'dual', 'target')][string]$MappingShapeMode,
+    [Parameter(Mandatory = $false)][string]$ContractMappingPath,
+    [Parameter(Mandatory = $false)][string]$RuntimeMappingPath
 )
 
 Set-StrictMode -Version Latest
@@ -106,7 +118,10 @@ function Invoke-AssemblerPipeline {
         [Parameter(Mandatory = $false)][string]$OutputPath,
         [Parameter(Mandatory = $false)][string]$RenderCatalogPath,
         [Parameter(Mandatory = $false)][string]$RenderOutputRoot,
-        [Parameter(Mandatory = $false)][string[]]$RenderTechId
+        [Parameter(Mandatory = $false)][string[]]$RenderTechId,
+        [Parameter(Mandatory = $false)][ValidateSet('legacy', 'dual', 'target')][string]$MappingShapeMode,
+        [Parameter(Mandatory = $false)][string]$ContractMappingPath,
+        [Parameter(Mandatory = $false)][string]$RuntimeMappingPath
     )
 
     $diagnostics = [System.Collections.Generic.List[hashtable]]::new()
@@ -128,6 +143,9 @@ function Invoke-AssemblerPipeline {
         $renderOutputProvided = -not [string]::IsNullOrWhiteSpace($RenderOutputRoot)
         if ($renderCatalogProvided -xor $renderOutputProvided) {
             throw 'ASB-ASM-RENDER-PARAMS-INCOMPLETE: supply both -RenderCatalogPath and -RenderOutputRoot to enable render handoff.'
+        }
+        if ((-not [string]::IsNullOrWhiteSpace($ContractMappingPath) -or -not [string]::IsNullOrWhiteSpace($RuntimeMappingPath)) -and [string]::IsNullOrWhiteSpace($MappingShapeMode)) {
+            throw 'ASB-ASM-MAPPING-SHAPE-PARAMS-INCOMPLETE: supply -MappingShapeMode when using -ContractMappingPath or -RuntimeMappingPath.'
         }
 
         Start-Stage -Stage $stages.Load
@@ -174,6 +192,41 @@ function Invoke-AssemblerPipeline {
         }
 
         $diagnostics.Add((New-Diagnostic -Stage 'Validate' -Level 'INFO' -Code 'ASB-ASM-CONTRACT-VALIDATE' -Message 'Required input schema checks passed'))
+
+        if (-not [string]::IsNullOrWhiteSpace($MappingShapeMode)) {
+            $resolvedContractMappingPath = if (-not [string]::IsNullOrWhiteSpace($ContractMappingPath)) {
+                $ContractMappingPath
+            }
+            else {
+                Join-Path (Join-Path $ContractsRoot 'tech/Lenovo.DE') 'mapping.dataset-to-sdt.v1.yaml'
+            }
+            $resolvedRuntimeMappingPath = if (-not [string]::IsNullOrWhiteSpace($RuntimeMappingPath)) {
+                $RuntimeMappingPath
+            }
+            else {
+                Join-Path (Join-Path $PSScriptRoot '..') 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json'
+            }
+
+            $mappingValidationScript = Join-Path $PSScriptRoot 'Test-AssemblerMappingShapeMode.ps1'
+            if (-not (Test-Path -LiteralPath $mappingValidationScript -PathType Leaf)) {
+                throw "ASB-ASM-MAPPING-SHAPE-VALIDATION-MISSING: required script not found: $mappingValidationScript"
+            }
+
+            $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+            if ([string]::IsNullOrWhiteSpace([string]$pwshPath)) {
+                throw 'ASB-ASM-MAPPING-SHAPE-PWSH-MISSING: pwsh is required to execute Test-AssemblerMappingShapeMode.ps1.'
+            }
+
+            $shapeValidationOutput = & $pwshPath -NoLogo -NoProfile -File $mappingValidationScript -Mode $MappingShapeMode -ContractMappingPath $resolvedContractMappingPath -RuntimeMappingPath $resolvedRuntimeMappingPath
+            if ($LASTEXITCODE -ne 0) {
+                throw "ASB-ASM-MAPPING-SHAPE-VALIDATION-FAILED: $shapeValidationOutput"
+            }
+
+            $shapeValidationReport = $shapeValidationOutput | ConvertFrom-Json -AsHashtable
+            $diagnostics.Add((New-Diagnostic -Stage 'Validate' -Level 'INFO' -Code 'ASB-ASM-MAPPING-SHAPE-VALIDATE' -Message "Mapping shape mode '$MappingShapeMode' validated for contract/runtime mappings."))
+            $diagnostics.Add((New-Diagnostic -Stage 'Validate' -Level 'INFO' -Code 'ASB-ASM-MAPPING-MIGRATION-DASHBOARD' -Message "contract[sdtTagOnly=$($shapeValidationReport.dashboard.contract.sdtTagOnly),dual=$($shapeValidationReport.dashboard.contract.dual),targetOnly=$($shapeValidationReport.dashboard.contract.targetOnly)] runtime[sdtTagOnly=$($shapeValidationReport.dashboard.runtime.sdtTagOnly),dual=$($shapeValidationReport.dashboard.runtime.dual),targetOnly=$($shapeValidationReport.dashboard.runtime.targetOnly)]"))
+        }
+
         Complete-Stage -Stage $stages.Validate -Status 'OK'
 
         Start-Stage -Stage $stages.Transform
@@ -280,4 +333,4 @@ function Invoke-AssemblerPipeline {
     if ($report.status -eq 'error') { exit 1 }
 }
 
-Invoke-AssemblerPipeline -BundleRoot $BundleRoot -ContractsRoot $ContractsRoot -OutputPath $OutputPath -RenderCatalogPath $RenderCatalogPath -RenderOutputRoot $RenderOutputRoot -RenderTechId $RenderTechId
+Invoke-AssemblerPipeline -BundleRoot $BundleRoot -ContractsRoot $ContractsRoot -OutputPath $OutputPath -RenderCatalogPath $RenderCatalogPath -RenderOutputRoot $RenderOutputRoot -RenderTechId $RenderTechId -MappingShapeMode $MappingShapeMode -ContractMappingPath $ContractMappingPath -RuntimeMappingPath $RuntimeMappingPath

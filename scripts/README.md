@@ -10,6 +10,8 @@ Runtime direction is **PowerShell 7**.
 - `New-AssemblerSkeleton.ps1` - copies a built-in skeleton pack (mapping + template) into a local ingest folder.
 - `Sync-AssemblerContractsToRepo.ps1` - syncs contracts into deterministic repo-local ingest path (`.deps/contracts`) and regenerates `templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json` from `tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml`.
   - Collector mapping generation now honors contract-owned `syncPolicy.collectorSkeletonMapping` (allowed `renderAs`, selector defaults, and unsupported-shape behavior) instead of script-side hardcoded render assumptions.
+  - Supports explicit rollout control via `-OutputShapeMode legacy|dual|target` and logs migration dashboard counts (`sdtTag`-only, dual, target-only) for both contract and runtime mapping shapes.
+- `Test-AssemblerMappingShapeMode.ps1` - CI validation helper that enforces a selected rollout mode against both mapping contract and runtime mapping files.
 - `internal/AssemblerSchemaValidation.psm1` - shared helper for JSON schema validation against contracts under `standards/`.
 
 ## Contract path resolution
@@ -78,9 +80,14 @@ Optional:
 - `-OutputPath`
 - `-RenderCatalogPath` + `-RenderOutputRoot` (must be supplied together; enables render handoff to `Invoke-AssemblerBundleRender.ps1`)
 - `-RenderTechId` (optional tech filter forwarded during render handoff)
+- `-MappingShapeMode` (`legacy`, `dual`, `target`) to enforce rollout mode for mapping shape validation
+- `-ContractMappingPath` optional contract mapping override for shape validation (requires `-MappingShapeMode`)
+- `-RuntimeMappingPath` optional runtime mapping override for shape validation (requires `-MappingShapeMode`)
 
 Behavior:
 - always performs bootstrap load + schema validation for `manifest.json`, `objectIndex.json`, and `config/solution.plan.json`
+- when `-MappingShapeMode` is supplied, runs `Test-AssemblerMappingShapeMode.ps1` to enforce the selected mode in both contract and runtime mapping files
+- emits migration dashboard diagnostics with counts of `sdtTag`-only, dual, and target-only entries for contract/runtime mappings
 - when render handoff options are **not** supplied, marks render as skipped and emits an explicit diagnostic with the next command (`Invoke-AssemblerBundleRender.ps1`)
 - when render handoff options are supplied, invokes `Invoke-AssemblerBundleRender.ps1` and includes handoff status/details in pipeline output
 
@@ -96,6 +103,7 @@ Supported sync modes:
 Shared options:
 - `-DepsContractsPath` destination path (default `./.deps/contracts`)
 - `-Clean` remove destination before sync
+- `-OutputShapeMode legacy|dual|target` to force runtime mapping output shape and enforce the same mode against contract/runtime mapping files during sync
 
 Each run writes or updates `contracts.snapshot.json` in the destination.
 
@@ -113,6 +121,9 @@ pwsh ./scripts/Sync-AssemblerContractsToRepo.ps1
 
 # Copy from an explicit local contracts tree -> .deps
 pwsh ./scripts/Sync-AssemblerContractsToRepo.ps1 -ExportContractsPath ./contracts-source -Clean
+
+# Force target-only rollout mode and validate both contract/runtime mapping shape
+pwsh ./scripts/Sync-AssemblerContractsToRepo.ps1 -ExportContractsPath ./contracts-source -OutputShapeMode target -Clean
 ```
 
 ```powershell
