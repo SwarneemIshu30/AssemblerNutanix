@@ -320,6 +320,97 @@ function Write-Snapshot {
     return $snapshotPath
 }
 
+function Invoke-PostSyncProcessing {
+    param(
+        [Parameter(Mandatory = $true)][string]$ContractsRoot,
+        [Parameter(Mandatory = $true)][string]$RepoRoot,
+        [Parameter(Mandatory = $true)][string]$RequestedTechId,
+        [Parameter(Mandatory = $true)][hashtable]$BoundParameters,
+        [string]$RequestedMappingContractRelativePath,
+        [string]$RequestedSkeletonMappingOutputPath,
+        [Parameter(Mandatory = $true)][hashtable]$SnapshotData,
+        [Parameter(Mandatory = $true)][hashtable]$ProgressContext,
+        [Parameter(Mandatory = $true)][System.Diagnostics.Stopwatch]$StepTimer,
+        [Parameter(Mandatory = $true)][ref]$Stage
+    )
+
+    $Stage.Value = 'archive-layout-validation'
+    $StepTimer.Restart()
+    Update-SyncProgress -ProgressContext $ProgressContext -StageName 'Extract/normalize' -Status 'Validating layout' -Position 0.25
+    Initialize-LnvRootLayout -Root $ContractsRoot
+    $layoutTechRoot = Join-Path $ContractsRoot 'tech'
+    $layoutStandardsRoot = Join-Path $ContractsRoot 'standards'
+    $StepTimer.Stop()
+    Update-SyncProgress -ProgressContext $ProgressContext -StageName 'Extract/normalize' -Status 'Layout normalized' -Position 1
+    Write-SyncStep -Stage 'layout normalization' -Message 'Validated and normalized contracts root layout.' -Details ([ordered]@{
+            root = (Resolve-Path -LiteralPath $ContractsRoot).Path
+            standardsPath = $layoutStandardsRoot
+            techPath = $layoutTechRoot
+            hasTechFolder = (Test-Path -LiteralPath $layoutTechRoot -PathType Container)
+            durationMs = $StepTimer.ElapsedMilliseconds
+        })
+
+    $Stage.Value = 'snapshot-write'
+    $StepTimer.Restart()
+    Update-SyncProgress -ProgressContext $ProgressContext -StageName 'Snapshot + mapping' -Status 'Writing snapshot metadata' -Position 0.2
+    $snapshotPath = Write-Snapshot -DestinationPath $ContractsRoot -Snapshot $SnapshotData
+    $StepTimer.Stop()
+    Write-SyncStep -Stage 'snapshot generation' -Message 'Wrote contracts snapshot metadata.' -Details ([ordered]@{
+            snapshotPath = $snapshotPath
+            source = [string]$SnapshotData.source
+            version = if ($SnapshotData.ContainsKey('version')) { [string]$SnapshotData.version } else { '' }
+            durationMs = $StepTimer.ElapsedMilliseconds
+        })
+
+    $Stage.Value = 'mapping-generation'
+    $StepTimer.Restart()
+    Update-SyncProgress -ProgressContext $ProgressContext -StageName 'Snapshot + mapping' -Status 'Generating skeleton mapping' -Position 0.8
+    $techIdsToProcess = Resolve-TechIdsToProcess -ContractsRoot $ContractsRoot -RequestedTechId $RequestedTechId
+    $generatedMappings = [System.Collections.Generic.List[string]]::new()
+    $skippedTechIds = [System.Collections.Generic.List[string]]::new()
+
+    foreach ($currentTechId in @($techIdsToProcess)) {
+        $resolvedMappingContractRelativePath = if ($BoundParameters.ContainsKey('MappingContractRelativePath') -and -not [string]::IsNullOrWhiteSpace($RequestedMappingContractRelativePath)) {
+            $RequestedMappingContractRelativePath
+        }
+        else {
+            "tech/$currentTechId/mapping.dataset-to-sdt.v1.yaml"
+        }
+        $resolvedSkeletonMappingOutputPath = if ($BoundParameters.ContainsKey('SkeletonMappingOutputPath') -and -not [string]::IsNullOrWhiteSpace($RequestedSkeletonMappingOutputPath)) {
+            $RequestedSkeletonMappingOutputPath
+        }
+        else {
+            Get-DefaultSkeletonMappingOutputPath -RepoRoot $RepoRoot -ResolvedTechId $currentTechId
+        }
+
+        $resolvedContractPath = Join-Path $ContractsRoot $resolvedMappingContractRelativePath
+        if (-not (Test-Path -LiteralPath $resolvedContractPath -PathType Leaf)) {
+            $skippedTechIds.Add($currentTechId) | Out-Null
+            Write-Verbose ("[collector-mapping-sync] skip techId={0} reason=missing mapping contract path={1}" -f $currentTechId, $resolvedContractPath)
+            continue
+        }
+
+        $generatedPath = Sync-CollectorSkeletonMappingFromContract -ContractsRoot $ContractsRoot -OutputPath $resolvedSkeletonMappingOutputPath -ResolvedTechId $currentTechId -ResolvedMappingContractRelativePath $resolvedMappingContractRelativePath
+        $generatedMappings.Add((Resolve-Path -LiteralPath $generatedPath).Path) | Out-Null
+    }
+
+    $StepTimer.Stop()
+    Update-SyncProgress -ProgressContext $ProgressContext -StageName 'Snapshot + mapping' -Status 'Snapshot and mapping complete' -Position 1
+    Write-SyncStep -Stage 'mapping generation' -Message 'Generated skeleton mapping from mapping contract.' -Details ([ordered]@{
+            contractsRoot = (Resolve-Path -LiteralPath $ContractsRoot).Path
+            generatedMappingCount = $generatedMappings.Count
+            skippedTechCount = $skippedTechIds.Count
+            techIdsProcessed = if ($techIdsToProcess.Count -gt 0) { ($techIdsToProcess -join ', ') } else { '<none>' }
+            durationMs = $StepTimer.ElapsedMilliseconds
+        })
+
+    return [ordered]@{
+        snapshotPath = $snapshotPath
+        skeletonMappingPaths = @($generatedMappings)
+        skippedTechIds = @($skippedTechIds)
+    }
+}
+
 function ConvertTo-Dictionary {
     param([Parameter(Mandatory = $false)]$Value)
 
@@ -929,87 +1020,21 @@ try {
                 mode = 'LocalExport'
             })
 
-        $stage = 'archive-layout-validation'
-        $stepTimer.Restart()
-        Update-SyncProgress -ProgressContext $progressContext -StageName 'Extract/normalize' -Status 'Validating layout' -Position 0.25
-        Initialize-LnvRootLayout -Root $DepsContractsPath
-        $layoutTechRoot = Join-Path $DepsContractsPath 'tech'
-        $layoutStandardsRoot = Join-Path $DepsContractsPath 'standards'
-        $stepTimer.Stop()
-        Update-SyncProgress -ProgressContext $progressContext -StageName 'Extract/normalize' -Status 'Layout normalized' -Position 1
-        Write-SyncStep -Stage 'layout normalization' -Message 'Validated and normalized contracts root layout.' -Details ([ordered]@{
-                root = (Resolve-Path -LiteralPath $DepsContractsPath).Path
-                standardsPath = $layoutStandardsRoot
-                techPath = $layoutTechRoot
-                hasTechFolder = (Test-Path -LiteralPath $layoutTechRoot -PathType Container)
-                durationMs = $stepTimer.ElapsedMilliseconds
-            })
-
-        $stage = 'snapshot-write'
-        $stepTimer.Restart()
-        Update-SyncProgress -ProgressContext $progressContext -StageName 'Snapshot + mapping' -Status 'Writing snapshot metadata' -Position 0.2
-        $snapshotPath = Write-Snapshot -DestinationPath $DepsContractsPath -Snapshot ([ordered]@{
+        $postSync = Invoke-PostSyncProcessing -ContractsRoot $DepsContractsPath -RepoRoot (Join-Path $PSScriptRoot '..') -RequestedTechId $TechId -BoundParameters $PSBoundParameters -RequestedMappingContractRelativePath $MappingContractRelativePath -RequestedSkeletonMappingOutputPath $SkeletonMappingOutputPath -SnapshotData ([ordered]@{
                 schemaVersion = 1
                 syncedUtc = (Get-Date).ToUniversalTime().ToString('o')
                 source = 'local-export-copy'
                 exportContractsPath = $sourceRoot
-            })
-        $stepTimer.Stop()
-        Write-SyncStep -Stage 'snapshot generation' -Message 'Wrote contracts snapshot metadata.' -Details ([ordered]@{
-                snapshotPath = $snapshotPath
-                source = 'local-export-copy'
-                durationMs = $stepTimer.ElapsedMilliseconds
-            })
-
-        $stage = 'mapping-generation'
-        $stepTimer.Restart()
-        Update-SyncProgress -ProgressContext $progressContext -StageName 'Snapshot + mapping' -Status 'Generating skeleton mapping' -Position 0.8
-        $techIdsToProcess = Resolve-TechIdsToProcess -ContractsRoot $DepsContractsPath -RequestedTechId $TechId
-        $generatedMappings = [System.Collections.Generic.List[string]]::new()
-        $skippedTechIds = [System.Collections.Generic.List[string]]::new()
-
-        foreach ($currentTechId in @($techIdsToProcess)) {
-            $resolvedMappingContractRelativePath = if ($PSBoundParameters.ContainsKey('MappingContractRelativePath') -and -not [string]::IsNullOrWhiteSpace($MappingContractRelativePath)) {
-                $MappingContractRelativePath
-            }
-            else {
-                "tech/$currentTechId/mapping.dataset-to-sdt.v1.yaml"
-            }
-            $resolvedSkeletonMappingOutputPath = if ($PSBoundParameters.ContainsKey('SkeletonMappingOutputPath') -and -not [string]::IsNullOrWhiteSpace($SkeletonMappingOutputPath)) {
-                $SkeletonMappingOutputPath
-            }
-            else {
-                Get-DefaultSkeletonMappingOutputPath -RepoRoot (Join-Path $PSScriptRoot '..') -ResolvedTechId $currentTechId
-            }
-
-            $resolvedContractPath = Join-Path $DepsContractsPath $resolvedMappingContractRelativePath
-            if (-not (Test-Path -LiteralPath $resolvedContractPath -PathType Leaf)) {
-                $skippedTechIds.Add($currentTechId) | Out-Null
-                Write-Verbose ("[collector-mapping-sync] skip techId={0} reason=missing mapping contract path={1}" -f $currentTechId, $resolvedContractPath)
-                continue
-            }
-
-            $generatedPath = Sync-CollectorSkeletonMappingFromContract -ContractsRoot $DepsContractsPath -OutputPath $resolvedSkeletonMappingOutputPath -ResolvedTechId $currentTechId -ResolvedMappingContractRelativePath $resolvedMappingContractRelativePath
-            $generatedMappings.Add((Resolve-Path -LiteralPath $generatedPath).Path) | Out-Null
-        }
-        $stepTimer.Stop()
-        Update-SyncProgress -ProgressContext $progressContext -StageName 'Snapshot + mapping' -Status 'Snapshot and mapping complete' -Position 1
-        Write-SyncStep -Stage 'mapping generation' -Message 'Generated skeleton mapping from mapping contract.' -Details ([ordered]@{
-                contractsRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
-                generatedMappingCount = $generatedMappings.Count
-                skippedTechCount = $skippedTechIds.Count
-                techIdsProcessed = if ($techIdsToProcess.Count -gt 0) { ($techIdsToProcess -join ', ') } else { '<none>' }
-                durationMs = $stepTimer.ElapsedMilliseconds
-            })
+            }) -ProgressContext $progressContext -StepTimer $stepTimer -Stage ([ref]$stage)
 
         $result = [ordered]@{
             status = 'ok'
             mode = 'LocalExport'
             sourceRoot = $sourceRoot
             destinationRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
-            snapshotPath = $snapshotPath
-            skeletonMappingPaths = @($generatedMappings)
-            skippedTechIds = @($skippedTechIds)
+            snapshotPath = $postSync.snapshotPath
+            skeletonMappingPaths = @($postSync.skeletonMappingPaths)
+            skippedTechIds = @($postSync.skippedTechIds)
         }
     }
     else {
@@ -1101,10 +1126,7 @@ try {
                 durationMs = $stepTimer.ElapsedMilliseconds
             })
 
-        $stage = 'snapshot-write'
-        $stepTimer.Restart()
-        Update-SyncProgress -ProgressContext $progressContext -StageName 'Snapshot + mapping' -Status 'Writing snapshot metadata' -Position 0.2
-        $snapshotPath = Write-Snapshot -DestinationPath $DepsContractsPath -Snapshot ([ordered]@{
+        $postSync = Invoke-PostSyncProcessing -ContractsRoot $DepsContractsPath -RepoRoot (Join-Path $PSScriptRoot '..') -RequestedTechId $TechId -BoundParameters $PSBoundParameters -RequestedMappingContractRelativePath $MappingContractRelativePath -RequestedSkeletonMappingOutputPath $SkeletonMappingOutputPath -SnapshotData ([ordered]@{
                 schemaVersion = 1
                 syncedUtc = (Get-Date).ToUniversalTime().ToString('o')
                 source = 'published-pack'
@@ -1113,55 +1135,7 @@ try {
                 packUrl = $packUrl
                 releaseUrl = $releasePageUrl
                 packPath = $tmpZip
-            })
-        $stepTimer.Stop()
-        Write-SyncStep -Stage 'snapshot generation' -Message 'Wrote contracts snapshot metadata.' -Details ([ordered]@{
-                snapshotPath = $snapshotPath
-                source = 'published-pack'
-                version = $resolvedVersion
-                durationMs = $stepTimer.ElapsedMilliseconds
-            })
-
-        $stage = 'mapping-generation'
-        $stepTimer.Restart()
-        Update-SyncProgress -ProgressContext $progressContext -StageName 'Snapshot + mapping' -Status 'Generating skeleton mapping' -Position 0.8
-        $techIdsToProcess = Resolve-TechIdsToProcess -ContractsRoot $DepsContractsPath -RequestedTechId $TechId
-        $generatedMappings = [System.Collections.Generic.List[string]]::new()
-        $skippedTechIds = [System.Collections.Generic.List[string]]::new()
-
-        foreach ($currentTechId in @($techIdsToProcess)) {
-            $resolvedMappingContractRelativePath = if ($PSBoundParameters.ContainsKey('MappingContractRelativePath') -and -not [string]::IsNullOrWhiteSpace($MappingContractRelativePath)) {
-                $MappingContractRelativePath
-            }
-            else {
-                "tech/$currentTechId/mapping.dataset-to-sdt.v1.yaml"
-            }
-            $resolvedSkeletonMappingOutputPath = if ($PSBoundParameters.ContainsKey('SkeletonMappingOutputPath') -and -not [string]::IsNullOrWhiteSpace($SkeletonMappingOutputPath)) {
-                $SkeletonMappingOutputPath
-            }
-            else {
-                Get-DefaultSkeletonMappingOutputPath -RepoRoot (Join-Path $PSScriptRoot '..') -ResolvedTechId $currentTechId
-            }
-
-            $resolvedContractPath = Join-Path $DepsContractsPath $resolvedMappingContractRelativePath
-            if (-not (Test-Path -LiteralPath $resolvedContractPath -PathType Leaf)) {
-                $skippedTechIds.Add($currentTechId) | Out-Null
-                Write-Verbose ("[collector-mapping-sync] skip techId={0} reason=missing mapping contract path={1}" -f $currentTechId, $resolvedContractPath)
-                continue
-            }
-
-            $generatedPath = Sync-CollectorSkeletonMappingFromContract -ContractsRoot $DepsContractsPath -OutputPath $resolvedSkeletonMappingOutputPath -ResolvedTechId $currentTechId -ResolvedMappingContractRelativePath $resolvedMappingContractRelativePath
-            $generatedMappings.Add((Resolve-Path -LiteralPath $generatedPath).Path) | Out-Null
-        }
-        $stepTimer.Stop()
-        Update-SyncProgress -ProgressContext $progressContext -StageName 'Snapshot + mapping' -Status 'Snapshot and mapping complete' -Position 1
-        Write-SyncStep -Stage 'mapping generation' -Message 'Generated skeleton mapping from mapping contract.' -Details ([ordered]@{
-                contractsRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
-                generatedMappingCount = $generatedMappings.Count
-                skippedTechCount = $skippedTechIds.Count
-                techIdsProcessed = if ($techIdsToProcess.Count -gt 0) { ($techIdsToProcess -join ', ') } else { '<none>' }
-                durationMs = $stepTimer.ElapsedMilliseconds
-            })
+            }) -ProgressContext $progressContext -StepTimer $stepTimer -Stage ([ref]$stage)
 
         $result = [ordered]@{
             status = 'ok'
@@ -1171,9 +1145,9 @@ try {
             packUrl = $packUrl
             releaseUrl = $releasePageUrl
             destinationRoot = (Resolve-Path -LiteralPath $DepsContractsPath).Path
-            snapshotPath = $snapshotPath
-            skeletonMappingPaths = @($generatedMappings)
-            skippedTechIds = @($skippedTechIds)
+            snapshotPath = $postSync.snapshotPath
+            skeletonMappingPaths = @($postSync.skeletonMappingPaths)
+            skippedTechIds = @($postSync.skippedTechIds)
         }
     }
 
