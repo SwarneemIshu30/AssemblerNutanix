@@ -16,6 +16,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 Import-Module (Join-Path $PSScriptRoot 'internal/AssemblerSchemaValidation.psm1') -Force
+Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 function Get-UtcTimestamp { (Get-Date).ToUniversalTime().ToString('o') }
 
@@ -300,6 +302,111 @@ function Get-UnresolvedSdtTagOccurrences {
     }
 
     return $occurrencesByTag
+}
+
+function Merge-UnresolvedSdtTagOccurrences {
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Target,
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Source
+    )
+
+    foreach ($tag in @($Source.Keys)) {
+        if (-not (Test-MapHasKey -Map $Target -Key $tag)) {
+            $Target[$tag] = [ordered]@{
+                tag = $tag
+                count = 0
+                locations = [System.Collections.Generic.List[hashtable]]::new()
+            }
+        }
+
+        $targetOccurrence = $Target[$tag]
+        $sourceOccurrence = $Source[$tag]
+        $targetOccurrence.count = [int]$targetOccurrence.count + [int]$sourceOccurrence.count
+
+        foreach ($location in @($sourceOccurrence.locations)) {
+            $targetOccurrence.locations.Add([ordered]@{ line = [int]$location.line; column = [int]$location.column })
+        }
+    }
+}
+
+function Get-WordXmlPartEntries {
+    param([Parameter(Mandatory = $true)][System.IO.Compression.ZipArchive]$Archive)
+
+    return @(
+        $Archive.Entries | Where-Object {
+            $fullName = [string]$_.FullName
+            $fullName -eq 'word/document.xml' -or
+            $fullName -match '^word/header\d*\.xml$' -or
+            $fullName -match '^word/footer\d*\.xml$'
+        }
+    )
+}
+
+function Set-ZipEntryText {
+    param(
+        [Parameter(Mandatory = $true)][System.IO.Compression.ZipArchiveEntry]$Entry,
+        [Parameter(Mandatory = $true)][string]$Text
+    )
+
+    $stream = $Entry.Open()
+    try {
+        $stream.SetLength(0)
+        $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+        $writer = [System.IO.StreamWriter]::new($stream, $utf8NoBom)
+        try {
+            $writer.Write($Text)
+            $writer.Flush()
+        }
+        finally {
+            $writer.Dispose()
+        }
+    }
+    finally {
+        $stream.Dispose()
+    }
+}
+
+function Render-DocxTemplate {
+    param(
+        [Parameter(Mandatory = $true)][string]$TemplatePath,
+        [Parameter(Mandatory = $true)][string]$OutputPath,
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$ReplaceByTag
+    )
+
+    Copy-Item -LiteralPath $TemplatePath -Destination $OutputPath -Force
+
+    $archive = [System.IO.Compression.ZipFile]::Open($OutputPath, [System.IO.Compression.ZipArchiveMode]::Update)
+    try {
+        $unresolvedByTag = @{}
+        $partsUpdated = 0
+        foreach ($entry in @(Get-WordXmlPartEntries -Archive $archive)) {
+            $reader = [System.IO.StreamReader]::new($entry.Open())
+            try {
+                $xmlText = $reader.ReadToEnd()
+            }
+            finally {
+                $reader.Dispose()
+            }
+
+            foreach ($tag in @($ReplaceByTag.Keys)) {
+                $xmlText = $xmlText.Replace("<<SDT:$tag>>", [string]$ReplaceByTag[$tag])
+            }
+
+            Set-ZipEntryText -Entry $entry -Text $xmlText
+            $partsUpdated++
+
+            $partUnresolved = Get-UnresolvedSdtTagOccurrences -RenderedText $xmlText
+            Merge-UnresolvedSdtTagOccurrences -Target $unresolvedByTag -Source $partUnresolved
+        }
+
+        return [ordered]@{
+            unresolvedByTag = $unresolvedByTag
+            partsUpdated = $partsUpdated
+        }
+    }
+    finally {
+        $archive.Dispose()
+    }
 }
 
 
@@ -1172,6 +1279,9 @@ $currentTag = $null
 $currentDatasetRelativePath = $null
 $currentDatasetPath = $null
 $currentSelectorChain = ''
+$templateExtension = $null
+$isDocxTemplate = $false
+$templateText = $null
 
 $stageMap = [ordered]@{}
 $stageInitializationUtc = Get-UtcTimestamp
@@ -1225,14 +1335,18 @@ try {
     $projectionDefinitions = Get-ProjectionDefinitions -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
     $projectionAliases = Get-ProjectionAliases -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
     $mappingSchema = Read-JsonFile -Path $mappingSchemaPath
-    $templateText = Get-Content -LiteralPath $TemplatePath -Raw -Encoding UTF8
+    $templateExtension = [string]([System.IO.Path]::GetExtension($TemplatePath)).ToLowerInvariant()
+    $isDocxTemplate = ($templateExtension -eq '.docx')
+    if (-not $isDocxTemplate) {
+        $templateText = Get-Content -LiteralPath $TemplatePath -Raw -Encoding UTF8
+    }
 
     $manifestPath = Join-Path $BundleRoot 'manifest.json'
     if (Test-Path -LiteralPath $manifestPath -PathType Leaf) {
         $manifest = Read-JsonFile -Path $manifestPath
         $bundleId = $manifest.bundleId
     }
-    Complete-RenderStage -Stage $stageMap.Load -Status 'OK' -Details ([ordered]@{ mappingPath = $MappingPath; templatePath = $TemplatePath; contractsRoot = $effectiveContractsRoot; mappingSchemaPath = $mappingSchemaPath; projectionContractPath = $projectionContractPath; projectionSchemaPath = $projectionSchemaPath })
+    Complete-RenderStage -Stage $stageMap.Load -Status 'OK' -Details ([ordered]@{ mappingPath = $MappingPath; templatePath = $TemplatePath; templateExtension = $templateExtension; contractsRoot = $effectiveContractsRoot; mappingSchemaPath = $mappingSchemaPath; projectionContractPath = $projectionContractPath; projectionSchemaPath = $projectionSchemaPath })
 
     Start-RenderStage -Stage $stageMap.Validate
     $mappingValidation = Test-AssemblerSchemaFile -DocumentPath $MappingPath -SchemaPath $mappingSchemaPath
@@ -1352,12 +1466,26 @@ try {
     Complete-RenderStage -Stage $stageMap.Transform -Status $transformStatus -Details ([ordered]@{ tagsResolved = $replaceByTag.Count; matches = $matches.Count })
 
     Start-RenderStage -Stage $stageMap.Render
-    $rendered = $templateText
-    foreach ($tag in $replaceByTag.Keys) {
-        $token = "<<SDT:$tag>>"
-        $rendered = $rendered.Replace($token, [string]$replaceByTag[$tag])
+    $rendered = $null
+    $unresolvedByTag = @{}
+    $renderDetails = [ordered]@{}
+    if ($isDocxTemplate) {
+        $outputDir = Split-Path -Path $OutputPath -Parent
+        if ($outputDir -and -not (Test-Path -LiteralPath $outputDir -PathType Container)) {
+            New-Item -Path $outputDir -ItemType Directory -Force | Out-Null
+        }
+        $docxRender = Render-DocxTemplate -TemplatePath $TemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag
+        $unresolvedByTag = $docxRender.unresolvedByTag
+        $renderDetails.partsUpdated = [int]$docxRender.partsUpdated
     }
-    $unresolvedByTag = Get-UnresolvedSdtTagOccurrences -RenderedText $rendered
+    else {
+        $rendered = $templateText
+        foreach ($tag in $replaceByTag.Keys) {
+            $token = "<<SDT:$tag>>"
+            $rendered = $rendered.Replace($token, [string]$replaceByTag[$tag])
+        }
+        $unresolvedByTag = Get-UnresolvedSdtTagOccurrences -RenderedText $rendered
+    }
     $unresolvedSummary = [ordered]@{
         unresolvedTagCount = @($unresolvedByTag.Keys).Count
         unresolvedOccurrences = 0
@@ -1403,6 +1531,8 @@ try {
     $renderStatus = if ($status -eq 'ERROR') { 'ERROR' } elseif (@($issues | Where-Object { $_.severity -eq 'WARN' }).Count -gt 0) { 'WARN' } else { 'OK' }
     Complete-RenderStage -Stage $stageMap.Render -Status $renderStatus -Details ([ordered]@{
         tagsPopulated = $replaceByTag.Count
+        templateKind = $(if ($isDocxTemplate) { 'docx' } else { 'text' })
+        docxPartsUpdated = $(if ($isDocxTemplate) { [int]$renderDetails.partsUpdated } else { 0 })
         unresolved = $unresolvedSummary
         unresolvedPolicy = [ordered]@{
             requiredOrUnknown = 'ERROR'
@@ -1415,8 +1545,10 @@ try {
     if ($outDir -and -not (Test-Path -LiteralPath $outDir -PathType Container)) {
         New-Item -Path $outDir -ItemType Directory -Force | Out-Null
     }
-    Set-Content -LiteralPath $OutputPath -Value $rendered -Encoding UTF8
-    $outputs.Add([ordered]@{ path = $OutputPath; type = 'text/template-rendered' })
+    if (-not $isDocxTemplate) {
+        Set-Content -LiteralPath $OutputPath -Value $rendered -Encoding UTF8
+    }
+    $outputs.Add([ordered]@{ path = $OutputPath; type = $(if ($isDocxTemplate) { 'docx/template-rendered' } else { 'text/template-rendered' }) })
     $finalizeStatus = if ($status -eq 'ERROR') { 'ERROR' } else { 'OK' }
     Complete-RenderStage -Stage $stageMap.Finalize -Status $finalizeStatus -Details ([ordered]@{ outputPath = $OutputPath })
 }
