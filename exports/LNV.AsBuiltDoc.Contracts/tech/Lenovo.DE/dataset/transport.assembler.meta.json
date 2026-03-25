@@ -7,6 +7,10 @@
     {
       "name": "Evidence",
       "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Narrative.SystemEvidence.Fields"
+    },
+    {
+      "name": "ActiveTransport",
+      "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Narrative.SystemEvidence.Fields"
     }
   ],
   "datasetPath": {

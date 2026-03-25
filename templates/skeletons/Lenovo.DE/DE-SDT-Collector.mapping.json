@@ -278,15 +278,15 @@
       ]
     },
     {
-      "dataset": "datasets/Lenovo.DE/__TARGET__/systems.json",
-      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Config",
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/transport.json",
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence",
       "required": false,
       "renderHint": {
         "renderAs": "scalar",
-        "view": "Config"
+        "view": "Evidence"
       },
       "selectors": [
-        "items.0.model"
+        "items.0.activeTransport"
       ]
     },
     {

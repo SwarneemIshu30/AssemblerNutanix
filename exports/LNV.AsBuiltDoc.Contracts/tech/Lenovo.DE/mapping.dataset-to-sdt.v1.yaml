@@ -195,96 +195,14 @@ mappings:
     projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits
     view: Limits
 
-- dataset: management-interfaces
-  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.Management.ControllerA
+- dataset: transport
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.ActiveTransport
   required: false
-  notes: placement=Main; minInfoLevel=1; objectKey=ManagementControllerA; scope=PerSystem; narrativeScalar=true
   selectors:
-  - items.0.ipv4Address
+  - items.0.activeTransport
   renderHint:
     renderAs: scalar
-    view: ControllerA
-- dataset: management-interfaces
-  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.Management.ControllerB
-  required: false
-  notes: placement=Main; minInfoLevel=1; objectKey=ManagementControllerB; scope=PerSystem; narrativeScalar=true
-  selectors:
-  - items.1.ipv4Address
-  renderHint:
-    renderAs: scalar
-    view: ControllerB
-- dataset: system-dns
-  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.DNS.Scope1
-  required: false
-  notes: placement=Main; minInfoLevel=1; objectKey=DnsScope1; scope=PerSystem; narrativeScalar=true
-  selectors:
-  - items.0.dnsAcquisitionType
-  renderHint:
-    renderAs: scalar
-    view: Scope1
-- dataset: system-dns
-  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.DNS.Scope2
-  required: false
-  notes: placement=Main; minInfoLevel=1; objectKey=DnsScope2; scope=PerSystem; narrativeScalar=true
-  selectors:
-  - items.1.dnsAcquisitionType
-  renderHint:
-    renderAs: scalar
-    view: Scope2
-- dataset: system-time
-  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.Time.Scope1
-  required: false
-  notes: placement=Main; minInfoLevel=1; objectKey=TimeScope1; scope=PerSystem; narrativeScalar=true
-  selectors:
-  - items.0.ntpAcquisitionType
-  renderHint:
-    renderAs: scalar
-    view: Scope1
-- dataset: system-time
-  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.Time.Scope2
-  required: false
-  notes: placement=Main; minInfoLevel=1; objectKey=TimeScope2; scope=PerSystem; narrativeScalar=true
-  selectors:
-  - items.1.ntpAcquisitionType
-  renderHint:
-    renderAs: scalar
-    view: Scope2
-- dataset: host-ports
-  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.HostPorts.Port1
-  required: false
-  notes: placement=Main; minInfoLevel=1; objectKey=HostPortPrimary; scope=PerSystem; narrativeScalar=true; ordering=controllerSlot,channel,portLabel
-  selectors:
-  - items.0.portLabel
-  renderHint:
-    renderAs: scalar
-    view: Port1
-- dataset: host-ports
-  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.HostPorts.Port2
-  required: false
-  notes: placement=Main; minInfoLevel=1; objectKey=HostPortSecondary; scope=PerSystem; narrativeScalar=true; ordering=controllerSlot,channel,portLabel
-  selectors:
-  - items.1.portLabel
-  renderHint:
-    renderAs: scalar
-    view: Port2
-- dataset: systems
-  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.Version
-  required: false
-  notes: placement=Main; minInfoLevel=1; objectKey=SystemVersion; scope=PerSystem; narrativeScalar=true
-  selectors:
-  - items.0.appVersion
-  renderHint:
-    renderAs: scalar
-    view: Version
-- dataset: systems
-  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.Config
-  required: false
-  notes: placement=Main; minInfoLevel=1; objectKey=SystemConfig; scope=PerSystem; narrativeScalar=true
-  selectors:
-  - items.0.model
-  renderHint:
-    renderAs: scalar
-    view: Config
+    view: ActiveTransport
 - dataset: transport
   sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.Evidence
   required: false
