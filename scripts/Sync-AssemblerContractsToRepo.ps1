@@ -516,6 +516,9 @@ function Get-CollectorSdtTagFromContract {
     }
 
     $contractTag = if ($MappingEntry.ContainsKey('sdtTag')) { [string]$MappingEntry.sdtTag } else { '' }
+    if ([string]::IsNullOrWhiteSpace($contractTag) -and $MappingEntry.ContainsKey('target') -and $MappingEntry.target -is [System.Collections.IDictionary] -and $MappingEntry.target.ContainsKey('sdtTag')) {
+        $contractTag = [string]$MappingEntry.target.sdtTag
+    }
     if ([string]::IsNullOrWhiteSpace($contractTag)) {
         return ''
     }
@@ -783,6 +786,9 @@ function Sync-CollectorSkeletonMappingFromContract {
 
             $sourceDataset = if ($entryTable.ContainsKey('dataset')) { [string]$entryTable.dataset } else { '' }
             $sourceTag = if ($entryTable.ContainsKey('sdtTag')) { [string]$entryTable.sdtTag } else { '' }
+            if ([string]::IsNullOrWhiteSpace($sourceTag) -and $entryTable.ContainsKey('target') -and $entryTable.target -is [System.Collections.IDictionary] -and $entryTable.target.ContainsKey('sdtTag')) {
+                $sourceTag = [string]$entryTable.target.sdtTag
+            }
             $sourceDatasetKey = if ([string]::IsNullOrWhiteSpace($sourceDataset)) { '<missing-dataset>' } else { $sourceDataset }
             $sourceTagKey = if ([string]::IsNullOrWhiteSpace($sourceTag)) { '<missing-tag>' } else { $sourceTag }
             $sourceKey = "$sourceDatasetKey|$sourceTagKey"
@@ -805,8 +811,17 @@ function Sync-CollectorSkeletonMappingFromContract {
 
             $mappingEntry = [ordered]@{
                 dataset = (Get-CollectorDatasetPathFromTemplate -DatasetName $datasetName -ResolvedTechId $ResolvedTechId -DatasetPathTemplateMap $datasetPathTemplateMap)
-                sdtTag = $resolvedTag
                 required = [bool]$entryTable.required
+            }
+
+            $entryPhase = if ($entryTable.ContainsKey('phase')) { [string]$entryTable.phase } else { '' }
+            $emitTargetOnly = $entryPhase -eq 'target-first'
+            if (-not $emitTargetOnly) {
+                # Transitional dual-form default: keep top-level sdtTag while also emitting target.sdtTag.
+                $mappingEntry.sdtTag = $resolvedTag
+            }
+            $mappingEntry.target = [ordered]@{
+                sdtTag = $resolvedTag
             }
 
             $renderHintSource = $null
