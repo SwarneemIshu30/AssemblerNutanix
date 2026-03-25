@@ -452,6 +452,44 @@ Describe 'Sync-AssemblerContractsToRepo' {
         }
     }
 
+    It 'defaults output shape mode when omitted and still generates skeleton mapping' {
+        $tempRoot = New-DeterministicTempRoot -Name 'mapping-shape-mode-default'
+        $destinationRoot = Join-Path $tempRoot '.deps/contracts'
+        $skeletonMappingPath = Join-Path $tempRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json'
+
+        try {
+            $result = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $sourceRoot,
+                '-DepsContractsPath', $destinationRoot,
+                '-SkeletonMappingOutputPath', $skeletonMappingPath,
+                '-Clean'
+            )
+
+            if ($result.ExitCode -ne 0) {
+                throw "Expected success when OutputShapeMode is omitted, got $($result.ExitCode). Output: $($result.Output)"
+            }
+            if ([string]$result.Output -match 'Cannot validate argument on parameter ''OutputShapeMode''') {
+                throw "Did not expect ValidateSet binding failure for omitted OutputShapeMode. Output: $($result.Output)"
+            }
+            if (-not (Test-Path -LiteralPath $skeletonMappingPath -PathType Leaf)) {
+                throw 'Expected skeleton mapping generation to succeed in default output shape mode'
+            }
+
+            $generatedMapping = Get-Content -LiteralPath $skeletonMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            if ($null -eq $generatedMapping -or @($generatedMapping.mappings).Count -eq 0) {
+                throw 'Expected generated mapping to contain at least one mapping entry in default output shape mode'
+            }
+            if ($result.Json.outputShapeMode -ne $null) {
+                throw "Expected report outputShapeMode to be null in default mode, got '$($result.Json.outputShapeMode)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'fails when rollout mode enforcement is dual but contract is legacy-shaped' {
         $tempRoot = New-DeterministicTempRoot -Name 'mapping-shape-mode-dual-fail'
         $destinationRoot = Join-Path $tempRoot '.deps/contracts'

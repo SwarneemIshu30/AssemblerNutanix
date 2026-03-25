@@ -395,7 +395,17 @@ function Invoke-PostSyncProcessing {
             continue
         }
 
-        $generationResult = Sync-CollectorSkeletonMappingFromContract -ContractsRoot $ContractsRoot -OutputPath $resolvedSkeletonMappingOutputPath -ResolvedTechId $currentTechId -ResolvedMappingContractRelativePath $resolvedMappingContractRelativePath -OutputShapeMode $OutputShapeMode
+        $mappingSyncArgs = @{
+            ContractsRoot = $ContractsRoot
+            OutputPath = $resolvedSkeletonMappingOutputPath
+            ResolvedTechId = $currentTechId
+            ResolvedMappingContractRelativePath = $resolvedMappingContractRelativePath
+        }
+        if (-not [string]::IsNullOrWhiteSpace($OutputShapeMode)) {
+            $mappingSyncArgs.OutputShapeMode = $OutputShapeMode
+        }
+
+        $generationResult = Sync-CollectorSkeletonMappingFromContract @mappingSyncArgs
         $resolvedGeneratedPath = (Resolve-Path -LiteralPath $generationResult.outputPath).Path
         $generatedMappings.Add($resolvedGeneratedPath) | Out-Null
 
@@ -1091,6 +1101,7 @@ $progressStarted = $false
 $progressContext = $null
 $syncStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 $stepTimer = [System.Diagnostics.Stopwatch]::new()
+$normalizedOutputShapeMode = $null
 
 try {
     $progressStarted = $true
@@ -1120,6 +1131,8 @@ try {
     if ($PSBoundParameters.ContainsKey('SkeletonMappingOutputPath') -and -not $PSBoundParameters.ContainsKey('TechId')) {
         throw "SkeletonMappingOutputPath requires TechId; it cannot be used in auto-discovery mode."
     }
+
+    $normalizedOutputShapeMode = if ([string]::IsNullOrWhiteSpace($OutputShapeMode)) { $null } else { $OutputShapeMode.Trim() }
     $stepTimer.Stop()
     Update-SyncProgress -ProgressContext $progressContext -StageName 'Validate params' -Status 'Validated parameters' -Position 1
     Write-SyncStep -Stage 'input validation' -Message 'Validated parameter combinations and operating mode.' -Details ([ordered]@{
@@ -1127,7 +1140,7 @@ try {
             techId = if ($PSBoundParameters.ContainsKey('TechId')) { $TechId.Trim() } else { '<auto-discover-under-tech-root>' }
             mappingContractRelativePath = if ($PSBoundParameters.ContainsKey('MappingContractRelativePath')) { $MappingContractRelativePath } else { '<derived-per-tech>' }
             skeletonMappingOutputPath = if ($PSBoundParameters.ContainsKey('SkeletonMappingOutputPath')) { $SkeletonMappingOutputPath } else { '<derived-per-tech>' }
-            outputShapeMode = if ([string]::IsNullOrWhiteSpace($OutputShapeMode)) { '<phase-driven-default>' } else { $OutputShapeMode }
+            outputShapeMode = if ($null -eq $normalizedOutputShapeMode) { '<phase-driven-default>' } else { $normalizedOutputShapeMode }
             contractsVersion = $ContractsVersion
             contractsPackUrl = $ContractsPackUrl
             durationMs = $stepTimer.ElapsedMilliseconds
@@ -1182,7 +1195,7 @@ try {
                 syncedUtc = (Get-Date).ToUniversalTime().ToString('o')
                 source = 'local-export-copy'
                 exportContractsPath = $sourceRoot
-            }) -ProgressContext $progressContext -StepTimer $stepTimer -Stage ([ref]$stage) -OutputShapeMode $OutputShapeMode
+            }) -ProgressContext $progressContext -StepTimer $stepTimer -Stage ([ref]$stage) -OutputShapeMode $normalizedOutputShapeMode
 
         $result = [ordered]@{
             status = 'ok'
@@ -1193,7 +1206,7 @@ try {
             skeletonMappingPaths = @($postSync.skeletonMappingPaths)
             skippedTechIds = @($postSync.skippedTechIds)
             mappingShapeDashboard = $postSync.shapeDashboardByTech
-            outputShapeMode = if ([string]::IsNullOrWhiteSpace($OutputShapeMode)) { $null } else { $OutputShapeMode }
+            outputShapeMode = $normalizedOutputShapeMode
         }
     }
     else {
@@ -1294,7 +1307,7 @@ try {
                 packUrl = $packUrl
                 releaseUrl = $releasePageUrl
                 packPath = $tmpZip
-            }) -ProgressContext $progressContext -StepTimer $stepTimer -Stage ([ref]$stage) -OutputShapeMode $OutputShapeMode
+            }) -ProgressContext $progressContext -StepTimer $stepTimer -Stage ([ref]$stage) -OutputShapeMode $normalizedOutputShapeMode
 
         $result = [ordered]@{
             status = 'ok'
@@ -1308,7 +1321,7 @@ try {
             skeletonMappingPaths = @($postSync.skeletonMappingPaths)
             skippedTechIds = @($postSync.skippedTechIds)
             mappingShapeDashboard = $postSync.shapeDashboardByTech
-            outputShapeMode = if ([string]::IsNullOrWhiteSpace($OutputShapeMode)) { $null } else { $OutputShapeMode }
+            outputShapeMode = $normalizedOutputShapeMode
         }
     }
 
