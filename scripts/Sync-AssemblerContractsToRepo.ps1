@@ -815,13 +815,21 @@ function Sync-CollectorSkeletonMappingFromContract {
             }
 
             $entryPhase = if ($entryTable.ContainsKey('phase')) { [string]$entryTable.phase } else { '' }
-            $emitTargetOnly = $entryPhase -eq 'target-first'
-            if (-not $emitTargetOnly) {
-                # Transitional dual-form default: keep top-level sdtTag while also emitting target.sdtTag.
+            $resolvedTagShape = switch ($entryPhase) {
+                'source-only' { 'source-only' }
+                'target-first' { 'target-only' }
+                'dual' { 'dual' }
+                '' { 'dual' }
+                default { 'dual' }
+            }
+
+            if ($resolvedTagShape -in @('source-only', 'dual')) {
                 $mappingEntry.sdtTag = $resolvedTag
             }
-            $mappingEntry.target = [ordered]@{
-                sdtTag = $resolvedTag
+            if ($resolvedTagShape -in @('target-only', 'dual')) {
+                $mappingEntry.target = [ordered]@{
+                    sdtTag = $resolvedTag
+                }
             }
 
             $renderHintSource = $null

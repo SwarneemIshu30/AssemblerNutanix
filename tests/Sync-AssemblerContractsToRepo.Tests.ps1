@@ -311,6 +311,59 @@ Describe 'Sync-AssemblerContractsToRepo' {
         }
     }
 
+    It 'emits configured mapping tag shape for source-only, dual, and target-only contract entries' {
+        $tempRoot = New-DeterministicTempRoot -Name 'mapping-shape-emission'
+        $contractsSourceRoot = Join-Path $tempRoot 'contracts-source'
+        $destinationRoot = Join-Path $tempRoot '.deps/contracts'
+        $skeletonMappingPath = Join-Path $tempRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json'
+        $mappingContractPath = Join-Path $contractsSourceRoot 'tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml'
+
+        Copy-Item -LiteralPath $sourceRoot -Destination $contractsSourceRoot -Recurse -Force
+
+        $contractText = Get-Content -LiteralPath $mappingContractPath -Raw -Encoding UTF8
+        $contractText = $contractText -replace "(?ms)(- dataset: system-controllers\s+.*?projectionRef: LNV\.Lenovo\.DE\.System\[ArrayName\]\.Tables\.Controllers)", "`$1`n  phase: source-only"
+        $contractText = $contractText -replace "(?ms)(- dataset: transport\s+.*?projectionRef: LNV\.Lenovo\.DE\.System\[ArrayName\]\.Tables\.Transport)", "`$1`n  phase: dual"
+        $contractText = $contractText -replace "(?ms)(- dataset: system-dns\s+.*?projectionRef: LNV\.Lenovo\.DE\.System\[ArrayName\]\.Tables\.DNS)", "`$1`n  phase: target-first"
+        Set-Content -LiteralPath $mappingContractPath -Value $contractText -Encoding UTF8
+
+        try {
+            $result = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $contractsSourceRoot,
+                '-DepsContractsPath', $destinationRoot,
+                '-SkeletonMappingOutputPath', $skeletonMappingPath,
+                '-Clean'
+            )
+
+            if ($result.ExitCode -ne 0) {
+                throw "Expected sync success while testing shape emission, got $($result.ExitCode)"
+            }
+
+            $generatedMapping = Get-Content -LiteralPath $skeletonMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            $controllers = @($generatedMapping.mappings | Where-Object { $_.dataset -eq 'datasets/systems/Controllers.json' }) | Select-Object -First 1
+            $transport = @($generatedMapping.mappings | Where-Object { $_.dataset -eq 'datasets/systems/ActiveTransport.json' }) | Select-Object -First 1
+            $dns = @($generatedMapping.mappings | Where-Object { $_.dataset -eq 'datasets/systems/DNS.json' }) | Select-Object -First 1
+
+            if ($null -eq $controllers -or $null -eq $transport -or $null -eq $dns) {
+                throw 'Expected generated mapping entries for Controllers, ActiveTransport, and DNS datasets'
+            }
+
+            if (-not $controllers.ContainsKey('sdtTag') -or $controllers.ContainsKey('target')) {
+                throw 'Expected phase source-only entry to emit sdtTag only (no target.sdtTag)'
+            }
+            if (-not $transport.ContainsKey('sdtTag') -or -not ($transport.ContainsKey('target') -and $transport.target -is [System.Collections.IDictionary] -and $transport.target.ContainsKey('sdtTag'))) {
+                throw 'Expected phase dual entry to emit both sdtTag and target.sdtTag'
+            }
+            if ($dns.ContainsKey('sdtTag') -or -not ($dns.ContainsKey('target') -and $dns.target -is [System.Collections.IDictionary] -and $dns.target.ContainsKey('sdtTag'))) {
+                throw 'Expected phase target-first entry to emit target.sdtTag only'
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'emits actionable error when ConvertFrom-Yaml is unavailable' {
         $tempRoot = New-DeterministicTempRoot -Name 'missing-convertfromyaml'
         $destinationRoot = Join-Path $tempRoot '.deps/contracts'
