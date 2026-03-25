@@ -578,6 +578,111 @@ function ConvertTo-PlainHashtable {
     return $InputObject
 }
 
+function Copy-AsHashtable {
+    param([Parameter(Mandatory = $false)]$Value)
+
+    if ($null -eq $Value) { return $null }
+    return (($Value | ConvertTo-Json -Depth 30) | ConvertFrom-Json -AsHashtable)
+}
+
+function Set-MappingEntryTagShape {
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Entry,
+        [Parameter(Mandatory = $true)][string]$Mode
+    )
+
+    $sdtTag = if (Test-MapHasKey -Map $Entry -Key 'sdtTag') { [string]$Entry['sdtTag'] } else { '' }
+    $targetTag = if (
+        (Test-MapHasKey -Map $Entry -Key 'target') -and
+        $Entry['target'] -is [System.Collections.IDictionary] -and
+        (Test-MapHasKey -Map $Entry['target'] -Key 'sdtTag')
+    ) { [string]$Entry['target']['sdtTag'] } else { '' }
+
+    switch ($Mode) {
+        'source-only' {
+            if (-not [string]::IsNullOrWhiteSpace($targetTag)) {
+                $Entry['sdtTag'] = $targetTag
+            }
+            if (Test-MapHasKey -Map $Entry -Key 'target') {
+                $Entry.Remove('target')
+            }
+        }
+        'target-only' {
+            if (-not [string]::IsNullOrWhiteSpace($sdtTag) -and [string]::IsNullOrWhiteSpace($targetTag)) {
+                $targetTag = $sdtTag
+            }
+            if (-not [string]::IsNullOrWhiteSpace($targetTag)) {
+                $Entry['target'] = [ordered]@{ sdtTag = $targetTag }
+            }
+            if (Test-MapHasKey -Map $Entry -Key 'sdtTag') {
+                $Entry.Remove('sdtTag')
+            }
+        }
+        'dual' {
+            if (-not [string]::IsNullOrWhiteSpace($targetTag) -and [string]::IsNullOrWhiteSpace($sdtTag)) {
+                $sdtTag = $targetTag
+            }
+            if (-not [string]::IsNullOrWhiteSpace($sdtTag) -and [string]::IsNullOrWhiteSpace($targetTag)) {
+                $targetTag = $sdtTag
+            }
+
+            if (-not [string]::IsNullOrWhiteSpace($sdtTag)) {
+                $Entry['sdtTag'] = $sdtTag
+            }
+            if (-not [string]::IsNullOrWhiteSpace($targetTag)) {
+                $Entry['target'] = [ordered]@{ sdtTag = $targetTag }
+            }
+        }
+        default {
+            throw "Unknown mapping tag-shape mode '$Mode'."
+        }
+    }
+}
+
+function Resolve-MappingSchemaCompatibleDocument {
+    param(
+        [Parameter(Mandatory = $true)][hashtable]$MappingDocument,
+        [Parameter(Mandatory = $true)][string]$SchemaPath,
+        [Parameter(Mandatory = $true)][string]$DocumentLabel
+    )
+
+    $candidates = @(
+        [ordered]@{ mode = 'as-is'; value = (Copy-AsHashtable -Value $MappingDocument) },
+        [ordered]@{ mode = 'dual'; value = (Copy-AsHashtable -Value $MappingDocument) },
+        [ordered]@{ mode = 'target-only'; value = (Copy-AsHashtable -Value $MappingDocument) },
+        [ordered]@{ mode = 'source-only'; value = (Copy-AsHashtable -Value $MappingDocument) }
+    )
+
+    foreach ($candidate in $candidates) {
+        if ($candidate.mode -ne 'as-is' -and (Test-MapHasKey -Map $candidate.value -Key 'mappings')) {
+            foreach ($entry in @($candidate.value.mappings)) {
+                if ($entry -is [System.Collections.IDictionary]) {
+                    Set-MappingEntryTagShape -Entry $entry -Mode ([string]$candidate.mode)
+                }
+            }
+        }
+
+        $candidateJson = $candidate.value | ConvertTo-Json -Depth 30
+        $validation = Test-AssemblerSchemaJson -JsonText $candidateJson -SchemaPath $SchemaPath -DocumentLabel $DocumentLabel
+        if ($validation.isValid) {
+            return [ordered]@{
+                isValid = $true
+                mode = [string]$candidate.mode
+                mapping = $candidate.value
+                message = [string]$validation.message
+            }
+        }
+    }
+
+    $finalValidation = Test-AssemblerSchemaFile -DocumentPath $DocumentLabel -SchemaPath $SchemaPath
+    return [ordered]@{
+        isValid = $false
+        mode = 'none'
+        mapping = $MappingDocument
+        message = [string]$finalValidation.message
+    }
+}
+
 
 $script:DatasetPresentationMetadataCache = @{}
 
@@ -1481,13 +1586,22 @@ try {
     Complete-RenderStage -Stage $stageMap.Load -Status 'OK' -Details ([ordered]@{ mappingPath = $MappingPath; templatePath = $TemplatePath; templateExtension = $templateExtension; contractsRoot = $effectiveContractsRoot; mappingSchemaPath = $mappingSchemaPath; projectionContractPath = $projectionContractPath; projectionSchemaPath = $projectionSchemaPath })
 
     Start-RenderStage -Stage $stageMap.Validate
-    $mappingValidation = Test-AssemblerSchemaFile -DocumentPath $MappingPath -SchemaPath $mappingSchemaPath
-    if (-not $mappingValidation.isValid) {
-        Add-SchemaValidationIssue -Code 'ASB-ASM-SCHEMA-MAPPING-INVALID' -Message ([string]$mappingValidation.message) -PathValue $MappingPath
+    $mappingCompatibility = Resolve-MappingSchemaCompatibleDocument -MappingDocument $mapping -SchemaPath $mappingSchemaPath -DocumentLabel $MappingPath
+    if (-not $mappingCompatibility.isValid) {
+        Add-SchemaValidationIssue -Code 'ASB-ASM-SCHEMA-MAPPING-INVALID' -Message ([string]$mappingCompatibility.message) -PathValue $MappingPath
         Complete-RenderStage -Stage $stageMap.Validate -Status 'ERROR'
         $status = 'ERROR'
         throw 'Mapping schema validation failed.'
     }
+    if ([string]$mappingCompatibility.mode -ne 'as-is') {
+        $issues.Add([ordered]@{
+            code = 'ASB-ASM-SDT-MAPPING-COMPAT-SHAPE'
+            severity = 'WARN'
+            message = "Mapping file '$MappingPath' was adapted to '$($mappingCompatibility.mode)' SDT tag shape for schema compatibility."
+            path = $MappingPath
+        })
+    }
+    $mapping = $mappingCompatibility.mapping
 
     $projectionContractJson = $projectionContract | ConvertTo-Json -Depth 20
     $projectionContractJsonShape = Test-ProjectionContractJsonArrayShape -JsonText $projectionContractJson
