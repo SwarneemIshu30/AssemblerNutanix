@@ -327,7 +327,7 @@ function Invoke-PostSyncProcessing {
     param(
         [Parameter(Mandatory = $true)][string]$ContractsRoot,
         [Parameter(Mandatory = $true)][string]$RepoRoot,
-        [Parameter(Mandatory = $true)][string]$RequestedTechId,
+        [string]$RequestedTechId,
         [Parameter(Mandatory = $true)][hashtable]$BoundParameters,
         [string]$RequestedMappingContractRelativePath,
         [string]$RequestedSkeletonMappingOutputPath,

@@ -19,6 +19,7 @@ Describe 'Sync-AssemblerContractsToRepo' {
     function Invoke-SyncScript {
         param(
             [Parameter(Mandatory = $true)][string[]]$Arguments,
+            [string]$ScriptPath = $scriptPath,
             [switch]$NonInteractive
         )
 
@@ -27,7 +28,7 @@ Describe 'Sync-AssemblerContractsToRepo' {
             $invocationArgs += '-NonInteractive'
         }
 
-        $invocationArgs += @('-File', $scriptPath)
+        $invocationArgs += @('-File', $ScriptPath)
         $invocationArgs += $Arguments
 
         $output = & $pwshPath @invocationArgs
@@ -91,6 +92,51 @@ Describe 'Sync-AssemblerContractsToRepo' {
             }
             if (-not [string]::IsNullOrWhiteSpace([string]$result.Json.skeletonMappingPath) -and -not (Test-Path -LiteralPath ([string]$result.Json.skeletonMappingPath) -PathType Leaf)) {
                 throw "Expected report.skeletonMappingPath '$($result.Json.skeletonMappingPath)' to exist"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'supports auto-discovery when TechId is omitted and generates discovered mappings' {
+        $tempRoot = New-DeterministicTempRoot -Name 'auto-discovery-no-techid'
+        $contractsSourceRoot = Join-Path $tempRoot 'contracts-source'
+        $destinationRoot = Join-Path $tempRoot '.deps/contracts'
+        $tempScriptRoot = Join-Path $tempRoot 'repo/scripts'
+        $tempScriptPath = Join-Path $tempScriptRoot 'Sync-AssemblerContractsToRepo.ps1'
+
+        Copy-Item -LiteralPath $sourceRoot -Destination $contractsSourceRoot -Recurse -Force
+        New-Item -ItemType Directory -Path $tempScriptRoot -Force | Out-Null
+        Copy-Item -LiteralPath $scriptPath -Destination $tempScriptPath -Force
+
+        try {
+            $result = Invoke-SyncScript -ScriptPath $tempScriptPath -Arguments @(
+                '-ExportContractsPath', $contractsSourceRoot,
+                '-DepsContractsPath', $destinationRoot,
+                '-Clean'
+            )
+
+            if ($result.ExitCode -ne 0) {
+                throw "Expected exit code 0 in TechId auto-discovery mode, got $($result.ExitCode). Output: $($result.Output)"
+            }
+            if ($result.Json.status -ne 'ok') {
+                throw "Expected status ok in TechId auto-discovery mode, got '$($result.Json.status)'"
+            }
+
+            $generatedPaths = @($result.Json.skeletonMappingPaths)
+            if ($generatedPaths.Count -eq 0) {
+                throw 'Expected at least one generated skeleton mapping path from discovered tech ids'
+            }
+
+            $expectedDiscoveredMappingPath = Join-Path $tempRoot 'repo/templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json'
+            if ($generatedPaths -notcontains $expectedDiscoveredMappingPath) {
+                throw "Expected discovered mapping path '$expectedDiscoveredMappingPath' in report output. Paths: $($generatedPaths -join ', ')"
+            }
+            if (-not (Test-Path -LiteralPath $expectedDiscoveredMappingPath -PathType Leaf)) {
+                throw "Expected discovered mapping file to exist at '$expectedDiscoveredMappingPath'"
             }
         }
         finally {
