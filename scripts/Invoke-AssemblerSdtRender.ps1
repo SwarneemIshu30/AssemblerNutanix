@@ -366,11 +366,102 @@ function Set-ZipEntryText {
     }
 }
 
+function Get-WordTableStyleId {
+    param(
+        [Parameter(Mandatory = $false)][string]$StylesXmlText,
+        [Parameter(Mandatory = $true)][string]$StyleName
+    )
+
+    if ([string]::IsNullOrWhiteSpace($StylesXmlText)) { return '' }
+    try {
+        $doc = [xml]$StylesXmlText
+        $nsMgr = [System.Xml.XmlNamespaceManager]::new($doc.NameTable)
+        $nsMgr.AddNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main')
+        $styleNode = $doc.SelectSingleNode("//w:style[@w:type='table'][w:name[@w:val='$StyleName']]", $nsMgr)
+        if ($null -eq $styleNode) { return '' }
+
+        $idAttr = $styleNode.Attributes.GetNamedItem('styleId', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main')
+        if ($null -eq $idAttr) { return '' }
+        return [string]$idAttr.Value
+    }
+    catch {
+        return ''
+    }
+}
+
+function ConvertTo-WordXmlEscapedText {
+    param([Parameter(Mandatory = $false)][string]$Text)
+    return [System.Security.SecurityElement]::Escape([string]$Text)
+}
+
+function Convert-TableModelToWordTableXml {
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$TableModel,
+        [Parameter(Mandatory = $false)][string]$TableStyleId
+    )
+
+    $displayColumns = @($TableModel.displayColumns | ForEach-Object { [string]$_ })
+    $rows = @($TableModel.rows)
+    if (@($displayColumns).Count -eq 0 -or @($rows).Count -eq 0) { return '' }
+
+    $sb = [System.Text.StringBuilder]::new()
+    [void]$sb.Append('<w:tbl>')
+    [void]$sb.Append('<w:tblPr>')
+    if (-not [string]::IsNullOrWhiteSpace($TableStyleId)) {
+        [void]$sb.Append("<w:tblStyle w:val=""$([ConvertTo-WordXmlEscapedText -Text $TableStyleId])""/>")
+    }
+    [void]$sb.Append('<w:tblW w:w="0" w:type="auto"/>')
+    [void]$sb.Append('<w:tblLook w:firstRow="1" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="0" w:noVBand="1" w:val="04A0"/>')
+    [void]$sb.Append('</w:tblPr>')
+
+    [void]$sb.Append('<w:tr>')
+    foreach ($columnName in $displayColumns) {
+        [void]$sb.Append('<w:tc><w:p><w:r><w:t>')
+        [void]$sb.Append((ConvertTo-WordXmlEscapedText -Text $columnName))
+        [void]$sb.Append('</w:t></w:r></w:p></w:tc>')
+    }
+    [void]$sb.Append('</w:tr>')
+
+    foreach ($row in $rows) {
+        [void]$sb.Append('<w:tr>')
+        foreach ($columnName in $displayColumns) {
+            $cellValue = ''
+            $property = $row.PSObject.Properties[$columnName]
+            if ($null -ne $property -and $null -ne $property.Value) {
+                $cellValue = [string]$property.Value
+            }
+            [void]$sb.Append('<w:tc><w:p><w:r><w:t xml:space="preserve">')
+            [void]$sb.Append((ConvertTo-WordXmlEscapedText -Text $cellValue))
+            [void]$sb.Append('</w:t></w:r></w:p></w:tc>')
+        }
+        [void]$sb.Append('</w:tr>')
+    }
+
+    [void]$sb.Append('</w:tbl>')
+    return $sb.ToString()
+}
+
+function Replace-DocxParagraphTokenWithBlockXml {
+    param(
+        [Parameter(Mandatory = $true)][string]$XmlText,
+        [Parameter(Mandatory = $true)][string]$Tag,
+        [Parameter(Mandatory = $true)][string]$BlockXml
+    )
+
+    if ([string]::IsNullOrWhiteSpace($BlockXml)) { return $XmlText }
+
+    $rawToken = [regex]::Escape("<<SDT:$Tag>>")
+    $escapedToken = [regex]::Escape("&lt;&lt;SDT:$Tag&gt;&gt;")
+    $paragraphPattern = "(?s)<w:p\b[^>]*>.*?($rawToken|$escapedToken).*?</w:p>"
+    return ([regex]::Replace($XmlText, $paragraphPattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $BlockXml }))
+}
+
 function Render-DocxTemplate {
     param(
         [Parameter(Mandatory = $true)][string]$TemplatePath,
         [Parameter(Mandatory = $true)][string]$OutputPath,
-        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$ReplaceByTag
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$ReplaceByTag,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$TableByTag
     )
 
     Copy-Item -LiteralPath $TemplatePath -Destination $OutputPath -Force
@@ -379,6 +470,20 @@ function Render-DocxTemplate {
     try {
         $unresolvedByTag = @{}
         $partsUpdated = 0
+        $tableStyleId = ''
+        if ($null -ne $TableByTag -and @($TableByTag.Keys).Count -gt 0) {
+            $stylesEntry = $archive.GetEntry('word/styles.xml')
+            if ($null -ne $stylesEntry) {
+                $stylesReader = [System.IO.StreamReader]::new($stylesEntry.Open())
+                try {
+                    $stylesXmlText = $stylesReader.ReadToEnd()
+                    $tableStyleId = Get-WordTableStyleId -StylesXmlText $stylesXmlText -StyleName 'LNV Table 1 - 9pt Head Banded Grid'
+                }
+                finally {
+                    $stylesReader.Dispose()
+                }
+            }
+        }
         foreach ($entry in @(Get-WordXmlPartEntries -Archive $archive)) {
             $reader = [System.IO.StreamReader]::new($entry.Open())
             try {
@@ -386,6 +491,15 @@ function Render-DocxTemplate {
             }
             finally {
                 $reader.Dispose()
+            }
+
+            if ($null -ne $TableByTag) {
+                foreach ($tag in @($TableByTag.Keys)) {
+                    $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
+                    if (-not [string]::IsNullOrWhiteSpace($tableXml)) {
+                        $xmlText = Replace-DocxParagraphTokenWithBlockXml -XmlText $xmlText -Tag ([string]$tag) -BlockXml $tableXml
+                    }
+                }
             }
 
             foreach ($tag in @($ReplaceByTag.Keys)) {
@@ -1126,7 +1240,7 @@ function Get-DisplayColumnsForTable {
     return $Columns
 }
 
-function Convert-ValueToTableString {
+function Convert-ValueToTableModel {
     param(
         [Parameter(Mandatory = $false)]$Value,
         [Parameter(Mandatory = $false)][string]$Tag,
@@ -1135,7 +1249,7 @@ function Convert-ValueToTableString {
         [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases
     )
 
-    if ($null -eq $Value) { return '' }
+    if ($null -eq $Value) { return $null }
 
     $projectionDefinition = Get-ProjectionDefinitionForMapping -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases
     $projectionEmptyBehavior = ''
@@ -1165,13 +1279,11 @@ function Convert-ValueToTableString {
         }
         $rows = @([pscustomobject]$row)
     }
-
-    if (@($rows).Count -eq 0) {
-        return (Convert-CellValueToString -Value $Value)
+    else {
+        return $null
     }
 
     $rows = @(ConvertTo-ObjectArray -InputObject (Convert-TableRowsForTag -Tag $Tag -Rows $rows -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases))
-
     if (@($rows).Count -eq 0) {
         if ($projectionEmptyBehavior -eq 'placeholder' -and $null -ne $projectionDefinition -and @($projectionDefinition.columns).Count -gt 0) {
             $placeholderRow = [ordered]@{}
@@ -1194,23 +1306,43 @@ function Convert-ValueToTableString {
             if (@($placeholderRow.Keys).Count -gt 0) {
                 $rows = @([pscustomobject]$placeholderRow)
             }
-            else {
-                return ''
-            }
-        }
-        else {
-            return ''
         }
     }
+
+    if (@($rows).Count -eq 0) { return $null }
 
     $allColumns = @($rows[0].PSObject.Properties.Name)
-    $displayColumns = Get-DisplayColumnsForTable -Columns $allColumns
-
-    if (@($displayColumns).Count -gt 0) {
-        return (($rows | Select-Object -Property $displayColumns | Format-Table -AutoSize | Out-String).TrimEnd())
+    $displayColumns = @(Get-DisplayColumnsForTable -Columns $allColumns)
+    if (@($displayColumns).Count -eq 0) {
+        $displayColumns = $allColumns
     }
 
-    return (($rows | Format-Table -AutoSize | Out-String).TrimEnd())
+    return [ordered]@{
+        rows = $rows
+        displayColumns = $displayColumns
+    }
+}
+
+function Convert-ValueToTableString {
+    param(
+        [Parameter(Mandatory = $false)]$Value,
+        [Parameter(Mandatory = $false)][string]$Tag,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$ProjectionDefinitions,
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases
+    )
+
+    $tableModel = Convert-ValueToTableModel -Value $Value -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases
+    if ($null -eq $tableModel) {
+        if (($Value -is [System.Collections.IList]) -or ($Value -is [hashtable])) {
+            return ''
+        }
+        return (Convert-CellValueToString -Value $Value)
+    }
+
+    $rows = @($tableModel.rows)
+    $displayColumns = @($tableModel.displayColumns)
+    return (($rows | Select-Object -Property $displayColumns | Format-Table -AutoSize | Out-String).TrimEnd())
 }
 
 function Convert-ValueToString {
@@ -1377,6 +1509,7 @@ try {
 
     Start-RenderStage -Stage $stageMap.Transform
     $replaceByTag = @{}
+    $docxTableByTag = @{}
     foreach ($entry in @($mapping.mappings)) {
         $currentDatasetRelativePath = [string]$entry.dataset
         $currentDatasetPath = $null
@@ -1453,6 +1586,16 @@ try {
 
         $resolvedText = [string](Convert-ValueToString -Value $resolved -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases)
         $replaceByTag[$tag] = $resolvedText
+        if ($isDocxTemplate) {
+            $projectionDefinition = Get-ProjectionDefinitionForMapping -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases
+            $renderMode = Get-EffectiveRenderMode -RenderHint $renderHint -ProjectionDefinition $projectionDefinition -Tag $tag
+            if ($renderMode -eq 'table' -or $null -ne $projectionDefinition) {
+                $tableModel = Convert-ValueToTableModel -Value $resolved -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases
+                if ($null -ne $tableModel) {
+                    $docxTableByTag[$tag] = $tableModel
+                }
+            }
+        }
         $resolvedTextLength = if ($null -eq $resolvedText) { 0 } else { $resolvedText.Length }
         $valuePreview = if ($resolvedTextLength -gt 80) { $resolvedText.Substring(0, 80) + '...' } else { $resolvedText }
         $matches.Add([ordered]@{ tag = $tag; dataset = [string]$entry.dataset; selector = $currentSelectorChain; valuePreview = $valuePreview })
@@ -1474,7 +1617,7 @@ try {
         if ($outputDir -and -not (Test-Path -LiteralPath $outputDir -PathType Container)) {
             New-Item -Path $outputDir -ItemType Directory -Force | Out-Null
         }
-        $docxRender = Render-DocxTemplate -TemplatePath $TemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag
+        $docxRender = Render-DocxTemplate -TemplatePath $TemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag
         $unresolvedByTag = $docxRender.unresolvedByTag
         $renderDetails.partsUpdated = [int]$docxRender.partsUpdated
     }
