@@ -109,6 +109,13 @@ Describe 'Sync-AssemblerContractsToRepo' {
         $tempScriptPath = Join-Path $tempScriptRoot 'Sync-AssemblerContractsToRepo.ps1'
 
         Copy-Item -LiteralPath $sourceRoot -Destination $contractsSourceRoot -Recurse -Force
+        New-Item -ItemType Directory -Path (Join-Path $contractsSourceRoot 'tech/Echo.OrderedRegression/dataset') -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $contractsSourceRoot 'tech/Echo.OrderedRegression/dataset/ping.assembler.meta.json') -Encoding UTF8 -Value @'
+{
+  "dataset": "ping",
+  "datasetPathTemplate": "datasets/echo/Ping.json"
+}
+'@
         New-Item -ItemType Directory -Path $tempScriptRoot -Force | Out-Null
         Copy-Item -LiteralPath $scriptPath -Destination $tempScriptPath -Force
 
@@ -125,6 +132,9 @@ Describe 'Sync-AssemblerContractsToRepo' {
             if ($result.Json.status -ne 'ok') {
                 throw "Expected status ok in TechId auto-discovery mode, got '$($result.Json.status)'"
             }
+            if ([string]$result.Output -match 'Method invocation failed because \[System\.Collections\.Specialized\.OrderedDictionary\] does not contain a method named ''ContainsKey''') {
+                throw "Expected auto-discovery run to avoid OrderedDictionary ContainsKey method invocation errors. Output: $($result.Output)"
+            }
 
             $generatedPaths = @($result.Json.skeletonMappingPaths)
             if ($generatedPaths.Count -eq 0) {
@@ -137,6 +147,11 @@ Describe 'Sync-AssemblerContractsToRepo' {
             }
             if (-not (Test-Path -LiteralPath $expectedDiscoveredMappingPath -PathType Leaf)) {
                 throw "Expected discovered mapping file to exist at '$expectedDiscoveredMappingPath'"
+            }
+
+            $skippedTechIds = @($result.Json.skippedTechIds)
+            if ($skippedTechIds -notcontains 'Echo.OrderedRegression') {
+                throw "Expected auto-discovery run to skip Echo.OrderedRegression (missing mapping contract). Skipped: $($skippedTechIds -join ', ')"
             }
         }
         finally {
