@@ -42,6 +42,9 @@ param(
 
     [string]$SkeletonMappingOutputPath,
 
+    [ValidateSet('legacy', 'dual', 'target')]
+    [string]$OutputShapeMode,
+
     [switch]$Clean,
 
     [switch]$KeepTempArtifacts
@@ -331,7 +334,8 @@ function Invoke-PostSyncProcessing {
         [Parameter(Mandatory = $true)][hashtable]$SnapshotData,
         [Parameter(Mandatory = $true)][hashtable]$ProgressContext,
         [Parameter(Mandatory = $true)][System.Diagnostics.Stopwatch]$StepTimer,
-        [Parameter(Mandatory = $true)][ref]$Stage
+        [Parameter(Mandatory = $true)][ref]$Stage,
+        [string]$OutputShapeMode
     )
 
     $Stage.Value = 'archive-layout-validation'
@@ -368,6 +372,7 @@ function Invoke-PostSyncProcessing {
     $techIdsToProcess = Resolve-TechIdsToProcess -ContractsRoot $ContractsRoot -RequestedTechId $RequestedTechId
     $generatedMappings = [System.Collections.Generic.List[string]]::new()
     $skippedTechIds = [System.Collections.Generic.List[string]]::new()
+    $shapeDashboardByTech = [ordered]@{}
 
     foreach ($currentTechId in @($techIdsToProcess)) {
         $resolvedMappingContractRelativePath = if ($BoundParameters.ContainsKey('MappingContractRelativePath') -and -not [string]::IsNullOrWhiteSpace($RequestedMappingContractRelativePath)) {
@@ -390,8 +395,33 @@ function Invoke-PostSyncProcessing {
             continue
         }
 
-        $generatedPath = Sync-CollectorSkeletonMappingFromContract -ContractsRoot $ContractsRoot -OutputPath $resolvedSkeletonMappingOutputPath -ResolvedTechId $currentTechId -ResolvedMappingContractRelativePath $resolvedMappingContractRelativePath
-        $generatedMappings.Add((Resolve-Path -LiteralPath $generatedPath).Path) | Out-Null
+        $generationResult = Sync-CollectorSkeletonMappingFromContract -ContractsRoot $ContractsRoot -OutputPath $resolvedSkeletonMappingOutputPath -ResolvedTechId $currentTechId -ResolvedMappingContractRelativePath $resolvedMappingContractRelativePath -OutputShapeMode $OutputShapeMode
+        $resolvedGeneratedPath = (Resolve-Path -LiteralPath $generationResult.outputPath).Path
+        $generatedMappings.Add($resolvedGeneratedPath) | Out-Null
+
+        $contract = Get-Content -LiteralPath $resolvedContractPath -Raw -Encoding UTF8 | ConvertFrom-Yaml
+        $runtimeMapping = Get-Content -LiteralPath $resolvedGeneratedPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+        $contractDashboard = Get-MappingShapeDashboard -Mappings @($contract.mappings)
+        $runtimeDashboard = Get-MappingShapeDashboard -Mappings @($runtimeMapping.mappings)
+
+        if (-not [string]::IsNullOrWhiteSpace($OutputShapeMode)) {
+            Assert-MappingOutputShapeMode -Mode $OutputShapeMode -Mappings @($contract.mappings) -Label "contract:$resolvedMappingContractRelativePath" | Out-Null
+            Assert-MappingOutputShapeMode -Mode $OutputShapeMode -Mappings @($runtimeMapping.mappings) -Label "runtime:$resolvedGeneratedPath" | Out-Null
+        }
+
+        $shapeDashboardByTech[$currentTechId] = [ordered]@{
+            contract = $contractDashboard
+            runtime = $runtimeDashboard
+        }
+        Write-SyncStep -Stage 'migration dashboard' -Message ("Mapping shape counts for tech '{0}'." -f $currentTechId) -Details ([ordered]@{
+                outputShapeMode = if ([string]::IsNullOrWhiteSpace($OutputShapeMode)) { '<phase-driven-default>' } else { $OutputShapeMode }
+                contract_sdtTagOnly = $contractDashboard.sdtTagOnly
+                contract_dual = $contractDashboard.dual
+                contract_targetOnly = $contractDashboard.targetOnly
+                runtime_sdtTagOnly = $runtimeDashboard.sdtTagOnly
+                runtime_dual = $runtimeDashboard.dual
+                runtime_targetOnly = $runtimeDashboard.targetOnly
+            })
     }
 
     $StepTimer.Stop()
@@ -408,6 +438,7 @@ function Invoke-PostSyncProcessing {
         snapshotPath = $snapshotPath
         skeletonMappingPaths = @($generatedMappings)
         skippedTechIds = @($skippedTechIds)
+        shapeDashboardByTech = $shapeDashboardByTech
     }
 }
 
@@ -719,12 +750,101 @@ function New-CollectorMappingSyncPolicyFromContract {
     return $policy
 }
 
+function Get-MappingEntryShape {
+    param([Parameter(Mandatory = $true)]$Entry)
+
+    $entryTable = ConvertTo-Dictionary -Value $Entry
+    if ($null -eq $entryTable) {
+        return 'invalid'
+    }
+
+    $hasTopLevelTag = $entryTable.ContainsKey('sdtTag') -and -not [string]::IsNullOrWhiteSpace([string]$entryTable.sdtTag)
+    $hasTargetTag = $false
+    if ($entryTable.ContainsKey('target')) {
+        $targetTable = ConvertTo-Dictionary -Value $entryTable.target
+        if ($null -ne $targetTable) {
+            $hasTargetTag = $targetTable.ContainsKey('sdtTag') -and -not [string]::IsNullOrWhiteSpace([string]$targetTable.sdtTag)
+            if (-not $hasTargetTag) {
+                $hasTargetTag = (
+                    $targetTable.ContainsKey('kind') -and -not [string]::IsNullOrWhiteSpace([string]$targetTable.kind) -and
+                    $targetTable.ContainsKey('path') -and -not [string]::IsNullOrWhiteSpace([string]$targetTable.path)
+                )
+            }
+        }
+    }
+
+    if ($hasTopLevelTag -and $hasTargetTag) { return 'dual' }
+    if ($hasTopLevelTag) { return 'sdtTag-only' }
+    if ($hasTargetTag) { return 'target-only' }
+    return 'invalid'
+}
+
+function Get-MappingShapeDashboard {
+    param([Parameter(Mandatory = $true)]$Mappings)
+
+    $dashboard = [ordered]@{
+        total = 0
+        sdtTagOnly = 0
+        dual = 0
+        targetOnly = 0
+        invalid = 0
+    }
+
+    foreach ($entry in @($Mappings)) {
+        $dashboard.total++
+        $shape = Get-MappingEntryShape -Entry $entry
+        switch ($shape) {
+            'sdtTag-only' { $dashboard.sdtTagOnly++ }
+            'dual' { $dashboard.dual++ }
+            'target-only' { $dashboard.targetOnly++ }
+            default { $dashboard.invalid++ }
+        }
+    }
+
+    return $dashboard
+}
+
+function Assert-MappingOutputShapeMode {
+    param(
+        [Parameter(Mandatory = $true)][string]$Mode,
+        [Parameter(Mandatory = $true)]$Mappings,
+        [Parameter(Mandatory = $true)][string]$Label
+    )
+
+    $dashboard = Get-MappingShapeDashboard -Mappings $Mappings
+    $invalidMessage = if ($dashboard.invalid -gt 0) { "invalid=$($dashboard.invalid)" } else { '' }
+    switch ($Mode) {
+        'legacy' {
+            if ($dashboard.dual -gt 0 -or $dashboard.targetOnly -gt 0 -or $dashboard.invalid -gt 0) {
+                throw "Output shape mode '$Mode' violated for $Label (expected sdtTag-only mappings): sdtTagOnly=$($dashboard.sdtTagOnly), dual=$($dashboard.dual), targetOnly=$($dashboard.targetOnly)$([string]::IsNullOrWhiteSpace($invalidMessage) ? '' : ", $invalidMessage")."
+            }
+        }
+        'dual' {
+            if ($dashboard.sdtTagOnly -gt 0 -or $dashboard.targetOnly -gt 0 -or $dashboard.invalid -gt 0) {
+                throw "Output shape mode '$Mode' violated for $Label (expected dual mappings): sdtTagOnly=$($dashboard.sdtTagOnly), dual=$($dashboard.dual), targetOnly=$($dashboard.targetOnly)$([string]::IsNullOrWhiteSpace($invalidMessage) ? '' : ", $invalidMessage")."
+            }
+        }
+        'target' {
+            if ($dashboard.sdtTagOnly -gt 0 -or $dashboard.dual -gt 0 -or $dashboard.invalid -gt 0) {
+                throw "Output shape mode '$Mode' violated for $Label (expected target-only mappings): sdtTagOnly=$($dashboard.sdtTagOnly), dual=$($dashboard.dual), targetOnly=$($dashboard.targetOnly)$([string]::IsNullOrWhiteSpace($invalidMessage) ? '' : ", $invalidMessage")."
+            }
+        }
+        default {
+            throw "Unsupported output shape mode '$Mode'. Expected one of: legacy, dual, target."
+        }
+    }
+
+    return $dashboard
+}
+
 function Sync-CollectorSkeletonMappingFromContract {
     param(
         [Parameter(Mandatory = $true)][string]$ContractsRoot,
         [Parameter(Mandatory = $true)][string]$OutputPath,
         [Parameter(Mandatory = $true)][string]$ResolvedTechId,
-        [Parameter(Mandatory = $true)][string]$ResolvedMappingContractRelativePath
+        [Parameter(Mandatory = $true)][string]$ResolvedMappingContractRelativePath,
+        [ValidateSet('legacy', 'dual', 'target')]
+        [string]$OutputShapeMode
     )
 
     $contractMappingPath = Join-Path $ContractsRoot $ResolvedMappingContractRelativePath
@@ -815,12 +935,21 @@ function Sync-CollectorSkeletonMappingFromContract {
             }
 
             $entryPhase = if ($entryTable.ContainsKey('phase')) { [string]$entryTable.phase } else { '' }
-            $resolvedTagShape = switch ($entryPhase) {
-                'source-only' { 'source-only' }
-                'target-first' { 'target-only' }
-                'dual' { 'dual' }
-                '' { 'dual' }
-                default { 'dual' }
+            $resolvedTagShape = if (-not [string]::IsNullOrWhiteSpace($OutputShapeMode)) {
+                switch ($OutputShapeMode) {
+                    'legacy' { 'source-only' }
+                    'dual' { 'dual' }
+                    'target' { 'target-only' }
+                }
+            }
+            else {
+                switch ($entryPhase) {
+                    'source-only' { 'source-only' }
+                    'target-first' { 'target-only' }
+                    'dual' { 'dual' }
+                    '' { 'dual' }
+                    default { 'dual' }
+                }
             }
 
             if ($resolvedTagShape -in @('source-only', 'dual')) {
@@ -944,8 +1073,12 @@ function Sync-CollectorSkeletonMappingFromContract {
         mappings = @($generatedMappings)
     }
 
+    $shapeDashboard = Get-MappingShapeDashboard -Mappings $generatedMappings
     $generatedMapping | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $OutputPath -Encoding UTF8
-    return $OutputPath
+    return [ordered]@{
+        outputPath = $OutputPath
+        shapeDashboard = $shapeDashboard
+    }
 }
 
 $stage = 'initialization'
@@ -994,6 +1127,7 @@ try {
             techId = if ($PSBoundParameters.ContainsKey('TechId')) { $TechId.Trim() } else { '<auto-discover-under-tech-root>' }
             mappingContractRelativePath = if ($PSBoundParameters.ContainsKey('MappingContractRelativePath')) { $MappingContractRelativePath } else { '<derived-per-tech>' }
             skeletonMappingOutputPath = if ($PSBoundParameters.ContainsKey('SkeletonMappingOutputPath')) { $SkeletonMappingOutputPath } else { '<derived-per-tech>' }
+            outputShapeMode = if ([string]::IsNullOrWhiteSpace($OutputShapeMode)) { '<phase-driven-default>' } else { $OutputShapeMode }
             contractsVersion = $ContractsVersion
             contractsPackUrl = $ContractsPackUrl
             durationMs = $stepTimer.ElapsedMilliseconds
@@ -1048,7 +1182,7 @@ try {
                 syncedUtc = (Get-Date).ToUniversalTime().ToString('o')
                 source = 'local-export-copy'
                 exportContractsPath = $sourceRoot
-            }) -ProgressContext $progressContext -StepTimer $stepTimer -Stage ([ref]$stage)
+            }) -ProgressContext $progressContext -StepTimer $stepTimer -Stage ([ref]$stage) -OutputShapeMode $OutputShapeMode
 
         $result = [ordered]@{
             status = 'ok'
@@ -1058,6 +1192,8 @@ try {
             snapshotPath = $postSync.snapshotPath
             skeletonMappingPaths = @($postSync.skeletonMappingPaths)
             skippedTechIds = @($postSync.skippedTechIds)
+            mappingShapeDashboard = $postSync.shapeDashboardByTech
+            outputShapeMode = if ([string]::IsNullOrWhiteSpace($OutputShapeMode)) { $null } else { $OutputShapeMode }
         }
     }
     else {
@@ -1158,7 +1294,7 @@ try {
                 packUrl = $packUrl
                 releaseUrl = $releasePageUrl
                 packPath = $tmpZip
-            }) -ProgressContext $progressContext -StepTimer $stepTimer -Stage ([ref]$stage)
+            }) -ProgressContext $progressContext -StepTimer $stepTimer -Stage ([ref]$stage) -OutputShapeMode $OutputShapeMode
 
         $result = [ordered]@{
             status = 'ok'
@@ -1171,6 +1307,8 @@ try {
             snapshotPath = $postSync.snapshotPath
             skeletonMappingPaths = @($postSync.skeletonMappingPaths)
             skippedTechIds = @($postSync.skippedTechIds)
+            mappingShapeDashboard = $postSync.shapeDashboardByTech
+            outputShapeMode = if ([string]::IsNullOrWhiteSpace($OutputShapeMode)) { $null } else { $OutputShapeMode }
         }
     }
 

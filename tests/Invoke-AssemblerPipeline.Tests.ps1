@@ -109,4 +109,48 @@ Describe 'Invoke-AssemblerPipeline validation result handling' {
             throw "Expected failure diagnostic to include ASB-ASM-RENDER-PARAMS-INCOMPLETE, got '$($failureDiagnostic.message)'"
         }
     }
+
+    It 'returns status error when mapping shape paths are supplied without mode' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $scriptPath = Join-Path $repoRoot 'scripts/Invoke-AssemblerPipeline.ps1'
+        $sampleRoot = if (Test-Path -LiteralPath (Join-Path $repoRoot 'samples')) {
+            Join-Path $repoRoot 'samples'
+        }
+        else {
+            Join-Path $repoRoot 'sample'
+        }
+
+        $bundleRoot = Get-ChildItem -LiteralPath $sampleRoot -Directory |
+            Where-Object {
+                (Test-Path -LiteralPath (Join-Path $_.FullName 'manifest.json') -PathType Leaf) -and
+                (Test-Path -LiteralPath (Join-Path $_.FullName 'objectIndex.json') -PathType Leaf) -and
+                (Test-Path -LiteralPath (Join-Path $_.FullName 'config/solution.plan.json') -PathType Leaf)
+            } |
+            Select-Object -First 1 -ExpandProperty FullName
+
+        if ([string]::IsNullOrWhiteSpace([string]$bundleRoot)) {
+            throw "No valid sample bundle directory found under '$sampleRoot'"
+        }
+
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts/Invoke-AssemblerPipeline.ps1 in this test'
+        }
+
+        $output = & $pwshPath -NoLogo -NoProfile -File $scriptPath -BundleRoot $bundleRoot -ContractsRoot $contractsRoot -ContractMappingPath './.deps/contracts/tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml'
+        $exitCode = $LASTEXITCODE
+        if ($exitCode -eq 0) {
+            throw 'Expected non-zero exit code when mapping path is supplied without -MappingShapeMode'
+        }
+
+        $report = $output | ConvertFrom-Json -AsHashtable
+        if ($report.status -ne 'error') {
+            throw "Expected report.status to be 'error' for missing mapping shape mode, got '$($report.status)'"
+        }
+        $failureDiagnostic = @($report.diagnostics | Where-Object { [string]$_.code -eq 'ASB-ASM-INPUT-FAIL' })[0]
+        if ($null -eq $failureDiagnostic -or [string]$failureDiagnostic.message -notlike '*ASB-ASM-MAPPING-SHAPE-PARAMS-INCOMPLETE*') {
+            throw "Expected mapping shape parameter guidance, got '$($failureDiagnostic.message)'"
+        }
+    }
 }
