@@ -1625,9 +1625,14 @@ try {
         $rendered = $templateText
         foreach ($tag in $replaceByTag.Keys) {
             $token = "<<SDT:$tag>>"
-            $rendered = $rendered.Replace($token, [string]$replaceByTag[$tag])
+            $rendered = $rendered.Replace($token, "$token`n$([string]$replaceByTag[$tag])")
         }
         $unresolvedByTag = Get-UnresolvedSdtTagOccurrences -RenderedText $rendered
+        foreach ($resolvedTag in @($replaceByTag.Keys)) {
+            if (Test-MapHasKey -Map $unresolvedByTag -Key ([string]$resolvedTag)) {
+                $unresolvedByTag.Remove([string]$resolvedTag)
+            }
+        }
     }
     $unresolvedSummary = [ordered]@{
         unresolvedTagCount = @($unresolvedByTag.Keys).Count
