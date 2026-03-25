@@ -161,6 +161,49 @@ Describe 'Sync-AssemblerContractsToRepo' {
         }
     }
 
+    It 'handles single-TechId post-sync summary without Count property failures' {
+        $tempRoot = New-DeterministicTempRoot -Name 'single-techid-summary-count-safe'
+        $destinationRoot = Join-Path $tempRoot '.deps/contracts'
+
+        try {
+            $result = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $sourceRoot,
+                '-DepsContractsPath', $destinationRoot,
+                '-TechId', 'Lenovo.DE',
+                '-Clean'
+            )
+
+            if ($result.ExitCode -ne 0) {
+                throw "Expected exit code 0 for single-TechId sync, got $($result.ExitCode). Output: $($result.Output)"
+            }
+            if ($result.Json.status -ne 'ok') {
+                throw "Expected status ok for single-TechId sync, got '$($result.Json.status)'"
+            }
+            if ([string]$result.Output -match 'property ''Count'' cannot be found') {
+                throw "Expected single-TechId sync to avoid scalar Count failures. Output: $($result.Output)"
+            }
+
+            if ([string]::IsNullOrWhiteSpace([string]$result.Json.skeletonMappingPath)) {
+                throw 'Expected single-TechId sync to emit skeletonMappingPath in report'
+            }
+            if (-not (Test-Path -LiteralPath ([string]$result.Json.skeletonMappingPath) -PathType Leaf)) {
+                throw "Expected skeleton mapping file at '$($result.Json.skeletonMappingPath)'"
+            }
+
+            if ([string]$result.Output -notmatch 'mapping generation') {
+                throw "Expected sync output to include mapping generation stage details. Output: $($result.Output)"
+            }
+            if ([string]$result.Output -notmatch 'techIdsProcessed=Lenovo\.DE') {
+                throw "Expected summary output to include techIdsProcessed=Lenovo.DE. Output: $($result.Output)"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'returns non-zero and structured error for invalid argument combinations' {
         $tempRoot = New-DeterministicTempRoot -Name 'invalid-argument-combo'
         $destinationRoot = Join-Path $tempRoot '.deps/contracts'

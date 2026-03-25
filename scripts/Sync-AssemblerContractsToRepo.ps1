@@ -369,7 +369,7 @@ function Invoke-PostSyncProcessing {
     $Stage.Value = 'mapping-generation'
     $StepTimer.Restart()
     Update-SyncProgress -ProgressContext $ProgressContext -StageName 'Snapshot + mapping' -Status 'Generating skeleton mapping' -Position 0.8
-    $techIdsToProcess = Resolve-TechIdsToProcess -ContractsRoot $ContractsRoot -RequestedTechId $RequestedTechId
+    $techIdsToProcess = @(Resolve-TechIdsToProcess -ContractsRoot $ContractsRoot -RequestedTechId $RequestedTechId)
     $generatedMappings = [System.Collections.Generic.List[string]]::new()
     $skippedTechIds = [System.Collections.Generic.List[string]]::new()
     $shapeDashboardByTech = [ordered]@{}
@@ -440,7 +440,7 @@ function Invoke-PostSyncProcessing {
             contractsRoot = (Resolve-Path -LiteralPath $ContractsRoot).Path
             generatedMappingCount = $generatedMappings.Count
             skippedTechCount = $skippedTechIds.Count
-            techIdsProcessed = if ($techIdsToProcess.Count -gt 0) { ($techIdsToProcess -join ', ') } else { '<none>' }
+            techIdsProcessed = if (@($techIdsToProcess).Count -gt 0) { (@($techIdsToProcess) -join ', ') } else { '<none>' }
             durationMs = $StepTimer.ElapsedMilliseconds
         })
 
