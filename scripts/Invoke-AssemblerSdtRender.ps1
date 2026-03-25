@@ -408,7 +408,7 @@ function Convert-TableModelToWordTableXml {
     [void]$sb.Append('<w:tbl>')
     [void]$sb.Append('<w:tblPr>')
     if (-not [string]::IsNullOrWhiteSpace($TableStyleId)) {
-        [void]$sb.Append("<w:tblStyle w:val=""$([ConvertTo-WordXmlEscapedText -Text $TableStyleId])""/>")
+        [void]$sb.Append("<w:tblStyle w:val=""$(ConvertTo-WordXmlEscapedText -Text $TableStyleId)""/>")
     }
     [void]$sb.Append('<w:tblW w:w="0" w:type="auto"/>')
     [void]$sb.Append('<w:tblLook w:firstRow="1" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="0" w:noVBand="1" w:val="04A0"/>')
