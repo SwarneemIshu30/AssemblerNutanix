@@ -362,7 +362,7 @@ function Invoke-PostSyncProcessing {
     Write-SyncStep -Stage 'snapshot generation' -Message 'Wrote contracts snapshot metadata.' -Details ([ordered]@{
             snapshotPath = $snapshotPath
             source = [string]$SnapshotData.source
-            version = if ($SnapshotData.ContainsKey('version')) { [string]$SnapshotData.version } else { '' }
+            version = if (Test-MapHasKey -Map $SnapshotData -Key 'version') { [string]$SnapshotData.version } else { '' }
             durationMs = $StepTimer.ElapsedMilliseconds
         })
 
@@ -474,6 +474,35 @@ function ConvertTo-Dictionary {
     return $null
 }
 
+function Test-MapHasKey {
+    param(
+        [Parameter(Mandatory = $false)]$Map,
+        [Parameter(Mandatory = $true)][string]$Key
+    )
+
+    if ($null -eq $Map -or -not ($Map -is [System.Collections.IDictionary])) {
+        return $false
+    }
+
+    $containsKeyMethod = $Map.PSObject.Methods['ContainsKey']
+    if ($null -ne $containsKeyMethod) {
+        return $Map.ContainsKey($Key)
+    }
+
+    $containsMethod = $Map.PSObject.Methods['Contains']
+    if ($null -ne $containsMethod) {
+        return [bool]$Map.Contains($Key)
+    }
+
+    foreach ($existingKey in @($Map.Keys)) {
+        if ([string]$existingKey -eq $Key) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
 function ConvertFrom-YamlSafe {
     param(
         [Parameter(Mandatory = $true)][string]$YamlText,
@@ -512,7 +541,7 @@ function New-CollectorSdtTagPolicyFromContract {
     }
 
     $required = $false
-    if ($policySource.ContainsKey('required')) {
+    if (Test-MapHasKey -Map $policySource -Key 'required') {
         $required = [bool]$policySource.required
     }
 
@@ -573,13 +602,13 @@ function Get-CollectorSdtTagFromContract {
         [Parameter(Mandatory = $true)][hashtable]$TagPolicy
     )
 
-    $overrideTag = if ($MappingEntry.ContainsKey('outputSdtTag')) { [string]$MappingEntry.outputSdtTag } else { '' }
+    $overrideTag = if (Test-MapHasKey -Map $MappingEntry -Key 'outputSdtTag') { [string]$MappingEntry.outputSdtTag } else { '' }
     if (-not [string]::IsNullOrWhiteSpace($overrideTag)) {
         return $overrideTag
     }
 
-    $contractTag = if ($MappingEntry.ContainsKey('sdtTag')) { [string]$MappingEntry.sdtTag } else { '' }
-    if ([string]::IsNullOrWhiteSpace($contractTag) -and $MappingEntry.ContainsKey('target') -and $MappingEntry.target -is [System.Collections.IDictionary] -and $MappingEntry.target.ContainsKey('sdtTag')) {
+    $contractTag = if (Test-MapHasKey -Map $MappingEntry -Key 'sdtTag') { [string]$MappingEntry.sdtTag } else { '' }
+    if ([string]::IsNullOrWhiteSpace($contractTag) -and (Test-MapHasKey -Map $MappingEntry -Key 'target') -and $MappingEntry.target -is [System.Collections.IDictionary] -and (Test-MapHasKey -Map $MappingEntry.target -Key 'sdtTag')) {
         $contractTag = [string]$MappingEntry.target.sdtTag
     }
     if ([string]::IsNullOrWhiteSpace($contractTag)) {
@@ -591,7 +620,7 @@ function Get-CollectorSdtTagFromContract {
         $normalized = $normalized.Replace([string]$sourceToken, [string]$TagPolicy.tokenRewrites[$sourceToken])
     }
 
-    if ($TagPolicy.tagAliases.ContainsKey($normalized)) {
+    if (Test-MapHasKey -Map $TagPolicy.tagAliases -Key $normalized) {
         return [string]$TagPolicy.tagAliases[$normalized]
     }
 
@@ -614,16 +643,16 @@ function Get-CollectorDatasetPathTemplateMap {
         $metadata = Get-Content -LiteralPath $metadataPath.FullName -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
         if ($null -eq $metadata) { continue }
 
-        $datasetId = if ($metadata.ContainsKey('dataset')) { [string]$metadata.dataset } else { '' }
+        $datasetId = if (Test-MapHasKey -Map $metadata -Key 'dataset') { [string]$metadata.dataset } else { '' }
         if ([string]::IsNullOrWhiteSpace($datasetId)) {
             continue
         }
 
         $pathTemplate = ''
-        if ($metadata.ContainsKey('datasetPathTemplate') -and -not [string]::IsNullOrWhiteSpace([string]$metadata.datasetPathTemplate)) {
+        if ((Test-MapHasKey -Map $metadata -Key 'datasetPathTemplate') -and -not [string]::IsNullOrWhiteSpace([string]$metadata.datasetPathTemplate)) {
             $pathTemplate = [string]$metadata.datasetPathTemplate
         }
-        elseif ($metadata.ContainsKey('datasetPath') -and $metadata.datasetPath -is [System.Collections.IDictionary] -and $metadata.datasetPath.ContainsKey('template') -and -not [string]::IsNullOrWhiteSpace([string]$metadata.datasetPath.template)) {
+        elseif ((Test-MapHasKey -Map $metadata -Key 'datasetPath') -and $metadata.datasetPath -is [System.Collections.IDictionary] -and (Test-MapHasKey -Map $metadata.datasetPath -Key 'template') -and -not [string]::IsNullOrWhiteSpace([string]$metadata.datasetPath.template)) {
             $pathTemplate = [string]$metadata.datasetPath.template
         }
 
@@ -649,7 +678,7 @@ function Get-CollectorDatasetPathFromTemplate {
         return ''
     }
 
-    if (-not $DatasetPathTemplateMap.ContainsKey($DatasetName)) {
+    if (-not (Test-MapHasKey -Map $DatasetPathTemplateMap -Key $DatasetName)) {
         throw "Dataset '$DatasetName' is missing datasetPath.template metadata under tech '$ResolvedTechId'."
     }
 
@@ -707,7 +736,7 @@ function New-CollectorMappingSyncPolicyFromContract {
         $policy.selectorsByRenderAs[[string]$renderAsKey] = @($defaultPolicy.selectorsByRenderAs[$renderAsKey])
     }
 
-    if ($collectorPolicy.ContainsKey('allowedRenderAs')) {
+    if (Test-MapHasKey -Map $collectorPolicy -Key 'allowedRenderAs') {
         $allowed = @($collectorPolicy.allowedRenderAs)
         if ($allowed.Count -eq 0) {
             throw "Mapping contract '$MappingContractPath' declares syncPolicy.collectorSkeletonMapping.allowedRenderAs but it is empty."
@@ -729,7 +758,7 @@ function New-CollectorMappingSyncPolicyFromContract {
     }
 
     $selectorsPolicy = ConvertTo-Dictionary -Value $collectorPolicy.selectors
-    if ($null -ne $selectorsPolicy -and $selectorsPolicy.ContainsKey('defaultByRenderAs')) {
+    if ($null -ne $selectorsPolicy -and (Test-MapHasKey -Map $selectorsPolicy -Key 'defaultByRenderAs')) {
         $selectorsByRenderAs = ConvertTo-Dictionary -Value $selectorsPolicy.defaultByRenderAs
         if ($null -eq $selectorsByRenderAs) {
             throw "Mapping contract '$MappingContractPath' has syncPolicy.collectorSkeletonMapping.selectors.defaultByRenderAs but it is not an object."
@@ -766,7 +795,7 @@ function New-CollectorMappingSyncPolicyFromContract {
     $unsupportedPolicy = ConvertTo-Dictionary -Value $collectorPolicy.unsupportedRenderShape
     if ($null -ne $unsupportedPolicy) {
         foreach ($policyKey in @('documentFacing', 'nonDocumentFacing')) {
-            if (-not $unsupportedPolicy.ContainsKey($policyKey)) {
+            if (-not (Test-MapHasKey -Map $unsupportedPolicy -Key $policyKey)) {
                 continue
             }
 
@@ -790,16 +819,16 @@ function Get-MappingEntryShape {
         return 'invalid'
     }
 
-    $hasTopLevelTag = $entryTable.ContainsKey('sdtTag') -and -not [string]::IsNullOrWhiteSpace([string]$entryTable.sdtTag)
+    $hasTopLevelTag = (Test-MapHasKey -Map $entryTable -Key 'sdtTag') -and -not [string]::IsNullOrWhiteSpace([string]$entryTable.sdtTag)
     $hasTargetTag = $false
-    if ($entryTable.ContainsKey('target')) {
+    if (Test-MapHasKey -Map $entryTable -Key 'target') {
         $targetTable = ConvertTo-Dictionary -Value $entryTable.target
         if ($null -ne $targetTable) {
-            $hasTargetTag = $targetTable.ContainsKey('sdtTag') -and -not [string]::IsNullOrWhiteSpace([string]$targetTable.sdtTag)
+            $hasTargetTag = (Test-MapHasKey -Map $targetTable -Key 'sdtTag') -and -not [string]::IsNullOrWhiteSpace([string]$targetTable.sdtTag)
             if (-not $hasTargetTag) {
                 $hasTargetTag = (
-                    $targetTable.ContainsKey('kind') -and -not [string]::IsNullOrWhiteSpace([string]$targetTable.kind) -and
-                    $targetTable.ContainsKey('path') -and -not [string]::IsNullOrWhiteSpace([string]$targetTable.path)
+                    (Test-MapHasKey -Map $targetTable -Key 'kind') -and -not [string]::IsNullOrWhiteSpace([string]$targetTable.kind) -and
+                    (Test-MapHasKey -Map $targetTable -Key 'path') -and -not [string]::IsNullOrWhiteSpace([string]$targetTable.path)
                 )
             }
         }
@@ -932,9 +961,9 @@ function Sync-CollectorSkeletonMappingFromContract {
                 $converted
             }
 
-            $sourceDataset = if ($entryTable.ContainsKey('dataset')) { [string]$entryTable.dataset } else { '' }
-            $sourceTag = if ($entryTable.ContainsKey('sdtTag')) { [string]$entryTable.sdtTag } else { '' }
-            if ([string]::IsNullOrWhiteSpace($sourceTag) -and $entryTable.ContainsKey('target') -and $entryTable.target -is [System.Collections.IDictionary] -and $entryTable.target.ContainsKey('sdtTag')) {
+            $sourceDataset = if (Test-MapHasKey -Map $entryTable -Key 'dataset') { [string]$entryTable.dataset } else { '' }
+            $sourceTag = if (Test-MapHasKey -Map $entryTable -Key 'sdtTag') { [string]$entryTable.sdtTag } else { '' }
+            if ([string]::IsNullOrWhiteSpace($sourceTag) -and (Test-MapHasKey -Map $entryTable -Key 'target') -and $entryTable.target -is [System.Collections.IDictionary] -and (Test-MapHasKey -Map $entryTable.target -Key 'sdtTag')) {
                 $sourceTag = [string]$entryTable.target.sdtTag
             }
             $sourceDatasetKey = if ([string]::IsNullOrWhiteSpace($sourceDataset)) { '<missing-dataset>' } else { $sourceDataset }
@@ -962,7 +991,7 @@ function Sync-CollectorSkeletonMappingFromContract {
                 required = [bool]$entryTable.required
             }
 
-            $entryPhase = if ($entryTable.ContainsKey('phase')) { [string]$entryTable.phase } else { '' }
+            $entryPhase = if (Test-MapHasKey -Map $entryTable -Key 'phase') { [string]$entryTable.phase } else { '' }
             $resolvedTagShape = if (-not [string]::IsNullOrWhiteSpace($OutputShapeMode)) {
                 switch ($OutputShapeMode) {
                     'legacy' { 'source-only' }
@@ -990,7 +1019,7 @@ function Sync-CollectorSkeletonMappingFromContract {
             }
 
             $renderHintSource = $null
-            if ($entryTable.ContainsKey('renderHint')) {
+            if (Test-MapHasKey -Map $entryTable -Key 'renderHint') {
                 if ($entryTable.renderHint -is [System.Collections.IDictionary]) {
                     $renderHintSource = $entryTable.renderHint
                 }
@@ -1005,14 +1034,14 @@ function Sync-CollectorSkeletonMappingFromContract {
             $renderHint = [ordered]@{}
             if ($null -ne $renderHintSource) {
                 foreach ($renderHintKey in @('renderAs', 'projectionRef', 'view')) {
-                    if ($renderHintSource.ContainsKey($renderHintKey) -and -not [string]::IsNullOrWhiteSpace([string]$renderHintSource[$renderHintKey])) {
+                    if ((Test-MapHasKey -Map $renderHintSource -Key $renderHintKey) -and -not [string]::IsNullOrWhiteSpace([string]$renderHintSource[$renderHintKey])) {
                         $renderHint[$renderHintKey] = [string]$renderHintSource[$renderHintKey]
                     }
                 }
             }
 
             if ($renderHint.Count -gt 0) {
-                $resolvedRenderAs = if ($renderHint.ContainsKey('renderAs')) { [string]$renderHint.renderAs } else { '' }
+                $resolvedRenderAs = if (Test-MapHasKey -Map $renderHint -Key 'renderAs') { [string]$renderHint.renderAs } else { '' }
                 if (-not [string]::IsNullOrWhiteSpace($resolvedRenderAs) -and $resolvedRenderAs -notin @($syncPolicy.allowedRenderAs)) {
                     $unsupportedAction = if ([bool]$entryTable.required) {
                         [string]$syncPolicy.unsupportedRenderShape.documentFacing
@@ -1043,7 +1072,7 @@ function Sync-CollectorSkeletonMappingFromContract {
                 }
 
                 if (-not [string]::IsNullOrWhiteSpace($resolvedRenderAs)) {
-                    if (-not $syncPolicy.selectorsByRenderAs.ContainsKey($resolvedRenderAs)) {
+                    if (-not (Test-MapHasKey -Map $syncPolicy.selectorsByRenderAs -Key $resolvedRenderAs)) {
                         throw "Contract policy missing selectors for renderAs '$resolvedRenderAs' at mapping[$mappingIndex] key '$sourceKey'. Define syncPolicy.collectorSkeletonMapping.selectors.defaultByRenderAs.$resolvedRenderAs."
                     }
 
@@ -1349,7 +1378,7 @@ try {
             mode = $result.mode
             destinationRoot = $result.destinationRoot
             snapshotPath = $result.snapshotPath
-            skeletonMappingPaths = if ($result.ContainsKey('skeletonMappingPaths')) { ($result.skeletonMappingPaths -join ', ') } else { '<none>' }
+            skeletonMappingPaths = if (Test-MapHasKey -Map $result -Key 'skeletonMappingPaths') { ($result.skeletonMappingPaths -join ', ') } else { '<none>' }
             totalDurationMs = $syncStopwatch.ElapsedMilliseconds
         })
     Update-SyncProgress -ProgressContext $progressContext -StageName 'Finalize' -Status 'Completed' -Position 1
