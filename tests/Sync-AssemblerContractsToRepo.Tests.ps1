@@ -499,4 +499,85 @@ function Get-Command {
             }
         }
     }
+
+    It 'produces consistent post-sync outputs for local-copy and published-pack modes' {
+        $tempRoot = New-DeterministicTempRoot -Name 'mode-consistency'
+        $localDestinationRoot = Join-Path $tempRoot 'local/.deps/contracts'
+        $packDestinationRoot = Join-Path $tempRoot 'pack/.deps/contracts'
+        $localMappingPath = Join-Path $tempRoot 'local/templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json'
+        $packMappingPath = Join-Path $tempRoot 'pack/templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json'
+        $zipPath = Join-Path $tempRoot 'contracts.zip'
+        $httpRoot = Join-Path $tempRoot 'http'
+        $pythonPath = (Get-Command python3 -ErrorAction SilentlyContinue).Source
+        $serverProcess = $null
+
+        if ([string]::IsNullOrWhiteSpace($pythonPath)) {
+            throw 'python3 is required for local published-pack HTTP smoke test.'
+        }
+
+        try {
+            New-Item -ItemType Directory -Path $httpRoot -Force | Out-Null
+            Compress-Archive -Path (Join-Path $sourceRoot '*') -DestinationPath $zipPath -Force
+            Copy-Item -LiteralPath $zipPath -Destination (Join-Path $httpRoot 'contracts.zip') -Force
+
+            $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 0)
+            $listener.Start()
+            $port = ([System.Net.IPEndPoint]$listener.LocalEndpoint).Port
+            $listener.Stop()
+
+            $serverProcess = Start-Process -FilePath $pythonPath -ArgumentList @('-m', 'http.server', [string]$port, '--bind', '127.0.0.1') -WorkingDirectory $httpRoot -PassThru
+            Start-Sleep -Seconds 1
+
+            $localResult = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $sourceRoot,
+                '-DepsContractsPath', $localDestinationRoot,
+                '-SkeletonMappingOutputPath', $localMappingPath,
+                '-Clean'
+            )
+            $packResult = Invoke-SyncScript -Arguments @(
+                '-ContractsPackUrl', "http://127.0.0.1:$port/contracts.zip",
+                '-DepsContractsPath', $packDestinationRoot,
+                '-SkeletonMappingOutputPath', $packMappingPath,
+                '-Clean'
+            )
+
+            if ($localResult.ExitCode -ne 0 -or $packResult.ExitCode -ne 0) {
+                throw "Expected both sync modes to succeed, got local=$($localResult.ExitCode), pack=$($packResult.ExitCode)"
+            }
+
+            $localSnapshot = Get-Content -LiteralPath (Join-Path $localDestinationRoot 'contracts.snapshot.json') -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            $packSnapshot = Get-Content -LiteralPath (Join-Path $packDestinationRoot 'contracts.snapshot.json') -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+
+            if ([string]$localSnapshot.source -ne 'local-export-copy') {
+                throw "Expected local snapshot source local-export-copy, got '$($localSnapshot.source)'"
+            }
+            if ([string]$packSnapshot.source -ne 'published-pack') {
+                throw "Expected published-pack snapshot source, got '$($packSnapshot.source)'"
+            }
+
+            $localMapping = Get-Content -LiteralPath $localMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            $packMapping = Get-Content -LiteralPath $packMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+
+            if (@($localMapping.mappings).Count -ne @($packMapping.mappings).Count) {
+                throw 'Expected equal mapping counts from local and published-pack modes'
+            }
+
+            $localControllers = @($localMapping.mappings | Where-Object { $_.sdtTag -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.Controllers' }) | Select-Object -First 1
+            $packControllers = @($packMapping.mappings | Where-Object { $_.sdtTag -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.Controllers' }) | Select-Object -First 1
+            if ($null -eq $localControllers -or $null -eq $packControllers) {
+                throw 'Expected controllers mapping in both mode outputs'
+            }
+            if (($localControllers | ConvertTo-Json -Depth 20) -ne ($packControllers | ConvertTo-Json -Depth 20)) {
+                throw 'Expected controllers mapping entry to be identical across sync modes'
+            }
+        }
+        finally {
+            if ($null -ne $serverProcess -and -not $serverProcess.HasExited) {
+                Stop-Process -Id $serverProcess.Id -Force
+            }
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
 }
