@@ -429,8 +429,7 @@ function Invoke-PostSyncProcessing {
         $runtimeMapping = Get-Content -LiteralPath $resolvedGeneratedPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
         $contractDashboard = Get-MappingShapeDashboard -Mappings @($contract.mappings)
         $runtimeDashboard = Get-MappingShapeDashboard -Mappings @($runtimeMapping.mappings)
-        $hasDocumentFacingMappings = @($contract.mappings | Where-Object { $_ -is [System.Collections.IDictionary] -and [bool]$_.required }).Count -gt 0
-        $strictEmptyGenerationForTech = [bool]$StrictEmptyGeneration -or $hasDocumentFacingMappings
+        $strictEmptyGenerationForTech = [bool]$StrictEmptyGeneration
 
         $generationStatus = 'ok'
         if ($contractDashboard.total -gt 0 -and $runtimeDashboard.total -eq 0) {

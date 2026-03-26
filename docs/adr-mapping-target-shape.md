@@ -53,4 +53,4 @@ When both are present, they must resolve to the same runtime destination.
 - Migration is explicit and time-bounded.
 - CI prevents regression toward legacy-only mapping entries.
 - Runtime-facing mapping copies stay contract-aligned while moving to the canonical target model.
-- Contract sync quality gates now expose per-tech generation telemetry (`generationStatus` and skip-reason counters) and fail-closed behavior for empty required/document-facing outputs, so migration drift is visible and enforceable at sync time.
+- Contract sync quality gates now expose per-tech generation telemetry (`generationStatus` and skip-reason counters) and support opt-in strict failure for empty generation via `-StrictEmptyGeneration`, so migration drift is visible and enforceable at sync time when desired.

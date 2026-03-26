@@ -136,7 +136,7 @@ When onboarding a new technology, update mapping contracts (including `syncPolic
   - `unsupportedShape`
 - Invariant check: if `contract.total > 0` and `runtime.total == 0`, sync emits a high-severity warning or fails based on strict policy.
   - Strict policy can be forced with `-StrictEmptyGeneration`.
-  - Required/document-facing mappings remain fail-closed by default.
+  - When strict mode is not supplied, sync warns and continues so operators can inspect skip-reason telemetry in the final dashboard JSON.
 
 Do not document or implement a design where the template-local mapping becomes the only source of truth.
 

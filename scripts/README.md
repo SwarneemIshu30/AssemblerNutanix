@@ -106,7 +106,7 @@ Shared options:
 - `-DepsContractsPath` destination path (default `./.deps/contracts`)
 - `-Clean` remove destination before sync
 - `-OutputShapeMode legacy|dual|target` to force runtime mapping output shape and enforce the same mode against contract/runtime mapping files during sync
-- `-StrictEmptyGeneration` fail sync when a tech resolves to `generationStatus=empty`; if omitted, required/document-facing tech still fail-closed by default while optional tech emit high-severity warnings
+- `-StrictEmptyGeneration` fail sync when a tech resolves to `generationStatus=empty`; if omitted, sync emits high-severity warnings and continues
 
 Each run writes or updates `contracts.snapshot.json` in the destination.
 
