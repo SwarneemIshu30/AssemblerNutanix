@@ -59,6 +59,13 @@ pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
 
 `Sync -> (optional Pipeline) -> BundleRender -> SdtRender (per resolved variant)`
 
+### Public entrypoint map
+
+- **Pipeline path:** `Invoke-AssemblerPipeline.ps1` -> `Invoke-AssemblerBundleRender.ps1` -> `Invoke-AssemblerSdtRender.ps1`
+- **GUI path:** `gui/Start-AssemblerGui.ps1` or `gui/Start-AssemblerGui.Wpf.ps1` -> `Invoke-AssemblerBundleRender.ps1`
+
+Both paths converge on **bundle render** before SDT render. This is required whenever mappings include runtime placeholders such as `__TARGET__` and `__SYSTEM__`.
+
 ## Contract path resolution
 
 `Invoke-AssemblerSdtRender.ps1` and `Invoke-AssemblerBundleRender.ps1` resolve contracts in this order:
@@ -106,6 +113,8 @@ Required parameters:
 Optional:
 - `-ContractsRoot`
 - `-TechId` (one or more explicit technologies to render)
+- `-EntryId` (one or more catalog entry IDs; debug/advanced filter)
+- `-OutputType docx|text` (one or both output variants; debug/advanced filter)
 
 Behavior:
 - reads `objectIndex.json` to detect tech present in bundle
@@ -114,6 +123,21 @@ Behavior:
 - filters enabled catalog entries by detected/requested `techId`
 - invokes `Invoke-AssemblerSdtRender.ps1` once per selected entry
 - writes aggregate report to `assembler-bundle-render-report.json`
+
+### Output selection controls
+
+Bundle render output can be narrowed in three layers:
+
+1. **Catalog defaults (`enabled`)**
+   - `entries[].enabled` in the catalog determines baseline inclusion/exclusion.
+2. **CLI filters (`Invoke-AssemblerBundleRender.ps1`)**
+   - `-TechId` filters by technology.
+   - `-EntryId` filters by specific catalog IDs.
+   - `-OutputType docx|text` filters by output variant.
+3. **GUI debug/advanced toggles**
+   - GUI launchers pass `EntryId` and DOCX/TXT toggles through to bundle render filters.
+
+Current default behavior is to produce **both DOCX and TXT** when output filters are not constrained. Roadmap direction is to switch the default to **DOCX-only**, while keeping an explicit debug/advanced override to enable TXT output when needed.
 
 ## `Invoke-AssemblerPipeline.ps1`
 
