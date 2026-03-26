@@ -5,6 +5,44 @@ Use this as:
 # Heading path in DOCX
 <<SDT: tag>>
 
+## Current mapping alignment snapshot (runtime mapping vs template tokens)
+
+Source: `templates/skeletons/Lenovo.DE/DE-SDT-Collector.token-audit.md`
+
+- Unique template SDT tokens: **22**
+- Matched by runtime mapping/contract tags: **22**
+- Unmatched tokens: **0**
+
+### Projection surface alignment
+- Projection tags (including aliases): **25**
+- Template tokens present in projection tag surface: **21**
+- Template tokens not in projection tag surface: **1**
+  - `LNV.Lenovo.DE.System[ArrayName].Summary`
+
+### Template token alignment checklist
+- ✅ `LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory`
+- ✅ `LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Summary` *(mapped; not in projection tag surface)*
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.Controllers`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.DNS`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.Hosts`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.Time`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.Transport`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.Trays`
+- ✅ `LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings`
+- ✅ `LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory`
+
 ## Replace in document order (aligned to current SK DOCX section flow)
 
 # System Overview / Platform Summary
@@ -19,29 +57,11 @@ Use this as:
 # System Overview / Controller Topology
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Controllers>>
 
-# System Overview / Version Matrix / Validation Block - Version Matrix
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Controllers>>
-
-# System Overview / Version Matrix / Validation Block - Version Matrix
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Summary>>
-
-# System Overview / Management Context / Validation Block - Management Context
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Summary>>
-
-# System Overview / Management Context / Validation Block - Management Context
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces>>
-
 # System Overview / Management Interfaces
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces>>
 
-# System Overview / DNS Configuration / Validation Block - DNS Effective Settings
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.DNS>>
-
 # System Overview / DNS Configuration
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.DNS>>
-
-# System Overview / Time Configuration / Validation Block - Time Effective Settings
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Time>>
 
 # System Overview / Time Configuration
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Time>>
@@ -122,15 +142,6 @@ Transports configured:
 # Platform Configuration / Performance & Cache Configuration / Feature Limits / Consumption
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits>>
 
-# Operational Behaviour (Day-2) / Access Model / Validation Block - Transport / Access Model
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Transport>>
-
-# Operational Behaviour (Day-2) / Access Model / Validation Block - Transport / Access Model
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI>>
-
-# Operational Behaviour (Day-2) / Access Model / Validation Block - Transport / Access Model
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Summary>>
-
 # Operational Behaviour (Day-2) / Monitoring & Alert Flow
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport>>
 
@@ -145,12 +156,6 @@ Transports configured:
 
 # Appendix / Version Summary
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Summary>>
-
-# Appendix / Validation Block - Controller A / Controller B Summary
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces>>
-
-# Appendix / Validation Block - Controller A / Controller B Summary
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI>>
 
 ## Available but not placed in template (for future insertion)
 
