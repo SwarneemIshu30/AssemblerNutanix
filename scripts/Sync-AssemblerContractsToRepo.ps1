@@ -503,6 +503,20 @@ function Test-MapHasKey {
     return $false
 }
 
+function Get-MapValueOrDefault {
+    param(
+        [Parameter(Mandatory = $false)]$Map,
+        [Parameter(Mandatory = $true)][string]$Key,
+        [Parameter(Mandatory = $false)]$DefaultValue = $null
+    )
+
+    if (-not (Test-MapHasKey -Map $Map -Key $Key)) {
+        return $DefaultValue
+    }
+
+    return $Map[$Key]
+}
+
 function ConvertFrom-YamlSafe {
     param(
         [Parameter(Mandatory = $true)][string]$YamlText,
@@ -531,7 +545,7 @@ function New-CollectorSdtTagPolicyFromContract {
         [Parameter(Mandatory = $true)][hashtable]$Contract
     )
 
-    $policySource = ConvertTo-Dictionary -Value $Contract.collectorSdtTagPolicy
+    $policySource = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $Contract -Key 'collectorSdtTagPolicy')
     if ($null -eq $policySource) {
         return [ordered]@{
             required = $false
@@ -540,12 +554,9 @@ function New-CollectorSdtTagPolicyFromContract {
         }
     }
 
-    $required = $false
-    if (Test-MapHasKey -Map $policySource -Key 'required') {
-        $required = [bool]$policySource.required
-    }
+    $required = [bool](Get-MapValueOrDefault -Map $policySource -Key 'required' -DefaultValue $false)
 
-    $tokenRewritesSource = ConvertTo-Dictionary -Value $policySource.tokenRewrites
+    $tokenRewritesSource = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $policySource -Key 'tokenRewrites')
     if ($null -eq $tokenRewritesSource) {
         if ($required) {
             throw "Mapping contract '$MappingContractPath' requires collectorSdtTagPolicy.tokenRewrites, but it is missing or not a mapping object."
@@ -554,7 +565,7 @@ function New-CollectorSdtTagPolicyFromContract {
         $tokenRewritesSource = [ordered]@{}
     }
 
-    $tagAliasesSource = ConvertTo-Dictionary -Value $policySource.tagAliases
+    $tagAliasesSource = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $policySource -Key 'tagAliases')
     if ($null -eq $tagAliasesSource) {
         if ($required) {
             throw "Mapping contract '$MappingContractPath' requires collectorSdtTagPolicy.tagAliases, but it is missing or not a mapping object."
@@ -703,9 +714,10 @@ function New-CollectorMappingSyncPolicyFromContract {
     )
 
     $defaultPolicy = [ordered]@{
-        allowedRenderAs = @('table')
+        allowedRenderAs = @('table', 'scalar')
         selectorsByRenderAs = [ordered]@{
             table = @('items')
+            scalar = @('items.0')
         }
         unsupportedRenderShape = [ordered]@{
             documentFacing = 'fail'
@@ -713,12 +725,12 @@ function New-CollectorMappingSyncPolicyFromContract {
         }
     }
 
-    $syncPolicyRoot = ConvertTo-Dictionary -Value $Contract.syncPolicy
+    $syncPolicyRoot = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $Contract -Key 'syncPolicy')
     if ($null -eq $syncPolicyRoot) {
         return $defaultPolicy
     }
 
-    $collectorPolicy = ConvertTo-Dictionary -Value $syncPolicyRoot.collectorSkeletonMapping
+    $collectorPolicy = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $syncPolicyRoot -Key 'collectorSkeletonMapping')
     if ($null -eq $collectorPolicy) {
         return $defaultPolicy
     }
@@ -757,7 +769,7 @@ function New-CollectorMappingSyncPolicyFromContract {
         $policy.allowedRenderAs = @($resolvedAllowed)
     }
 
-    $selectorsPolicy = ConvertTo-Dictionary -Value $collectorPolicy.selectors
+    $selectorsPolicy = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $collectorPolicy -Key 'selectors')
     if ($null -ne $selectorsPolicy -and (Test-MapHasKey -Map $selectorsPolicy -Key 'defaultByRenderAs')) {
         $selectorsByRenderAs = ConvertTo-Dictionary -Value $selectorsPolicy.defaultByRenderAs
         if ($null -eq $selectorsByRenderAs) {
@@ -792,7 +804,7 @@ function New-CollectorMappingSyncPolicyFromContract {
         }
     }
 
-    $unsupportedPolicy = ConvertTo-Dictionary -Value $collectorPolicy.unsupportedRenderShape
+    $unsupportedPolicy = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $collectorPolicy -Key 'unsupportedRenderShape')
     if ($null -ne $unsupportedPolicy) {
         foreach ($policyKey in @('documentFacing', 'nonDocumentFacing')) {
             if (-not (Test-MapHasKey -Map $unsupportedPolicy -Key $policyKey)) {
@@ -914,13 +926,22 @@ function Sync-CollectorSkeletonMappingFromContract {
     }
 
     $contract = ConvertFrom-YamlSafe -YamlText (Get-Content -LiteralPath $contractMappingPath -Raw -Encoding UTF8) -Context $contractMappingPath
+    $contractTable = ConvertTo-Dictionary -Value $contract
+    if ($null -eq $contractTable) {
+        throw "Mapping contract '$contractMappingPath' failed validation (expected object root)."
+    }
+
+    $schema = [string](Get-MapValueOrDefault -Map $contractTable -Key 'schema')
+    $schemaVersionValue = Get-MapValueOrDefault -Map $contractTable -Key 'schemaVersion'
+    $techId = [string](Get-MapValueOrDefault -Map $contractTable -Key 'techId')
+    $mappings = @(Get-MapValueOrDefault -Map $contractTable -Key 'mappings')
     if (
-        $null -eq $contract -or
-        [string]$contract.schema -ne 'mapping.dataset-to-sdt' -or
-        [int]$contract.schemaVersion -ne 1 -or
-        [string]$contract.techId -ne $ResolvedTechId
+        $schema -ne 'mapping.dataset-to-sdt' -or
+        [int]$schemaVersionValue -ne 1 -or
+        $techId -ne $ResolvedTechId -or
+        (-not (Test-MapHasKey -Map $contractTable -Key 'mappings'))
     ) {
-        throw "Mapping contract '$contractMappingPath' failed validation (expected schema=mapping.dataset-to-sdt, schemaVersion=1, techId=$ResolvedTechId)."
+        throw "Mapping contract '$contractMappingPath' failed validation (expected schema=mapping.dataset-to-sdt, schemaVersion=1, techId=$ResolvedTechId, mappings=present)."
     }
 
     $tagPolicy = New-CollectorSdtTagPolicyFromContract -MappingContractPath $contractMappingPath -Contract $contract
@@ -935,7 +956,7 @@ function Sync-CollectorSkeletonMappingFromContract {
         unsupportedShape = 0
     }
 
-    foreach ($entry in @($contract.mappings)) {
+    foreach ($entry in @($mappings)) {
         $processedCount++
         $mappingIndex = $processedCount - 1
         $sourceDataset = ''
