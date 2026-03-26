@@ -1798,16 +1798,22 @@ try {
     else {
         $templateUnresolvedByTag = Get-UnresolvedSdtTagOccurrences -RenderedText $templateText
         $rendered = $templateText
+        $annotatedTagCount = 0
         foreach ($tag in $replaceByTag.Keys) {
             $token = "<<SDT:$tag>>"
             $replacementText = [string]$replaceByTag[$tag]
             if ($AnnotateResolvedTags.IsPresent) {
                 $traceMarker = "[SDT-TAG:$tag]"
+                $tokenCount = [regex]::Matches($rendered, [regex]::Escape($token)).Count
+                $annotatedTagCount += [int]$tokenCount
                 $rendered = $rendered.Replace($token, "$traceMarker`n$replacementText")
             }
             else {
                 $rendered = $rendered.Replace($token, $replacementText)
             }
+        }
+        if ($AnnotateResolvedTags.IsPresent) {
+            Write-Verbose "[text-render] annotate mode enabled (tags annotated: $annotatedTagCount)"
         }
         $renderUnresolvedByTag = Get-UnresolvedSdtTagOccurrences -RenderedText $rendered
         $unresolvedByTag = @{}
