@@ -1269,7 +1269,18 @@ function Resolve-ProjectionColumnValue {
 
     $value = $null
     if (Test-MapHasKey -Map $Column -Key 'source') {
-        $value = $Row.([string]$Column.source)
+        $sourceField = [string]$Column.source
+        if ($Row -is [System.Collections.IDictionary]) {
+            if ($Row.Contains($sourceField)) {
+                $value = $Row[$sourceField]
+            }
+        }
+        else {
+            $property = $Row.PSObject.Properties[$sourceField]
+            if ($null -ne $property) {
+                $value = $property.Value
+            }
+        }
     }
 
     if (Test-MapHasKey -Map $Column -Key 'format') {

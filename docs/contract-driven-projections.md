@@ -110,6 +110,16 @@ This is especially important for:
 - capability summary/limits/key-feature views
 - low-level host access evidence vs reader-facing relationship tables
 
+### Lenovo.DE host-ports FC TODO (contract backlog)
+
+Current `host-ports` dataset rows in this repo snapshot do not emit `portWwn` / `nodeWwn`.
+FC table projections may keep `PortWWN` / `NodeWWN` columns, but renderer resolution for missing source fields must remain null-safe so bundle rendering does not throw `ASB-ASM-SDT-UNHANDLED`.
+
+TODO for Lenovo.DE contracts (when collector normalization is available):
+- validate populated `PortWWN` (`source: portWwn`) values in `LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC`
+- validate populated `NodeWWN` (`source: nodeWwn`) values in `LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC`
+- optionally add FC narrative WWN fields only after the same normalized fields are present in `host-ports` dataset output
+
 ## Runtime-facing mapping copy
 
 The file:
