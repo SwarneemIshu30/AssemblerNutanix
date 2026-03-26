@@ -120,6 +120,24 @@ is the assembler runtime-facing copy used with the skeleton/template pack. It sh
 
 When onboarding a new technology, update mapping contracts (including `syncPolicy`) and dataset metadata first; do not add technology-specific branches to sync scripts for render-shape handling.
 
+## Sync quality-gate behavior (per technology)
+
+`scripts/Sync-AssemblerContractsToRepo.ps1` now emits per-tech generation diagnostics and quality gates that must remain contract-driven:
+
+- `generationStatus` is emitted per tech as one of:
+  - `ok`: runtime mapping count matches expected contract outcome
+  - `partial`: runtime mapping generated, but fewer entries than contract mappings
+  - `empty`: contract mappings exist but zero runtime mappings were generated
+  - `skipped`: mapping contract was not found for a discovered tech
+- Per-tech dashboard JSON includes skip-reason counters:
+  - `missingDataset`
+  - `missingTag`
+  - `missingDatasetTemplate`
+  - `unsupportedShape`
+- Invariant check: if `contract.total > 0` and `runtime.total == 0`, sync emits a high-severity warning or fails based on strict policy.
+  - Strict policy can be forced with `-StrictEmptyGeneration`.
+  - When strict mode is not supplied, sync warns and continues so operators can inspect skip-reason telemetry in the final dashboard JSON.
+
 Do not document or implement a design where the template-local mapping becomes the only source of truth.
 
 ## Anti-patterns to avoid

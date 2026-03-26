@@ -11,6 +11,8 @@ Runtime direction is **PowerShell 7**.
 - `Sync-AssemblerContractsToRepo.ps1` - syncs contracts into deterministic repo-local ingest path (`.deps/contracts`) and regenerates `templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json` from `tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml`.
   - Collector mapping generation now honors contract-owned `syncPolicy.collectorSkeletonMapping` (allowed `renderAs`, selector defaults, and unsupported-shape behavior) instead of script-side hardcoded render assumptions.
   - Supports explicit rollout control via `-OutputShapeMode legacy|dual|target` and logs migration dashboard counts (`sdtTag`-only, dual, target-only) for both contract and runtime mapping shapes.
+  - Per-tech quality dashboard now includes `generationStatus` (`ok`, `partial`, `empty`, `skipped`) and skip-reason counters (`missingDataset`, `missingTag`, `missingDatasetTemplate`, `unsupportedShape`) so root cause is explicit in final JSON output.
+  - Enforces post-generation invariant checks per tech (`contract.total > 0` while `runtime.total == 0`) with a high-severity warning in non-strict mode and fail-closed behavior in strict mode.
 - `Test-AssemblerMappingShapeMode.ps1` - CI validation helper that enforces a selected rollout mode against both mapping contract and runtime mapping files.
 - `internal/AssemblerSchemaValidation.psm1` - shared helper for JSON schema validation against contracts under `standards/`.
 
@@ -104,6 +106,7 @@ Shared options:
 - `-DepsContractsPath` destination path (default `./.deps/contracts`)
 - `-Clean` remove destination before sync
 - `-OutputShapeMode legacy|dual|target` to force runtime mapping output shape and enforce the same mode against contract/runtime mapping files during sync
+- `-StrictEmptyGeneration` fail sync when a tech resolves to `generationStatus=empty`; if omitted, sync emits high-severity warnings and continues
 
 Each run writes or updates `contracts.snapshot.json` in the destination.
 
