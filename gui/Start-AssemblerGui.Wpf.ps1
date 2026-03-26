@@ -8,7 +8,10 @@ param(
     [Parameter(Mandatory = $false)][string]$CatalogPath,
     [Parameter(Mandatory = $false)][string]$OutputRoot,
     [Parameter(Mandatory = $false)][string]$ContractsRoot,
-    [Parameter(Mandatory = $false)][string[]]$TechId
+    [Parameter(Mandatory = $false)][string[]]$TechId,
+    [Parameter(Mandatory = $false)][string[]]$EntryId,
+    [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
+    [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true
 )
 
 Set-StrictMode -Version Latest
@@ -45,7 +48,10 @@ function Invoke-BundleRender {
         [Parameter(Mandatory = $true)][string]$CatalogPath,
         [Parameter(Mandatory = $true)][string]$OutputRoot,
         [Parameter(Mandatory = $false)][string]$ContractsRoot,
-        [Parameter(Mandatory = $false)][string[]]$TechId
+        [Parameter(Mandatory = $false)][string[]]$TechId,
+        [Parameter(Mandatory = $false)][string[]]$EntryId,
+        [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
+        [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true
     )
 
     if ([string]::IsNullOrWhiteSpace($BundleRoot) -or -not (Test-Path -LiteralPath $BundleRoot -PathType Container)) {
@@ -61,6 +67,15 @@ function Invoke-BundleRender {
     $params = @{ BundleRoot = $BundleRoot; CatalogPath = $CatalogPath; OutputRoot = $OutputRoot }
     if (-not [string]::IsNullOrWhiteSpace($ContractsRoot)) { $params.ContractsRoot = $ContractsRoot }
     if ($TechId -and $TechId.Count -gt 0) { $params.TechId = $TechId }
+    if ($EntryId -and $EntryId.Count -gt 0) { $params.EntryId = $EntryId }
+
+    $outputType = @()
+    if ($IncludeDocx) { $outputType += 'docx' }
+    if ($IncludeTxt) { $outputType += 'text' }
+    if ($outputType.Count -eq 0) {
+        throw 'At least one output variant must be selected (DOCX and/or TXT).'
+    }
+    $params.OutputType = $outputType
 
     & $invokeScript @params
 }
@@ -68,9 +83,10 @@ function Invoke-BundleRender {
 $xaml = @"
 <Window xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
         xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'
-        Title='Assembler Bundle Renderer (WPF launcher)' Height='460' Width='930' WindowStartupLocation='CenterScreen'>
+        Title='Assembler Bundle Renderer (WPF launcher)' Height='620' Width='930' WindowStartupLocation='CenterScreen'>
   <Grid Margin='12'>
     <Grid.RowDefinitions>
+      <RowDefinition Height='Auto'/>
       <RowDefinition Height='Auto'/>
       <RowDefinition Height='Auto'/>
       <RowDefinition Height='Auto'/>
@@ -104,14 +120,35 @@ $xaml = @"
     <TextBlock Grid.Row='4' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Tech IDs (comma-separated)</TextBlock>
     <TextBox Name='TechIdText' Grid.Row='4' Grid.Column='1' Grid.ColumnSpan='2' Margin='0,0,0,8'/>
 
-    <StackPanel Grid.Row='5' Grid.Column='1' Grid.ColumnSpan='2' Orientation='Horizontal' HorizontalAlignment='Left'>
+    <GroupBox Grid.Row='5' Grid.Column='0' Grid.ColumnSpan='3' Header='Debug/Advanced' Margin='0,0,0,8'>
+      <Grid Margin='8,6,8,8'>
+        <Grid.RowDefinitions>
+          <RowDefinition Height='Auto'/>
+          <RowDefinition Height='Auto'/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width='220'/>
+          <ColumnDefinition Width='*'/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Row='0' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Entry IDs (comma-separated)</TextBlock>
+        <TextBox Name='EntryIdText' Grid.Row='0' Grid.Column='1' Margin='0,0,0,8'/>
+
+        <StackPanel Grid.Row='1' Grid.Column='1' Orientation='Horizontal' HorizontalAlignment='Left'>
+          <CheckBox Name='DocxCheckBox' Margin='0,0,16,0' VerticalAlignment='Center'>Enable DOCX output</CheckBox>
+          <CheckBox Name='TxtCheckBox' Margin='0,0,16,0' VerticalAlignment='Center'>Enable TXT output</CheckBox>
+        </StackPanel>
+      </Grid>
+    </GroupBox>
+
+    <StackPanel Grid.Row='6' Grid.Column='1' Grid.ColumnSpan='2' Orientation='Horizontal' HorizontalAlignment='Left'>
       <Button Name='RunButton' Width='140' Margin='0,6,10,6'>Run Render</Button>
       <CheckBox Name='VerboseCheckBox' Margin='0,6,10,6' VerticalAlignment='Center'>Verbose (include matched tags)</CheckBox>
       <CheckBox Name='DebugCheckBox' Margin='0,6,10,6' VerticalAlignment='Center'>Debug (include raw render JSON)</CheckBox>
       <TextBlock Name='StatusText' VerticalAlignment='Center'>Ready</TextBlock>
     </StackPanel>
 
-    <TextBox Name='OutputText' Grid.Row='6' Grid.ColumnSpan='3' Margin='0,8,0,0' IsReadOnly='True' TextWrapping='Wrap' AcceptsReturn='True' VerticalScrollBarVisibility='Auto'/>
+    <TextBox Name='OutputText' Grid.Row='7' Grid.ColumnSpan='3' Margin='0,8,0,0' IsReadOnly='True' TextWrapping='Wrap' AcceptsReturn='True' VerticalScrollBarVisibility='Auto'/>
   </Grid>
 </Window>
 "@
@@ -124,6 +161,7 @@ $catalogPathText = $window.FindName('CatalogPathText')
 $outputRootText = $window.FindName('OutputRootText')
 $contractsRootText = $window.FindName('ContractsRootText')
 $techIdText = $window.FindName('TechIdText')
+$entryIdText = $window.FindName('EntryIdText')
 $bundleBrowseButton = $window.FindName('BundleBrowseButton')
 $catalogBrowseButton = $window.FindName('CatalogBrowseButton')
 $outputBrowseButton = $window.FindName('OutputBrowseButton')
@@ -132,6 +170,8 @@ $runButton = $window.FindName('RunButton')
 $statusText = $window.FindName('StatusText')
 $verboseCheckBox = $window.FindName('VerboseCheckBox')
 $debugCheckBox = $window.FindName('DebugCheckBox')
+$docxCheckBox = $window.FindName('DocxCheckBox')
+$txtCheckBox = $window.FindName('TxtCheckBox')
 $outputText = $window.FindName('OutputText')
 
 $bundleRootText.Text = $BundleRoot
@@ -139,6 +179,9 @@ $catalogPathText.Text = $CatalogPath
 $outputRootText.Text = $OutputRoot
 $contractsRootText.Text = $ContractsRoot
 $techIdText.Text = (($TechId ?? @()) -join ',')
+$entryIdText.Text = (($EntryId ?? @()) -join ',')
+$docxCheckBox.IsChecked = $IncludeDocx
+$txtCheckBox.IsChecked = $IncludeTxt
 
 $bundleBrowseButton.Add_Click({
     $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
@@ -161,7 +204,8 @@ $contractsBrowseButton.Add_Click({
 $runButton.Add_Click({
     try {
         $techSelection = @($techIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-        $resultJson = Invoke-BundleRender -BundleRoot $bundleRootText.Text -CatalogPath $catalogPathText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text -TechId $techSelection
+        $entrySelection = @($entryIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        $resultJson = Invoke-BundleRender -BundleRoot $bundleRootText.Text -CatalogPath $catalogPathText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text -TechId $techSelection -EntryId $entrySelection -IncludeDocx ([bool]$docxCheckBox.IsChecked) -IncludeTxt ([bool]$txtCheckBox.IsChecked)
         $statusText.Text = 'Render completed successfully.'
         $outputText.Text = if ($debugCheckBox.IsChecked) {
             Format-DebugBundleOutput -BundleResultJson $resultJson
