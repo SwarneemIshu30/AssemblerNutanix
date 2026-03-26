@@ -161,6 +161,82 @@ Describe 'Sync-AssemblerContractsToRepo' {
         }
     }
 
+    It 'auto-discovery safely handles mixed mapping generations with optional policy blocks missing' {
+        $tempRoot = New-DeterministicTempRoot -Name 'auto-discovery-mixed-generations'
+        $contractsSourceRoot = Join-Path $tempRoot 'contracts-source'
+        $destinationRoot = Join-Path $tempRoot '.deps/contracts'
+        $tempScriptRoot = Join-Path $tempRoot 'repo/scripts'
+        $tempScriptPath = Join-Path $tempScriptRoot 'Sync-AssemblerContractsToRepo.ps1'
+        $legacyTechRoot = Join-Path $contractsSourceRoot 'tech/Nutanix.PrismElement'
+        $legacyDatasetRoot = Join-Path $legacyTechRoot 'dataset'
+        $legacyMappingPath = Join-Path $legacyTechRoot 'mapping.dataset-to-sdt.v1.yaml'
+
+        Copy-Item -LiteralPath $sourceRoot -Destination $contractsSourceRoot -Recurse -Force
+        New-Item -ItemType Directory -Path $legacyDatasetRoot -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $legacyDatasetRoot 'cluster.assembler.meta.json') -Encoding UTF8 -Value @'
+{
+  "dataset": "cluster",
+  "datasetPathTemplate": "datasets/__TECH_ID__/cluster.json"
+}
+'@
+        Set-Content -LiteralPath $legacyMappingPath -Encoding UTF8 -Value @'
+schema: mapping.dataset-to-sdt
+schemaVersion: 1
+techId: Nutanix.PrismElement
+displayName: Nutanix Prism Element mapping (legacy minimal)
+mappings:
+- dataset: cluster
+  sdtTag: LNV.Nutanix.PrismElement.Cluster.Summary
+  required: true
+  renderHint:
+    renderAs: scalar
+'@
+
+        New-Item -ItemType Directory -Path $tempScriptRoot -Force | Out-Null
+        Copy-Item -LiteralPath $scriptPath -Destination $tempScriptPath -Force
+
+        try {
+            $result = Invoke-SyncScript -ScriptPath $tempScriptPath -Arguments @(
+                '-ExportContractsPath', $contractsSourceRoot,
+                '-DepsContractsPath', $destinationRoot,
+                '-Clean'
+            )
+
+            if ($result.ExitCode -ne 0) {
+                throw "Expected exit code 0 in mixed-generation auto-discovery mode, got $($result.ExitCode). Output: $($result.Output)"
+            }
+            if ($result.Json.status -ne 'ok') {
+                throw "Expected status ok in mixed-generation auto-discovery mode, got '$($result.Json.status)'"
+            }
+            if ([string]$result.Output -match 'collectorSdtTagPolicy|collectorSkeletonMapping|PropertyNotFoundException') {
+                throw "Expected auto-discovery to avoid optional-policy property missing crashes. Output: $($result.Output)"
+            }
+
+            $generatedPaths = @($result.Json.skeletonMappingPaths)
+            $lenovoMappingPath = Join-Path $tempRoot 'repo/templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json'
+            $nutanixMappingPath = Join-Path $tempRoot 'repo/templates/skeletons/Nutanix.PrismElement/Nutanix.PrismElement-SDT-Collector.mapping.json'
+            if ($generatedPaths -notcontains $lenovoMappingPath) {
+                throw "Expected generated mapping output for Lenovo.DE. Paths: $($generatedPaths -join ', ')"
+            }
+            if ($generatedPaths -notcontains $nutanixMappingPath) {
+                throw "Expected generated mapping output for Nutanix.PrismElement. Paths: $($generatedPaths -join ', ')"
+            }
+            if (-not (Test-Path -LiteralPath $nutanixMappingPath -PathType Leaf)) {
+                throw "Expected generated mapping file at '$nutanixMappingPath'"
+            }
+
+            $nutanixMapping = Get-Content -LiteralPath $nutanixMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            if ((@($nutanixMapping.mappings)).Count -eq 0) {
+                throw 'Expected generated Nutanix mapping to include at least one mapping entry'
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'handles single-TechId post-sync summary without Count property failures' {
         $tempRoot = New-DeterministicTempRoot -Name 'single-techid-summary-count-safe'
         $destinationRoot = Join-Path $tempRoot '.deps/contracts'
