@@ -26,6 +26,33 @@ Runtime direction is **PowerShell 7**.
 | Conditional/manual entrypoint | `Invoke-AssemblerSdtRender.ps1` | Use only with fully resolved mapping paths; no `__TARGET__` / `__SYSTEM__` placeholders. |
 | Internal modules/helpers | `internal/AssemblerSchemaValidation.psm1`; mapping-shape helpers | Shared internals consumed by entrypoint scripts and validation flows. |
 
+### Operator warning: unresolved mapping placeholders
+
+If a mapping includes runtime placeholders such as `__TARGET__` or `__SYSTEM__`, do **not** run `Invoke-AssemblerSdtRender.ps1` directly on that unresolved mapping file.
+
+Run `Invoke-AssemblerBundleRender.ps1` (or a resolved-mapping helper) so placeholders are expanded first.
+
+Common failure symptoms when the wrong entrypoint is used:
+- `ASB-ASM-SDT-DATASET-MISSING` for `datasets/.../__TARGET__/...`
+- many `ASB-ASM-SDT-UNRESOLVED-TAG` errors
+
+Wrong vs right:
+
+```powershell
+# Wrong: direct SDT render with unresolved __TARGET__/__SYSTEM__ placeholders
+pwsh ./scripts/Invoke-AssemblerSdtRender.ps1 \
+  -BundleRoot ./bundle/<id> \
+  -MappingPath ./templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json \
+  -TemplatePath ./templates/skeletons/Lenovo.DE/DE-SDT-Collector.docx \
+  -OutputPath ./out/direct.docx
+
+# Right: bundle orchestration resolves mapping paths before SDT render
+pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
+  -BundleRoot ./bundle/<id> \
+  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json \
+  -OutputRoot ./out/bundle-render
+```
+
 ### Flow
 
 `Sync -> (optional Pipeline) -> BundleRender -> SdtRender (per resolved variant)`

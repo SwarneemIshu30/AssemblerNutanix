@@ -65,6 +65,33 @@ The repository includes PowerShell 7 scaffolding for SDT rendering:
 - interactive launchers (`gui/Start-AssemblerGui.ps1`, `gui/Start-AssemblerGui.Wpf.ps1`)
 - built-in Lenovo.DE skeletons (`templates/skeletons/Lenovo.DE`)
 
+## Operator warning: unresolved mapping placeholders
+
+If your mapping contains runtime placeholders like `__TARGET__` or `__SYSTEM__`, do **not** call `Invoke-AssemblerSdtRender.ps1` directly against that unresolved mapping.
+
+Use `Invoke-AssemblerBundleRender.ps1` (or a resolved-mapping helper) so placeholders are expanded before SDT render.
+
+Common symptoms of using the wrong entrypoint are:
+- `ASB-ASM-SDT-DATASET-MISSING` for paths like `datasets/.../__TARGET__/...`
+- many `ASB-ASM-SDT-UNRESOLVED-TAG` errors from cascading unresolved inputs
+
+Wrong vs right:
+
+```powershell
+# Wrong: direct SDT render with unresolved __TARGET__/__SYSTEM__ placeholders
+pwsh ./scripts/Invoke-AssemblerSdtRender.ps1 \
+  -BundleRoot ./bundle/<id> \
+  -MappingPath ./templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json \
+  -TemplatePath ./templates/skeletons/Lenovo.DE/DE-SDT-Collector.docx \
+  -OutputPath ./out/direct.docx
+
+# Right: bundle orchestration resolves mapping paths before SDT render
+pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
+  -BundleRoot ./bundle/<id> \
+  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json \
+  -OutputRoot ./out/bundle-render
+```
+
 ## Template catalog contract
 
 Template catalog validation uses:
