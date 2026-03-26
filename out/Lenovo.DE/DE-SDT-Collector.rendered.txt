@@ -1,6 +1,7 @@
 Mode: As-Built Draft
 
-# Lenovo DE As-Built Configuration Reference: 
+# Lenovo DE As-Built Configuration Reference: [SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Summary]
+
 SystemName   Model  Status  FirmwareVersion ApplicationVersion BootVersion NvsramVersion    ManagementIP
 ----------   -----  ------  --------------- ------------------ ----------- -------------    ------------
 DE4200_Rack4 DE4200 optimal 08.90.09.00     08.90.09.00        08.90.09.00 N4000-890870-D03 192.0.2.12
@@ -12,7 +13,8 @@ Document Title          : Lenovo DE As-Built Configuration Reference
 Solution Name           : [Manually populated in DOCX by delivery team]
 Customer / Environment  : [Manually populated in DOCX by delivery team]
 Document Version        : [Manually populated in DOCX by delivery team]
-Configuration Snapshot  : 
+Configuration Snapshot  : [SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Summary]
+
 SystemName   Model  Status  FirmwareVersion ApplicationVersion BootVersion NvsramVersion    ManagementIP
 ----------   -----  ------  --------------- ------------------ ----------- -------------    ------------
 DE4200_Rack4 DE4200 optimal 08.90.09.00     08.90.09.00        08.90.09.00 N4000-890870-D03 192.0.2.12
@@ -37,16 +39,19 @@ Provide a high-level orientation enabling a technical reader to understand the e
 Platform Summary
 Use the contract-backed summary block for top-level system identity and lifecycle details.
 
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Summary]
 
 SystemName   Model  Status  FirmwareVersion ApplicationVersion BootVersion NvsramVersion    ManagementIP
 ----------   -----  ------  --------------- ------------------ ----------- -------------    ------------
 DE4200_Rack4 DE4200 optimal 08.90.09.00     08.90.09.00        08.90.09.00 N4000-890870-D03 192.0.2.12
+[SDT-TAG:LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory]
 
 Name       ContainerType RaidLevel DriveMediaType Total    Used     Free      State    Status
 ----       ------------- --------- -------------- -----    ----     ----      -----    ------
 SampleVG_1 VolumeGroup   raid6     ssd            20.93 TB 19.53 TB 1.40 TB   complete optimal
 SampleVG_2 VolumeGroup   raid6     ssd            10.45 TB 9.77 TB  697.98 GB complete optimal
 SampleVG_3 VolumeGroup   raid6     hdd            13.07 TB 11.72 TB 1.35 TB   complete optimal
+[SDT-TAG:LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory]
 
 Name          Size     Status  RaidLevel Container
 ----          ----     ------  --------- ---------
@@ -57,6 +62,7 @@ Hyper-V_Vol02 9.77 TB  optimal raid6     SampleVG_2
 Controller Topology
 Describe controller A/B architecture, ownership behaviour, host interface presentation, and redundancy model.
 
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.Controllers]
 
 Controller Slot Status  AppVersion  BootVersion SerialNumber
 ---------- ---- ------  ----------  ----------- ------------
@@ -68,12 +74,14 @@ Summarise array firmware, application, boot image, NVSRAM, controller firmware, 
 
 
 Validation Block - Version Matrix
-- Firmware / App / Boot Baseline : 
+- Firmware / App / Boot Baseline : [SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.Controllers]
+
 Controller Slot Status  AppVersion  BootVersion SerialNumber
 ---------- ---- ------  ----------  ----------- ------------
 B          2    optimal 08.90.09.00 08.90.09.00 952529000077
 A          1    optimal 08.90.09.00 08.90.09.00 952529000086
-- Array Summary Evidence          : 
+- Array Summary Evidence          : [SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Summary]
+
 SystemName   Model  Status  FirmwareVersion ApplicationVersion BootVersion NvsramVersion    ManagementIP
 ----------   -----  ------  --------------- ------------------ ----------- -------------    ------------
 DE4200_Rack4 DE4200 optimal 08.90.09.00     08.90.09.00        08.90.09.00 N4000-890870-D03 192.0.2.12
@@ -83,6 +91,7 @@ Capture notable implementation decisions such as pool design, protocol choice, c
 and replication posture.
 
 Configuration Narrative
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Narrative.Config]
 
 DriveCount TrayCount AutoLoadBalancingEnabled HostConnectivityReportingEnabled AsupEnabled
 ---------- --------- ------------------------ -------------------------------- -----------
@@ -95,17 +104,20 @@ Clarify embedded management access, DNS / NTP scope, monitoring integration, and
 
 
 Validation Block - Management Context
-- Management Summary     : 
+- Management Summary     : [SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Summary]
+
 SystemName   Model  Status  FirmwareVersion ApplicationVersion BootVersion NvsramVersion    ManagementIP
 ----------   -----  ------  --------------- ------------------ ----------- -------------    ------------
 DE4200_Rack4 DE4200 optimal 08.90.09.00     08.90.09.00        08.90.09.00 N4000-890870-D03 192.0.2.12
-- Management Interfaces  : 
+- Management Interfaces  : [SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces]
+
 Controller Slot Port Interface LinkStatus Address       Mask
 ---------- ---- ---- --------- ---------- -------       ----
 B          2    P1   wan0      up         10.240.59.179 255.255.252.0
 A          1    P1   wan0      up         10.240.59.30  255.255.252.0
 
 Management Interfaces
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces]
 
 Controller Slot Port Interface LinkStatus Address       Mask
 ---------- ---- ---- --------- ---------- -------       ----
@@ -113,7 +125,8 @@ B          2    P1   wan0      up         10.240.59.179 255.255.252.0
 A          1    P1   wan0      up         10.240.59.30  255.255.252.0
 
 Validation Block - DNS Effective Settings
-- DNS Effective Table    : 
+- DNS Effective Table    : [SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.DNS]
+
 Acquisition DnsServers DhcpServers
 ----------- ---------- -----------
 dhcp                   ["10.240.2.27","10.240.2.21"]
@@ -121,6 +134,7 @@ dhcp                   ["10.240.2.27","10.240.2.21"]
 
 DNS Configuration
 
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.DNS]
 
 Acquisition DnsServers DhcpServers
 ----------- ---------- -----------
@@ -128,7 +142,8 @@ dhcp                   ["10.240.2.27","10.240.2.21"]
 dhcp                   ["10.240.2.27","10.240.2.21"]
 
 Validation Block - Time Effective Settings
-- Time Effective Table   : 
+- Time Effective Table   : [SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.Time]
+
 Acquisition NtpServers DhcpServers DefaultRouter
 ----------- ---------- ----------- -------------
 disabled                           10.240.56.1
@@ -136,6 +151,7 @@ disabled                           10.240.56.1
 
 Time Configuration
 
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.Time]
 
 Acquisition NtpServers DhcpServers DefaultRouter
 ----------- ---------- ----------- -------------
@@ -149,18 +165,21 @@ Describe structural relationships between controllers, shelves, pools, volumes, 
 Logical Architecture
 Insert or describe the logical architecture showing controller roles, storage containers, volumes, and host access.
 
+[SDT-TAG:LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory]
 
 Name       ContainerType RaidLevel DriveMediaType Total    Used     Free      State    Status
 ----       ------------- --------- -------------- -----    ----     ----      -----    ------
 SampleVG_1 VolumeGroup   raid6     ssd            20.93 TB 19.53 TB 1.40 TB   complete optimal
 SampleVG_2 VolumeGroup   raid6     ssd            10.45 TB 9.77 TB  697.98 GB complete optimal
 SampleVG_3 VolumeGroup   raid6     hdd            13.07 TB 11.72 TB 1.35 TB   complete optimal
+[SDT-TAG:LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory]
 
 Name          Size     Status  RaidLevel Container
 ----          ----     ------  --------- ---------
 VeeamVol1     11.72 TB optimal raid6     SampleVG_3
 Hyper-V_Vol01 19.53 TB optimal raid6     SampleVG_1
 Hyper-V_Vol02 9.77 TB  optimal raid6     SampleVG_2
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings]
 
 Volume        Lun TargetType
 ------        --- ----------
@@ -171,10 +190,12 @@ Hyper-V_Vol02 1   hostGroup
 Physical Layout
 Document rack / room placement, tray ordering, controller shelves, and expansion-shelf relationships.
 
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.Trays]
 
 TrayType TrayRole        SerialNumber PartNumber DriveSlots ControllerSlots Status
 -------- --------        ------------ ---------- ---------- --------------- ------
 de224c   controller-tray J7024YT4     7DCQCTO1WW 24         2
+[SDT-TAG:LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory]
 
 Slot Media Type Raw     Usable  Firmware Status  SerialNumber
 ---- ---------- ---     ------  -------- ------  ------------
@@ -207,6 +228,7 @@ SAN Fabric Architecture (Conditional)
 Describe FC fabric topology, zoning model, switch redundancy, and host-to-array path diversity when Fibre Channel
 is in scope.
 
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC]
 
 Controller     Slot Port Channel LinkStatus CurrentSpeed MaxSpeed PortWWN NodeWWN
 ----------     ---- ---- ------- ---------- ------------ -------- ------- -------
@@ -222,12 +244,14 @@ Hardware Configuration
 Include shelf inventory, drive media, enclosure placement, and underlying node hardware where applicable.
 
 Tray / Shelf Inventory
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.Trays]
 
 TrayType TrayRole        SerialNumber PartNumber DriveSlots ControllerSlots Status
 -------- --------        ------------ ---------- ---------- --------------- ------
 de224c   controller-tray J7024YT4     7DCQCTO1WW 24         2
 
 Drive Inventory
+[SDT-TAG:LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory]
 
 Slot Media Type Raw     Usable  Firmware Status  SerialNumber
 ---- ---------- ---     ------  -------- ------  ------------
@@ -263,6 +287,7 @@ Controller Configuration
 Document management interfaces, controller network settings, host ports, and controller-level parameters.
 
 Management Interfaces
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces]
 
 Controller Slot Port Interface LinkStatus Address       Mask
 ---------- ---- ---- --------- ---------- -------       ----
@@ -271,6 +296,7 @@ A          1    P1   wan0      up         10.240.59.30  255.255.252.0
 
 Host Port Configuration - iSCSI
 
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI]
 
 Controller Slot Port Channel LinkStatus Address         Mask          Gateway TcpPort IQN
 ---------- ---- ---- ------- ---------- -------         ----          ------- ------- ---
@@ -288,6 +314,7 @@ A          1    e1c  5       down       192.168.134.101 255.255.255.0 0.0.0.0 32
 A          1    e1d  6       down       192.168.135.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
 
 Host Port Configuration - Fibre Channel
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC]
 
 Controller     Slot Port Channel LinkStatus CurrentSpeed MaxSpeed PortWWN NodeWWN
 ----------     ---- ---- ------- ---------- ------------ -------- ------- -------
@@ -295,6 +322,7 @@ Not configured
 [Policy: if no FC host-port rows are present, render the FC table with a single first data row value of "Not configured".]
 
 Transport Summary
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.Transport]
 
 ActiveTransport IscsiIqn
 --------------- --------
@@ -305,6 +333,7 @@ Describe pools / volume groups, volumes, capacity utilisation, provisioning sett
 relationships.
 
 Storage Containers / Pools / Volume Groups
+[SDT-TAG:LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory]
 
 Name       ContainerType RaidLevel DriveMediaType Total    Used     Free      State    Status
 ----       ------------- --------- -------------- -----    ----     ----      -----    ------
@@ -313,6 +342,7 @@ SampleVG_2 VolumeGroup   raid6     ssd            10.45 TB 9.77 TB  697.98 GB co
 SampleVG_3 VolumeGroup   raid6     hdd            13.07 TB 11.72 TB 1.35 TB   complete optimal
 
 Volumes
+[SDT-TAG:LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory]
 
 Name          Size     Status  RaidLevel Container
 ----          ----     ------  --------- ---------
@@ -321,6 +351,7 @@ Hyper-V_Vol01 19.53 TB optimal raid6     SampleVG_1
 Hyper-V_Vol02 9.77 TB  optimal raid6     SampleVG_2
 
 Volume Mapping Summary
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings]
 
 Volume        Lun TargetType
 ------        --- ----------
@@ -332,6 +363,7 @@ Host Connectivity
 Document host definitions, host groups, host-to-group relationships, and LUN presentation.
 
 Host Definitions
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.Hosts]
 
 Name        HostType
 ----        --------
@@ -339,12 +371,14 @@ NameofHost2
 NameofHost1
 
 Host Groups
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups]
 
 Name              Members
 ----              -------
 NameofHostCluster ["NameofHost2","NameofHost1"]
 
 Host to Host Group Relationships
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups]
 
 Host        HostGroup         HostType KeyType
 ----        ---------         -------- -------
@@ -352,6 +386,7 @@ NameofHost2 NameofHostCluster          clusterRef
 NameofHost1 NameofHostCluster          clusterRef
 
 Host Group to Volume Presentation
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes]
 
 HostGroup         Volume        Lun
 ---------         ------        ---
@@ -359,6 +394,7 @@ NameofHostCluster Hyper-V_Vol01 2
 NameofHostCluster Hyper-V_Vol02 1
 
 Direct Host to Volume Presentation
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes]
 
 Host        Volume    Lun
 ----        ------    ---
@@ -368,6 +404,7 @@ Performance & Cache Configuration
 Document array-level and volume-level cache behaviour, performance features, and notable limits or consumption.
 
 Capabilities Summary
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary]
 
 Feature                Category           State    Compliance Entitlement
 -------                --------           -----    ---------- -----------
@@ -385,6 +422,7 @@ Secure Volume          Security           Enabled  Compliant  Bundled
 Protection Information Storage Resiliency Enabled  Compliant  Bundled
 
 Key Features
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures]
 
 Feature                State    License     Notes
 -------                -----    -------     -----
@@ -402,6 +440,7 @@ Secure Volume          Enabled  None        Encryption-at-rest and related key m
 Protection Information Enabled  None        T10/DIF style end-to-end data integrity support. Runtime capabilities: protectionInformation
 
 Feature Limits / Consumption
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits]
 
 Feature                Limit Used LimitState    Entitlement
 -------                ----- ---- ----------    -----------
@@ -436,6 +475,7 @@ Certificates
 [Manual note: document certificate issuer, subject, and expiry if this content is required in the DOCX.]
 
 Alerts & AutoSupport
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport]
 
 AsupEnabled OnDemandEnabled RemoteDiags DeliveryMethod RoutingType MaxHttps MaxSmtp
 ----------- --------------- ----------- -------------- ----------- -------- -------
@@ -460,19 +500,23 @@ Explain how administrators, applications, and hosts consume the platform, includ
 behaviour.
 
 Validation Block - Transport / Access Model
-- Transport System ID      : 
+- Transport System ID      : [SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.Transport]
+
 ActiveTransport IscsiIqn
 --------------- --------
 iscsi           iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f018000000006949701c
-- Active Transport         : 
+- Active Transport         : [SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.Transport]
+
 ActiveTransport IscsiIqn
 --------------- --------
 iscsi           iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f018000000006949701c
-- iSCSI IQN                : 
+- iSCSI IQN                : [SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.Transport]
+
 ActiveTransport IscsiIqn
 --------------- --------
 iscsi           iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f018000000006949701c
-- Host Ports               : 
+- Host Ports               : [SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI]
+
 Controller Slot Port Channel LinkStatus Address         Mask          Gateway TcpPort IQN
 ---------- ---- ---- ------- ---------- -------         ----          ------- ------- ---
 B          2    e1a  3       down       192.168.132.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
@@ -487,7 +531,8 @@ A          1    e0a  1       down       192.168.130.101 255.255.255.0 0.0.0.0 32
 A          1    e1a  3       down       192.168.132.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
 A          1    e1c  5       down       192.168.134.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
 A          1    e1d  6       down       192.168.135.101 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
-- Administrative Entrypoint : 
+- Administrative Entrypoint : [SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Summary]
+
 SystemName   Model  Status  FirmwareVersion ApplicationVersion BootVersion NvsramVersion    ManagementIP
 ----------   -----  ------  --------------- ------------------ ----------- -------------    ------------
 DE4200_Rack4 DE4200 optimal 08.90.09.00     08.90.09.00        08.90.09.00 N4000-890870-D03 192.0.2.12
@@ -497,6 +542,7 @@ DE4200_Rack4 DE4200 optimal 08.90.09.00     08.90.09.00        08.90.09.00 N4000
 Monitoring & Alert Flow
 Describe how alerts surface from the array into AutoSupport, email, SNMP, or external monitoring systems.
 
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport]
 
 AsupEnabled OnDemandEnabled RemoteDiags DeliveryMethod RoutingType MaxHttps MaxSmtp
 ----------- --------------- ----------- -------------- ----------- -------- -------
@@ -535,11 +581,13 @@ Detailed Inventory
 Use this section for exhaustive component listings and raw inventory data retained for audit or support use.
 
 Evidence Narrative
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence]
 
 ActiveTransport IscsiIqn
 --------------- --------
 iscsi           iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f018000000006949701c
 
+[SDT-TAG:LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory]
 
 Slot Media Type Raw     Usable  Firmware Status  SerialNumber
 ---- ---------- ---     ------  -------- ------  ------------
@@ -567,10 +615,12 @@ Slot Media Type Raw     Usable  Firmware Status  SerialNumber
 23   ssd        3.49 TB 3.49 TB LE00     optimal S74DNN0Y900579
 24   ssd        3.49 TB 3.49 TB LE00     optimal S74DNN0Y900580
 18   ssd        3.49 TB 3.49 TB LE00     optimal S74DNN0Y900581
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.Trays]
 
 TrayType TrayRole        SerialNumber PartNumber DriveSlots ControllerSlots Status
 -------- --------        ------------ ---------- ---------- --------------- ------
 de224c   controller-tray J7024YT4     7DCQCTO1WW 24         2
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.Controllers]
 
 Controller Slot Status  AppVersion  BootVersion SerialNumber
 ---------- ---- ------  ----------  ----------- ------------
@@ -580,6 +630,7 @@ A          1    optimal 08.90.09.00 08.90.09.00 952529000086
 Version Summary
 Use this section for consolidated firmware, software, and component version baselines.
 
+[SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Summary]
 
 SystemName   Model  Status  FirmwareVersion ApplicationVersion BootVersion NvsramVersion    ManagementIP
 ----------   -----  ------  --------------- ------------------ ----------- -------------    ------------
@@ -607,12 +658,14 @@ Node-Level Driver Alignment (Conditional)
 [Conditional manual note: include node-level driver alignment only when applicable to attached compute platforms.]
 
 Validation Block - Controller A / Controller B Summary
-- Controller Management Table : 
+- Controller Management Table : [SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces]
+
 Controller Slot Port Interface LinkStatus Address       Mask
 ---------- ---- ---- --------- ---------- -------       ----
 B          2    P1   wan0      up         10.240.59.179 255.255.252.0
 A          1    P1   wan0      up         10.240.59.30  255.255.252.0
-- Host Port Evidence Table    : 
+- Host Port Evidence Table    : [SDT-TAG:LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI]
+
 Controller Slot Port Channel LinkStatus Address         Mask          Gateway TcpPort IQN
 ---------- ---- ---- ------- ---------- -------         ----          ------- ------- ---
 B          2    e1a  3       down       192.168.132.102 255.255.255.0 0.0.0.0 3260    iqn.2002-09.com.lenovo:thinksystem.6d039ea000d9f01800000…
