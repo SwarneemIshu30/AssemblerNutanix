@@ -9,7 +9,8 @@ param(
     [Parameter(Mandatory = $true)][string]$TemplatePath,
     [Parameter(Mandatory = $true)][string]$OutputPath,
     [Parameter(Mandatory = $false)][string]$ReportPath,
-    [Parameter(Mandatory = $false)][string]$ContractsRoot
+    [Parameter(Mandatory = $false)][string]$ContractsRoot,
+    [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags
 )
 
 Set-StrictMode -Version Latest
@@ -1739,7 +1740,12 @@ try {
         $rendered = $templateText
         foreach ($tag in $replaceByTag.Keys) {
             $token = "<<SDT:$tag>>"
-            $rendered = $rendered.Replace($token, "$token`n$([string]$replaceByTag[$tag])")
+            if ($AnnotateResolvedTags.IsPresent) {
+                $rendered = $rendered.Replace($token, "[SDT-TAG:$tag]`n$([string]$replaceByTag[$tag])")
+            }
+            else {
+                $rendered = $rendered.Replace($token, "$token`n$([string]$replaceByTag[$tag])")
+            }
         }
         $unresolvedByTag = Get-UnresolvedSdtTagOccurrences -RenderedText $rendered
         foreach ($resolvedTag in @($replaceByTag.Keys)) {
