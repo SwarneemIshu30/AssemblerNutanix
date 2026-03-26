@@ -349,4 +349,47 @@ Describe 'Invoke-AssemblerBundleRender orchestration' {
         }
     }
 
+    It 'forwards annotate-resolved-tags switch to text SDT render entries' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $bundleRoot = Join-Path $repoRoot 'bundle/417f4663-0922-423b-92a9-34d4e33ecd0e'
+        $catalogPath = Join-Path $repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json'
+
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-bundle-render-annotate-test-" + [guid]::NewGuid().ToString())
+        $outputRoot = Join-Path $tempRoot 'out'
+
+        try {
+            $scriptPath = Join-Path $repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1'
+            $json = & $pwshPath -NoLogo -NoProfile -File $scriptPath -BundleRoot $bundleRoot -CatalogPath $catalogPath -OutputRoot $outputRoot -OutputType 'text' -AnnotateResolvedTags
+            if ($LASTEXITCODE -ne 0) {
+                throw "Expected exit code 0, got $LASTEXITCODE"
+            }
+
+            $report = $json | ConvertFrom-Json -AsHashtable
+            if ($report.status -ne 'OK') {
+                throw "Expected report.status OK, got '$($report.status)'"
+            }
+
+            $run = @($report.runs)[0]
+            $renderedPath = [string]$run.outputPath
+            if (-not (Test-Path -LiteralPath $renderedPath -PathType Leaf)) {
+                throw "Expected rendered output path '$renderedPath' to exist"
+            }
+
+            $renderedText = Get-Content -LiteralPath $renderedPath -Raw -Encoding UTF8
+            if ($renderedText -notmatch '\[SDT-TAG:') {
+                throw 'Expected rendered text to include [SDT-TAG:*] annotation markers when -AnnotateResolvedTags is forwarded'
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
 }
