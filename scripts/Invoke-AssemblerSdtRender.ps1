@@ -1737,20 +1737,24 @@ try {
         $renderDetails.partsUpdated = [int]$docxRender.partsUpdated
     }
     else {
+        $templateUnresolvedByTag = Get-UnresolvedSdtTagOccurrences -RenderedText $templateText
         $rendered = $templateText
         foreach ($tag in $replaceByTag.Keys) {
             $token = "<<SDT:$tag>>"
+            $replacementText = [string]$replaceByTag[$tag]
             if ($AnnotateResolvedTags.IsPresent) {
-                $rendered = $rendered.Replace($token, "[SDT-TAG:$tag]`n$([string]$replaceByTag[$tag])")
+                $traceMarker = "[SDT-TAG:$tag]"
+                $rendered = $rendered.Replace($token, "$traceMarker`n$replacementText")
             }
             else {
-                $rendered = $rendered.Replace($token, "$token`n$([string]$replaceByTag[$tag])")
+                $rendered = $rendered.Replace($token, $replacementText)
             }
         }
-        $unresolvedByTag = Get-UnresolvedSdtTagOccurrences -RenderedText $rendered
-        foreach ($resolvedTag in @($replaceByTag.Keys)) {
-            if (Test-MapHasKey -Map $unresolvedByTag -Key ([string]$resolvedTag)) {
-                $unresolvedByTag.Remove([string]$resolvedTag)
+        $renderUnresolvedByTag = Get-UnresolvedSdtTagOccurrences -RenderedText $rendered
+        $unresolvedByTag = @{}
+        foreach ($unresolvedTag in @($renderUnresolvedByTag.Keys)) {
+            if (Test-MapHasKey -Map $templateUnresolvedByTag -Key ([string]$unresolvedTag)) {
+                $unresolvedByTag[[string]$unresolvedTag] = $renderUnresolvedByTag[[string]$unresolvedTag]
             }
         }
     }
