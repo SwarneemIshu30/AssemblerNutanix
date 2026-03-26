@@ -953,6 +953,7 @@ function Sync-CollectorSkeletonMappingFromContract {
     $skipReasonCounters = [ordered]@{
         missingDataset = 0
         missingTag = 0
+        missingDatasetTemplate = 0
         unsupportedShape = 0
     }
 
@@ -1004,6 +1005,12 @@ function Sync-CollectorSkeletonMappingFromContract {
             if ([string]::IsNullOrWhiteSpace($resolvedTag)) {
                 $skipReasonCounters.missingTag++
                 Write-Verbose ("[collector-mapping-sync] skip mapping[{0}] sourceKey={1} reason=missing tag" -f $mappingIndex, $sourceKey)
+                continue
+            }
+
+            if (-not (Test-MapHasKey -Map $datasetPathTemplateMap -Key $datasetName)) {
+                $skipReasonCounters.missingDatasetTemplate++
+                Write-Verbose ("[collector-mapping-sync] skip mapping[{0}] sourceKey={1} reason=missing datasetPath.template metadata under tech '{2}'" -f $mappingIndex, $sourceKey, $ResolvedTechId)
                 continue
             }
 
@@ -1124,7 +1131,7 @@ function Sync-CollectorSkeletonMappingFromContract {
 
     $skippedCount = $processedCount - $generatedCount
     Write-Verbose ("[collector-mapping-sync] totals: processed={0}; skipped={1}; generated={2}" -f $processedCount, $skippedCount, $generatedCount)
-    Write-Verbose ("[collector-mapping-sync] skip reasons: missingDataset={0}; missingTag={1}; unsupportedShape={2}" -f $skipReasonCounters.missingDataset, $skipReasonCounters.missingTag, $skipReasonCounters.unsupportedShape)
+    Write-Verbose ("[collector-mapping-sync] skip reasons: missingDataset={0}; missingTag={1}; missingDatasetTemplate={2}; unsupportedShape={3}" -f $skipReasonCounters.missingDataset, $skipReasonCounters.missingTag, $skipReasonCounters.missingDatasetTemplate, $skipReasonCounters.unsupportedShape)
 
     $outputDir = Split-Path -Parent $OutputPath
     if (-not (Test-Path -LiteralPath $outputDir -PathType Container)) {

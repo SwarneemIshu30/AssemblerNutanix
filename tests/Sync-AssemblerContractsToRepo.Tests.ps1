@@ -167,30 +167,13 @@ Describe 'Sync-AssemblerContractsToRepo' {
         $destinationRoot = Join-Path $tempRoot '.deps/contracts'
         $tempScriptRoot = Join-Path $tempRoot 'repo/scripts'
         $tempScriptPath = Join-Path $tempScriptRoot 'Sync-AssemblerContractsToRepo.ps1'
-        $legacyTechRoot = Join-Path $contractsSourceRoot 'tech/Nutanix.PrismElement'
-        $legacyDatasetRoot = Join-Path $legacyTechRoot 'dataset'
-        $legacyMappingPath = Join-Path $legacyTechRoot 'mapping.dataset-to-sdt.v1.yaml'
 
         Copy-Item -LiteralPath $sourceRoot -Destination $contractsSourceRoot -Recurse -Force
-        New-Item -ItemType Directory -Path $legacyDatasetRoot -Force | Out-Null
-        Set-Content -LiteralPath (Join-Path $legacyDatasetRoot 'cluster.assembler.meta.json') -Encoding UTF8 -Value @'
-{
-  "dataset": "cluster",
-  "datasetPathTemplate": "datasets/__TECH_ID__/cluster.json"
-}
-'@
-        Set-Content -LiteralPath $legacyMappingPath -Encoding UTF8 -Value @'
-schema: mapping.dataset-to-sdt
-schemaVersion: 1
-techId: Nutanix.PrismElement
-displayName: Nutanix Prism Element mapping (legacy minimal)
-mappings:
-- dataset: cluster
-  sdtTag: LNV.Nutanix.PrismElement.Cluster.Summary
-  required: true
-  renderHint:
-    renderAs: scalar
-'@
+        foreach ($techPath in @(Get-ChildItem -LiteralPath (Join-Path $contractsSourceRoot 'tech') -Directory)) {
+            if ($techPath.Name -notin @('Lenovo.DE', 'Nutanix.PrismElement')) {
+                Remove-Item -LiteralPath $techPath.FullName -Recurse -Force
+            }
+        }
 
         New-Item -ItemType Directory -Path $tempScriptRoot -Force | Out-Null
         Copy-Item -LiteralPath $scriptPath -Destination $tempScriptPath -Force
@@ -208,8 +191,8 @@ mappings:
             if ($result.Json.status -ne 'ok') {
                 throw "Expected status ok in mixed-generation auto-discovery mode, got '$($result.Json.status)'"
             }
-            if ([string]$result.Output -match 'collectorSdtTagPolicy|collectorSkeletonMapping|PropertyNotFoundException') {
-                throw "Expected auto-discovery to avoid optional-policy property missing crashes. Output: $($result.Output)"
+            if ([string]$result.Output -match 'collectorSdtTagPolicy|collectorSkeletonMapping|PropertyNotFoundException|missing datasetPath\.template metadata') {
+                throw "Expected auto-discovery to avoid optional-policy/dataset-template property crashes. Output: $($result.Output)"
             }
 
             $generatedPaths = @($result.Json.skeletonMappingPaths)
@@ -226,8 +209,8 @@ mappings:
             }
 
             $nutanixMapping = Get-Content -LiteralPath $nutanixMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
-            if ((@($nutanixMapping.mappings)).Count -eq 0) {
-                throw 'Expected generated Nutanix mapping to include at least one mapping entry'
+            if (($nutanixMapping.mappings | Measure-Object).Count -ne 0) {
+                throw 'Expected generated Nutanix mapping to skip entries without datasetPath.template metadata'
             }
         }
         finally {
