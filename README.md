@@ -58,7 +58,7 @@ The runtime skeleton mapping under `templates/skeletons/Lenovo.DE/DE-SDT-Collect
 
 The repository includes PowerShell 7 scaffolding for SDT rendering:
 - pipeline bootstrap validation (`scripts/Invoke-AssemblerPipeline.ps1`)
-- contract sync to deterministic local path (`scripts/Sync-AssemblerContractsToRepo.ps1`)
+- contract sync to deterministic local path (`scripts/Sync-AssemblerContractsToRepo.ps1`) with per-tech generation dashboard/status and strict empty-generation quality gates
 - SDT render invoke script with mapping schema checks (`scripts/Invoke-AssemblerSdtRender.ps1`)
 - bundle-aware orchestration (`scripts/Invoke-AssemblerBundleRender.ps1`)
 - skeleton ingest bootstrap (`scripts/New-AssemblerSkeleton.ps1`)
