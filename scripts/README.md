@@ -16,6 +16,20 @@ Runtime direction is **PowerShell 7**.
 - `Test-AssemblerMappingShapeMode.ps1` - CI validation helper that enforces a selected rollout mode against both mapping contract and runtime mapping files.
 - `internal/AssemblerSchemaValidation.psm1` - shared helper for JSON schema validation against contracts under `standards/`.
 
+## Entrypoints and flow
+
+### Entrypoint matrix
+
+| Category | Entrypoints | Notes |
+| --- | --- | --- |
+| Public/operator entrypoints | `Sync-AssemblerContractsToRepo.ps1`; `Invoke-AssemblerPipeline.ps1`; `Invoke-AssemblerBundleRender.ps1`; GUI launchers | Preferred operator-facing path for sync/orchestration. |
+| Conditional/manual entrypoint | `Invoke-AssemblerSdtRender.ps1` | Use only with fully resolved mapping paths; no `__TARGET__` / `__SYSTEM__` placeholders. |
+| Internal modules/helpers | `internal/AssemblerSchemaValidation.psm1`; mapping-shape helpers | Shared internals consumed by entrypoint scripts and validation flows. |
+
+### Flow
+
+`Sync -> (optional Pipeline) -> BundleRender -> SdtRender (per resolved variant)`
+
 ## Contract path resolution
 
 `Invoke-AssemblerSdtRender.ps1` and `Invoke-AssemblerBundleRender.ps1` resolve contracts in this order:
