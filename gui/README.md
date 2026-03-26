@@ -46,3 +46,21 @@ WPF launcher (Windows only):
 ```powershell
 pwsh ./gui/Start-AssemblerGui.Wpf.ps1
 ```
+
+## Entrypoints, chaining, and placeholder safety
+
+Public entrypoint map:
+- **Pipeline path:** `Invoke-AssemblerPipeline.ps1` -> `Invoke-AssemblerBundleRender.ps1` -> `Invoke-AssemblerSdtRender.ps1`
+- **GUI path:** `Start-AssemblerGui.ps1` / `Start-AssemblerGui.Wpf.ps1` -> `Invoke-AssemblerBundleRender.ps1`
+
+Bundle render is intentionally the GUI handoff boundary. If mappings contain runtime placeholders such as `__TARGET__` and `__SYSTEM__`, bundle render is required to resolve those values before SDT rendering.
+
+## Output selection guidance
+
+The GUI participates in the same output-selection model as CLI orchestration:
+
+1. **Catalog `enabled`** decides baseline participation for each entry.
+2. **CLI filters** on bundle render (`-TechId`, `-EntryId`, `-OutputType docx|text`) can further narrow outputs.
+3. **GUI Debug/Advanced controls** expose the same narrowing behavior through Entry ID and DOCX/TXT toggles.
+
+Current default behavior is to keep both output variants enabled (**DOCX + TXT**). Planned roadmap behavior is to default to **DOCX-only**, with a debug/advanced override to re-enable TXT when needed.

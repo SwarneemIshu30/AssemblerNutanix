@@ -54,6 +54,25 @@ For Lenovo.DE specifically, the authoritative mapping and projection intent now 
 
 The runtime skeleton mapping under `templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json` should stay aligned with that contract data.
 
+## Public entrypoints and chaining
+
+Entry-point map:
+- **Pipeline -> BundleRender -> SdtRender**
+  - `scripts/Invoke-AssemblerPipeline.ps1` -> `scripts/Invoke-AssemblerBundleRender.ps1` -> `scripts/Invoke-AssemblerSdtRender.ps1`
+- **GUI -> BundleRender**
+  - `gui/Start-AssemblerGui.ps1` / `gui/Start-AssemblerGui.Wpf.ps1` -> `scripts/Invoke-AssemblerBundleRender.ps1`
+
+Bundle render is the required hop whenever mapping files contain runtime placeholders such as `__TARGET__` and `__SYSTEM__`.
+
+## Output-selection controls
+
+Output selection is controlled in layers:
+1. **Template catalog `enabled`** flag controls baseline inclusion.
+2. **CLI filter parameters** on bundle render (`-TechId`, `-EntryId`, `-OutputType docx|text`) provide run-time narrowing.
+3. **GUI debug/advanced toggles** expose equivalent filtering (Entry IDs and DOCX/TXT toggles).
+
+Current default behavior is to emit both output variants (**DOCX + TXT**) when not filtered. Planned default behavior is **DOCX-only**, with a debug override that can enable TXT output.
+
 ## Current runtime coverage
 
 The repository includes PowerShell 7 scaffolding for SDT rendering:
