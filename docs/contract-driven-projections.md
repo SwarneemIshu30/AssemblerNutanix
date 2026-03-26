@@ -113,11 +113,11 @@ This is especially important for:
 ### Lenovo.DE host-ports FC TODO (contract backlog)
 
 Current `host-ports` dataset rows in this repo snapshot do not emit `portWwn` / `nodeWwn`.
-To keep bundle rendering fail-closed and avoid `ASB-ASM-SDT-UNHANDLED` errors, FC table projections should only reference emitted fields for now.
+FC table projections may keep `PortWWN` / `NodeWWN` columns, but renderer resolution for missing source fields must remain null-safe so bundle rendering does not throw `ASB-ASM-SDT-UNHANDLED`.
 
 TODO for Lenovo.DE contracts (when collector normalization is available):
-- re-enable `PortWWN` (`source: portWwn`) in `LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC`
-- re-enable `NodeWWN` (`source: nodeWwn`) in `LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC`
+- validate populated `PortWWN` (`source: portWwn`) values in `LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC`
+- validate populated `NodeWWN` (`source: nodeWwn`) values in `LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC`
 - optionally add FC narrative WWN fields only after the same normalized fields are present in `host-ports` dataset output
 
 ## Runtime-facing mapping copy

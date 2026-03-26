@@ -348,6 +348,14 @@
         {
           "name": "MaxSpeed",
           "source": "maxSpeed"
+        },
+        {
+          "name": "PortWWN",
+          "source": "portWwn"
+        },
+        {
+          "name": "NodeWWN",
+          "source": "nodeWwn"
         }
       ],
       "renderMode": "table",
