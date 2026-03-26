@@ -144,6 +144,35 @@ function Resolve-DatasetFilePath {
     return [ordered]@{ path = $exactPath; autoResolved = $false; reason = $null }
 }
 
+function Get-UnresolvedMappingDatasetPlaceholderViolations {
+    param(
+        [Parameter(Mandatory = $true)][hashtable]$Mapping
+    )
+
+    $violations = [System.Collections.Generic.List[hashtable]]::new()
+    if (-not (Test-MapHasKey -Map $Mapping -Key 'mappings')) {
+        return @($violations.ToArray())
+    }
+
+    foreach ($entry in @($Mapping.mappings)) {
+        if (-not ($entry -is [System.Collections.IDictionary])) { continue }
+        if (-not (Test-MapHasKey -Map $entry -Key 'dataset')) { continue }
+
+        $datasetPath = [string]$entry.dataset
+        if ([string]::IsNullOrWhiteSpace($datasetPath)) { continue }
+        if ($datasetPath -notmatch '__TARGET__|__SYSTEM__') { continue }
+
+        $tag = if (Test-MapHasKey -Map $entry -Key 'sdtTag') { [string]$entry['sdtTag'] } elseif ((Test-MapHasKey -Map $entry -Key 'target') -and $entry['target'] -is [System.Collections.IDictionary] -and (Test-MapHasKey -Map $entry['target'] -Key 'sdtTag')) { [string]$entry['target']['sdtTag'] } else { '' }
+
+        $violations.Add([ordered]@{
+            dataset = $datasetPath
+            tag = $tag
+        })
+    }
+
+    return @($violations.ToArray())
+}
+
 function Test-DatasetEnvelope {
     param(
         [Parameter(Mandatory = $true)][hashtable]$Dataset,
@@ -1603,6 +1632,25 @@ try {
         })
     }
     $mapping = $mappingCompatibility.mapping
+
+    # TODO(contract-handoff): remove this operator guard after all SDT render entrypoints are fully bundle-resolved.
+    $placeholderViolations = @(Get-UnresolvedMappingDatasetPlaceholderViolations -Mapping $mapping)
+    if (@($placeholderViolations).Count -gt 0) {
+        $sample = @($placeholderViolations | Select-Object -First 3 | ForEach-Object {
+            $sampleTag = if ([string]::IsNullOrWhiteSpace([string]$_.tag)) { '<missing-tag>' } else { [string]$_.tag }
+            "'$([string]$_.dataset)' (tag '$sampleTag')"
+        })
+        $sampleText = if (@($sample).Count -gt 0) { $sample -join '; ' } else { 'n/a' }
+        $issues.Add([ordered]@{
+            code = 'ASB-ASM-SDT-PREFLIGHT-UNRESOLVED-MAPPING-PATH'
+            severity = 'ERROR'
+            message = "Preflight blocked Invoke-AssemblerSdtRender.ps1: mapping '$MappingPath' still contains unresolved runtime placeholders (__TARGET__/__SYSTEM__) in dataset paths ($($placeholderViolations.Count) mapping(s); sample: $sampleText). Use Invoke-AssemblerBundleRender.ps1 so placeholders are expanded before SDT render."
+            path = $MappingPath
+        })
+        Complete-RenderStage -Stage $stageMap.Validate -Status 'ERROR'
+        $status = 'ERROR'
+        throw 'Mapping preflight failed due to unresolved runtime placeholders in dataset paths.'
+    }
 
     $projectionContractJson = $projectionContract | ConvertTo-Json -Depth 20
     $projectionContractJsonShape = Test-ProjectionContractJsonArrayShape -JsonText $projectionContractJson

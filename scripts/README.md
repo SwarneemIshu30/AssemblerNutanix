@@ -32,6 +32,8 @@ If a mapping includes runtime placeholders such as `__TARGET__` or `__SYSTEM__`,
 
 Run `Invoke-AssemblerBundleRender.ps1` (or a resolved-mapping helper) so placeholders are expanded first.
 
+`Invoke-AssemblerSdtRender.ps1` now includes a preflight guard that fails fast with `ASB-ASM-SDT-PREFLIGHT-UNRESOLVED-MAPPING-PATH` when unresolved `__TARGET__` / `__SYSTEM__` placeholders are detected in mapping dataset paths. This prevents large cascades of downstream `ASB-ASM-SDT-DATASET-MISSING` and `ASB-ASM-SDT-UNRESOLVED-TAG` diagnostics for this operator mistake.
+
 Common failure symptoms when the wrong entrypoint is used:
 - `ASB-ASM-SDT-DATASET-MISSING` for `datasets/.../__TARGET__/...`
 - many `ASB-ASM-SDT-UNRESOLVED-TAG` errors
