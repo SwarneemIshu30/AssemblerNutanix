@@ -8,7 +8,9 @@ param(
     [Parameter(Mandatory = $true)][string]$CatalogPath,
     [Parameter(Mandatory = $true)][string]$OutputRoot,
     [Parameter(Mandatory = $false)][string]$ContractsRoot,
-    [Parameter(Mandatory = $false)][string[]]$TechId
+    [Parameter(Mandatory = $false)][string[]]$TechId,
+    [Parameter(Mandatory = $false)][string[]]$EntryId,
+    [Parameter(Mandatory = $false)][ValidateSet('docx','text')][string[]]$OutputType
 )
 
 Set-StrictMode -Version Latest
@@ -338,9 +340,24 @@ function Ensure-Directory {
     }
 }
 
+function Get-CatalogEntryOutputType {
+    param([Parameter(Mandatory = $true)][hashtable]$Entry)
+
+    $templatePath = if ($Entry.ContainsKey('templatePath')) { [string]$Entry.templatePath } else { '' }
+    $extension = [System.IO.Path]::GetExtension($templatePath)
+    if ([string]::Equals($extension, '.docx', [System.StringComparison]::OrdinalIgnoreCase)) {
+        return 'docx'
+    }
+
+    return 'text'
+}
+
 $startedUtc = Get-UtcTimestamp
 $issues = [System.Collections.Generic.List[hashtable]]::new()
 $runs = [System.Collections.Generic.List[hashtable]]::new()
+$requestedTechIds = @()
+$requestedEntryIds = @()
+$requestedOutputTypes = @()
 
 function Get-BundleEntryFailureMessage {
     param(
@@ -448,7 +465,33 @@ try {
 
     $catalogBase = Split-Path -Parent (Resolve-Path -LiteralPath $CatalogPath).Path
     $entries = @($catalog.entries | Where-Object { ($_.enabled -ne $false) -and ($requestedTechIds -contains [string]$_.techId) })
+    $requestedEntryIds = @($EntryId | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    if ($requestedEntryIds.Count -gt 0) {
+        $requestedEntryIdSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($requestedEntryId in $requestedEntryIds) {
+            [void]$requestedEntryIdSet.Add(([string]$requestedEntryId).Trim())
+        }
+        $entries = @($entries | Where-Object { $requestedEntryIdSet.Contains([string]$_.id) })
+    }
+
+    $requestedOutputTypes = @($OutputType | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    if ($requestedOutputTypes.Count -gt 0) {
+        $requestedOutputTypeSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($requestedOutputType in $requestedOutputTypes) {
+            [void]$requestedOutputTypeSet.Add(([string]$requestedOutputType).Trim())
+        }
+        $entries = @($entries | Where-Object { $requestedOutputTypeSet.Contains((Get-CatalogEntryOutputType -Entry $_)) })
+    }
+
     $entries = @($entries | Sort-Object -Property @{ Expression = { if ($_.ContainsKey('priority')) { [int]$_.priority } else { 100 } } }, @{ Expression = { [string]$_.id } })
+    if (@($entries).Count -eq 0) {
+        $issues.Add([ordered]@{
+            code = 'ASB-ASM-BUNDLE-FILTERS-NO-ENTRIES'
+            severity = 'WARN'
+            message = "No catalog entries selected for rendering after applying enabled/tech and optional filters (TechId='$($requestedTechIds -join ',')'; EntryId='$($requestedEntryIds -join ',')'; OutputType='$($requestedOutputTypes -join ',')')."
+            path = $CatalogPath
+        })
+    }
     Complete-BundleStage -Stage $stageMap.Transform -Status 'OK' -Details ([ordered]@{ selectedEntryCount = @($entries).Count })
 
     Start-BundleStage -Stage $stageMap.Render
@@ -616,6 +659,11 @@ $report = [ordered]@{
     bundleRoot = $effectiveBundleRoot
     catalogPath = $CatalogPath
     outputRoot = $OutputRoot
+    filters = [ordered]@{
+        techId = @($requestedTechIds)
+        entryId = @($requestedEntryIds)
+        outputType = @($requestedOutputTypes)
+    }
     stages = $stages
     runs = $runs
     issues = $issues
