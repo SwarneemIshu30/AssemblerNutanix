@@ -1,0 +1,395 @@
+{
+  "schemaVersion": 1,
+  "status": "ERROR",
+  "startedUtc": "2026-03-26T00:34:57.4446207Z",
+  "completedUtc": "2026-03-26T00:34:57.5127743Z",
+  "bundleId": "bc8e726c-0b55-4b6e-af58-c84fa426a26a",
+  "stages": [
+    {
+      "details": null,
+      "completedUtc": "2026-03-26T00:34:57.4447135Z",
+      "name": "Load",
+      "startedUtc": "2026-03-26T00:34:57.4447135Z",
+      "status": "SKIPPED"
+    },
+    {
+      "details": null,
+      "completedUtc": "2026-03-26T00:34:57.4447135Z",
+      "name": "Validate",
+      "startedUtc": "2026-03-26T00:34:57.4447135Z",
+      "status": "SKIPPED"
+    },
+    {
+      "details": null,
+      "completedUtc": "2026-03-26T00:34:57.4447135Z",
+      "name": "Transform",
+      "startedUtc": "2026-03-26T00:34:57.4447135Z",
+      "status": "SKIPPED"
+    },
+    {
+      "details": null,
+      "completedUtc": "2026-03-26T00:34:57.4447135Z",
+      "name": "Render",
+      "startedUtc": "2026-03-26T00:34:57.4447135Z",
+      "status": "SKIPPED"
+    },
+    {
+      "details": null,
+      "completedUtc": "2026-03-26T00:34:57.4447135Z",
+      "name": "Finalize",
+      "startedUtc": "2026-03-26T00:34:57.4447135Z",
+      "status": "SKIPPED"
+    }
+  ],
+  "issues": [
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/systems.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Summary'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\systems.json",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/system-controllers.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.Controllers'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\system-controllers.json",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/management-interfaces.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\management-interfaces.json",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/transport.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.Transport'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\transport.json",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/system-dns.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.DNS'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\system-dns.json",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/system-time.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.Time'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\system-time.json",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/trays.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.Trays'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\trays.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/host-ports.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\host-ports.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/host-ports.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\host-ports.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/hosts.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.Hosts'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\hosts.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/host-groups.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\host-groups.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/drives.json' not found for tag 'LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\drives.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/storage-containers.json' not found for tag 'LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\storage-containers.json",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/volumes.json' not found for tag 'LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\volumes.json",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/volume-mappings.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\volume-mappings.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/hosts-to-host-groups.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\hosts-to-host-groups.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/host-groups-to-volumes.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\host-groups-to-volumes.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/hosts-to-volumes.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\hosts-to-volumes.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/system-asup.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\system-asup.json",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/capabilities-normalized.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\capabilities-normalized.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/capabilities-normalized.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\capabilities-normalized.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/capabilities-normalized.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\capabilities-normalized.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/management-interfaces.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerA'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\management-interfaces.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/management-interfaces.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerB'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\management-interfaces.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/system-dns.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope1'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\system-dns.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/system-dns.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope2'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\system-dns.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/system-time.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope1'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\system-time.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/system-time.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope2'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\system-time.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/host-ports.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port1'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\host-ports.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/host-ports.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port2'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\host-ports.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/systems.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Narrative.Version'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\systems.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/systems.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\systems.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Dataset 'datasets/Lenovo.DE/__TARGET__/__SYSTEM__/transport.json' not found for tag 'LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence'",
+      "path": ".\\bundle\\bc8e726c-0b55-4b6e-af58-c84fa426a26a\\datasets\\Lenovo.DE\\__TARGET__\\__SYSTEM__\\transport.json",
+      "severity": "WARN",
+      "code": "ASB-ASM-SDT-DATASET-MISSING"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory' remained after rendering (3 occurrence(s); sample locations: L100:C1, L121:C1, L271:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory' remained after rendering (3 occurrence(s); sample locations: L35:C1, L92:C1, L148:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config' remained after rendering (1 occurrence(s); sample locations: L56:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence' remained after rendering (1 occurrence(s); sample locations: L269:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Summary' remained after rendering (7 occurrence(s); sample locations: L3:C47, L12:C27, L34:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport' remained after rendering (2 occurrence(s); sample locations: L202:C1, L234:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures' remained after rendering (1 occurrence(s); sample locations: L181:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits' remained after rendering (1 occurrence(s); sample locations: L184:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary' remained after rendering (1 occurrence(s); sample locations: L178:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.Controllers' remained after rendering (3 occurrence(s); sample locations: L41:C1, L48:C36, L273:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.DNS' remained after rendering (2 occurrence(s); sample locations: L72:C28, L76:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups' remained after rendering (1 occurrence(s); sample locations: L163:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes' remained after rendering (1 occurrence(s); sample locations: L169:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC' remained after rendering (2 occurrence(s); sample locations: L106:C1, L137:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI' remained after rendering (3 occurrence(s); sample locations: L134:C1, L226:C30, L303:C33).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.Hosts' remained after rendering (1 occurrence(s); sample locations: L160:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups' remained after rendering (1 occurrence(s); sample locations: L166:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes' remained after rendering (1 occurrence(s); sample locations: L172:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces' remained after rendering (4 occurrence(s); sample locations: L66:C28, L69:C1, L130:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.Time' remained after rendering (2 occurrence(s); sample locations: L79:C28, L83:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.Transport' remained after rendering (4 occurrence(s); sample locations: L141:C1, L223:C30, L224:C30).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.Trays' remained after rendering (3 occurrence(s); sample locations: L99:C1, L118:C1, L272:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings' remained after rendering (2 occurrence(s); sample locations: L94:C1, L154:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    },
+    {
+      "message": "Unresolved SDT tag 'LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory' remained after rendering (3 occurrence(s); sample locations: L36:C1, L93:C1, L151:C1).",
+      "path": ".\\templates\\skeletons\\Lenovo.DE\\DE-SDT-Collector.template.txt",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-UNRESOLVED-TAG"
+    }
+  ],
+  "matches": [],
+  "outputs": [
+    {
+      "path": ".\\out\\Lenovo.DE\\DE-SDT-Collector.rendered.txt",
+      "type": "text/template-rendered"
+    }
+  ]
+}
