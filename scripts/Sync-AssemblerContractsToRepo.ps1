@@ -45,6 +45,8 @@ param(
     [ValidateSet('legacy', 'dual', 'target')]
     [string]$OutputShapeMode,
 
+    [switch]$StrictEmptyGeneration,
+
     [switch]$Clean,
 
     [switch]$KeepTempArtifacts
@@ -335,7 +337,8 @@ function Invoke-PostSyncProcessing {
         [Parameter(Mandatory = $true)][hashtable]$ProgressContext,
         [Parameter(Mandatory = $true)][System.Diagnostics.Stopwatch]$StepTimer,
         [Parameter(Mandatory = $true)][ref]$Stage,
-        [string]$OutputShapeMode
+        [string]$OutputShapeMode,
+        [switch]$StrictEmptyGeneration
     )
 
     $Stage.Value = 'archive-layout-validation'
@@ -392,6 +395,19 @@ function Invoke-PostSyncProcessing {
         if (-not (Test-Path -LiteralPath $resolvedContractPath -PathType Leaf)) {
             $skippedTechIds.Add($currentTechId) | Out-Null
             Write-Verbose ("[collector-mapping-sync] skip techId={0} reason=missing mapping contract path={1}" -f $currentTechId, $resolvedContractPath)
+            $shapeDashboardByTech[$currentTechId] = [ordered]@{
+                generationStatus = 'skipped'
+                strictEmptyGeneration = [bool]$StrictEmptyGeneration
+                reason = 'missingMappingContract'
+                contract = [ordered]@{ total = 0; sdtTagOnly = 0; dual = 0; targetOnly = 0; invalid = 0 }
+                runtime = [ordered]@{ total = 0; sdtTagOnly = 0; dual = 0; targetOnly = 0; invalid = 0 }
+                skipReasons = [ordered]@{
+                    missingDataset = 0
+                    missingTag = 0
+                    missingDatasetTemplate = 0
+                    unsupportedShape = 0
+                }
+            }
             continue
         }
 
@@ -413,6 +429,24 @@ function Invoke-PostSyncProcessing {
         $runtimeMapping = Get-Content -LiteralPath $resolvedGeneratedPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
         $contractDashboard = Get-MappingShapeDashboard -Mappings @($contract.mappings)
         $runtimeDashboard = Get-MappingShapeDashboard -Mappings @($runtimeMapping.mappings)
+        $hasDocumentFacingMappings = @($contract.mappings | Where-Object { $_ -is [System.Collections.IDictionary] -and [bool]$_.required }).Count -gt 0
+        $strictEmptyGenerationForTech = [bool]$StrictEmptyGeneration -or $hasDocumentFacingMappings
+
+        $generationStatus = 'ok'
+        if ($contractDashboard.total -gt 0 -and $runtimeDashboard.total -eq 0) {
+            $generationStatus = 'empty'
+        }
+        elseif ($runtimeDashboard.total -gt 0 -and $runtimeDashboard.total -lt $contractDashboard.total) {
+            $generationStatus = 'partial'
+        }
+
+        if ($contractDashboard.total -gt 0 -and $runtimeDashboard.total -eq 0) {
+            $invariantMessage = "[collector-mapping-sync][HIGH] invariant violated for tech '$currentTechId': contract.total=$($contractDashboard.total) and runtime.total=$($runtimeDashboard.total)."
+            if ($strictEmptyGenerationForTech) {
+                throw "$invariantMessage Strict empty-generation policy is enabled."
+            }
+            Write-Warning "$invariantMessage Empty generation retained due to non-strict policy."
+        }
 
         if (-not [string]::IsNullOrWhiteSpace($OutputShapeMode)) {
             Assert-MappingOutputShapeMode -Mode $OutputShapeMode -Mappings @($contract.mappings) -Label "contract:$resolvedMappingContractRelativePath" | Out-Null
@@ -420,17 +454,26 @@ function Invoke-PostSyncProcessing {
         }
 
         $shapeDashboardByTech[$currentTechId] = [ordered]@{
+            generationStatus = $generationStatus
+            strictEmptyGeneration = $strictEmptyGenerationForTech
             contract = $contractDashboard
             runtime = $runtimeDashboard
+            skipReasons = $generationResult.skipReasons
         }
         Write-SyncStep -Stage 'migration dashboard' -Message ("Mapping shape counts for tech '{0}'." -f $currentTechId) -Details ([ordered]@{
                 outputShapeMode = if ([string]::IsNullOrWhiteSpace($OutputShapeMode)) { '<phase-driven-default>' } else { $OutputShapeMode }
+                generationStatus = $generationStatus
+                strictEmptyGeneration = $strictEmptyGenerationForTech
                 contract_sdtTagOnly = $contractDashboard.sdtTagOnly
                 contract_dual = $contractDashboard.dual
                 contract_targetOnly = $contractDashboard.targetOnly
                 runtime_sdtTagOnly = $runtimeDashboard.sdtTagOnly
                 runtime_dual = $runtimeDashboard.dual
                 runtime_targetOnly = $runtimeDashboard.targetOnly
+                skipReason_missingDataset = $generationResult.skipReasons.missingDataset
+                skipReason_missingTag = $generationResult.skipReasons.missingTag
+                skipReason_missingDatasetTemplate = $generationResult.skipReasons.missingDatasetTemplate
+                skipReason_unsupportedShape = $generationResult.skipReasons.unsupportedShape
             })
     }
 
@@ -1163,6 +1206,7 @@ function Sync-CollectorSkeletonMappingFromContract {
     return [ordered]@{
         outputPath = $OutputPath
         shapeDashboard = $shapeDashboard
+        skipReasons = $skipReasonCounters
     }
 }
 
@@ -1216,6 +1260,7 @@ try {
             mappingContractRelativePath = if ($PSBoundParameters.ContainsKey('MappingContractRelativePath')) { $MappingContractRelativePath } else { '<derived-per-tech>' }
             skeletonMappingOutputPath = if ($PSBoundParameters.ContainsKey('SkeletonMappingOutputPath')) { $SkeletonMappingOutputPath } else { '<derived-per-tech>' }
             outputShapeMode = if ($null -eq $normalizedOutputShapeMode) { '<phase-driven-default>' } else { $normalizedOutputShapeMode }
+            strictEmptyGeneration = [bool]$StrictEmptyGeneration
             contractsVersion = $ContractsVersion
             contractsPackUrl = $ContractsPackUrl
             durationMs = $stepTimer.ElapsedMilliseconds
@@ -1270,7 +1315,7 @@ try {
                 syncedUtc = (Get-Date).ToUniversalTime().ToString('o')
                 source = 'local-export-copy'
                 exportContractsPath = $sourceRoot
-            }) -ProgressContext $progressContext -StepTimer $stepTimer -Stage ([ref]$stage) -OutputShapeMode $normalizedOutputShapeMode
+            }) -ProgressContext $progressContext -StepTimer $stepTimer -Stage ([ref]$stage) -OutputShapeMode $normalizedOutputShapeMode -StrictEmptyGeneration:$StrictEmptyGeneration
 
         $result = [ordered]@{
             status = 'ok'
@@ -1382,7 +1427,7 @@ try {
                 packUrl = $packUrl
                 releaseUrl = $releasePageUrl
                 packPath = $tmpZip
-            }) -ProgressContext $progressContext -StepTimer $stepTimer -Stage ([ref]$stage) -OutputShapeMode $normalizedOutputShapeMode
+            }) -ProgressContext $progressContext -StepTimer $stepTimer -Stage ([ref]$stage) -OutputShapeMode $normalizedOutputShapeMode -StrictEmptyGeneration:$StrictEmptyGeneration
 
         $result = [ordered]@{
             status = 'ok'

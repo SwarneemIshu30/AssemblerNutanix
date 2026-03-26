@@ -392,6 +392,115 @@ Describe 'Sync-AssemblerContractsToRepo' {
         }
     }
 
+    It 'reports empty generation status (without failing) when mappings exist but datasetPath metadata is absent and strict mode is off' {
+        $tempRoot = New-DeterministicTempRoot -Name 'empty-generation-non-strict'
+        $contractsSourceRoot = Join-Path $tempRoot 'contracts-source'
+        $destinationRoot = Join-Path $tempRoot '.deps/contracts'
+        $techId = 'Regression.EmptyMeta'
+        $mappingContractRelativePath = "tech/$techId/mapping.dataset-to-sdt.v1.yaml"
+        $skeletonMappingPath = Join-Path $tempRoot "templates/skeletons/$techId/EmptyMeta-SDT-Collector.mapping.json"
+        $techDatasetRoot = Join-Path $contractsSourceRoot "tech/$techId/dataset"
+        $mappingContractPath = Join-Path $contractsSourceRoot $mappingContractRelativePath
+
+        Copy-Item -LiteralPath $sourceRoot -Destination $contractsSourceRoot -Recurse -Force
+        New-Item -ItemType Directory -Path $techDatasetRoot -Force | Out-Null
+        Set-Content -LiteralPath $mappingContractPath -Encoding UTF8 -Value @"
+schema: mapping.dataset-to-sdt
+schemaVersion: 1
+techId: $techId
+displayName: Regression empty metadata
+mappings:
+  - dataset: missing-template-dataset
+    sdtTag: LNV.Regression.EmptyMeta.Tables.MissingTemplate
+    required: false
+"@
+
+        try {
+            $result = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $contractsSourceRoot,
+                '-DepsContractsPath', $destinationRoot,
+                '-TechId', $techId,
+                '-MappingContractRelativePath', $mappingContractRelativePath,
+                '-SkeletonMappingOutputPath', $skeletonMappingPath,
+                '-Clean'
+            )
+
+            if ($result.ExitCode -ne 0) {
+                throw "Expected success in non-strict empty-generation mode, got $($result.ExitCode). Output: $($result.Output)"
+            }
+
+            $dashboard = $result.Json.mappingShapeDashboard[$techId]
+            if ($null -eq $dashboard) {
+                throw "Expected mappingShapeDashboard entry for $techId"
+            }
+            if ([string]$dashboard.generationStatus -ne 'empty') {
+                throw "Expected generationStatus empty for $techId, got '$($dashboard.generationStatus)'"
+            }
+            if ([int]$dashboard.contract.total -ne 1 -or [int]$dashboard.runtime.total -ne 0) {
+                throw "Expected invariant contract.total=1/runtime.total=0, got contract=$($dashboard.contract.total), runtime=$($dashboard.runtime.total)"
+            }
+            if ([int]$dashboard.skipReasons.missingDatasetTemplate -ne 1) {
+                throw "Expected missingDatasetTemplate skip count 1, got '$($dashboard.skipReasons.missingDatasetTemplate)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'fails sync in strict mode when generation status is empty' {
+        $tempRoot = New-DeterministicTempRoot -Name 'empty-generation-strict'
+        $contractsSourceRoot = Join-Path $tempRoot 'contracts-source'
+        $destinationRoot = Join-Path $tempRoot '.deps/contracts'
+        $techId = 'Regression.EmptyMeta'
+        $mappingContractRelativePath = "tech/$techId/mapping.dataset-to-sdt.v1.yaml"
+        $skeletonMappingPath = Join-Path $tempRoot "templates/skeletons/$techId/EmptyMeta-SDT-Collector.mapping.json"
+        $techDatasetRoot = Join-Path $contractsSourceRoot "tech/$techId/dataset"
+        $mappingContractPath = Join-Path $contractsSourceRoot $mappingContractRelativePath
+
+        Copy-Item -LiteralPath $sourceRoot -Destination $contractsSourceRoot -Recurse -Force
+        New-Item -ItemType Directory -Path $techDatasetRoot -Force | Out-Null
+        Set-Content -LiteralPath $mappingContractPath -Encoding UTF8 -Value @"
+schema: mapping.dataset-to-sdt
+schemaVersion: 1
+techId: $techId
+displayName: Regression empty metadata
+mappings:
+  - dataset: missing-template-dataset
+    sdtTag: LNV.Regression.EmptyMeta.Tables.MissingTemplate
+    required: false
+"@
+
+        try {
+            $result = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $contractsSourceRoot,
+                '-DepsContractsPath', $destinationRoot,
+                '-TechId', $techId,
+                '-MappingContractRelativePath', $mappingContractRelativePath,
+                '-SkeletonMappingOutputPath', $skeletonMappingPath,
+                '-StrictEmptyGeneration',
+                '-Clean'
+            )
+
+            if ($result.ExitCode -eq 0) {
+                throw 'Expected strict empty-generation mode to fail'
+            }
+            if ($result.Json.stage -ne 'mapping-generation') {
+                throw "Expected mapping-generation stage in strict empty-generation failure, got '$($result.Json.stage)'"
+            }
+            if ([string]$result.Json.message -notmatch 'invariant violated|Strict empty-generation policy is enabled') {
+                throw "Expected strict empty-generation invariant failure message, got '$($result.Json.message)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'uses contract syncPolicy selector defaults instead of hardcoded items selector' {
         $tempRoot = New-DeterministicTempRoot -Name 'sync-policy-selectors'
         $contractsSourceRoot = Join-Path $tempRoot 'contracts-source'
