@@ -115,6 +115,7 @@ Optional:
 - `-TechId` (one or more explicit technologies to render)
 - `-EntryId` (one or more catalog entry IDs; debug/advanced filter)
 - `-OutputType docx|text` (one or both output variants; debug/advanced filter)
+- `-AnnotateResolvedTags` (when rendering text output, prefix resolved `<<SDT:...>>` replacements with debug trace markers)
 
 Behavior:
 - reads `objectIndex.json` to detect tech present in bundle
@@ -211,4 +212,14 @@ pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
   -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json \
   -OutputRoot ./out/bundle-render \
   -TechId Lenovo.DE
+```
+
+```powershell
+# Debug text output by annotating resolved SDT tags
+pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
+  -BundleRoot ./bundle/417f4663-0922-423b-92a9-34d4e33ecd0e \
+  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json \
+  -OutputRoot ./out/bundle-render \
+  -OutputType text \
+  -AnnotateResolvedTags
 ```

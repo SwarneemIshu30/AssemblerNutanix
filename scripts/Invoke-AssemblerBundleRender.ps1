@@ -10,7 +10,8 @@ param(
     [Parameter(Mandatory = $false)][string]$ContractsRoot,
     [Parameter(Mandatory = $false)][string[]]$TechId,
     [Parameter(Mandatory = $false)][string[]]$EntryId,
-    [Parameter(Mandatory = $false)][ValidateSet('docx','text')][string[]]$OutputType
+    [Parameter(Mandatory = $false)][ValidateSet('docx','text')][string[]]$OutputType,
+    [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags
 )
 
 Set-StrictMode -Version Latest
@@ -549,7 +550,18 @@ try {
                 $variantOutputPath = if (@($mappingVariants).Count -gt 1) { Join-Path $techOutputRoot ("$([System.IO.Path]::GetFileNameWithoutExtension([string]$entry.outputFileName)).$variantSafe.rendered.txt") } else { $outputPath }
                 $variantReportPath = if (@($mappingVariants).Count -gt 1) { Join-Path $techOutputRoot ("$([string]$entry.id).$variantSafe.render-report.json") } else { $reportPath }
 
-                $json = & $invokeRenderScript -BundleRoot $effectiveBundleRoot -MappingPath ([string]$variant.mappingPath) -TemplatePath $templatePath -OutputPath $variantOutputPath -ReportPath $variantReportPath -ContractsRoot $effectiveContractsRoot
+                $renderParams = @{
+                    BundleRoot = $effectiveBundleRoot
+                    MappingPath = [string]$variant.mappingPath
+                    TemplatePath = $templatePath
+                    OutputPath = $variantOutputPath
+                    ReportPath = $variantReportPath
+                    ContractsRoot = $effectiveContractsRoot
+                }
+                if ($AnnotateResolvedTags.IsPresent) {
+                    $renderParams.AnnotateResolvedTags = $true
+                }
+                $json = & $invokeRenderScript @renderParams
 
                 $rendererReport = $null
                 $variantStatus = 'OK'
