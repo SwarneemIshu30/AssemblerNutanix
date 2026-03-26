@@ -161,6 +161,65 @@ Describe 'Sync-AssemblerContractsToRepo' {
         }
     }
 
+    It 'auto-discovery safely handles mixed mapping generations with optional policy blocks missing' {
+        $tempRoot = New-DeterministicTempRoot -Name 'auto-discovery-mixed-generations'
+        $contractsSourceRoot = Join-Path $tempRoot 'contracts-source'
+        $destinationRoot = Join-Path $tempRoot '.deps/contracts'
+        $tempScriptRoot = Join-Path $tempRoot 'repo/scripts'
+        $tempScriptPath = Join-Path $tempScriptRoot 'Sync-AssemblerContractsToRepo.ps1'
+
+        Copy-Item -LiteralPath $sourceRoot -Destination $contractsSourceRoot -Recurse -Force
+        foreach ($techPath in @(Get-ChildItem -LiteralPath (Join-Path $contractsSourceRoot 'tech') -Directory)) {
+            if ($techPath.Name -notin @('Lenovo.DE', 'Nutanix.PrismElement')) {
+                Remove-Item -LiteralPath $techPath.FullName -Recurse -Force
+            }
+        }
+
+        New-Item -ItemType Directory -Path $tempScriptRoot -Force | Out-Null
+        Copy-Item -LiteralPath $scriptPath -Destination $tempScriptPath -Force
+
+        try {
+            $result = Invoke-SyncScript -ScriptPath $tempScriptPath -Arguments @(
+                '-ExportContractsPath', $contractsSourceRoot,
+                '-DepsContractsPath', $destinationRoot,
+                '-Clean'
+            )
+
+            if ($result.ExitCode -ne 0) {
+                throw "Expected exit code 0 in mixed-generation auto-discovery mode, got $($result.ExitCode). Output: $($result.Output)"
+            }
+            if ($result.Json.status -ne 'ok') {
+                throw "Expected status ok in mixed-generation auto-discovery mode, got '$($result.Json.status)'"
+            }
+            if ([string]$result.Output -match 'collectorSdtTagPolicy|collectorSkeletonMapping|PropertyNotFoundException|missing datasetPath\.template metadata') {
+                throw "Expected auto-discovery to avoid optional-policy/dataset-template property crashes. Output: $($result.Output)"
+            }
+
+            $generatedPaths = @($result.Json.skeletonMappingPaths)
+            $lenovoMappingPath = Join-Path $tempRoot 'repo/templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json'
+            $nutanixMappingPath = Join-Path $tempRoot 'repo/templates/skeletons/Nutanix.PrismElement/Nutanix.PrismElement-SDT-Collector.mapping.json'
+            if ($generatedPaths -notcontains $lenovoMappingPath) {
+                throw "Expected generated mapping output for Lenovo.DE. Paths: $($generatedPaths -join ', ')"
+            }
+            if ($generatedPaths -notcontains $nutanixMappingPath) {
+                throw "Expected generated mapping output for Nutanix.PrismElement. Paths: $($generatedPaths -join ', ')"
+            }
+            if (-not (Test-Path -LiteralPath $nutanixMappingPath -PathType Leaf)) {
+                throw "Expected generated mapping file at '$nutanixMappingPath'"
+            }
+
+            $nutanixMapping = Get-Content -LiteralPath $nutanixMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            if (($nutanixMapping.mappings | Measure-Object).Count -ne 0) {
+                throw 'Expected generated Nutanix mapping to skip entries without datasetPath.template metadata'
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'handles single-TechId post-sync summary without Count property failures' {
         $tempRoot = New-DeterministicTempRoot -Name 'single-techid-summary-count-safe'
         $destinationRoot = Join-Path $tempRoot '.deps/contracts'
