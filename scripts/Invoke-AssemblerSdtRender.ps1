@@ -569,6 +569,10 @@ function Render-DocxTemplate {
     try {
         $unresolvedByTag = @{}
         $partsUpdated = 0
+        $controlsDiscovered = 0
+        $taggedControlsMatched = 0
+        $controlsPopulated = 0
+        $unmatchedTaggedControls = [System.Collections.Generic.List[string]]::new()
         $tableStyleId = ''
         if ($null -ne $TableByTag -and @($TableByTag.Keys).Count -gt 0) {
             $stylesEntry = $archive.GetEntry('word/styles.xml')
@@ -587,6 +591,7 @@ function Render-DocxTemplate {
             $reader = [System.IO.StreamReader]::new($entry.Open())
             try {
                 $xmlText = $reader.ReadToEnd()
+                $originalXmlText = $xmlText
             }
             finally {
                 $reader.Dispose()
@@ -597,30 +602,38 @@ function Render-DocxTemplate {
                 $xmlDoc = [xml]$xmlText
                 $nsMgr = New-WordXmlNamespaceManager -XmlDocument $xmlDoc
                 $sdtNodes = @($xmlDoc.SelectNodes('//w:sdt[w:sdtPr/w:tag[@w:val]]', $nsMgr))
+                $controlsDiscovered += @($sdtNodes).Count
                 foreach ($sdtNode in $sdtNodes) {
                     $tagAttr = $sdtNode.SelectSingleNode('./w:sdtPr/w:tag/@w:val', $nsMgr)
                     if ($null -eq $tagAttr) { continue }
 
                     $tag = [string]$tagAttr.Value
                     if ([string]::IsNullOrWhiteSpace($tag)) { continue }
+                    if (-not (Test-MapHasKey -Map $ReplaceByTag -Key $tag) -and -not ($null -ne $TableByTag -and (Test-MapHasKey -Map $TableByTag -Key $tag))) {
+                        $unmatchedTaggedControls.Add($tag)
+                    }
 
                     $sdtContent = $sdtNode.SelectSingleNode('./w:sdtContent', $nsMgr)
                     if ($null -eq $sdtContent) { continue }
 
                     if ($null -ne $TableByTag -and (Test-MapHasKey -Map $TableByTag -Key $tag)) {
+                        $taggedControlsMatched++
                         $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
                         if (-not [string]::IsNullOrWhiteSpace($tableXml)) {
                             $tableNodes = Convert-WordXmlFragmentToNodes -OwnerDocument $xmlDoc -XmlFragment $tableXml
                             if ($tableNodes.Count -gt 0) {
                                 Set-WordSdtContentNodes -SdtContentNode $sdtContent -Nodes $tableNodes
+                                $controlsPopulated++
                                 continue
                             }
                         }
                     }
 
                     if (Test-MapHasKey -Map $ReplaceByTag -Key $tag) {
+                        $taggedControlsMatched++
                         $paragraphNodes = Convert-TextToWordParagraphNodes -XmlDocument $xmlDoc -Text ([string]$ReplaceByTag[$tag])
                         Set-WordSdtContentNodes -SdtContentNode $sdtContent -Nodes $paragraphNodes
+                        $controlsPopulated++
                     }
                 }
                 $xmlText = $xmlDoc.OuterXml
@@ -629,17 +642,20 @@ function Render-DocxTemplate {
                 $xmlDoc = $null
             }
 
-            if ($null -ne $TableByTag) {
-                foreach ($tag in @($TableByTag.Keys)) {
-                    $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
-                    if (-not [string]::IsNullOrWhiteSpace($tableXml)) {
-                        $xmlText = Replace-DocxParagraphTokenWithBlockXml -XmlText $xmlText -Tag ([string]$tag) -BlockXml $tableXml
+            # Backward-compatible fallback for legacy DOCX templates that still carry literal <<SDT:...>> tokens.
+            if ($originalXmlText -match '<<SDT:[^>]+>>|&lt;&lt;SDT:[^>]+&gt;&gt;') {
+                if ($null -ne $TableByTag) {
+                    foreach ($tag in @($TableByTag.Keys)) {
+                        $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
+                        if (-not [string]::IsNullOrWhiteSpace($tableXml)) {
+                            $xmlText = Replace-DocxParagraphTokenWithBlockXml -XmlText $xmlText -Tag ([string]$tag) -BlockXml $tableXml
+                        }
                     }
                 }
-            }
 
-            foreach ($tag in @($ReplaceByTag.Keys)) {
-                $xmlText = $xmlText.Replace("<<SDT:$tag>>", [string]$ReplaceByTag[$tag])
+                foreach ($tag in @($ReplaceByTag.Keys)) {
+                    $xmlText = $xmlText.Replace("<<SDT:$tag>>", [string]$ReplaceByTag[$tag])
+                }
             }
 
             Set-ZipEntryText -Entry $entry -Text $xmlText
@@ -652,6 +668,10 @@ function Render-DocxTemplate {
         return [ordered]@{
             unresolvedByTag = $unresolvedByTag
             partsUpdated = $partsUpdated
+            controlsDiscovered = $controlsDiscovered
+            taggedControlsMatched = $taggedControlsMatched
+            controlsPopulated = $controlsPopulated
+            unmatchedTaggedControls = @($unmatchedTaggedControls | Sort-Object -Unique)
         }
     }
     finally {
@@ -1900,6 +1920,10 @@ try {
         $docxRender = Render-DocxTemplate -TemplatePath $TemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag
         $unresolvedByTag = $docxRender.unresolvedByTag
         $renderDetails.partsUpdated = [int]$docxRender.partsUpdated
+        $renderDetails.controlsDiscovered = [int]$docxRender.controlsDiscovered
+        $renderDetails.taggedControlsMatched = [int]$docxRender.taggedControlsMatched
+        $renderDetails.controlsPopulated = [int]$docxRender.controlsPopulated
+        $renderDetails.unmatchedTaggedControls = @($docxRender.unmatchedTaggedControls)
     }
     else {
         $templateUnresolvedByTag = Get-UnresolvedSdtTagOccurrences -RenderedText $templateText
@@ -1976,6 +2000,10 @@ try {
         tagsPopulated = $replaceByTag.Count
         templateKind = $(if ($isDocxTemplate) { 'docx' } else { 'text' })
         docxPartsUpdated = $(if ($isDocxTemplate) { [int]$renderDetails.partsUpdated } else { 0 })
+        docxControlsDiscovered = $(if ($isDocxTemplate) { [int]$renderDetails.controlsDiscovered } else { 0 })
+        docxTaggedControlsMatched = $(if ($isDocxTemplate) { [int]$renderDetails.taggedControlsMatched } else { 0 })
+        docxControlsPopulated = $(if ($isDocxTemplate) { [int]$renderDetails.controlsPopulated } else { 0 })
+        docxUnmatchedTaggedControls = $(if ($isDocxTemplate) { @($renderDetails.unmatchedTaggedControls) } else { @() })
         unresolved = $unresolvedSummary
         unresolvedPolicy = [ordered]@{
             requiredOrUnknown = 'ERROR'

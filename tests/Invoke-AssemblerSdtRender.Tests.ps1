@@ -231,7 +231,8 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             [Parameter(Mandatory = $true)][string]$Path,
             [Parameter(Mandatory = $true)][string]$ScalarTag,
             [Parameter(Mandatory = $true)][string]$TableTag,
-            [Parameter(Mandatory = $false)][string]$LegacyTokenTag
+            [Parameter(Mandatory = $false)][string]$LegacyTokenTag,
+            [Parameter(Mandatory = $false)][string]$UnmatchedTag
         )
 
         Add-Type -AssemblyName System.IO.Compression
@@ -245,6 +246,19 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         $legacyParagraphXml = ''
         if (-not [string]::IsNullOrWhiteSpace($LegacyTokenTag)) {
             $legacyParagraphXml = "<w:p><w:r><w:t>&lt;&lt;SDT:$LegacyTokenTag&gt;&gt;</w:t></w:r></w:p>"
+        }
+        $unmatchedSdtXml = ''
+        if (-not [string]::IsNullOrWhiteSpace($UnmatchedTag)) {
+            $unmatchedSdtXml = @"
+    <w:sdt>
+      <w:sdtPr>
+        <w:tag w:val="$UnmatchedTag"/>
+      </w:sdtPr>
+      <w:sdtContent>
+        <w:p><w:r><w:t>ORIGINAL-UNMATCHED</w:t></w:r></w:p>
+      </w:sdtContent>
+    </w:sdt>
+"@
         }
 
         $documentXml = @"
@@ -267,6 +281,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         <w:p><w:r><w:t>ORIGINAL-TABLE</w:t></w:r></w:p>
       </w:sdtContent>
     </w:sdt>
+    $unmatchedSdtXml
     $legacyParagraphXml
   </w:body>
 </w:document>
@@ -491,7 +506,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
 
             $contractsRoot = New-MinimalContractsRoot -Root $tempRoot -DatasetName 'transport'
             $templatePath = Join-Path $tempRoot 'tagged-template.docx'
-            New-TestTaggedContentControlDocxTemplate -Path $templatePath -ScalarTag 'LNV.Test.Tech.System[ArrayName].Summary.Name' -TableTag 'LNV.Test.Tech.System[ArrayName].Tables.Sample' -LegacyTokenTag 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus'
+            New-TestTaggedContentControlDocxTemplate -Path $templatePath -ScalarTag 'LNV.Test.Tech.System[ArrayName].Summary.Name' -TableTag 'LNV.Test.Tech.System[ArrayName].Tables.Sample' -LegacyTokenTag 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus' -UnmatchedTag 'LNV.Test.Tech.System[ArrayName].Summary.Unmatched'
             $outputPath = Join-Path $tempRoot 'tagged-rendered.docx'
             $reportPath = Join-Path $tempRoot 'report.json'
 
@@ -499,6 +514,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot
             $exitCode = $LASTEXITCODE
             if ($exitCode -ne 0) { throw "Expected successful render exit code, got $exitCode. Output: $output" }
+            $report = $output | ConvertFrom-Json -AsHashtable
 
             $zip = [System.IO.Compression.ZipFile]::OpenRead($outputPath)
             try {
@@ -522,7 +538,18 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             if ($documentXml -notmatch 'w:tblStyle w:val=\"LNVTable1-9ptHeadBandedGrid\"') { throw "Expected table SDT content to apply template styleId, got '$documentXml'" }
             if ($documentXml -notmatch '<w:t xml:space=\"preserve\">Ready</w:t>') { throw "Expected legacy literal placeholder token outside SDT to still be replaced, got '$documentXml'" }
             if ($documentXml -match 'ORIGINAL-SCALAR|ORIGINAL-TABLE') { throw "Expected original SDT placeholder content to be replaced, got '$documentXml'" }
+            if ($documentXml -notmatch 'ORIGINAL-UNMATCHED') { throw "Expected unmatched tagged SDT content to remain unchanged, got '$documentXml'" }
             if ($documentXml -match '&lt;&lt;SDT:LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.LegacyStatus&gt;&gt;') { throw "Expected legacy SDT token to be replaced, got '$documentXml'" }
+
+            $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
+            if ($null -eq $renderStage) { throw 'Expected render stage diagnostics in report.' }
+            if ([int]$renderStage.details.docxControlsDiscovered -ne 3) { throw "Expected docxControlsDiscovered=3, got '$($renderStage.details.docxControlsDiscovered)'" }
+            if ([int]$renderStage.details.docxTaggedControlsMatched -ne 2) { throw "Expected docxTaggedControlsMatched=2, got '$($renderStage.details.docxTaggedControlsMatched)'" }
+            if ([int]$renderStage.details.docxControlsPopulated -ne 2) { throw "Expected docxControlsPopulated=2, got '$($renderStage.details.docxControlsPopulated)'" }
+            $unmatchedTags = @($renderStage.details.docxUnmatchedTaggedControls)
+            if (@($unmatchedTags | Where-Object { $_ -eq 'LNV.Test.Tech.System[ArrayName].Summary.Unmatched' }).Count -ne 1) {
+                throw "Expected unmatched tagged controls to include LNV.Test.Tech.System[ArrayName].Summary.Unmatched, got '$($unmatchedTags -join ',')'"
+            }
         }
         finally {
             if (Test-Path -LiteralPath $tempRoot -PathType Container) {
