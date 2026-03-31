@@ -1,79 +1,79 @@
 {
   "schemaVersion": 1,
   "status": "ERROR",
-  "startedUtc": "2026-03-31T06:22:54.4061872Z",
-  "completedUtc": "2026-03-31T06:22:57.8612204Z",
+  "startedUtc": "2026-03-31T07:21:26.3404843Z",
+  "completedUtc": "2026-03-31T07:21:30.1534971Z",
   "bundleId": "bc8e726c-0b55-4b6e-af58-c84fa426a26a",
   "stages": [
     {
       "details": null,
-      "completedUtc": "2026-03-31T06:22:54.4062618Z",
+      "completedUtc": "2026-03-31T07:21:26.3408265Z",
       "name": "Load",
-      "startedUtc": "2026-03-31T06:22:54.4062618Z",
+      "startedUtc": "2026-03-31T07:21:26.3408265Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-31T06:22:54.4062618Z",
+      "completedUtc": "2026-03-31T07:21:26.3408265Z",
       "name": "Validate",
-      "startedUtc": "2026-03-31T06:22:54.4062618Z",
+      "startedUtc": "2026-03-31T07:21:26.3408265Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-31T06:22:54.4062618Z",
+      "completedUtc": "2026-03-31T07:21:26.3408265Z",
       "name": "Transform",
-      "startedUtc": "2026-03-31T06:22:54.4062618Z",
+      "startedUtc": "2026-03-31T07:21:26.3408265Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-31T06:22:54.4062618Z",
+      "completedUtc": "2026-03-31T07:21:26.3408265Z",
       "name": "Render",
-      "startedUtc": "2026-03-31T06:22:54.4062618Z",
+      "startedUtc": "2026-03-31T07:21:26.3408265Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-31T06:22:54.4062618Z",
+      "completedUtc": "2026-03-31T07:21:26.3408265Z",
       "name": "Finalize",
-      "startedUtc": "2026-03-31T06:22:54.4062618Z",
+      "startedUtc": "2026-03-31T07:21:26.3408265Z",
       "status": "SKIPPED"
     }
   ],
   "issues": [
     {
-      "message": "DOCX render did not populate any tagged content controls despite resolved mapping matches. docxMatchMode='content-control-tag'; controlsDiscovered=0; taggedControlsMatched=0; controlsPopulated=0; mappingMatches=33; sampleMatchedTags=LNV.Lenovo.DE.System[ArrayName].Summary, LNV.Lenovo.DE.System[ArrayName].Tables.Controllers, LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces, LNV.Lenovo.DE.System[ArrayName].Tables.Transport, LNV.Lenovo.DE.System[ArrayName].Tables.DNS",
+      "message": "DOCX render did not populate any tagged content controls despite resolved mapping matches. docxMatchMode='content-control-tag'; discoveredControls=0; discoveredMappedControls=0; discoveredUnmappedControls=0; partErrorCount=5; taggedControlsMatched=0; controlsPopulated=0; mappingMatches=33; sampleMatchedTags=LNV.Lenovo.DE.System[ArrayName].Summary, LNV.Lenovo.DE.System[ArrayName].Tables.Controllers, LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces, LNV.Lenovo.DE.System[ArrayName].Tables.Transport, LNV.Lenovo.DE.System[ArrayName].Tables.DNS",
       "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
       "severity": "ERROR",
       "code": "ASB-ASM-SDT-DOCX-NO-POPULATION"
     },
     {
-      "message": "DOCX part 'word/document.xml' failed during content-control parsing/replacement (match mode 'content-control-tag'): Cannot find an overload for \"SelectNodes\" and the argument count: \"2\".",
+      "message": "DOCX part 'word/document.xml' failed during content-control parsing/replacement (match mode 'content-control-tag'): Cannot convert the \"System.Object[]\" value of type \"System.Object[]\" to type \"System.Xml.XmlNamespaceManager\".",
       "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
       "severity": "ERROR",
       "code": "ASB-ASM-SDT-DOCX-PART-REWRITE"
     },
     {
-      "message": "DOCX part 'word/footer2.xml' failed during content-control parsing/replacement (match mode 'content-control-tag'): Cannot find an overload for \"SelectNodes\" and the argument count: \"2\".",
+      "message": "DOCX part 'word/footer2.xml' failed during content-control parsing/replacement (match mode 'content-control-tag'): Cannot convert the \"System.Object[]\" value of type \"System.Object[]\" to type \"System.Xml.XmlNamespaceManager\".",
       "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
       "severity": "ERROR",
       "code": "ASB-ASM-SDT-DOCX-PART-REWRITE"
     },
     {
-      "message": "DOCX part 'word/header1.xml' failed during content-control parsing/replacement (match mode 'content-control-tag'): Cannot find an overload for \"SelectNodes\" and the argument count: \"2\".",
+      "message": "DOCX part 'word/header1.xml' failed during content-control parsing/replacement (match mode 'content-control-tag'): Cannot convert the \"System.Object[]\" value of type \"System.Object[]\" to type \"System.Xml.XmlNamespaceManager\".",
       "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
       "severity": "ERROR",
       "code": "ASB-ASM-SDT-DOCX-PART-REWRITE"
     },
     {
-      "message": "DOCX part 'word/footer1.xml' failed during content-control parsing/replacement (match mode 'content-control-tag'): Cannot find an overload for \"SelectNodes\" and the argument count: \"2\".",
+      "message": "DOCX part 'word/footer1.xml' failed during content-control parsing/replacement (match mode 'content-control-tag'): Cannot convert the \"System.Object[]\" value of type \"System.Object[]\" to type \"System.Xml.XmlNamespaceManager\".",
       "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
       "severity": "ERROR",
       "code": "ASB-ASM-SDT-DOCX-PART-REWRITE"
     },
     {
-      "message": "DOCX part 'word/header2.xml' failed during content-control parsing/replacement (match mode 'content-control-tag'): Cannot find an overload for \"SelectNodes\" and the argument count: \"2\".",
+      "message": "DOCX part 'word/header2.xml' failed during content-control parsing/replacement (match mode 'content-control-tag'): Cannot convert the \"System.Object[]\" value of type \"System.Object[]\" to type \"System.Xml.XmlNamespaceManager\".",
       "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
       "severity": "ERROR",
       "code": "ASB-ASM-SDT-DOCX-PART-REWRITE"
