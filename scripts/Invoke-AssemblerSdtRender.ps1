@@ -575,6 +575,7 @@ function Render-DocxTemplate {
         $taggedControlsMatched = 0
         $controlsPopulated = 0
         $unmatchedTaggedControls = [System.Collections.Generic.List[string]]::new()
+        $partErrors = [System.Collections.Generic.List[hashtable]]::new()
         $tableStyleId = ''
         if ($null -ne $TableByTag -and @($TableByTag.Keys).Count -gt 0) {
             $stylesEntry = $archive.GetEntry('word/styles.xml')
@@ -643,7 +644,13 @@ function Render-DocxTemplate {
                 }
             }
             catch {
+                $partErrors.Add([ordered]@{
+                    partName = [string]$entry.FullName
+                    message = [string]$_.Exception.Message
+                    matchMode = [string]$DocxMatchMode
+                })
                 $xmlDoc = $null
+                $xmlText = $originalXmlText
             }
 
             # Legacy literal-token replacement path is opt-in via DocxMatchMode.
@@ -676,6 +683,7 @@ function Render-DocxTemplate {
             taggedControlsMatched = $taggedControlsMatched
             controlsPopulated = $controlsPopulated
             unmatchedTaggedControls = @($unmatchedTaggedControls | Sort-Object -Unique)
+            partErrors = @($partErrors)
         }
     }
     finally {
@@ -1929,8 +1937,24 @@ try {
         $renderDetails.taggedControlsMatched = [int]$docxRender.taggedControlsMatched
         $renderDetails.controlsPopulated = [int]$docxRender.controlsPopulated
         $renderDetails.unmatchedTaggedControls = @($docxRender.unmatchedTaggedControls)
+        $renderDetails.partErrors = @($docxRender.partErrors)
         $renderDetails.unresolvedLiteralTokens = @($docxUnresolvedLiteralByTag.Keys | Sort-Object)
         $renderDetails.docxMatchMode = [string]$DocxMatchMode
+        foreach ($partError in @($docxRender.partErrors)) {
+            $partName = if (Test-MapHasKey -Map $partError -Key 'partName') { [string]$partError.partName } else { '' }
+            $partErrorMessage = if (Test-MapHasKey -Map $partError -Key 'message') { [string]$partError.message } else { '' }
+            $partMatchMode = if (Test-MapHasKey -Map $partError -Key 'matchMode') { [string]$partError.matchMode } else { [string]$DocxMatchMode }
+            $partErrorSeverity = if ($partMatchMode -eq 'content-control-tag') { 'ERROR' } else { 'WARN' }
+            if ($partErrorSeverity -eq 'ERROR') {
+                $status = 'ERROR'
+            }
+            $issues.Add([ordered]@{
+                code = 'ASB-ASM-SDT-DOCX-PART-REWRITE'
+                severity = $partErrorSeverity
+                message = "DOCX part '$partName' failed during content-control parsing/replacement (match mode '$partMatchMode'): $partErrorMessage"
+                path = $TemplatePath
+            })
+        }
     }
     else {
         $templateUnresolvedByTag = Get-UnresolvedSdtTagOccurrences -RenderedText $templateText
@@ -2018,6 +2042,7 @@ try {
         docxTaggedControlsMatched = $(if ($isDocxTemplate) { [int]$renderDetails.taggedControlsMatched } else { 0 })
         docxControlsPopulated = $(if ($isDocxTemplate) { [int]$renderDetails.controlsPopulated } else { 0 })
         docxUnmatchedTaggedControls = $(if ($isDocxTemplate) { @($renderDetails.unmatchedTaggedControls) } else { @() })
+        docxPartErrors = $(if ($isDocxTemplate) { @($renderDetails.partErrors) } else { @() })
         docxUnresolvedLiteralTokens = $(if ($isDocxTemplate) { @($renderDetails.unresolvedLiteralTokens) } else { @() })
         docxMatchMode = $(if ($isDocxTemplate) { [string]$renderDetails.docxMatchMode } else { '' })
         unresolved = $unresolvedSummary
