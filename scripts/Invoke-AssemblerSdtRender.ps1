@@ -756,6 +756,20 @@ function Render-DocxTemplate {
     try {
         $unresolvedLiteralByTag = @{}
         $partsUpdated = 0
+        $literalDatasetTokenLookup = @{}
+        foreach ($datasetTag in @($ReplaceByTag.Keys)) {
+            $datasetTagText = [string]$datasetTag
+            if ([string]::IsNullOrWhiteSpace($datasetTagText)) { continue }
+            $literalDatasetTokenLookup[$datasetTagText] = $true
+        }
+        if ($null -ne $TableByTag) {
+            foreach ($datasetTag in @($TableByTag.Keys)) {
+                $datasetTagText = [string]$datasetTag
+                if ([string]::IsNullOrWhiteSpace($datasetTagText)) { continue }
+                $literalDatasetTokenLookup[$datasetTagText] = $true
+            }
+        }
+        $literalDatasetTokensExpected = @($literalDatasetTokenLookup.Keys).Count
         $literalTokensMatched = 0
         $literalTokensMatchedScalar = 0
         $literalTokensMatchedTable = 0
@@ -922,9 +936,14 @@ function Render-DocxTemplate {
         return [ordered]@{
             unresolvedLiteralByTag = $unresolvedLiteralByTag
             partsUpdated = $partsUpdated
+            literalDatasetTokensExpected = [int]$literalDatasetTokensExpected
+            literalDatasetTokensPopulated = [int]$literalTokensMatched
             literalTokensMatched = $literalTokensMatched
             literalTokensMatchedScalar = $literalTokensMatchedScalar
             literalTokensMatchedTable = $literalTokensMatchedTable
+            docPropControlsExpected = @($contentControlReplaceByTag.Keys).Count
+            docPropControlsMatched = $taggedControlsMatched
+            docPropControlsPopulated = $controlsPopulated
             controlsDiscovered = $controlsDiscovered
             controlsDiscoveredMapped = $controlsDiscoveredMapped
             controlsDiscoveredUnmapped = $controlsDiscoveredUnmapped
@@ -933,6 +952,7 @@ function Render-DocxTemplate {
             discoveredTaggedControls = @($discoveredTaggedControls | Sort-Object -Unique)
             discoveredUnmappedTaggedControls = @($discoveredUnmappedTaggedControls | Sort-Object -Unique)
             unmatchedTaggedControls = @($mappedTagsNotDiscovered | Sort-Object -Unique)
+            docPropMappedTags = @($contentControlReplaceByTag.Keys | Sort-Object -Unique)
             contentControlMappedTags = @($contentControlReplaceByTag.Keys | Sort-Object -Unique)
             partErrors = @($partErrors)
         }
@@ -2184,10 +2204,15 @@ try {
         $docxUnresolvedLiteralByTag = $docxRender.unresolvedLiteralByTag
         $unresolvedByTag = $docxUnresolvedLiteralByTag
         $renderDetails.partsUpdated = [int]$docxRender.partsUpdated
+        $renderDetails.literalDatasetTokensExpected = [int]$docxRender.literalDatasetTokensExpected
+        $renderDetails.literalDatasetTokensPopulated = [int]$docxRender.literalDatasetTokensPopulated
         $renderDetails.controlsDiscovered = [int]$docxRender.controlsDiscovered
         $renderDetails.literalTokensMatched = [int]$docxRender.literalTokensMatched
         $renderDetails.literalTokensMatchedScalar = [int]$docxRender.literalTokensMatchedScalar
         $renderDetails.literalTokensMatchedTable = [int]$docxRender.literalTokensMatchedTable
+        $renderDetails.docPropControlsExpected = [int]$docxRender.docPropControlsExpected
+        $renderDetails.docPropControlsMatched = [int]$docxRender.docPropControlsMatched
+        $renderDetails.docPropControlsPopulated = [int]$docxRender.docPropControlsPopulated
         $renderDetails.controlsDiscoveredMapped = [int]$docxRender.controlsDiscoveredMapped
         $renderDetails.controlsDiscoveredUnmapped = [int]$docxRender.controlsDiscoveredUnmapped
         $renderDetails.taggedControlsMatched = [int]$docxRender.taggedControlsMatched
@@ -2195,25 +2220,26 @@ try {
         $renderDetails.discoveredTaggedControls = @($docxRender.discoveredTaggedControls)
         $renderDetails.discoveredUnmappedTaggedControls = @($docxRender.discoveredUnmappedTaggedControls)
         $renderDetails.unmatchedTaggedControls = @($docxRender.unmatchedTaggedControls)
+        $renderDetails.docPropMappedTags = @($docxRender.docPropMappedTags)
         $renderDetails.contentControlMappedTags = @($docxRender.contentControlMappedTags)
         $renderDetails.partErrors = @($docxRender.partErrors)
         $renderDetails.unresolvedLiteralTokens = @($docxUnresolvedLiteralByTag.Keys | Sort-Object)
         $renderDetails.docxMatchMode = [string]$DocxMatchMode
-        $expectedDocPropertyControlCount = @($renderDetails.contentControlMappedTags).Count
-        $controlsPopulatedCount = [int]$renderDetails.controlsPopulated
-        if ((Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token') -and ($replaceByTag.Count -gt 0 -or $docxTableByTag.Count -gt 0) -and [int]$renderDetails.literalTokensMatched -eq 0) {
+        $expectedDocPropertyControlCount = [int]$renderDetails.docPropControlsExpected
+        $controlsPopulatedCount = [int]$renderDetails.docPropControlsPopulated
+        if ((Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token') -and [int]$renderDetails.literalDatasetTokensExpected -gt 0 -and [int]$renderDetails.literalDatasetTokensPopulated -eq 0) {
             $status = 'ERROR'
             $issues.Add([ordered]@{
                 code = 'ASB-ASM-SDT-DOCX-NO-POPULATION'
                 severity = 'ERROR'
-                message = "DOCX literal-token render expected dataset mapping replacement but found no matching tokens to populate. docxMatchMode='$DocxMatchMode'; literalTokensMatched=$($renderDetails.literalTokensMatched); literalTokensMatchedScalar=$($renderDetails.literalTokensMatchedScalar); literalTokensMatchedTable=$($renderDetails.literalTokensMatchedTable); tagsResolved=$($replaceByTag.Count); tableTagsResolved=$($docxTableByTag.Count)"
+                message = "DOCX literal-token render expected dataset mapping replacement but found no matching tokens to populate. docxMatchMode='$DocxMatchMode'; literalDatasetTokensExpected=$($renderDetails.literalDatasetTokensExpected); literalDatasetTokensPopulated=$($renderDetails.literalDatasetTokensPopulated); literalTokensMatched=$($renderDetails.literalTokensMatched); literalTokensMatchedScalar=$($renderDetails.literalTokensMatchedScalar); literalTokensMatchedTable=$($renderDetails.literalTokensMatchedTable)"
                 path = $TemplatePath
             })
         }
         if ((Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'content-control-tag') -and $expectedDocPropertyControlCount -gt 0 -and $controlsPopulatedCount -eq 0) {
             $status = 'ERROR'
             $sampleMatchedTags = @(
-                @($renderDetails.contentControlMappedTags | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | Select-Object -Unique -First 5)
+                @($renderDetails.docPropMappedTags | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | Select-Object -Unique -First 5)
             )
             $sampleMatchedTagsText = if ($sampleMatchedTags.Count -gt 0) { $sampleMatchedTags -join ', ' } else { 'n/a' }
             $issues.Add([ordered]@{
@@ -2324,9 +2350,14 @@ try {
         tagsPopulated = $replaceByTag.Count
         templateKind = $(if ($isDocxTemplate) { 'docx' } else { 'text' })
         docxPartsUpdated = $(if ($isDocxTemplate) { [int]$renderDetails.partsUpdated } else { 0 })
+        docxLiteralDatasetTokensExpected = $(if ($isDocxTemplate) { [int]$renderDetails.literalDatasetTokensExpected } else { 0 })
+        docxLiteralDatasetTokensPopulated = $(if ($isDocxTemplate) { [int]$renderDetails.literalDatasetTokensPopulated } else { 0 })
         docxLiteralTokensMatched = $(if ($isDocxTemplate) { [int]$renderDetails.literalTokensMatched } else { 0 })
         docxLiteralTokensMatchedScalar = $(if ($isDocxTemplate) { [int]$renderDetails.literalTokensMatchedScalar } else { 0 })
         docxLiteralTokensMatchedTable = $(if ($isDocxTemplate) { [int]$renderDetails.literalTokensMatchedTable } else { 0 })
+        docxDocPropControlsExpected = $(if ($isDocxTemplate) { [int]$renderDetails.docPropControlsExpected } else { 0 })
+        docxDocPropControlsMatched = $(if ($isDocxTemplate) { [int]$renderDetails.docPropControlsMatched } else { 0 })
+        docxDocPropControlsPopulated = $(if ($isDocxTemplate) { [int]$renderDetails.docPropControlsPopulated } else { 0 })
         docxControlsDiscovered = $(if ($isDocxTemplate) { [int]$renderDetails.controlsDiscovered } else { 0 })
         docxControlsDiscoveredMapped = $(if ($isDocxTemplate) { [int]$renderDetails.controlsDiscoveredMapped } else { 0 })
         docxControlsDiscoveredUnmapped = $(if ($isDocxTemplate) { [int]$renderDetails.controlsDiscoveredUnmapped } else { 0 })
@@ -2335,6 +2366,7 @@ try {
         docxDiscoveredTaggedControls = $(if ($isDocxTemplate) { @($renderDetails.discoveredTaggedControls) } else { @() })
         docxDiscoveredUnmappedTaggedControls = $(if ($isDocxTemplate) { @($renderDetails.discoveredUnmappedTaggedControls) } else { @() })
         docxUnmatchedTaggedControls = $(if ($isDocxTemplate) { @($renderDetails.unmatchedTaggedControls) } else { @() })
+        docxDocPropMappedTags = $(if ($isDocxTemplate) { @($renderDetails.docPropMappedTags) } else { @() })
         docxPartErrors = $(if ($isDocxTemplate) { @($renderDetails.partErrors) } else { @() })
         docxUnresolvedLiteralTokens = $(if ($isDocxTemplate) { @($renderDetails.unresolvedLiteralTokens) } else { @() })
         docxMatchMode = $(if ($isDocxTemplate) { [string]$renderDetails.docxMatchMode } else { '' })
