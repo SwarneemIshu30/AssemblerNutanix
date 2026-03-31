@@ -14,6 +14,12 @@ param(
     [Parameter(Mandatory = $false)][string]$ContractsRoot,
     [Parameter(Mandatory = $false)][string[]]$TechId,
     [Parameter(Mandatory = $false)][string[]]$EntryId,
+    [Parameter(Mandatory = $false)][string]$DocTitle = 'Solution Name [Lenovo DE]',
+    [Parameter(Mandatory = $false)][string]$DocCustomer = 'Customer',
+    [Parameter(Mandatory = $false)][string]$DocCustomerAbbr = 'CustomerAbbr',
+    [Parameter(Mandatory = $false)][string]$DocLocation = 'Australia',
+    [Parameter(Mandatory = $false)][string]$DocSubsidiary = 'subsid',
+    [Parameter(Mandatory = $false)][string]$DocEnvironment = 'Production',
     [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
     [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true,
     [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
@@ -50,6 +56,12 @@ function Invoke-BundleRender {
         [Parameter(Mandatory = $false)][string]$ContractsRoot,
         [Parameter(Mandatory = $false)][string[]]$TechId,
         [Parameter(Mandatory = $false)][string[]]$EntryId,
+        [Parameter(Mandatory = $false)][string]$DocTitle,
+        [Parameter(Mandatory = $false)][string]$DocCustomer,
+        [Parameter(Mandatory = $false)][string]$DocCustomerAbbr,
+        [Parameter(Mandatory = $false)][string]$DocLocation,
+        [Parameter(Mandatory = $false)][string]$DocSubsidiary,
+        [Parameter(Mandatory = $false)][string]$DocEnvironment,
         [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
         [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true,
         [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
@@ -83,6 +95,12 @@ function Invoke-BundleRender {
     if ($EntryId -and $EntryId.Count -gt 0) {
         $params.EntryId = $EntryId
     }
+    if (-not [string]::IsNullOrWhiteSpace($DocTitle)) { $params.DocTitle = $DocTitle }
+    if (-not [string]::IsNullOrWhiteSpace($DocCustomer)) { $params.DocCustomer = $DocCustomer }
+    if (-not [string]::IsNullOrWhiteSpace($DocCustomerAbbr)) { $params.DocCustomerAbbr = $DocCustomerAbbr }
+    if (-not [string]::IsNullOrWhiteSpace($DocLocation)) { $params.DocLocation = $DocLocation }
+    if (-not [string]::IsNullOrWhiteSpace($DocSubsidiary)) { $params.DocSubsidiary = $DocSubsidiary }
+    if (-not [string]::IsNullOrWhiteSpace($DocEnvironment)) { $params.DocEnvironment = $DocEnvironment }
 
     $outputType = @()
     if ($IncludeDocx) { $outputType += 'docx' }
@@ -107,6 +125,12 @@ function Invoke-TerminalMode {
         [string]$ContractsRoot,
         [string[]]$TechId,
         [string[]]$EntryId,
+        [string]$DocTitle,
+        [string]$DocCustomer,
+        [string]$DocCustomerAbbr,
+        [string]$DocLocation,
+        [string]$DocSubsidiary,
+        [string]$DocEnvironment,
         [bool]$IncludeDocx = $true,
         [bool]$IncludeTxt = $true,
         [bool]$AnnotateResolvedTags = $false,
@@ -172,7 +196,7 @@ function Invoke-TerminalMode {
         $AnnotateResolvedTags = ($annotateInput.Trim() -match '^(y|yes|1|true)$')
     }
 
-    Invoke-BundleRender -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode
+    Invoke-BundleRender -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode
 }
 
 function Invoke-WinFormsMode {
@@ -183,6 +207,12 @@ function Invoke-WinFormsMode {
         [string]$ContractsRoot,
         [string[]]$TechId,
         [string[]]$EntryId,
+        [string]$DocTitle,
+        [string]$DocCustomer,
+        [string]$DocCustomerAbbr,
+        [string]$DocLocation,
+        [string]$DocSubsidiary,
+        [string]$DocEnvironment,
         [bool]$IncludeDocx = $true,
         [bool]$IncludeTxt = $true,
         [bool]$AnnotateResolvedTags = $false,
@@ -199,8 +229,22 @@ function Invoke-WinFormsMode {
     $form = New-Object System.Windows.Forms.Form
     $form.Text = 'Assembler Bundle Renderer (WinForms)'
     $form.Width = 900
-    $form.Height = 620
+    $form.Height = 700
     $form.StartPosition = 'CenterScreen'
+
+    $tabControl = New-Object System.Windows.Forms.TabControl
+    $tabControl.Left = 10
+    $tabControl.Top = 10
+    $tabControl.Width = 860
+    $tabControl.Height = 560
+
+    $propertiesTab = New-Object System.Windows.Forms.TabPage
+    $propertiesTab.Text = 'Document Properties'
+    $workflowTab = New-Object System.Windows.Forms.TabPage
+    $workflowTab.Text = 'Render Workflow'
+
+    [void]$tabControl.TabPages.Add($propertiesTab)
+    [void]$tabControl.TabPages.Add($workflowTab)
 
     $labels = @(
         @{ Text = 'Bundle Root'; Top = 20 },
@@ -215,7 +259,7 @@ function Invoke-WinFormsMode {
         $label.Left = 20
         $label.Top = $labelDef.Top
         $label.Width = 280
-        $form.Controls.Add($label)
+        $workflowTab.Controls.Add($label)
     }
 
     function New-TextBox([int]$top, [string]$value) {
@@ -241,6 +285,32 @@ function Invoke-WinFormsMode {
     $catalogTextBox = New-TextBox -top 90 -value $CatalogPath
     $outputTextBox = New-TextBox -top 140 -value $OutputRoot
     $contractsTextBox = New-TextBox -top 190 -value $ContractsRoot
+
+    $docPropertyLabels = @(
+        @{ Text = 'Title (core property)'; Top = 24; Value = $DocTitle },
+        @{ Text = 'Customer (custom property)'; Top = 84; Value = $DocCustomer },
+        @{ Text = 'CustomerAbbr (custom property)'; Top = 144; Value = $DocCustomerAbbr },
+        @{ Text = 'Location (custom property)'; Top = 204; Value = $DocLocation },
+        @{ Text = 'Subsidiary (custom property)'; Top = 264; Value = $DocSubsidiary },
+        @{ Text = 'Environment (custom property)'; Top = 324; Value = $DocEnvironment }
+    )
+    $docPropertyTextBoxes = @{}
+    foreach ($propertyDef in $docPropertyLabels) {
+        $propertyLabel = New-Object System.Windows.Forms.Label
+        $propertyLabel.Left = 20
+        $propertyLabel.Top = [int]$propertyDef.Top
+        $propertyLabel.Width = 280
+        $propertyLabel.Text = [string]$propertyDef.Text
+        $propertiesTab.Controls.Add($propertyLabel)
+
+        $propertyTextBox = New-Object System.Windows.Forms.TextBox
+        $propertyTextBox.Left = 20
+        $propertyTextBox.Top = ([int]$propertyDef.Top + 20)
+        $propertyTextBox.Width = 800
+        $propertyTextBox.Text = [string]$propertyDef.Value
+        $propertiesTab.Controls.Add($propertyTextBox)
+        $docPropertyTextBoxes[[string]$propertyDef.Text] = $propertyTextBox
+    }
     $advancedGroup = New-Object System.Windows.Forms.GroupBox
     $advancedGroup.Text = 'Debug/Advanced'
     $advancedGroup.Left = 20
@@ -349,25 +419,25 @@ function Invoke-WinFormsMode {
     $runButton = New-Object System.Windows.Forms.Button
     $runButton.Text = 'Run Render'
     $runButton.Left = 20
-    $runButton.Top = 460
+    $runButton.Top = 580
     $runButton.Width = 150
 
     $statusLabel = New-Object System.Windows.Forms.Label
     $statusLabel.Left = 190
-    $statusLabel.Top = 465
+    $statusLabel.Top = 585
     $statusLabel.Width = 670
     $statusLabel.Text = 'Ready'
 
     $verboseCheckBox = New-Object System.Windows.Forms.CheckBox
     $verboseCheckBox.Left = 20
-    $verboseCheckBox.Top = 495
+    $verboseCheckBox.Top = 615
     $verboseCheckBox.Width = 280
     $verboseCheckBox.Text = 'Verbose (include matched tags)'
     $verboseCheckBox.Checked = $false
 
     $debugCheckBox = New-Object System.Windows.Forms.CheckBox
     $debugCheckBox.Left = 320
-    $debugCheckBox.Top = 495
+    $debugCheckBox.Top = 615
     $debugCheckBox.Width = 280
     $debugCheckBox.Text = 'Debug (include raw render JSON)'
     $debugCheckBox.Checked = $false
@@ -376,7 +446,7 @@ function Invoke-WinFormsMode {
         try {
             $techSelection = @($techTextBox.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
             $entrySelection = @($entryOverrideTextBox.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-            $resultJson = Invoke-BundleRender -BundleRoot $bundleTextBox.Text -CatalogPath $catalogTextBox.Text -OutputRoot $outputTextBox.Text -ContractsRoot $contractsTextBox.Text -TechId $techSelection -EntryId $entrySelection -IncludeDocx $docxCheckBox.Checked -IncludeTxt $txtCheckBox.Checked -AnnotateResolvedTags $annotateCheckBox.Checked -DocxMatchMode ([string]$docxMatchCombo.SelectedItem)
+            $resultJson = Invoke-BundleRender -BundleRoot $bundleTextBox.Text -CatalogPath $catalogTextBox.Text -OutputRoot $outputTextBox.Text -ContractsRoot $contractsTextBox.Text -TechId $techSelection -EntryId $entrySelection -DocTitle $docPropertyTextBoxes['Title (core property)'].Text -DocCustomer $docPropertyTextBoxes['Customer (custom property)'].Text -DocCustomerAbbr $docPropertyTextBoxes['CustomerAbbr (custom property)'].Text -DocLocation $docPropertyTextBoxes['Location (custom property)'].Text -DocSubsidiary $docPropertyTextBoxes['Subsidiary (custom property)'].Text -DocEnvironment $docPropertyTextBoxes['Environment (custom property)'].Text -IncludeDocx $docxCheckBox.Checked -IncludeTxt $txtCheckBox.Checked -AnnotateResolvedTags $annotateCheckBox.Checked -DocxMatchMode ([string]$docxMatchCombo.SelectedItem)
             $statusLabel.Text = 'Render completed successfully.'
             $dialogText = if ($debugCheckBox.Checked) {
                 Format-DebugBundleOutput -BundleResultJson $resultJson
@@ -395,7 +465,11 @@ function Invoke-WinFormsMode {
         }
     })
 
-    foreach ($control in @($bundleTextBox, $catalogTextBox, $outputTextBox, $contractsTextBox, $techTextBox, $bundleBrowse, $catalogBrowse, $outputBrowse, $contractsBrowse, $advancedGroup, $runButton, $statusLabel, $verboseCheckBox, $debugCheckBox)) {
+    foreach ($control in @($bundleTextBox, $catalogTextBox, $outputTextBox, $contractsTextBox, $techTextBox, $bundleBrowse, $catalogBrowse, $outputBrowse, $contractsBrowse, $advancedGroup)) {
+        $workflowTab.Controls.Add($control)
+    }
+
+    foreach ($control in @($tabControl, $runButton, $statusLabel, $verboseCheckBox, $debugCheckBox)) {
         $form.Controls.Add($control)
     }
 
@@ -408,7 +482,7 @@ if ($Mode -eq 'Auto') {
 }
 
 switch ($effectiveMode) {
-    'WinForms' { Invoke-WinFormsMode -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode }
-    'Terminal' { Invoke-TerminalMode -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode -PromptIncludeDocx (-not $includeDocxSpecified) -PromptIncludeTxt (-not $includeTxtSpecified) }
+    'WinForms' { Invoke-WinFormsMode -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode }
+    'Terminal' { Invoke-TerminalMode -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode -PromptIncludeDocx (-not $includeDocxSpecified) -PromptIncludeTxt (-not $includeTxtSpecified) }
     default { throw "Unsupported mode: $effectiveMode" }
 }
