@@ -17,7 +17,8 @@ param(
     [Parameter(Mandatory = $false)][string]$DocSubsidiary,
     [Parameter(Mandatory = $false)][string]$DocEnvironment,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
-    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag'
+    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag',
+    [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
 )
 
 Set-StrictMode -Version Latest
@@ -607,6 +608,13 @@ function Replace-LiteralSdtTokenXmlText {
     return [regex]::Replace($updated, $escapedPattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $Replacement })
 }
 
+function Remove-UnresolvedSdtTokensFromText {
+    param([Parameter(Mandatory = $true)][string]$Text)
+
+    $updated = [regex]::Replace($Text, '<<SDT:\s*[^>]+>>', '')
+    return [regex]::Replace($updated, '&lt;&lt;SDT:\s*[^&]+&gt;&gt;', '')
+}
+
 function Test-DocxMatchModeIncludes {
     param(
         [Parameter(Mandatory = $true)][string]$DocxMatchMode,
@@ -686,6 +694,46 @@ function Convert-WordXmlFragmentToNodes {
     return @($importedNodes.ToArray())
 }
 
+function Get-DocxContentControlReplacementMap {
+    param(
+        [Parameter(Mandatory = $false)][string]$DocTitle,
+        [Parameter(Mandatory = $false)][string]$DocCustomer,
+        [Parameter(Mandatory = $false)][string]$DocCustomerAbbr,
+        [Parameter(Mandatory = $false)][string]$DocLocation,
+        [Parameter(Mandatory = $false)][string]$DocSubsidiary,
+        [Parameter(Mandatory = $false)][string]$DocEnvironment
+    )
+
+    $map = [ordered]@{}
+    $propertyAliases = [ordered]@{
+        Title = @('Title', 'DocTitle', 'DocumentTitle')
+        Customer = @('Customer', 'DocCustomer')
+        CustomerAbbr = @('CustomerAbbr', 'DocCustomerAbbr')
+        Location = @('Location', 'DocLocation')
+        Subsidiary = @('Subsidiary', 'DocSubsidiary')
+        Environment = @('Environment', 'DocEnvironment')
+    }
+    $propertyValues = [ordered]@{
+        Title = $DocTitle
+        Customer = $DocCustomer
+        CustomerAbbr = $DocCustomerAbbr
+        Location = $DocLocation
+        Subsidiary = $DocSubsidiary
+        Environment = $DocEnvironment
+    }
+
+    foreach ($propertyName in @($propertyValues.Keys)) {
+        $value = [string]$propertyValues[$propertyName]
+        if ([string]::IsNullOrWhiteSpace($value)) { continue }
+        foreach ($alias in @($propertyAliases[$propertyName])) {
+            if ([string]::IsNullOrWhiteSpace([string]$alias)) { continue }
+            $map[[string]$alias] = $value
+        }
+    }
+
+    return $map
+}
+
 function Render-DocxTemplate {
     param(
         [Parameter(Mandatory = $true)][string]$TemplatePath,
@@ -698,7 +746,8 @@ function Render-DocxTemplate {
         [Parameter(Mandatory = $false)][string]$DocLocation,
         [Parameter(Mandatory = $false)][string]$DocSubsidiary,
         [Parameter(Mandatory = $false)][string]$DocEnvironment,
-        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag'
+        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag',
+        [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
     )
 
     Copy-Item -LiteralPath $TemplatePath -Destination $OutputPath -Force
@@ -715,6 +764,7 @@ function Render-DocxTemplate {
         $discoveredTaggedControls = [System.Collections.Generic.List[string]]::new()
         $discoveredUnmappedTaggedControls = [System.Collections.Generic.List[string]]::new()
         $partErrors = [System.Collections.Generic.List[hashtable]]::new()
+        $contentControlReplaceByTag = Get-DocxContentControlReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment
         $tableStyleId = ''
         if ($null -ne $TableByTag -and @($TableByTag.Keys).Count -gt 0) {
             $stylesEntry = $archive.GetEntry('word/styles.xml')
@@ -742,6 +792,25 @@ function Render-DocxTemplate {
             $selectionContextNode = $null
             $xmlDocTyped = $null
             $nsMgrTyped = $null
+
+            # Keep legacy literal-token replacement behavior available in both/literal-token modes.
+            # Run this before content-control parsing so token replacement still works when XML parsing
+            # may normalize/split text runs in ways that make later regex token matching less reliable.
+            if (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token') {
+                if ($null -ne $TableByTag) {
+                    foreach ($tag in @($TableByTag.Keys)) {
+                        $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
+                        if (-not [string]::IsNullOrWhiteSpace($tableXml)) {
+                            $xmlText = Replace-DocxParagraphTokenWithBlockXml -XmlText $xmlText -Tag ([string]$tag) -BlockXml $tableXml
+                        }
+                    }
+                }
+
+                foreach ($tag in @($ReplaceByTag.Keys)) {
+                    $xmlText = Replace-LiteralSdtTokenXmlText -XmlText $xmlText -Tag ([string]$tag) -Replacement ([string]$ReplaceByTag[$tag])
+                }
+            }
+
             try {
                 if (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'content-control-tag') {
                     [System.Xml.XmlDocument]$xmlDocTyped = [xml]$xmlText
@@ -759,7 +828,7 @@ function Render-DocxTemplate {
                         if ([string]::IsNullOrWhiteSpace($tag)) { continue }
                         $discoveredTaggedControls.Add($tag)
 
-                        $tagHasMapping = (Test-MapHasKey -Map $ReplaceByTag -Key $tag) -or ($null -ne $TableByTag -and (Test-MapHasKey -Map $TableByTag -Key $tag))
+                        $tagHasMapping = (Test-MapHasKey -Map $contentControlReplaceByTag -Key $tag)
                         if ($tagHasMapping) {
                             $controlsDiscoveredMapped++
                         }
@@ -771,22 +840,9 @@ function Render-DocxTemplate {
                         $sdtContent = $sdtNode.SelectSingleNode("./*[local-name()='sdtContent']")
                         if ($null -eq $sdtContent) { continue }
 
-                        if ($null -ne $TableByTag -and (Test-MapHasKey -Map $TableByTag -Key $tag)) {
+                        if (Test-MapHasKey -Map $contentControlReplaceByTag -Key $tag) {
                             $taggedControlsMatched++
-                            $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
-                            if (-not [string]::IsNullOrWhiteSpace($tableXml)) {
-                                $tableNodes = Convert-WordXmlFragmentToNodes -OwnerDocument $xmlDocTyped -XmlFragment $tableXml
-                                if ($tableNodes.Count -gt 0) {
-                                    Set-WordSdtContentNodes -SdtContentNode $sdtContent -Nodes $tableNodes
-                                    $controlsPopulated++
-                                    continue
-                                }
-                            }
-                        }
-
-                        if (Test-MapHasKey -Map $ReplaceByTag -Key $tag) {
-                            $taggedControlsMatched++
-                            $paragraphNodes = Convert-TextToWordParagraphNodes -XmlDocument $xmlDocTyped -Text ([string]$ReplaceByTag[$tag])
+                            $paragraphNodes = Convert-TextToWordParagraphNodes -XmlDocument $xmlDocTyped -Text ([string]$contentControlReplaceByTag[$tag])
                             Set-WordSdtContentNodes -SdtContentNode $sdtContent -Nodes $paragraphNodes
                             $controlsPopulated++
                         }
@@ -808,20 +864,8 @@ function Render-DocxTemplate {
                 $xmlText = $originalXmlText
             }
 
-            # Legacy literal-token replacement path is opt-in via DocxMatchMode.
-            if (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token') {
-                if ($null -ne $TableByTag) {
-                    foreach ($tag in @($TableByTag.Keys)) {
-                        $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
-                        if (-not [string]::IsNullOrWhiteSpace($tableXml)) {
-                            $xmlText = Replace-DocxParagraphTokenWithBlockXml -XmlText $xmlText -Tag ([string]$tag) -BlockXml $tableXml
-                        }
-                    }
-                }
-
-                foreach ($tag in @($ReplaceByTag.Keys)) {
-                    $xmlText = Replace-LiteralSdtTokenXmlText -XmlText $xmlText -Tag ([string]$tag) -Replacement ([string]$ReplaceByTag[$tag])
-                }
+            if ([string]$UnresolvedTokenPolicy -eq 'remove') {
+                $xmlText = Remove-UnresolvedSdtTokensFromText -Text $xmlText
             }
 
             Set-ZipEntryText -Entry $entry -Text $xmlText
@@ -837,20 +881,11 @@ function Render-DocxTemplate {
             if ([string]::IsNullOrWhiteSpace([string]$discoveredTag)) { continue }
             $discoveredLookup[[string]$discoveredTag] = $true
         }
-        foreach ($mappedTag in @($ReplaceByTag.Keys)) {
+        foreach ($mappedTag in @($contentControlReplaceByTag.Keys)) {
             $mappedTagText = [string]$mappedTag
             if ([string]::IsNullOrWhiteSpace($mappedTagText)) { continue }
             if (-not (Test-MapHasKey -Map $discoveredLookup -Key $mappedTagText)) {
                 $mappedTagsNotDiscovered.Add($mappedTagText)
-            }
-        }
-        if ($null -ne $TableByTag) {
-            foreach ($mappedTag in @($TableByTag.Keys)) {
-                $mappedTagText = [string]$mappedTag
-                if ([string]::IsNullOrWhiteSpace($mappedTagText)) { continue }
-                if (-not (Test-MapHasKey -Map $discoveredLookup -Key $mappedTagText)) {
-                    $mappedTagsNotDiscovered.Add($mappedTagText)
-                }
             }
         }
 
@@ -867,6 +902,7 @@ function Render-DocxTemplate {
             discoveredTaggedControls = @($discoveredTaggedControls | Sort-Object -Unique)
             discoveredUnmappedTaggedControls = @($discoveredUnmappedTaggedControls | Sort-Object -Unique)
             unmatchedTaggedControls = @($mappedTagsNotDiscovered | Sort-Object -Unique)
+            contentControlMappedTags = @($contentControlReplaceByTag.Keys | Sort-Object -Unique)
             partErrors = @($partErrors)
         }
     }
@@ -2113,7 +2149,7 @@ try {
         if ($outputDir -and -not (Test-Path -LiteralPath $outputDir -PathType Container)) {
             New-Item -Path $outputDir -ItemType Directory -Force | Out-Null
         }
-        $docxRender = Render-DocxTemplate -TemplatePath $TemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocxMatchMode $DocxMatchMode
+        $docxRender = Render-DocxTemplate -TemplatePath $TemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy
         $docxUnresolvedLiteralByTag = $docxRender.unresolvedLiteralByTag
         $unresolvedByTag = $docxUnresolvedLiteralByTag
         $renderDetails.partsUpdated = [int]$docxRender.partsUpdated
@@ -2125,21 +2161,22 @@ try {
         $renderDetails.discoveredTaggedControls = @($docxRender.discoveredTaggedControls)
         $renderDetails.discoveredUnmappedTaggedControls = @($docxRender.discoveredUnmappedTaggedControls)
         $renderDetails.unmatchedTaggedControls = @($docxRender.unmatchedTaggedControls)
+        $renderDetails.contentControlMappedTags = @($docxRender.contentControlMappedTags)
         $renderDetails.partErrors = @($docxRender.partErrors)
         $renderDetails.unresolvedLiteralTokens = @($docxUnresolvedLiteralByTag.Keys | Sort-Object)
         $renderDetails.docxMatchMode = [string]$DocxMatchMode
-        $expectedMatchCount = @($matches).Count
+        $expectedMatchCount = @($renderDetails.contentControlMappedTags).Count
         $controlsPopulatedCount = [int]$renderDetails.controlsPopulated
         if ((Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'content-control-tag') -and $expectedMatchCount -gt 0 -and $controlsPopulatedCount -eq 0) {
             $status = 'ERROR'
             $sampleMatchedTags = @(
-                @($matches | Select-Object -ExpandProperty tag -ErrorAction SilentlyContinue | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | Select-Object -Unique -First 5)
+                @($renderDetails.contentControlMappedTags | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | Select-Object -Unique -First 5)
             )
             $sampleMatchedTagsText = if ($sampleMatchedTags.Count -gt 0) { $sampleMatchedTags -join ', ' } else { 'n/a' }
             $issues.Add([ordered]@{
                 code = 'ASB-ASM-SDT-DOCX-NO-POPULATION'
                 severity = 'ERROR'
-                message = "DOCX render did not populate any tagged content controls despite resolved mapping matches. docxMatchMode='$DocxMatchMode'; discoveredControls=$($renderDetails.controlsDiscovered); discoveredMappedControls=$($renderDetails.controlsDiscoveredMapped); discoveredUnmappedControls=$($renderDetails.controlsDiscoveredUnmapped); partErrorCount=$(@($renderDetails.partErrors).Count); taggedControlsMatched=$($renderDetails.taggedControlsMatched); controlsPopulated=$controlsPopulatedCount; mappingMatches=$expectedMatchCount; sampleMatchedTags=$sampleMatchedTagsText"
+                message = "DOCX render did not populate any tagged content controls for supplied document-property control tags. docxMatchMode='$DocxMatchMode'; discoveredControls=$($renderDetails.controlsDiscovered); discoveredMappedControls=$($renderDetails.controlsDiscoveredMapped); discoveredUnmappedControls=$($renderDetails.controlsDiscoveredUnmapped); partErrorCount=$(@($renderDetails.partErrors).Count); taggedControlsMatched=$($renderDetails.taggedControlsMatched); controlsPopulated=$controlsPopulatedCount; contentControlMappedTags=$expectedMatchCount; sampleMatchedTags=$sampleMatchedTagsText"
                 path = $TemplatePath
             })
         }
@@ -2184,6 +2221,10 @@ try {
             if (Test-MapHasKey -Map $templateUnresolvedByTag -Key ([string]$unresolvedTag)) {
                 $unresolvedByTag[[string]$unresolvedTag] = $renderUnresolvedByTag[[string]$unresolvedTag]
             }
+        }
+        if ([string]$UnresolvedTokenPolicy -eq 'remove') {
+            $rendered = Remove-UnresolvedSdtTokensFromText -Text $rendered
+            $unresolvedByTag = @{}
         }
     }
     $unresolvedSummary = [ordered]@{
@@ -2251,6 +2292,7 @@ try {
         docxPartErrors = $(if ($isDocxTemplate) { @($renderDetails.partErrors) } else { @() })
         docxUnresolvedLiteralTokens = $(if ($isDocxTemplate) { @($renderDetails.unresolvedLiteralTokens) } else { @() })
         docxMatchMode = $(if ($isDocxTemplate) { [string]$renderDetails.docxMatchMode } else { '' })
+        unresolvedTokenPolicy = [string]$UnresolvedTokenPolicy
         unresolved = $unresolvedSummary
         unresolvedPolicy = [ordered]@{
             requiredOrUnknown = 'ERROR'

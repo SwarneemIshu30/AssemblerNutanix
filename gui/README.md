@@ -62,5 +62,6 @@ The GUI participates in the same output-selection model as CLI orchestration:
 1. **Catalog `enabled`** decides baseline participation for each entry.
 2. **CLI filters** on bundle render (`-TechId`, `-EntryId`, `-OutputType docx|text`) can further narrow outputs.
 3. **GUI Debug/Advanced controls** expose the same narrowing behavior through Entry ID and DOCX/TXT toggles.
+4. **GUI Debug/Advanced unresolved-token policy** lets operators keep unresolved `<<SDT:...>>` tokens (`retain`, default) for reruns/troubleshooting or strip them (`remove`) in final output.
 
 Current default behavior is to keep both output variants enabled (**DOCX + TXT**). Planned roadmap behavior is to default to **DOCX-only**, with a debug/advanced override to re-enable TXT when needed.

@@ -494,7 +494,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
-    It 'uses w:sdt tag-based replacement for DOCX controls without implicit literal-token fallback' {
+    It 'limits DOCX content-control replacement to GUI-fed document-property tags only' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
         if ([string]::IsNullOrWhiteSpace($pwshPath)) {
@@ -564,23 +564,22 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                 $zip.Dispose()
             }
 
-            if ($documentXml -notmatch 'Alpha &amp; Beta &lt;Prod&gt;') { throw "Expected scalar SDT content to be XML-escaped replacement text, got '$documentXml'" }
+            if ($documentXml -match 'Alpha &amp; Beta &lt;Prod&gt;') { throw "Expected dataset scalar content-control tag to remain unchanged, got '$documentXml'" }
             if ($documentXml -notmatch '<w:tag w:val=\"LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.Name\"/>') { throw "Expected scalar SDT tag to remain in document, got '$documentXml'" }
-            if ($documentXml -notmatch '<w:tbl') { throw "Expected table SDT content to include a Word table node, got '$documentXml'" }
-            if ($documentXml -notmatch 'w:tblStyle w:val=\"LNVTable1-9ptHeadBandedGrid\"') { throw "Expected table SDT content to apply template styleId, got '$documentXml'" }
+            if ($documentXml -notmatch 'ORIGINAL-TABLE') { throw "Expected dataset table SDT content to remain unchanged, got '$documentXml'" }
             if ($documentXml -notmatch '&lt;&lt;SDT:LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.LegacyStatus&gt;&gt;') { throw "Expected legacy literal placeholder token to remain when DocxMatchMode=content-control-tag, got '$documentXml'" }
-            if ($documentXml -match 'ORIGINAL-SCALAR|ORIGINAL-TABLE') { throw "Expected original SDT placeholder content to be replaced, got '$documentXml'" }
+            if ($documentXml -notmatch 'ORIGINAL-SCALAR') { throw "Expected dataset scalar SDT content to remain unchanged, got '$documentXml'" }
             if ($documentXml -notmatch 'ORIGINAL-UNMATCHED') { throw "Expected unmatched tagged SDT content to remain unchanged, got '$documentXml'" }
 
             $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
             if ($null -eq $renderStage) { throw 'Expected render stage diagnostics in report.' }
             if ([int]$renderStage.details.docxControlsDiscovered -ne 3) { throw "Expected docxControlsDiscovered=3, got '$($renderStage.details.docxControlsDiscovered)'" }
-            if ([int]$renderStage.details.docxTaggedControlsMatched -ne 2) { throw "Expected docxTaggedControlsMatched=2, got '$($renderStage.details.docxTaggedControlsMatched)'" }
-            if ([int]$renderStage.details.docxControlsPopulated -ne 2) { throw "Expected docxControlsPopulated=2, got '$($renderStage.details.docxControlsPopulated)'" }
+            if ([int]$renderStage.details.docxTaggedControlsMatched -ne 0) { throw "Expected docxTaggedControlsMatched=0 for dataset tags in content-control mode, got '$($renderStage.details.docxTaggedControlsMatched)'" }
+            if ([int]$renderStage.details.docxControlsPopulated -ne 0) { throw "Expected docxControlsPopulated=0 for dataset tags in content-control mode, got '$($renderStage.details.docxControlsPopulated)'" }
             if ([string]$renderStage.details.docxMatchMode -ne 'content-control-tag') { throw "Expected docxMatchMode=content-control-tag, got '$($renderStage.details.docxMatchMode)'" }
             $unmatchedTags = @($renderStage.details.docxUnmatchedTaggedControls)
-            if (@($unmatchedTags | Where-Object { $_ -eq 'LNV.Test.Tech.System[ArrayName].Summary.Unmatched' }).Count -ne 1) {
-                throw "Expected unmatched tagged controls to include LNV.Test.Tech.System[ArrayName].Summary.Unmatched, got '$($unmatchedTags -join ',')'"
+            if (@($unmatchedTags | Where-Object { $_ -eq 'LNV.Test.Tech.System[ArrayName].Summary.Name' }).Count -ne 1) {
+                throw "Expected unmatched tagged controls to include dataset tag LNV.Test.Tech.System[ArrayName].Summary.Name, got '$($unmatchedTags -join ',')'"
             }
             $docxUnresolvedLiteralTokens = @($renderStage.details.docxUnresolvedLiteralTokens)
             if (@($docxUnresolvedLiteralTokens | Where-Object { $_ -eq 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus' }).Count -ne 1) {
@@ -601,7 +600,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
-    It 'discovers and matches tagged controls for the Lenovo template fixture in content-control-tag mode' {
+    It 'discovers tagged controls for the Lenovo template fixture without dataset-tag population in content-control-tag mode' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot '.deps/contracts'
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
@@ -644,8 +643,8 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
             if ($null -eq $renderStage) { throw 'Expected render stage diagnostics in report.' }
             if ([int]$renderStage.details.docxControlsDiscovered -le 0) { throw "Expected docxControlsDiscovered>0, got '$($renderStage.details.docxControlsDiscovered)'" }
-            if ([int]$renderStage.details.docxTaggedControlsMatched -le 0) { throw "Expected docxTaggedControlsMatched>0, got '$($renderStage.details.docxTaggedControlsMatched)'" }
-            if ([int]$renderStage.details.docxControlsPopulated -le 0) { throw "Expected docxControlsPopulated>0, got '$($renderStage.details.docxControlsPopulated)'" }
+            if ([int]$renderStage.details.docxTaggedControlsMatched -ne 0) { throw "Expected docxTaggedControlsMatched=0 when only dataset tags are present, got '$($renderStage.details.docxTaggedControlsMatched)'" }
+            if ([int]$renderStage.details.docxControlsPopulated -ne 0) { throw "Expected docxControlsPopulated=0 when only dataset tags are present, got '$($renderStage.details.docxControlsPopulated)'" }
             $partRewriteIssues = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DOCX-PART-REWRITE' })
             $partRewriteMessages = @($partRewriteIssues | ForEach-Object { [string]$_.message })
             if (($partRewriteMessages -join "`n") -match 'System\.Object\[\]') {
@@ -740,7 +739,141 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
-    It 'fails closed when mappings resolve but DOCX content-control mode populates zero controls' {
+    It 'still applies literal-token DOCX replacement when DocxMatchMode=both' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-docx-both-mode-literal-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'unused' -TechId 'Test.Tech' -DatasetRelativePath 'datasets/transport.json' -Mappings @(
+                @{
+                    dataset = 'datasets/transport.json'
+                    required = $true
+                    selectors = @('items', '0', 'status')
+                    target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus' }
+                }
+            ) -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'transport'
+                item_count = 1
+                items = @(
+                    @{ status = 'Ready' }
+                )
+            }
+
+            $contractsRoot = New-MinimalContractsRoot -Root $tempRoot -DatasetName 'transport'
+            $templatePath = Join-Path $tempRoot 'both-mode-template.docx'
+            New-TestTaggedContentControlDocxTemplate -Path $templatePath -ScalarTag 'LNV.Test.Tech.System[ArrayName].Summary.Name' -TableTag 'LNV.Test.Tech.System[ArrayName].Tables.Sample' -LegacyTokenTag 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus'
+            $outputPath = Join-Path $tempRoot 'both-mode-rendered.docx'
+            $reportPath = Join-Path $tempRoot 'report.json'
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot -DocxMatchMode 'both'
+            $exitCode = $LASTEXITCODE
+            if ($exitCode -ne 0) { throw "Expected successful render exit code for DocxMatchMode=both, got $exitCode. Output: $output" }
+
+            $zip = [System.IO.Compression.ZipFile]::OpenRead($outputPath)
+            try {
+                $entry = $zip.GetEntry('word/document.xml')
+                if ($null -eq $entry) { throw 'Expected rendered DOCX to contain word/document.xml.' }
+                $reader = [System.IO.StreamReader]::new($entry.Open())
+                try {
+                    $documentXml = $reader.ReadToEnd()
+                }
+                finally {
+                    $reader.Dispose()
+                }
+            }
+            finally {
+                $zip.Dispose()
+            }
+
+            if ($documentXml -notmatch '<w:t xml:space=\"preserve\">Ready</w:t>') { throw "Expected literal-token DOCX replacement when DocxMatchMode=both, got '$documentXml'" }
+            if ($documentXml -match '&lt;&lt;SDT:\s*LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.LegacyStatus\s*&gt;&gt;') { throw "Expected legacy token to be removed in both mode, got '$documentXml'" }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'removes unresolved legacy literal tokens when UnresolvedTokenPolicy=remove' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-docx-unresolved-policy-remove-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'unused' -TechId 'Test.Tech' -DatasetRelativePath 'datasets/transport.json' -Mappings @(
+                @{
+                    dataset = 'datasets/transport.json'
+                    required = $true
+                    selectors = @('items', '0', 'name')
+                    target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Summary.Name' }
+                }
+            ) -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'transport'
+                item_count = 1
+                items = @(
+                    @{ name = 'Alpha Node' }
+                )
+            }
+
+            $contractsRoot = New-MinimalContractsRoot -Root $tempRoot -DatasetName 'transport'
+            $templatePath = Join-Path $tempRoot 'policy-remove-template.docx'
+            New-TestTaggedContentControlDocxTemplate -Path $templatePath -ScalarTag 'LNV.Test.Tech.System[ArrayName].Summary.Name' -TableTag 'LNV.Test.Tech.System[ArrayName].Tables.Sample' -LegacyTokenTag 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus'
+            $outputPath = Join-Path $tempRoot 'policy-remove-rendered.docx'
+            $reportPath = Join-Path $tempRoot 'report.json'
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot -DocxMatchMode 'content-control-tag' -UnresolvedTokenPolicy 'remove'
+            $exitCode = $LASTEXITCODE
+            if ($exitCode -ne 0) { throw "Expected successful render exit code when UnresolvedTokenPolicy=remove, got $exitCode. Output: $output" }
+            $report = $output | ConvertFrom-Json -AsHashtable
+
+            $zip = [System.IO.Compression.ZipFile]::OpenRead($outputPath)
+            try {
+                $entry = $zip.GetEntry('word/document.xml')
+                if ($null -eq $entry) { throw 'Expected rendered DOCX to contain word/document.xml.' }
+                $reader = [System.IO.StreamReader]::new($entry.Open())
+                try {
+                    $documentXml = $reader.ReadToEnd()
+                }
+                finally {
+                    $reader.Dispose()
+                }
+            }
+            finally {
+                $zip.Dispose()
+            }
+
+            if ($documentXml -match '&lt;&lt;SDT:\s*LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.LegacyStatus\s*&gt;&gt;') { throw "Expected unresolved legacy literal token to be removed, got '$documentXml'" }
+            $literalIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-UNRESOLVED-LITERAL-TOKEN' }) | Select-Object -First 1
+            if ($null -ne $literalIssue) { throw "Expected no unresolved literal token issue when UnresolvedTokenPolicy=remove, got '$($literalIssue.message)'" }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'fails closed when GUI-fed document-property tags are supplied but DOCX content-control mode populates zero controls' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
         if ([string]::IsNullOrWhiteSpace($pwshPath)) {
@@ -776,7 +909,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             $outputPath = Join-Path $tempRoot 'mismatch-rendered.docx'
             $reportPath = Join-Path $tempRoot 'report.json'
             $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
-            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot -DocxMatchMode 'content-control-tag'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot -DocxMatchMode 'content-control-tag' -DocCustomer 'Contoso'
             $exitCode = $LASTEXITCODE
             if ($exitCode -eq 0) { throw "Expected non-zero exit code when no tagged controls are populated. Output: $output" }
 
@@ -784,13 +917,13 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             if ([string]$report.status -ne 'ERROR') { throw "Expected report.status ERROR, got '$($report.status)'" }
 
             $noPopulationIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DOCX-NO-POPULATION' }) | Select-Object -First 1
-            if ($null -eq $noPopulationIssue) { throw 'Expected ASB-ASM-SDT-DOCX-NO-POPULATION issue when controlsPopulated is zero despite mapping matches.' }
+            if ($null -eq $noPopulationIssue) { throw 'Expected ASB-ASM-SDT-DOCX-NO-POPULATION issue when controlsPopulated is zero despite supplied document-property tags.' }
             if ([string]$noPopulationIssue.severity -ne 'ERROR') { throw "Expected ASB-ASM-SDT-DOCX-NO-POPULATION severity ERROR, got '$($noPopulationIssue.severity)'" }
             if ([string]$noPopulationIssue.message -notmatch 'docxMatchMode=''content-control-tag''') { throw "Expected no-population issue to include docxMatchMode context, got '$($noPopulationIssue.message)'" }
             if ([string]$noPopulationIssue.message -notmatch 'controlsDiscovered=2') { throw "Expected no-population issue to include controlsDiscovered, got '$($noPopulationIssue.message)'" }
             if ([string]$noPopulationIssue.message -notmatch 'taggedControlsMatched=0') { throw "Expected no-population issue to include taggedControlsMatched, got '$($noPopulationIssue.message)'" }
             if ([string]$noPopulationIssue.message -notmatch 'controlsPopulated=0') { throw "Expected no-population issue to include controlsPopulated, got '$($noPopulationIssue.message)'" }
-            if ([string]$noPopulationIssue.message -notmatch 'sampleMatchedTags=LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.Name') { throw "Expected no-population issue to include sample matched tag, got '$($noPopulationIssue.message)'" }
+            if ([string]$noPopulationIssue.message -notmatch 'sampleMatchedTags=Customer') { throw "Expected no-population issue to include sample document-property control tag, got '$($noPopulationIssue.message)'" }
         }
         finally {
             if (Test-Path -LiteralPath $tempRoot -PathType Container) {

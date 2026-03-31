@@ -23,7 +23,8 @@ param(
     [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
     [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true,
     [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
-    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both'
+    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
+    [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
 )
 
 Set-StrictMode -Version Latest
@@ -65,7 +66,8 @@ function Invoke-BundleRender {
         [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
         [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true,
         [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
-        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both'
+        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
+        [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
     )
 
     if ([string]::IsNullOrWhiteSpace($BundleRoot) -or -not (Test-Path -LiteralPath $BundleRoot -PathType Container)) {
@@ -113,6 +115,7 @@ function Invoke-BundleRender {
         $params.AnnotateResolvedTags = $true
     }
     $params.DocxMatchMode = [string]$DocxMatchMode
+    $params.UnresolvedTokenPolicy = [string]$UnresolvedTokenPolicy
 
     & $invokeScript @params
 }
@@ -135,6 +138,7 @@ function Invoke-TerminalMode {
         [bool]$IncludeTxt = $true,
         [bool]$AnnotateResolvedTags = $false,
         [ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
+        [ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain',
         [bool]$PromptIncludeDocx = $true,
         [bool]$PromptIncludeTxt = $true
     )
@@ -191,12 +195,22 @@ function Invoke-TerminalMode {
             }
         }
     }
+    $unresolvedPolicyInput = Read-Host "Debug/Advanced - Unresolved token policy [retain/remove] [$UnresolvedTokenPolicy]"
+    if (-not [string]::IsNullOrWhiteSpace($unresolvedPolicyInput)) {
+        $candidateUnresolvedPolicy = $unresolvedPolicyInput.Trim().ToLowerInvariant()
+        if ($candidateUnresolvedPolicy -in @('retain','remove')) {
+            $UnresolvedTokenPolicy = $candidateUnresolvedPolicy
+        }
+        else {
+            throw "Unsupported unresolved token policy '$candidateUnresolvedPolicy'. Use 'retain' or 'remove'."
+        }
+    }
     $annotateInput = Read-Host "Debug/Advanced - Annotate resolved SDT tags in text output? (y/N) [$((if ($AnnotateResolvedTags) { 'Y' } else { 'N' }))]"
     if (-not [string]::IsNullOrWhiteSpace($annotateInput)) {
         $AnnotateResolvedTags = ($annotateInput.Trim() -match '^(y|yes|1|true)$')
     }
 
-    Invoke-BundleRender -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode
+    Invoke-BundleRender -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy
 }
 
 function Invoke-WinFormsMode {
@@ -216,7 +230,8 @@ function Invoke-WinFormsMode {
         [bool]$IncludeDocx = $true,
         [bool]$IncludeTxt = $true,
         [bool]$AnnotateResolvedTags = $false,
-        [ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both'
+        [ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
+        [ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
     )
 
     if (-not $IsWindows) {
@@ -372,15 +387,30 @@ function Invoke-WinFormsMode {
     [void]$docxMatchCombo.Items.Add('literal-token')
     $docxMatchCombo.SelectedItem = [string]$DocxMatchMode
 
+    $unresolvedPolicyLabel = New-Object System.Windows.Forms.Label
+    $unresolvedPolicyLabel.Left = 365
+    $unresolvedPolicyLabel.Top = 130
+    $unresolvedPolicyLabel.Width = 220
+    $unresolvedPolicyLabel.Text = 'Unresolved token policy'
+
+    $unresolvedPolicyCombo = New-Object System.Windows.Forms.ComboBox
+    $unresolvedPolicyCombo.Left = 365
+    $unresolvedPolicyCombo.Top = 148
+    $unresolvedPolicyCombo.Width = 240
+    $unresolvedPolicyCombo.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
+    [void]$unresolvedPolicyCombo.Items.Add('retain')
+    [void]$unresolvedPolicyCombo.Items.Add('remove')
+    $unresolvedPolicyCombo.SelectedItem = [string]$UnresolvedTokenPolicy
+
     $txtMatchLabel = New-Object System.Windows.Forms.Label
     $txtMatchLabel.Left = 365
-    $txtMatchLabel.Top = 152
+    $txtMatchLabel.Top = 178
     $txtMatchLabel.Width = 220
     $txtMatchLabel.Text = 'TXT matching mode'
 
     $txtMatchCombo = New-Object System.Windows.Forms.ComboBox
     $txtMatchCombo.Left = 365
-    $txtMatchCombo.Top = 170
+    $txtMatchCombo.Top = 196
     $txtMatchCombo.Width = 240
     $txtMatchCombo.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
     [void]$txtMatchCombo.Items.Add('literal-token')
@@ -389,12 +419,12 @@ function Invoke-WinFormsMode {
 
     $annotateCheckBox = New-Object System.Windows.Forms.CheckBox
     $annotateCheckBox.Left = 620
-    $annotateCheckBox.Top = 170
+    $annotateCheckBox.Top = 196
     $annotateCheckBox.Width = 195
     $annotateCheckBox.Text = 'Annotate resolved SDT tags (text output debug)'
     $annotateCheckBox.Checked = $AnnotateResolvedTags
 
-    foreach ($advancedControl in @($techIdLabel, $techTextBox, $entryOverrideLabel, $entryOverrideTextBox, $docxCheckBox, $txtCheckBox, $docxMatchLabel, $docxMatchCombo, $txtMatchLabel, $txtMatchCombo, $annotateCheckBox)) {
+    foreach ($advancedControl in @($techIdLabel, $techTextBox, $entryOverrideLabel, $entryOverrideTextBox, $docxCheckBox, $txtCheckBox, $docxMatchLabel, $docxMatchCombo, $unresolvedPolicyLabel, $unresolvedPolicyCombo, $txtMatchLabel, $txtMatchCombo, $annotateCheckBox)) {
         $advancedGroup.Controls.Add($advancedControl)
     }
 
@@ -446,7 +476,7 @@ function Invoke-WinFormsMode {
         try {
             $techSelection = @($techTextBox.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
             $entrySelection = @($entryOverrideTextBox.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-            $resultJson = Invoke-BundleRender -BundleRoot $bundleTextBox.Text -CatalogPath $catalogTextBox.Text -OutputRoot $outputTextBox.Text -ContractsRoot $contractsTextBox.Text -TechId $techSelection -EntryId $entrySelection -DocTitle $docPropertyTextBoxes['Title (core property)'].Text -DocCustomer $docPropertyTextBoxes['Customer (custom property)'].Text -DocCustomerAbbr $docPropertyTextBoxes['CustomerAbbr (custom property)'].Text -DocLocation $docPropertyTextBoxes['Location (custom property)'].Text -DocSubsidiary $docPropertyTextBoxes['Subsidiary (custom property)'].Text -DocEnvironment $docPropertyTextBoxes['Environment (custom property)'].Text -IncludeDocx $docxCheckBox.Checked -IncludeTxt $txtCheckBox.Checked -AnnotateResolvedTags $annotateCheckBox.Checked -DocxMatchMode ([string]$docxMatchCombo.SelectedItem)
+            $resultJson = Invoke-BundleRender -BundleRoot $bundleTextBox.Text -CatalogPath $catalogTextBox.Text -OutputRoot $outputTextBox.Text -ContractsRoot $contractsTextBox.Text -TechId $techSelection -EntryId $entrySelection -DocTitle $docPropertyTextBoxes['Title (core property)'].Text -DocCustomer $docPropertyTextBoxes['Customer (custom property)'].Text -DocCustomerAbbr $docPropertyTextBoxes['CustomerAbbr (custom property)'].Text -DocLocation $docPropertyTextBoxes['Location (custom property)'].Text -DocSubsidiary $docPropertyTextBoxes['Subsidiary (custom property)'].Text -DocEnvironment $docPropertyTextBoxes['Environment (custom property)'].Text -IncludeDocx $docxCheckBox.Checked -IncludeTxt $txtCheckBox.Checked -AnnotateResolvedTags $annotateCheckBox.Checked -DocxMatchMode ([string]$docxMatchCombo.SelectedItem) -UnresolvedTokenPolicy ([string]$unresolvedPolicyCombo.SelectedItem)
             $statusLabel.Text = 'Render completed successfully.'
             $dialogText = if ($debugCheckBox.Checked) {
                 Format-DebugBundleOutput -BundleResultJson $resultJson
@@ -482,7 +512,7 @@ if ($Mode -eq 'Auto') {
 }
 
 switch ($effectiveMode) {
-    'WinForms' { Invoke-WinFormsMode -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode }
-    'Terminal' { Invoke-TerminalMode -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode -PromptIncludeDocx (-not $includeDocxSpecified) -PromptIncludeTxt (-not $includeTxtSpecified) }
+    'WinForms' { Invoke-WinFormsMode -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy }
+    'Terminal' { Invoke-TerminalMode -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy -PromptIncludeDocx (-not $includeDocxSpecified) -PromptIncludeTxt (-not $includeTxtSpecified) }
     default { throw "Unsupported mode: $effectiveMode" }
 }

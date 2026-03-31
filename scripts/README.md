@@ -116,6 +116,7 @@ Optional:
 - `-EntryId` (one or more catalog entry IDs; debug/advanced filter)
 - `-OutputType docx|text` (one or both output variants; debug/advanced filter)
 - `-AnnotateResolvedTags` (when rendering text output, prefix resolved `<<SDT:...>>` replacements with debug trace markers)
+- `-UnresolvedTokenPolicy retain|remove` (default `retain`; `remove` strips unresolved `<<SDT:...>>` tokens from rendered output)
 
 Behavior:
 - reads `objectIndex.json` to detect tech present in bundle
