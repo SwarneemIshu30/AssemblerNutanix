@@ -16,7 +16,8 @@ param(
     [Parameter(Mandatory = $false)][string[]]$EntryId,
     [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
     [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true,
-    [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false
+    [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
+    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token')][string]$DocxMatchMode = 'content-control-tag'
 )
 
 Set-StrictMode -Version Latest
@@ -51,7 +52,8 @@ function Invoke-BundleRender {
         [Parameter(Mandatory = $false)][string[]]$EntryId,
         [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
         [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true,
-        [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false
+        [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
+        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token')][string]$DocxMatchMode = 'content-control-tag'
     )
 
     if ([string]::IsNullOrWhiteSpace($BundleRoot) -or -not (Test-Path -LiteralPath $BundleRoot -PathType Container)) {
@@ -92,6 +94,7 @@ function Invoke-BundleRender {
     if ($AnnotateResolvedTags) {
         $params.AnnotateResolvedTags = $true
     }
+    $params.DocxMatchMode = [string]$DocxMatchMode
 
     & $invokeScript @params
 }
@@ -107,6 +110,7 @@ function Invoke-TerminalMode {
         [bool]$IncludeDocx = $true,
         [bool]$IncludeTxt = $true,
         [bool]$AnnotateResolvedTags = $false,
+        [ValidateSet('content-control-tag','literal-token')][string]$DocxMatchMode = 'content-control-tag',
         [bool]$PromptIncludeDocx = $true,
         [bool]$PromptIncludeTxt = $true
     )
@@ -151,12 +155,24 @@ function Invoke-TerminalMode {
             $IncludeTxt = -not ($txtInput.Trim() -match '^(n|no|0|false)$')
         }
     }
+    if ($IncludeDocx) {
+        $docxModeInput = Read-Host "Debug/Advanced - DOCX matching mode [content-control-tag/literal-token] [$DocxMatchMode]"
+        if (-not [string]::IsNullOrWhiteSpace($docxModeInput)) {
+            $candidateDocxMode = $docxModeInput.Trim().ToLowerInvariant()
+            if ($candidateDocxMode -in @('content-control-tag','literal-token')) {
+                $DocxMatchMode = $candidateDocxMode
+            }
+            else {
+                throw "Unsupported DOCX matching mode '$candidateDocxMode'. Use 'content-control-tag' or 'literal-token'."
+            }
+        }
+    }
     $annotateInput = Read-Host "Debug/Advanced - Annotate resolved SDT tags in text output? (y/N) [$((if ($AnnotateResolvedTags) { 'Y' } else { 'N' }))]"
     if (-not [string]::IsNullOrWhiteSpace($annotateInput)) {
         $AnnotateResolvedTags = ($annotateInput.Trim() -match '^(y|yes|1|true)$')
     }
 
-    Invoke-BundleRender -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags
+    Invoke-BundleRender -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode
 }
 
 function Invoke-WinFormsMode {
@@ -169,7 +185,8 @@ function Invoke-WinFormsMode {
         [string[]]$EntryId,
         [bool]$IncludeDocx = $true,
         [bool]$IncludeTxt = $true,
-        [bool]$AnnotateResolvedTags = $false
+        [bool]$AnnotateResolvedTags = $false,
+        [ValidateSet('content-control-tag','literal-token')][string]$DocxMatchMode = 'content-control-tag'
     )
 
     if (-not $IsWindows) {
@@ -229,7 +246,7 @@ function Invoke-WinFormsMode {
     $advancedGroup.Left = 20
     $advancedGroup.Top = 225
     $advancedGroup.Width = 840
-    $advancedGroup.Height = 170
+    $advancedGroup.Height = 220
 
     $techIdLabel = New-Object System.Windows.Forms.Label
     $techIdLabel.Left = 15
@@ -269,14 +286,44 @@ function Invoke-WinFormsMode {
     $txtCheckBox.Text = 'Enable TXT output'
     $txtCheckBox.Checked = $IncludeTxt
 
+    $docxMatchLabel = New-Object System.Windows.Forms.Label
+    $docxMatchLabel.Left = 15
+    $docxMatchLabel.Top = 152
+    $docxMatchLabel.Width = 220
+    $docxMatchLabel.Text = 'DOCX matching mode'
+
+    $docxMatchCombo = New-Object System.Windows.Forms.ComboBox
+    $docxMatchCombo.Left = 15
+    $docxMatchCombo.Top = 170
+    $docxMatchCombo.Width = 340
+    $docxMatchCombo.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
+    [void]$docxMatchCombo.Items.Add('content-control-tag')
+    [void]$docxMatchCombo.Items.Add('literal-token')
+    $docxMatchCombo.SelectedItem = [string]$DocxMatchMode
+
+    $txtMatchLabel = New-Object System.Windows.Forms.Label
+    $txtMatchLabel.Left = 365
+    $txtMatchLabel.Top = 152
+    $txtMatchLabel.Width = 220
+    $txtMatchLabel.Text = 'TXT matching mode'
+
+    $txtMatchCombo = New-Object System.Windows.Forms.ComboBox
+    $txtMatchCombo.Left = 365
+    $txtMatchCombo.Top = 170
+    $txtMatchCombo.Width = 240
+    $txtMatchCombo.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
+    [void]$txtMatchCombo.Items.Add('literal-token')
+    $txtMatchCombo.SelectedIndex = 0
+    $txtMatchCombo.Enabled = $false
+
     $annotateCheckBox = New-Object System.Windows.Forms.CheckBox
-    $annotateCheckBox.Left = 365
-    $annotateCheckBox.Top = 130
-    $annotateCheckBox.Width = 410
+    $annotateCheckBox.Left = 620
+    $annotateCheckBox.Top = 170
+    $annotateCheckBox.Width = 195
     $annotateCheckBox.Text = 'Annotate resolved SDT tags (text output debug)'
     $annotateCheckBox.Checked = $AnnotateResolvedTags
 
-    foreach ($advancedControl in @($techIdLabel, $techTextBox, $entryOverrideLabel, $entryOverrideTextBox, $docxCheckBox, $txtCheckBox, $annotateCheckBox)) {
+    foreach ($advancedControl in @($techIdLabel, $techTextBox, $entryOverrideLabel, $entryOverrideTextBox, $docxCheckBox, $txtCheckBox, $docxMatchLabel, $docxMatchCombo, $txtMatchLabel, $txtMatchCombo, $annotateCheckBox)) {
         $advancedGroup.Controls.Add($advancedControl)
     }
 
@@ -328,7 +375,7 @@ function Invoke-WinFormsMode {
         try {
             $techSelection = @($techTextBox.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
             $entrySelection = @($entryOverrideTextBox.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-            $resultJson = Invoke-BundleRender -BundleRoot $bundleTextBox.Text -CatalogPath $catalogTextBox.Text -OutputRoot $outputTextBox.Text -ContractsRoot $contractsTextBox.Text -TechId $techSelection -EntryId $entrySelection -IncludeDocx $docxCheckBox.Checked -IncludeTxt $txtCheckBox.Checked -AnnotateResolvedTags $annotateCheckBox.Checked
+            $resultJson = Invoke-BundleRender -BundleRoot $bundleTextBox.Text -CatalogPath $catalogTextBox.Text -OutputRoot $outputTextBox.Text -ContractsRoot $contractsTextBox.Text -TechId $techSelection -EntryId $entrySelection -IncludeDocx $docxCheckBox.Checked -IncludeTxt $txtCheckBox.Checked -AnnotateResolvedTags $annotateCheckBox.Checked -DocxMatchMode ([string]$docxMatchCombo.SelectedItem)
             $statusLabel.Text = 'Render completed successfully.'
             $dialogText = if ($debugCheckBox.Checked) {
                 Format-DebugBundleOutput -BundleResultJson $resultJson
@@ -360,7 +407,7 @@ if ($Mode -eq 'Auto') {
 }
 
 switch ($effectiveMode) {
-    'WinForms' { Invoke-WinFormsMode -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags }
-    'Terminal' { Invoke-TerminalMode -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -PromptIncludeDocx (-not $includeDocxSpecified) -PromptIncludeTxt (-not $includeTxtSpecified) }
+    'WinForms' { Invoke-WinFormsMode -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode }
+    'Terminal' { Invoke-TerminalMode -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode -PromptIncludeDocx (-not $includeDocxSpecified) -PromptIncludeTxt (-not $includeTxtSpecified) }
     default { throw "Unsupported mode: $effectiveMode" }
 }
