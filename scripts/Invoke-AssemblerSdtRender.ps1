@@ -10,6 +10,12 @@ param(
     [Parameter(Mandatory = $true)][string]$OutputPath,
     [Parameter(Mandatory = $false)][string]$ReportPath,
     [Parameter(Mandatory = $false)][string]$ContractsRoot,
+    [Parameter(Mandatory = $false)][string]$DocTitle,
+    [Parameter(Mandatory = $false)][string]$DocCustomer,
+    [Parameter(Mandatory = $false)][string]$DocCustomerAbbr,
+    [Parameter(Mandatory = $false)][string]$DocLocation,
+    [Parameter(Mandatory = $false)][string]$DocSubsidiary,
+    [Parameter(Mandatory = $false)][string]$DocEnvironment,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
     [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag'
 )
@@ -397,6 +403,94 @@ function Set-ZipEntryText {
     }
 }
 
+function Set-XmlNodeInnerText {
+    param(
+        [Parameter(Mandatory = $true)][System.Xml.XmlNode]$Node,
+        [Parameter(Mandatory = $false)][string]$Value
+    )
+
+    if ($null -eq $Node) { return }
+    $Node.InnerText = [string]$Value
+}
+
+function Update-DocxMetadataProperties {
+    param(
+        [Parameter(Mandatory = $true)][System.IO.Compression.ZipArchive]$Archive,
+        [Parameter(Mandatory = $false)][string]$Title,
+        [Parameter(Mandatory = $false)][string]$Customer,
+        [Parameter(Mandatory = $false)][string]$CustomerAbbr,
+        [Parameter(Mandatory = $false)][string]$Location,
+        [Parameter(Mandatory = $false)][string]$Subsidiary,
+        [Parameter(Mandatory = $false)][string]$Environment
+    )
+
+    $coreEntry = $Archive.GetEntry('docProps/core.xml')
+    if ($null -ne $coreEntry -and -not [string]::IsNullOrWhiteSpace($Title)) {
+        $coreTextReader = [System.IO.StreamReader]::new($coreEntry.Open())
+        try {
+            $coreXmlText = $coreTextReader.ReadToEnd()
+        }
+        finally {
+            $coreTextReader.Dispose()
+        }
+
+        [xml]$coreXml = $coreXmlText
+        $coreNs = [System.Xml.XmlNamespaceManager]::new($coreXml.NameTable)
+        $coreNs.AddNamespace('cp', 'http://schemas.openxmlformats.org/package/2006/metadata/core-properties')
+        $coreNs.AddNamespace('dc', 'http://purl.org/dc/elements/1.1/')
+        $titleNode = $coreXml.SelectSingleNode('/cp:coreProperties/dc:title', $coreNs)
+        if ($null -eq $titleNode) {
+            $root = $coreXml.SelectSingleNode('/cp:coreProperties', $coreNs)
+            if ($null -ne $root) {
+                $titleNode = $coreXml.CreateElement('dc', 'title', 'http://purl.org/dc/elements/1.1/')
+                [void]$root.AppendChild($titleNode)
+            }
+        }
+        Set-XmlNodeInnerText -Node $titleNode -Value $Title
+        Set-ZipEntryText -Entry $coreEntry -Text $coreXml.OuterXml
+    }
+
+    $customEntry = $Archive.GetEntry('docProps/custom.xml')
+    if ($null -eq $customEntry) { return }
+
+    $customTextReader = [System.IO.StreamReader]::new($customEntry.Open())
+    try {
+        $customXmlText = $customTextReader.ReadToEnd()
+    }
+    finally {
+        $customTextReader.Dispose()
+    }
+
+    [xml]$customXml = $customXmlText
+    $customNs = [System.Xml.XmlNamespaceManager]::new($customXml.NameTable)
+    $customNs.AddNamespace('cp', 'http://schemas.openxmlformats.org/officeDocument/2006/custom-properties')
+    $propertyUpdates = [ordered]@{
+        'Customer' = $Customer
+        'CustomerAbbr' = $CustomerAbbr
+        'Location' = $Location
+        'Subsidiary' = $Subsidiary
+        'Environment' = $Environment
+    }
+
+    foreach ($propertyName in @($propertyUpdates.Keys)) {
+        $propertyValue = [string]$propertyUpdates[$propertyName]
+        if ([string]::IsNullOrWhiteSpace($propertyValue)) { continue }
+        $propertyNode = $customXml.SelectSingleNode("/cp:Properties/cp:property[@name='$propertyName']", $customNs)
+        if ($null -eq $propertyNode) { continue }
+        $valueNode = $null
+        foreach ($child in @($propertyNode.ChildNodes)) {
+            if ($child.NodeType -eq [System.Xml.XmlNodeType]::Element) {
+                $valueNode = $child
+                break
+            }
+        }
+        if ($null -eq $valueNode) { continue }
+        Set-XmlNodeInnerText -Node $valueNode -Value $propertyValue
+    }
+
+    Set-ZipEntryText -Entry $customEntry -Text $customXml.OuterXml
+}
+
 function Get-WordTableStyleId {
     param(
         [Parameter(Mandatory = $false)][string]$StylesXmlText,
@@ -598,6 +692,12 @@ function Render-DocxTemplate {
         [Parameter(Mandatory = $true)][string]$OutputPath,
         [Parameter(Mandatory = $true)][System.Collections.IDictionary]$ReplaceByTag,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$TableByTag,
+        [Parameter(Mandatory = $false)][string]$DocTitle,
+        [Parameter(Mandatory = $false)][string]$DocCustomer,
+        [Parameter(Mandatory = $false)][string]$DocCustomerAbbr,
+        [Parameter(Mandatory = $false)][string]$DocLocation,
+        [Parameter(Mandatory = $false)][string]$DocSubsidiary,
+        [Parameter(Mandatory = $false)][string]$DocEnvironment,
         [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag'
     )
 
@@ -753,6 +853,8 @@ function Render-DocxTemplate {
                 }
             }
         }
+
+        Update-DocxMetadataProperties -Archive $archive -Title $DocTitle -Customer $DocCustomer -CustomerAbbr $DocCustomerAbbr -Location $DocLocation -Subsidiary $DocSubsidiary -Environment $DocEnvironment
 
         return [ordered]@{
             unresolvedLiteralByTag = $unresolvedLiteralByTag
@@ -2011,7 +2113,7 @@ try {
         if ($outputDir -and -not (Test-Path -LiteralPath $outputDir -PathType Container)) {
             New-Item -Path $outputDir -ItemType Directory -Force | Out-Null
         }
-        $docxRender = Render-DocxTemplate -TemplatePath $TemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocxMatchMode $DocxMatchMode
+        $docxRender = Render-DocxTemplate -TemplatePath $TemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocxMatchMode $DocxMatchMode
         $docxUnresolvedLiteralByTag = $docxRender.unresolvedLiteralByTag
         $unresolvedByTag = $docxUnresolvedLiteralByTag
         $renderDetails.partsUpdated = [int]$docxRender.partsUpdated

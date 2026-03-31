@@ -11,6 +11,12 @@ param(
     [Parameter(Mandatory = $false)][string[]]$TechId,
     [Parameter(Mandatory = $false)][string[]]$EntryId,
     [Parameter(Mandatory = $false)][ValidateSet('docx','text')][string[]]$OutputType,
+    [Parameter(Mandatory = $false)][string]$DocTitle,
+    [Parameter(Mandatory = $false)][string]$DocCustomer,
+    [Parameter(Mandatory = $false)][string]$DocCustomerAbbr,
+    [Parameter(Mandatory = $false)][string]$DocLocation,
+    [Parameter(Mandatory = $false)][string]$DocSubsidiary,
+    [Parameter(Mandatory = $false)][string]$DocEnvironment,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
     [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag'
 )
@@ -564,6 +570,12 @@ try {
                 }
                 if ((Get-CatalogEntryOutputType -Entry $entry) -eq 'docx') {
                     $renderParams.DocxMatchMode = [string]$DocxMatchMode
+                    if (-not [string]::IsNullOrWhiteSpace($DocTitle)) { $renderParams.DocTitle = [string]$DocTitle }
+                    if (-not [string]::IsNullOrWhiteSpace($DocCustomer)) { $renderParams.DocCustomer = [string]$DocCustomer }
+                    if (-not [string]::IsNullOrWhiteSpace($DocCustomerAbbr)) { $renderParams.DocCustomerAbbr = [string]$DocCustomerAbbr }
+                    if (-not [string]::IsNullOrWhiteSpace($DocLocation)) { $renderParams.DocLocation = [string]$DocLocation }
+                    if (-not [string]::IsNullOrWhiteSpace($DocSubsidiary)) { $renderParams.DocSubsidiary = [string]$DocSubsidiary }
+                    if (-not [string]::IsNullOrWhiteSpace($DocEnvironment)) { $renderParams.DocEnvironment = [string]$DocEnvironment }
                 }
                 $json = & $invokeRenderScript @renderParams
 
