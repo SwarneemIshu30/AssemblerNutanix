@@ -550,6 +550,17 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             if (@($unmatchedTags | Where-Object { $_ -eq 'LNV.Test.Tech.System[ArrayName].Summary.Unmatched' }).Count -ne 1) {
                 throw "Expected unmatched tagged controls to include LNV.Test.Tech.System[ArrayName].Summary.Unmatched, got '$($unmatchedTags -join ',')'"
             }
+            $docxUnresolvedLiteralTokens = @($renderStage.details.docxUnresolvedLiteralTokens)
+            if (@($docxUnresolvedLiteralTokens | Where-Object { $_ -eq 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus' }).Count -ne 1) {
+                throw "Expected unresolved literal token diagnostics to include LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus, got '$($docxUnresolvedLiteralTokens -join ',')'"
+            }
+            if (@($docxUnresolvedLiteralTokens | Where-Object { $_ -eq 'LNV.Test.Tech.System[ArrayName].Summary.Unmatched' }).Count -ne 0) {
+                throw "Expected unresolved literal token diagnostics to exclude unmatched tagged controls, got '$($docxUnresolvedLiteralTokens -join ',')'"
+            }
+            $literalIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-UNRESOLVED-LITERAL-TOKEN' -and $_.message -match "LegacyStatus" }) | Select-Object -First 1
+            if ($null -eq $literalIssue) {
+                throw 'Expected unresolved literal token issue in content-control-tag mode'
+            }
         }
         finally {
             if (Test-Path -LiteralPath $tempRoot -PathType Container) {

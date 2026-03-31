@@ -569,7 +569,7 @@ function Render-DocxTemplate {
 
     $archive = [System.IO.Compression.ZipFile]::Open($OutputPath, [System.IO.Compression.ZipArchiveMode]::Update)
     try {
-        $unresolvedByTag = @{}
+        $unresolvedLiteralByTag = @{}
         $partsUpdated = 0
         $controlsDiscovered = 0
         $taggedControlsMatched = 0
@@ -666,11 +666,11 @@ function Render-DocxTemplate {
             $partsUpdated++
 
             $partUnresolved = Get-UnresolvedSdtTagOccurrences -RenderedText $xmlText
-            Merge-UnresolvedSdtTagOccurrences -Target $unresolvedByTag -Source $partUnresolved
+            Merge-UnresolvedSdtTagOccurrences -Target $unresolvedLiteralByTag -Source $partUnresolved
         }
 
         return [ordered]@{
-            unresolvedByTag = $unresolvedByTag
+            unresolvedLiteralByTag = $unresolvedLiteralByTag
             partsUpdated = $partsUpdated
             controlsDiscovered = $controlsDiscovered
             taggedControlsMatched = $taggedControlsMatched
@@ -1922,12 +1922,14 @@ try {
             New-Item -Path $outputDir -ItemType Directory -Force | Out-Null
         }
         $docxRender = Render-DocxTemplate -TemplatePath $TemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocxMatchMode $DocxMatchMode
-        $unresolvedByTag = $docxRender.unresolvedByTag
+        $docxUnresolvedLiteralByTag = $docxRender.unresolvedLiteralByTag
+        $unresolvedByTag = $docxUnresolvedLiteralByTag
         $renderDetails.partsUpdated = [int]$docxRender.partsUpdated
         $renderDetails.controlsDiscovered = [int]$docxRender.controlsDiscovered
         $renderDetails.taggedControlsMatched = [int]$docxRender.taggedControlsMatched
         $renderDetails.controlsPopulated = [int]$docxRender.controlsPopulated
         $renderDetails.unmatchedTaggedControls = @($docxRender.unmatchedTaggedControls)
+        $renderDetails.unresolvedLiteralTokens = @($docxUnresolvedLiteralByTag.Keys | Sort-Object)
         $renderDetails.docxMatchMode = [string]$DocxMatchMode
     }
     else {
@@ -1983,10 +1985,17 @@ try {
             $status = 'ERROR'
         }
 
+        $unresolvedIssueCode = 'ASB-ASM-SDT-UNRESOLVED-TAG'
+        $unresolvedIssueSubject = 'SDT tag'
+        if ($isDocxTemplate -and $DocxMatchMode -eq 'content-control-tag') {
+            $unresolvedIssueCode = 'ASB-ASM-SDT-UNRESOLVED-LITERAL-TOKEN'
+            $unresolvedIssueSubject = 'literal SDT token'
+        }
+
         $issues.Add([ordered]@{
-            code = 'ASB-ASM-SDT-UNRESOLVED-TAG'
+            code = $unresolvedIssueCode
             severity = $severity
-            message = "Unresolved SDT tag '$tag' remained after rendering ($($occurrence.count) occurrence(s); sample locations: $sampleLocationsText)."
+            message = "Unresolved $unresolvedIssueSubject '$tag' remained after rendering ($($occurrence.count) occurrence(s); sample locations: $sampleLocationsText)."
             path = $TemplatePath
         })
 
@@ -2009,6 +2018,7 @@ try {
         docxTaggedControlsMatched = $(if ($isDocxTemplate) { [int]$renderDetails.taggedControlsMatched } else { 0 })
         docxControlsPopulated = $(if ($isDocxTemplate) { [int]$renderDetails.controlsPopulated } else { 0 })
         docxUnmatchedTaggedControls = $(if ($isDocxTemplate) { @($renderDetails.unmatchedTaggedControls) } else { @() })
+        docxUnresolvedLiteralTokens = $(if ($isDocxTemplate) { @($renderDetails.unresolvedLiteralTokens) } else { @() })
         docxMatchMode = $(if ($isDocxTemplate) { [string]$renderDetails.docxMatchMode } else { '' })
         unresolved = $unresolvedSummary
         unresolvedPolicy = [ordered]@{
