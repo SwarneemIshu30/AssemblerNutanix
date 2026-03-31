@@ -601,11 +601,17 @@ function Render-DocxTemplate {
             }
 
             $xmlDoc = $null
+            $nsMgr = $null
+            $selectionContextNode = $null
             try {
                 if ($DocxMatchMode -eq 'content-control-tag') {
                     $xmlDoc = [xml]$xmlText
                     $nsMgr = New-WordXmlNamespaceManager -XmlDocument $xmlDoc
-                    $sdtNodes = @($xmlDoc.SelectNodes('//w:sdt[w:sdtPr/w:tag[@w:val]]', $nsMgr))
+                    $selectionContextNode = $xmlDoc.DocumentElement
+                    if ($null -eq $selectionContextNode) {
+                        throw 'Unable to discover content controls because XML document element was null.'
+                    }
+                    $sdtNodes = @($selectionContextNode.SelectNodes('//w:sdt[w:sdtPr/w:tag[@w:val]]', $nsMgr))
                     $controlsDiscovered += @($sdtNodes).Count
                     foreach ($sdtNode in $sdtNodes) {
                         $tagAttr = $sdtNode.SelectSingleNode('./w:sdtPr/w:tag/@w:val', $nsMgr)
@@ -648,6 +654,8 @@ function Render-DocxTemplate {
                     partName = [string]$entry.FullName
                     message = [string]$_.Exception.Message
                     matchMode = [string]$DocxMatchMode
+                    xmlNodeType = if ($null -eq $selectionContextNode) { '' } else { [string]$selectionContextNode.GetType().FullName }
+                    namespaceManagerType = if ($null -eq $nsMgr) { '' } else { [string]$nsMgr.GetType().FullName }
                 })
                 $xmlDoc = $null
                 $xmlText = $originalXmlText
