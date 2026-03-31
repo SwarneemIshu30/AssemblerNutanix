@@ -1940,6 +1940,21 @@ try {
         $renderDetails.partErrors = @($docxRender.partErrors)
         $renderDetails.unresolvedLiteralTokens = @($docxUnresolvedLiteralByTag.Keys | Sort-Object)
         $renderDetails.docxMatchMode = [string]$DocxMatchMode
+        $expectedMatchCount = @($matches).Count
+        $controlsPopulatedCount = [int]$renderDetails.controlsPopulated
+        if ($DocxMatchMode -eq 'content-control-tag' -and $expectedMatchCount -gt 0 -and $controlsPopulatedCount -eq 0) {
+            $status = 'ERROR'
+            $sampleMatchedTags = @(
+                @($matches | Select-Object -ExpandProperty tag -ErrorAction SilentlyContinue | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | Select-Object -Unique -First 5)
+            )
+            $sampleMatchedTagsText = if ($sampleMatchedTags.Count -gt 0) { $sampleMatchedTags -join ', ' } else { 'n/a' }
+            $issues.Add([ordered]@{
+                code = 'ASB-ASM-SDT-DOCX-NO-POPULATION'
+                severity = 'ERROR'
+                message = "DOCX render did not populate any tagged content controls despite resolved mapping matches. docxMatchMode='$DocxMatchMode'; controlsDiscovered=$($renderDetails.controlsDiscovered); taggedControlsMatched=$($renderDetails.taggedControlsMatched); controlsPopulated=$controlsPopulatedCount; mappingMatches=$expectedMatchCount; sampleMatchedTags=$sampleMatchedTagsText"
+                path = $TemplatePath
+            })
+        }
         foreach ($partError in @($docxRender.partErrors)) {
             $partName = if (Test-MapHasKey -Map $partError -Key 'partName') { [string]$partError.partName } else { '' }
             $partErrorMessage = if (Test-MapHasKey -Map $partError -Key 'message') { [string]$partError.message } else { '' }

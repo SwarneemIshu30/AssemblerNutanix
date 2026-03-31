@@ -672,6 +672,65 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
+    It 'fails closed when mappings resolve but DOCX content-control mode populates zero controls' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-docx-no-population-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'unused' -TechId 'Test.Tech' -DatasetRelativePath 'datasets/transport.json' -Mappings @(
+                @{
+                    dataset = 'datasets/transport.json'
+                    required = $true
+                    selectors = @('items', '0', 'name')
+                    target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Summary.Name' }
+                }
+            ) -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'transport'
+                item_count = 1
+                items = @(
+                    @{ name = 'Alpha Node' }
+                )
+            }
+
+            $contractsRoot = New-MinimalContractsRoot -Root $tempRoot -DatasetName 'transport'
+            $templatePath = Join-Path $tempRoot 'mismatch-template.docx'
+            New-TestTaggedContentControlDocxTemplate -Path $templatePath -ScalarTag 'LNV.Test.Tech.System[ArrayName].Summary.Other' -TableTag 'LNV.Test.Tech.System[ArrayName].Tables.Other'
+
+            $outputPath = Join-Path $tempRoot 'mismatch-rendered.docx'
+            $reportPath = Join-Path $tempRoot 'report.json'
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot -DocxMatchMode 'content-control-tag'
+            $exitCode = $LASTEXITCODE
+            if ($exitCode -eq 0) { throw "Expected non-zero exit code when no tagged controls are populated. Output: $output" }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            if ([string]$report.status -ne 'ERROR') { throw "Expected report.status ERROR, got '$($report.status)'" }
+
+            $noPopulationIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DOCX-NO-POPULATION' }) | Select-Object -First 1
+            if ($null -eq $noPopulationIssue) { throw 'Expected ASB-ASM-SDT-DOCX-NO-POPULATION issue when controlsPopulated is zero despite mapping matches.' }
+            if ([string]$noPopulationIssue.severity -ne 'ERROR') { throw "Expected ASB-ASM-SDT-DOCX-NO-POPULATION severity ERROR, got '$($noPopulationIssue.severity)'" }
+            if ([string]$noPopulationIssue.message -notmatch 'docxMatchMode=''content-control-tag''') { throw "Expected no-population issue to include docxMatchMode context, got '$($noPopulationIssue.message)'" }
+            if ([string]$noPopulationIssue.message -notmatch 'controlsDiscovered=2') { throw "Expected no-population issue to include controlsDiscovered, got '$($noPopulationIssue.message)'" }
+            if ([string]$noPopulationIssue.message -notmatch 'taggedControlsMatched=0') { throw "Expected no-population issue to include taggedControlsMatched, got '$($noPopulationIssue.message)'" }
+            if ([string]$noPopulationIssue.message -notmatch 'controlsPopulated=0') { throw "Expected no-population issue to include controlsPopulated, got '$($noPopulationIssue.message)'" }
+            if ([string]$noPopulationIssue.message -notmatch 'sampleMatchedTags=LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.Name') { throw "Expected no-population issue to include sample matched tag, got '$($noPopulationIssue.message)'" }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'surfaces DOCX content-control parse failures as renderer issues instead of silently ignoring them' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
