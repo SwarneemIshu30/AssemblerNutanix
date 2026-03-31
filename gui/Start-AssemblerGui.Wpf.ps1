@@ -120,7 +120,7 @@ $xaml = @"
       <RowDefinition Height='*'/>
     </Grid.RowDefinitions>
 
-    <TabControl Grid.Row='0' Name='MainTabs'>
+    <TabControl Grid.Row='0' Name='MainTabs' Margin='0,34,0,0'>
       <TabItem Header='Document Properties'>
         <Grid Margin='12'>
           <Grid.RowDefinitions>
@@ -246,6 +246,28 @@ $xaml = @"
       </TabItem>
     </TabControl>
 
+    <Border Grid.Row='0'
+            HorizontalAlignment='Right'
+            VerticalAlignment='Top'
+            Margin='0,2,4,0'
+            Background='#CCFFFFFF'
+            CornerRadius='4'
+            Padding='8,6,8,6'
+            Panel.ZIndex='10'
+            IsHitTestVisible='False'>
+      <StackPanel Orientation='Vertical'>
+        <Image Name='BrandLogoImage'
+               Height='22'
+               Stretch='Uniform'
+               HorizontalAlignment='Right'/>
+        <TextBlock Margin='0,4,0,0'
+                   Text='Professional Services AsBuilt Document Creation Toolset'
+                   FontSize='11'
+                   TextAlignment='Right'
+                   Foreground='#FF1F1F1F'/>
+      </StackPanel>
+    </Border>
+
     <StackPanel Grid.Row='1' Orientation='Horizontal' HorizontalAlignment='Left'>
       <Button Name='RunButton' Width='140' Margin='0,6,10,6'>Run Render</Button>
       <CheckBox Name='VerboseCheckBox' Margin='0,6,10,6' VerticalAlignment='Center'>Verbose (include matched tags)</CheckBox>
@@ -271,6 +293,18 @@ $docCustomerAbbrText = $window.FindName('DocCustomerAbbrText')
 $docLocationText = $window.FindName('DocLocationText')
 $docSubsidiaryText = $window.FindName('DocSubsidiaryText')
 $docEnvironmentText = $window.FindName('DocEnvironmentText')
+$brandLogoImage = $window.FindName('BrandLogoImage')
+
+$brandLogoPath = Join-Path $PSScriptRoot 'internal/lenovo-logo.png'
+if ($brandLogoImage -and (Test-Path -LiteralPath $brandLogoPath -PathType Leaf)) {
+    $brandLogoUri = [System.Uri]::new($brandLogoPath, [System.UriKind]::Absolute)
+    $brandBitmap = New-Object System.Windows.Media.Imaging.BitmapImage
+    $brandBitmap.BeginInit()
+    $brandBitmap.UriSource = $brandLogoUri
+    $brandBitmap.CacheOption = [System.Windows.Media.Imaging.BitmapCacheOption]::OnLoad
+    $brandBitmap.EndInit()
+    $brandLogoImage.Source = $brandBitmap
+}
 $techIdText = $window.FindName('TechIdText')
 $entryIdText = $window.FindName('EntryIdText')
 $bundleBrowseButton = $window.FindName('BundleBrowseButton')
