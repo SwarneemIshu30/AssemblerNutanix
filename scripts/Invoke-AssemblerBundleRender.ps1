@@ -18,7 +18,8 @@ param(
     [Parameter(Mandatory = $false)][string]$DocSubsidiary,
     [Parameter(Mandatory = $false)][string]$DocEnvironment,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
-    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag'
+    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag',
+    [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
 )
 
 Set-StrictMode -Version Latest
@@ -564,6 +565,7 @@ try {
                     OutputPath = $variantOutputPath
                     ReportPath = $variantReportPath
                     ContractsRoot = $effectiveContractsRoot
+                    UnresolvedTokenPolicy = [string]$UnresolvedTokenPolicy
                 }
                 if ($AnnotateResolvedTags.IsPresent) {
                     $renderParams.AnnotateResolvedTags = $true

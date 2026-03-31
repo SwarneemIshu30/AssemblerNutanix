@@ -19,7 +19,8 @@ param(
     [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
     [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true,
     [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
-    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both'
+    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
+    [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
 )
 
 Set-StrictMode -Version Latest
@@ -67,7 +68,8 @@ function Invoke-BundleRender {
         [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
         [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true,
         [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
-        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both'
+        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
+        [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
     )
 
     if ([string]::IsNullOrWhiteSpace($BundleRoot) -or -not (Test-Path -LiteralPath $BundleRoot -PathType Container)) {
@@ -102,6 +104,7 @@ function Invoke-BundleRender {
         $params.AnnotateResolvedTags = $true
     }
     $params.DocxMatchMode = [string]$DocxMatchMode
+    $params.UnresolvedTokenPolicy = [string]$UnresolvedTokenPolicy
 
     & $invokeScript @params
 }
@@ -214,13 +217,20 @@ $xaml = @"
               </StackPanel>
 
               <TextBlock Grid.Row='3' Grid.Column='0' Margin='0,0,8,0' VerticalAlignment='Center'>Matching mode</TextBlock>
-              <StackPanel Grid.Row='3' Grid.Column='1' Orientation='Horizontal' HorizontalAlignment='Left'>
+                <StackPanel Grid.Row='3' Grid.Column='1' Orientation='Horizontal' HorizontalAlignment='Left'>
                 <StackPanel Margin='0,0,24,0'>
                   <TextBlock Margin='0,0,0,4'>DOCX</TextBlock>
                   <ComboBox Name='DocxMatchModeCombo' Width='190' SelectedIndex='0'>
                     <ComboBoxItem>both</ComboBoxItem>
                     <ComboBoxItem>content-control-tag</ComboBoxItem>
                     <ComboBoxItem>literal-token</ComboBoxItem>
+                  </ComboBox>
+                </StackPanel>
+                <StackPanel Margin='0,0,24,0'>
+                  <TextBlock Margin='0,0,0,4'>Unresolved tokens</TextBlock>
+                  <ComboBox Name='UnresolvedTokenPolicyCombo' Width='170' SelectedIndex='0'>
+                    <ComboBoxItem>retain</ComboBoxItem>
+                    <ComboBoxItem>remove</ComboBoxItem>
                   </ComboBox>
                 </StackPanel>
                 <StackPanel>
@@ -309,6 +319,7 @@ $docxCheckBox = $window.FindName('DocxCheckBox')
 $txtCheckBox = $window.FindName('TxtCheckBox')
 $annotateCheckBox = $window.FindName('AnnotateCheckBox')
 $docxMatchModeCombo = $window.FindName('DocxMatchModeCombo')
+$unresolvedTokenPolicyCombo = $window.FindName('UnresolvedTokenPolicyCombo')
 $outputText = $window.FindName('OutputText')
 
 $bundleRootText.Text = $BundleRoot
@@ -330,6 +341,10 @@ switch ([string]$DocxMatchMode) {
     'literal-token' { $docxMatchModeCombo.SelectedIndex = 2 }
     'content-control-tag' { $docxMatchModeCombo.SelectedIndex = 1 }
     default { $docxMatchModeCombo.SelectedIndex = 0 }
+}
+switch ([string]$UnresolvedTokenPolicy) {
+    'remove' { $unresolvedTokenPolicyCombo.SelectedIndex = 1 }
+    default { $unresolvedTokenPolicyCombo.SelectedIndex = 0 }
 }
 
 $bundleBrowseButton.Add_Click({
@@ -355,7 +370,8 @@ $runButton.Add_Click({
         $techSelection = @($techIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
         $entrySelection = @($entryIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
         $docxModeSelection = [string]$docxMatchModeCombo.SelectedItem.Content
-        $resultJson = Invoke-BundleRender -BundleRoot $bundleRootText.Text -CatalogPath $catalogPathText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text -TechId $techSelection -EntryId $entrySelection -DocTitle $docTitleText.Text -DocCustomer $docCustomerText.Text -DocCustomerAbbr $docCustomerAbbrText.Text -DocLocation $docLocationText.Text -DocSubsidiary $docSubsidiaryText.Text -DocEnvironment $docEnvironmentText.Text -IncludeDocx ([bool]$docxCheckBox.IsChecked) -IncludeTxt ([bool]$txtCheckBox.IsChecked) -AnnotateResolvedTags ([bool]$annotateCheckBox.IsChecked) -DocxMatchMode $docxModeSelection
+        $unresolvedTokenPolicySelection = [string]$unresolvedTokenPolicyCombo.SelectedItem.Content
+        $resultJson = Invoke-BundleRender -BundleRoot $bundleRootText.Text -CatalogPath $catalogPathText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text -TechId $techSelection -EntryId $entrySelection -DocTitle $docTitleText.Text -DocCustomer $docCustomerText.Text -DocCustomerAbbr $docCustomerAbbrText.Text -DocLocation $docLocationText.Text -DocSubsidiary $docSubsidiaryText.Text -DocEnvironment $docEnvironmentText.Text -IncludeDocx ([bool]$docxCheckBox.IsChecked) -IncludeTxt ([bool]$txtCheckBox.IsChecked) -AnnotateResolvedTags ([bool]$annotateCheckBox.IsChecked) -DocxMatchMode $docxModeSelection -UnresolvedTokenPolicy $unresolvedTokenPolicySelection
         $statusText.Text = 'Render completed successfully.'
         $outputText.Text = if ($debugCheckBox.IsChecked) {
             Format-DebugBundleOutput -BundleResultJson $resultJson

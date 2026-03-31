@@ -17,7 +17,8 @@ param(
     [Parameter(Mandatory = $false)][string]$DocSubsidiary,
     [Parameter(Mandatory = $false)][string]$DocEnvironment,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
-    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag'
+    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag',
+    [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
 )
 
 Set-StrictMode -Version Latest
@@ -607,6 +608,13 @@ function Replace-LiteralSdtTokenXmlText {
     return [regex]::Replace($updated, $escapedPattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $Replacement })
 }
 
+function Remove-UnresolvedSdtTokensFromText {
+    param([Parameter(Mandatory = $true)][string]$Text)
+
+    $updated = [regex]::Replace($Text, '<<SDT:\s*[^>]+>>', '')
+    return [regex]::Replace($updated, '&lt;&lt;SDT:\s*[^&]+&gt;&gt;', '')
+}
+
 function Test-DocxMatchModeIncludes {
     param(
         [Parameter(Mandatory = $true)][string]$DocxMatchMode,
@@ -738,7 +746,8 @@ function Render-DocxTemplate {
         [Parameter(Mandatory = $false)][string]$DocLocation,
         [Parameter(Mandatory = $false)][string]$DocSubsidiary,
         [Parameter(Mandatory = $false)][string]$DocEnvironment,
-        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag'
+        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag',
+        [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
     )
 
     Copy-Item -LiteralPath $TemplatePath -Destination $OutputPath -Force
@@ -783,6 +792,25 @@ function Render-DocxTemplate {
             $selectionContextNode = $null
             $xmlDocTyped = $null
             $nsMgrTyped = $null
+
+            # Keep legacy literal-token replacement behavior available in both/literal-token modes.
+            # Run this before content-control parsing so token replacement still works when XML parsing
+            # may normalize/split text runs in ways that make later regex token matching less reliable.
+            if (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token') {
+                if ($null -ne $TableByTag) {
+                    foreach ($tag in @($TableByTag.Keys)) {
+                        $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
+                        if (-not [string]::IsNullOrWhiteSpace($tableXml)) {
+                            $xmlText = Replace-DocxParagraphTokenWithBlockXml -XmlText $xmlText -Tag ([string]$tag) -BlockXml $tableXml
+                        }
+                    }
+                }
+
+                foreach ($tag in @($ReplaceByTag.Keys)) {
+                    $xmlText = Replace-LiteralSdtTokenXmlText -XmlText $xmlText -Tag ([string]$tag) -Replacement ([string]$ReplaceByTag[$tag])
+                }
+            }
+
             try {
                 if (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'content-control-tag') {
                     [System.Xml.XmlDocument]$xmlDocTyped = [xml]$xmlText
@@ -836,20 +864,8 @@ function Render-DocxTemplate {
                 $xmlText = $originalXmlText
             }
 
-            # Legacy literal-token replacement path is opt-in via DocxMatchMode.
-            if (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token') {
-                if ($null -ne $TableByTag) {
-                    foreach ($tag in @($TableByTag.Keys)) {
-                        $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
-                        if (-not [string]::IsNullOrWhiteSpace($tableXml)) {
-                            $xmlText = Replace-DocxParagraphTokenWithBlockXml -XmlText $xmlText -Tag ([string]$tag) -BlockXml $tableXml
-                        }
-                    }
-                }
-
-                foreach ($tag in @($ReplaceByTag.Keys)) {
-                    $xmlText = Replace-LiteralSdtTokenXmlText -XmlText $xmlText -Tag ([string]$tag) -Replacement ([string]$ReplaceByTag[$tag])
-                }
+            if ([string]$UnresolvedTokenPolicy -eq 'remove') {
+                $xmlText = Remove-UnresolvedSdtTokensFromText -Text $xmlText
             }
 
             Set-ZipEntryText -Entry $entry -Text $xmlText
@@ -2133,7 +2149,7 @@ try {
         if ($outputDir -and -not (Test-Path -LiteralPath $outputDir -PathType Container)) {
             New-Item -Path $outputDir -ItemType Directory -Force | Out-Null
         }
-        $docxRender = Render-DocxTemplate -TemplatePath $TemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocxMatchMode $DocxMatchMode
+        $docxRender = Render-DocxTemplate -TemplatePath $TemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy
         $docxUnresolvedLiteralByTag = $docxRender.unresolvedLiteralByTag
         $unresolvedByTag = $docxUnresolvedLiteralByTag
         $renderDetails.partsUpdated = [int]$docxRender.partsUpdated
@@ -2206,6 +2222,10 @@ try {
                 $unresolvedByTag[[string]$unresolvedTag] = $renderUnresolvedByTag[[string]$unresolvedTag]
             }
         }
+        if ([string]$UnresolvedTokenPolicy -eq 'remove') {
+            $rendered = Remove-UnresolvedSdtTokensFromText -Text $rendered
+            $unresolvedByTag = @{}
+        }
     }
     $unresolvedSummary = [ordered]@{
         unresolvedTagCount = @($unresolvedByTag.Keys).Count
@@ -2272,6 +2292,7 @@ try {
         docxPartErrors = $(if ($isDocxTemplate) { @($renderDetails.partErrors) } else { @() })
         docxUnresolvedLiteralTokens = $(if ($isDocxTemplate) { @($renderDetails.unresolvedLiteralTokens) } else { @() })
         docxMatchMode = $(if ($isDocxTemplate) { [string]$renderDetails.docxMatchMode } else { '' })
+        unresolvedTokenPolicy = [string]$UnresolvedTokenPolicy
         unresolved = $unresolvedSummary
         unresolvedPolicy = [ordered]@{
             requiredOrUnknown = 'ERROR'
