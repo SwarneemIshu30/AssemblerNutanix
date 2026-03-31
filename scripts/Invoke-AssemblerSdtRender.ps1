@@ -764,6 +764,9 @@ function Render-DocxTemplate {
         $discoveredTaggedControls = [System.Collections.Generic.List[string]]::new()
         $discoveredUnmappedTaggedControls = [System.Collections.Generic.List[string]]::new()
         $partErrors = [System.Collections.Generic.List[hashtable]]::new()
+        # Contract: document-property replacement is the content-control-tag engine only.
+        # Get-DocxContentControlReplacementMap builds the tag->value map for tagged content controls
+        # (for example DocumentTitle/DocumentCustomer* tags), and is not used for literal-token paths.
         $contentControlReplaceByTag = Get-DocxContentControlReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment
         $tableStyleId = ''
         if ($null -ne $TableByTag -and @($TableByTag.Keys).Count -gt 0) {
@@ -793,9 +796,15 @@ function Render-DocxTemplate {
             $xmlDocTyped = $null
             $nsMgrTyped = $null
 
-            # Keep legacy literal-token replacement behavior available in both/literal-token modes.
-            # Run this before content-control parsing so token replacement still works when XML parsing
-            # may normalize/split text runs in ways that make later regex token matching less reliable.
+            # Contract: dataset mapping replacement uses the literal-token engine only.
+            # It consumes ReplaceByTag (scalar <<SDT:...>> tokens) and TableByTag (table block tokens)
+            # via Replace-LiteralSdtTokenXmlText + Replace-DocxParagraphTokenWithBlockXml.
+            #
+            # Mode behavior:
+            # - DocxMatchMode='literal-token' -> run only this branch.
+            # - DocxMatchMode='both'          -> run this branch and the content-control branch below.
+            # Run literal-token replacement first because XML parsing can normalize/split runs and make
+            # later regex token matching less reliable.
             if (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token') {
                 if ($null -ne $TableByTag) {
                     foreach ($tag in @($TableByTag.Keys)) {
@@ -812,6 +821,10 @@ function Render-DocxTemplate {
             }
 
             try {
+                # Contract: document-property replacement uses tagged content controls only.
+                # Mode behavior:
+                # - DocxMatchMode='content-control-tag' -> run only this branch.
+                # - DocxMatchMode='both'                -> run this branch after literal-token branch.
                 if (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'content-control-tag') {
                     [System.Xml.XmlDocument]$xmlDocTyped = [xml]$xmlText
                     $selectionContextNode = [System.Xml.XmlNode]$xmlDocTyped.DocumentElement
