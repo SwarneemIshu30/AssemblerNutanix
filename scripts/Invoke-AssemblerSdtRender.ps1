@@ -603,17 +603,14 @@ function Render-DocxTemplate {
                 $reader.Dispose()
             }
 
-            $xmlDoc = $null
-            $nsMgr = $null
             $selectionContextNode = $null
             $xmlDocTyped = $null
             $nsMgrTyped = $null
             try {
                 if ($DocxMatchMode -eq 'content-control-tag') {
-                    $xmlDoc = [xml]$xmlText
-                    $nsMgr = New-WordXmlNamespaceManager -XmlDocument $xmlDoc
-                    [System.Xml.XmlDocument]$xmlDocTyped = $xmlDoc
-                    [System.Xml.XmlNamespaceManager]$nsMgrTyped = $nsMgr
+                    [System.Xml.XmlDocument]$xmlDocTyped = [xml]$xmlText
+                    [System.Xml.XmlNamespaceManager]$nsMgrTyped = [System.Xml.XmlNamespaceManager]::new($xmlDocTyped.NameTable)
+                    [void]$nsMgrTyped.AddNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main')
                     $selectionContextNode = [System.Xml.XmlNode]$xmlDocTyped.DocumentElement
                     if ($null -eq $selectionContextNode) {
                         throw 'Unable to discover content controls because XML document element was null.'
@@ -644,7 +641,7 @@ function Render-DocxTemplate {
                             $taggedControlsMatched++
                             $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
                             if (-not [string]::IsNullOrWhiteSpace($tableXml)) {
-                                $tableNodes = Convert-WordXmlFragmentToNodes -OwnerDocument $xmlDoc -XmlFragment $tableXml
+                                $tableNodes = Convert-WordXmlFragmentToNodes -OwnerDocument $xmlDocTyped -XmlFragment $tableXml
                                 if ($tableNodes.Count -gt 0) {
                                     Set-WordSdtContentNodes -SdtContentNode $sdtContent -Nodes $tableNodes
                                     $controlsPopulated++
@@ -655,12 +652,12 @@ function Render-DocxTemplate {
 
                         if (Test-MapHasKey -Map $ReplaceByTag -Key $tag) {
                             $taggedControlsMatched++
-                            $paragraphNodes = Convert-TextToWordParagraphNodes -XmlDocument $xmlDoc -Text ([string]$ReplaceByTag[$tag])
+                            $paragraphNodes = Convert-TextToWordParagraphNodes -XmlDocument $xmlDocTyped -Text ([string]$ReplaceByTag[$tag])
                             Set-WordSdtContentNodes -SdtContentNode $sdtContent -Nodes $paragraphNodes
                             $controlsPopulated++
                         }
                     }
-                    $xmlText = $xmlDoc.OuterXml
+                    $xmlText = $xmlDocTyped.OuterXml
                 }
             }
             catch {
@@ -669,11 +666,11 @@ function Render-DocxTemplate {
                     message = [string]$_.Exception.Message
                     matchMode = [string]$DocxMatchMode
                     xmlNodeType = if ($null -eq $selectionContextNode) { '' } else { [string]$selectionContextNode.GetType().FullName }
-                    namespaceManagerType = if ($null -eq $nsMgr) { '' } else { [string]$nsMgr.GetType().FullName }
-                    xmlDocumentType = if ($null -eq $xmlDoc) { '' } else { [string]$xmlDoc.GetType().FullName }
+                    nsMgrType = if ($null -eq $nsMgrTyped) { '' } else { [string]$nsMgrTyped.GetType().FullName }
+                    xmlDocType = if ($null -eq $xmlDocTyped) { '' } else { [string]$xmlDocTyped.GetType().FullName }
                     powershellVersion = if ($null -eq $PSVersionTable -or $null -eq $PSVersionTable.PSVersion) { '' } else { [string]$PSVersionTable.PSVersion.ToString() }
                 })
-                $xmlDoc = $null
+                $xmlDocTyped = $null
                 $xmlText = $originalXmlText
             }
 
