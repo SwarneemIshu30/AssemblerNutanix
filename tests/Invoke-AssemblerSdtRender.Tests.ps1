@@ -348,6 +348,38 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
+    function Set-TestDocxEntryText {
+        param(
+            [Parameter(Mandatory = $true)][string]$Path,
+            [Parameter(Mandatory = $true)][string]$EntryName,
+            [Parameter(Mandatory = $true)][string]$Text
+        )
+
+        $archive = [System.IO.Compression.ZipFile]::Open($Path, [System.IO.Compression.ZipArchiveMode]::Update)
+        try {
+            $entry = $archive.GetEntry($EntryName)
+            if ($null -eq $entry) {
+                throw "Expected DOCX entry '$EntryName' to exist in '$Path'."
+            }
+
+            $entry.Delete()
+            $updatedEntry = $archive.CreateEntry($EntryName)
+            $stream = $updatedEntry.Open()
+            try {
+                $writer = [System.IO.StreamWriter]::new($stream, [System.Text.UTF8Encoding]::new($false))
+                $writer.Write($Text)
+                $writer.Flush()
+                $writer.Dispose()
+            }
+            finally {
+                $stream.Dispose()
+            }
+        }
+        finally {
+            $archive.Dispose()
+        }
+    }
+
     It 'keeps successful render reports schema-valid when matches are emitted' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot '.deps/contracts'
@@ -632,6 +664,68 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
             if ($null -eq $renderStage) { throw 'Expected render stage diagnostics in report.' }
             if ([string]$renderStage.details.docxMatchMode -ne 'literal-token') { throw "Expected docxMatchMode=literal-token, got '$($renderStage.details.docxMatchMode)'" }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'surfaces DOCX content-control parse failures as renderer issues instead of silently ignoring them' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-docx-part-error-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'unused' -TechId 'Test.Tech' -DatasetRelativePath 'datasets/transport.json' -Mappings @(
+                @{
+                    dataset = 'datasets/transport.json'
+                    required = $true
+                    selectors = @('items', '0', 'name')
+                    target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Summary.Name' }
+                }
+            ) -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'transport'
+                item_count = 1
+                items = @(
+                    @{ name = 'Alpha Node' }
+                )
+            }
+
+            $contractsRoot = New-MinimalContractsRoot -Root $tempRoot -DatasetName 'transport'
+            $templatePath = Join-Path $tempRoot 'malformed-template.docx'
+            New-TestTaggedContentControlDocxTemplate -Path $templatePath -ScalarTag 'LNV.Test.Tech.System[ArrayName].Summary.Name' -TableTag 'LNV.Test.Tech.System[ArrayName].Tables.Sample'
+            Set-TestDocxEntryText -Path $templatePath -EntryName 'word/document.xml' -Text '<w:document><w:body><w:sdt></w:body>'
+
+            $outputPath = Join-Path $tempRoot 'malformed-rendered.docx'
+            $reportPath = Join-Path $tempRoot 'report.json'
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot -DocxMatchMode 'content-control-tag'
+            $report = $output | ConvertFrom-Json -AsHashtable
+
+            if ($report.status -ne 'ERROR') { throw "Expected report.status ERROR, got '$($report.status)'" }
+
+            $partIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DOCX-PART-REWRITE' }) | Select-Object -First 1
+            if ($null -eq $partIssue) { throw 'Expected ASB-ASM-SDT-DOCX-PART-REWRITE issue for malformed DOCX part.' }
+            if ([string]$partIssue.severity -ne 'ERROR') { throw "Expected part rewrite issue severity ERROR, got '$($partIssue.severity)'" }
+            if ([string]$partIssue.message -notmatch "word/document.xml") { throw "Expected part rewrite issue to include part name, got '$($partIssue.message)'" }
+            if ([string]$partIssue.message -notmatch "content-control-tag") { throw "Expected part rewrite issue to include match mode, got '$($partIssue.message)'" }
+
+            $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
+            if ($null -eq $renderStage) { throw 'Expected Render stage diagnostics.' }
+            $partErrors = @($renderStage.details.docxPartErrors)
+            if ($partErrors.Count -lt 1) { throw 'Expected render stage docxPartErrors diagnostics to include malformed part details.' }
+            $firstPartError = $partErrors[0]
+            if ([string]$firstPartError.partName -ne 'word/document.xml') { throw "Expected docxPartErrors[0].partName to be word/document.xml, got '$($firstPartError.partName)'" }
         }
         finally {
             if (Test-Path -LiteralPath $tempRoot -PathType Container) {
