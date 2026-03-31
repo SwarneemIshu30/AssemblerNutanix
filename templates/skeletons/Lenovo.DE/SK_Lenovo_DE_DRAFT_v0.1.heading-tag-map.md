@@ -45,7 +45,7 @@ Source: `templates/skeletons/Lenovo.DE/DE-SDT-Collector.token-audit.md`
 
 ## Replace in document order (aligned to current SK DOCX section flow)
 
-# System Overview / Platform Summary
+# Platform Configuration / System Summary
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Summary>>
 
 # System Overview / Controller Topology
