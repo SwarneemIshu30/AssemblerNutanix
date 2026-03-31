@@ -48,23 +48,35 @@ Source: `templates/skeletons/Lenovo.DE/DE-SDT-Collector.token-audit.md`
 # Platform Configuration / System Summary
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Summary>>
 
-# Platform Configuration / Hardware Configuration / Controller Inventory
+# System Overview / Controller Topology
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Controllers>>
 
-# Platform Configuration / Hardware Configuration / Tray / Shelf Inventory
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Trays>>
-
-# Platform Configuration / Hardware Configuration / Drive Inventory
-<<SDT: LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory>>
-
-# Platform Configuration / Controller Configuration / Management Interfaces
+# System Overview / Management Interfaces
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces>>
 
-# Platform Configuration / Controller Configuration / DNS Configuration
+# System Overview / DNS Configuration
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.DNS>>
 
-# Platform Configuration / Controller Configuration / Time Configuration
+# System Overview / Time Configuration
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Time>>
+
+# Architecture / Logical Architecture / Storage Containers / Pools / Volume Groups
+<<SDT: LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory>>
+
+# Architecture / Logical Architecture / Volumes
+<<SDT: LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory>>
+
+# Architecture / Logical Architecture / Volume Mapping Summary
+<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings>>
+
+# Architecture / Physical Layout / Tray / Shelf Inventory
+<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Trays>>
+
+# Architecture / Physical Layout / Drive Inventory
+<<SDT: LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory>>
+
+# Architecture / SAN Fabric Architecture (Conditional)
+<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC>>
 
 # Platform Configuration / Controller Configuration / Transport Summary
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Transport>>
@@ -75,15 +87,6 @@ Transports configured:
 
 # Platform Configuration / Controller Configuration / Host Port Configuration - iSCSI
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI>>
-
-# Platform Configuration / Controller Configuration / Host Port Configuration - Fibre Channel
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC>>
-
-# Platform Configuration / Storage Configuration / Storage Containers / Pools / Volume Groups
-<<SDT: LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory>>
-
-# Platform Configuration / Storage Configuration / Volumes
-<<SDT: LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory>>
 
 # Platform Configuration / Host Connectivity / Host Definitions
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Hosts>>
