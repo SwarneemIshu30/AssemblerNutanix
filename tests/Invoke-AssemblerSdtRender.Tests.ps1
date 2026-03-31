@@ -462,7 +462,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
-    It 'prefers w:sdt tag-based replacement for rich content controls while keeping legacy token fallback' {
+    It 'uses w:sdt tag-based replacement for DOCX controls without implicit literal-token fallback' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
         if ([string]::IsNullOrWhiteSpace($pwshPath)) {
@@ -511,7 +511,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             $reportPath = Join-Path $tempRoot 'report.json'
 
             $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
-            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot -DocxMatchMode 'content-control-tag'
             $exitCode = $LASTEXITCODE
             if ($exitCode -ne 0) { throw "Expected successful render exit code, got $exitCode. Output: $output" }
             $report = $output | ConvertFrom-Json -AsHashtable
@@ -536,20 +536,91 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             if ($documentXml -notmatch '<w:tag w:val=\"LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.Name\"/>') { throw "Expected scalar SDT tag to remain in document, got '$documentXml'" }
             if ($documentXml -notmatch '<w:tbl') { throw "Expected table SDT content to include a Word table node, got '$documentXml'" }
             if ($documentXml -notmatch 'w:tblStyle w:val=\"LNVTable1-9ptHeadBandedGrid\"') { throw "Expected table SDT content to apply template styleId, got '$documentXml'" }
-            if ($documentXml -notmatch '<w:t xml:space=\"preserve\">Ready</w:t>') { throw "Expected legacy literal placeholder token outside SDT to still be replaced, got '$documentXml'" }
+            if ($documentXml -notmatch '&lt;&lt;SDT:LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.LegacyStatus&gt;&gt;') { throw "Expected legacy literal placeholder token to remain when DocxMatchMode=content-control-tag, got '$documentXml'" }
             if ($documentXml -match 'ORIGINAL-SCALAR|ORIGINAL-TABLE') { throw "Expected original SDT placeholder content to be replaced, got '$documentXml'" }
             if ($documentXml -notmatch 'ORIGINAL-UNMATCHED') { throw "Expected unmatched tagged SDT content to remain unchanged, got '$documentXml'" }
-            if ($documentXml -match '&lt;&lt;SDT:LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.LegacyStatus&gt;&gt;') { throw "Expected legacy SDT token to be replaced, got '$documentXml'" }
 
             $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
             if ($null -eq $renderStage) { throw 'Expected render stage diagnostics in report.' }
             if ([int]$renderStage.details.docxControlsDiscovered -ne 3) { throw "Expected docxControlsDiscovered=3, got '$($renderStage.details.docxControlsDiscovered)'" }
             if ([int]$renderStage.details.docxTaggedControlsMatched -ne 2) { throw "Expected docxTaggedControlsMatched=2, got '$($renderStage.details.docxTaggedControlsMatched)'" }
             if ([int]$renderStage.details.docxControlsPopulated -ne 2) { throw "Expected docxControlsPopulated=2, got '$($renderStage.details.docxControlsPopulated)'" }
+            if ([string]$renderStage.details.docxMatchMode -ne 'content-control-tag') { throw "Expected docxMatchMode=content-control-tag, got '$($renderStage.details.docxMatchMode)'" }
             $unmatchedTags = @($renderStage.details.docxUnmatchedTaggedControls)
             if (@($unmatchedTags | Where-Object { $_ -eq 'LNV.Test.Tech.System[ArrayName].Summary.Unmatched' }).Count -ne 1) {
                 throw "Expected unmatched tagged controls to include LNV.Test.Tech.System[ArrayName].Summary.Unmatched, got '$($unmatchedTags -join ',')'"
             }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'uses literal-token DOCX replacement only when DocxMatchMode is explicitly literal-token' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-docx-literal-mode-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'unused' -TechId 'Test.Tech' -DatasetRelativePath 'datasets/transport.json' -Mappings @(
+                @{
+                    dataset = 'datasets/transport.json'
+                    required = $true
+                    selectors = @('items', '0', 'status')
+                    target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus' }
+                }
+            ) -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'transport'
+                item_count = 1
+                items = @(
+                    @{ status = 'Ready' }
+                )
+            }
+
+            $contractsRoot = New-MinimalContractsRoot -Root $tempRoot -DatasetName 'transport'
+            $templatePath = Join-Path $tempRoot 'literal-template.docx'
+            New-TestTaggedContentControlDocxTemplate -Path $templatePath -ScalarTag 'LNV.Test.Tech.System[ArrayName].Summary.Name' -TableTag 'LNV.Test.Tech.System[ArrayName].Tables.Sample' -LegacyTokenTag 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus'
+            $outputPath = Join-Path $tempRoot 'literal-rendered.docx'
+            $reportPath = Join-Path $tempRoot 'report.json'
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot -DocxMatchMode 'literal-token'
+            $exitCode = $LASTEXITCODE
+            if ($exitCode -ne 0) { throw "Expected successful render exit code, got $exitCode. Output: $output" }
+            $report = $output | ConvertFrom-Json -AsHashtable
+
+            $zip = [System.IO.Compression.ZipFile]::OpenRead($outputPath)
+            try {
+                $entry = $zip.GetEntry('word/document.xml')
+                if ($null -eq $entry) { throw 'Expected rendered DOCX to contain word/document.xml.' }
+                $reader = [System.IO.StreamReader]::new($entry.Open())
+                try {
+                    $documentXml = $reader.ReadToEnd()
+                }
+                finally {
+                    $reader.Dispose()
+                }
+            }
+            finally {
+                $zip.Dispose()
+            }
+
+            if ($documentXml -notmatch '<w:t xml:space=\"preserve\">Ready</w:t>') { throw "Expected literal-token DOCX replacement when DocxMatchMode=literal-token, got '$documentXml'" }
+            if ($documentXml -match '&lt;&lt;SDT:LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.LegacyStatus&gt;&gt;') { throw "Expected legacy token to be removed in literal-token mode, got '$documentXml'" }
+
+            $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
+            if ($null -eq $renderStage) { throw 'Expected render stage diagnostics in report.' }
+            if ([string]$renderStage.details.docxMatchMode -ne 'literal-token') { throw "Expected docxMatchMode=literal-token, got '$($renderStage.details.docxMatchMode)'" }
         }
         finally {
             if (Test-Path -LiteralPath $tempRoot -PathType Container) {

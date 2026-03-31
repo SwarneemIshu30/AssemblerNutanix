@@ -12,7 +12,8 @@ param(
     [Parameter(Mandatory = $false)][string[]]$EntryId,
     [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
     [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true,
-    [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false
+    [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
+    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token')][string]$DocxMatchMode = 'content-control-tag'
 )
 
 Set-StrictMode -Version Latest
@@ -53,7 +54,8 @@ function Invoke-BundleRender {
         [Parameter(Mandatory = $false)][string[]]$EntryId,
         [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
         [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true,
-        [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false
+        [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
+        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token')][string]$DocxMatchMode = 'content-control-tag'
     )
 
     if ([string]::IsNullOrWhiteSpace($BundleRoot) -or -not (Test-Path -LiteralPath $BundleRoot -PathType Container)) {
@@ -81,6 +83,7 @@ function Invoke-BundleRender {
     if ($AnnotateResolvedTags) {
         $params.AnnotateResolvedTags = $true
     }
+    $params.DocxMatchMode = [string]$DocxMatchMode
 
     & $invokeScript @params
 }
@@ -128,6 +131,7 @@ $xaml = @"
           <RowDefinition Height='Auto'/>
           <RowDefinition Height='Auto'/>
           <RowDefinition Height='Auto'/>
+          <RowDefinition Height='Auto'/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width='220'/>
@@ -144,6 +148,23 @@ $xaml = @"
           <CheckBox Name='DocxCheckBox' Margin='0,0,16,0' VerticalAlignment='Center'>Enable DOCX output</CheckBox>
           <CheckBox Name='TxtCheckBox' Margin='0,0,16,0' VerticalAlignment='Center'>Enable TXT output</CheckBox>
           <CheckBox Name='AnnotateCheckBox' Margin='0,0,16,0' VerticalAlignment='Center'>Annotate resolved SDT tags (text debug)</CheckBox>
+        </StackPanel>
+
+        <TextBlock Grid.Row='3' Grid.Column='0' Margin='0,0,8,0' VerticalAlignment='Center'>Matching mode</TextBlock>
+        <StackPanel Grid.Row='3' Grid.Column='1' Orientation='Horizontal' HorizontalAlignment='Left'>
+          <StackPanel Margin='0,0,24,0'>
+            <TextBlock Margin='0,0,0,4'>DOCX</TextBlock>
+            <ComboBox Name='DocxMatchModeCombo' Width='190' SelectedIndex='0'>
+              <ComboBoxItem>content-control-tag</ComboBoxItem>
+              <ComboBoxItem>literal-token</ComboBoxItem>
+            </ComboBox>
+          </StackPanel>
+          <StackPanel>
+            <TextBlock Margin='0,0,0,4'>TXT</TextBlock>
+            <ComboBox Name='TxtMatchModeCombo' Width='160' IsEnabled='False' SelectedIndex='0'>
+              <ComboBoxItem>literal-token</ComboBoxItem>
+            </ComboBox>
+          </StackPanel>
         </StackPanel>
       </Grid>
     </GroupBox>
@@ -180,6 +201,7 @@ $debugCheckBox = $window.FindName('DebugCheckBox')
 $docxCheckBox = $window.FindName('DocxCheckBox')
 $txtCheckBox = $window.FindName('TxtCheckBox')
 $annotateCheckBox = $window.FindName('AnnotateCheckBox')
+$docxMatchModeCombo = $window.FindName('DocxMatchModeCombo')
 $outputText = $window.FindName('OutputText')
 
 $bundleRootText.Text = $BundleRoot
@@ -191,6 +213,7 @@ $entryIdText.Text = (($EntryId ?? @()) -join ',')
 $docxCheckBox.IsChecked = $IncludeDocx
 $txtCheckBox.IsChecked = $IncludeTxt
 $annotateCheckBox.IsChecked = $AnnotateResolvedTags
+if ([string]$DocxMatchMode -eq 'literal-token') { $docxMatchModeCombo.SelectedIndex = 1 } else { $docxMatchModeCombo.SelectedIndex = 0 }
 
 $bundleBrowseButton.Add_Click({
     $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
@@ -214,7 +237,8 @@ $runButton.Add_Click({
     try {
         $techSelection = @($techIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
         $entrySelection = @($entryIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-        $resultJson = Invoke-BundleRender -BundleRoot $bundleRootText.Text -CatalogPath $catalogPathText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text -TechId $techSelection -EntryId $entrySelection -IncludeDocx ([bool]$docxCheckBox.IsChecked) -IncludeTxt ([bool]$txtCheckBox.IsChecked) -AnnotateResolvedTags ([bool]$annotateCheckBox.IsChecked)
+        $docxModeSelection = [string]$docxMatchModeCombo.SelectedItem.Content
+        $resultJson = Invoke-BundleRender -BundleRoot $bundleRootText.Text -CatalogPath $catalogPathText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text -TechId $techSelection -EntryId $entrySelection -IncludeDocx ([bool]$docxCheckBox.IsChecked) -IncludeTxt ([bool]$txtCheckBox.IsChecked) -AnnotateResolvedTags ([bool]$annotateCheckBox.IsChecked) -DocxMatchMode $docxModeSelection
         $statusText.Text = 'Render completed successfully.'
         $outputText.Text = if ($debugCheckBox.IsChecked) {
             Format-DebugBundleOutput -BundleResultJson $resultJson
