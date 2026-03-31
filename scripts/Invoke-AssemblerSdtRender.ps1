@@ -603,18 +603,22 @@ function Render-DocxTemplate {
             $xmlDoc = $null
             $nsMgr = $null
             $selectionContextNode = $null
+            $xmlDocTyped = $null
+            $nsMgrTyped = $null
             try {
                 if ($DocxMatchMode -eq 'content-control-tag') {
                     $xmlDoc = [xml]$xmlText
                     $nsMgr = New-WordXmlNamespaceManager -XmlDocument $xmlDoc
-                    $selectionContextNode = $xmlDoc.DocumentElement
+                    [System.Xml.XmlDocument]$xmlDocTyped = $xmlDoc
+                    [System.Xml.XmlNamespaceManager]$nsMgrTyped = $nsMgr
+                    $selectionContextNode = [System.Xml.XmlNode]$xmlDocTyped.DocumentElement
                     if ($null -eq $selectionContextNode) {
                         throw 'Unable to discover content controls because XML document element was null.'
                     }
-                    $sdtNodes = @($selectionContextNode.SelectNodes('//w:sdt[w:sdtPr/w:tag[@w:val]]', $nsMgr))
+                    $sdtNodes = @($selectionContextNode.SelectNodes('//w:sdt[w:sdtPr/w:tag[@w:val]]', $nsMgrTyped))
                     $controlsDiscovered += @($sdtNodes).Count
                     foreach ($sdtNode in $sdtNodes) {
-                        $tagAttr = $sdtNode.SelectSingleNode('./w:sdtPr/w:tag/@w:val', $nsMgr)
+                        $tagAttr = $sdtNode.SelectSingleNode('./w:sdtPr/w:tag/@w:val', $nsMgrTyped)
                         if ($null -eq $tagAttr) { continue }
 
                         $tag = [string]$tagAttr.Value
@@ -623,7 +627,7 @@ function Render-DocxTemplate {
                             $unmatchedTaggedControls.Add($tag)
                         }
 
-                        $sdtContent = $sdtNode.SelectSingleNode('./w:sdtContent', $nsMgr)
+                        $sdtContent = $sdtNode.SelectSingleNode('./w:sdtContent', $nsMgrTyped)
                         if ($null -eq $sdtContent) { continue }
 
                         if ($null -ne $TableByTag -and (Test-MapHasKey -Map $TableByTag -Key $tag)) {
@@ -656,6 +660,8 @@ function Render-DocxTemplate {
                     matchMode = [string]$DocxMatchMode
                     xmlNodeType = if ($null -eq $selectionContextNode) { '' } else { [string]$selectionContextNode.GetType().FullName }
                     namespaceManagerType = if ($null -eq $nsMgr) { '' } else { [string]$nsMgr.GetType().FullName }
+                    xmlDocumentType = if ($null -eq $xmlDoc) { '' } else { [string]$xmlDoc.GetType().FullName }
+                    powershellVersion = if ($null -eq $PSVersionTable -or $null -eq $PSVersionTable.PSVersion) { '' } else { [string]$PSVersionTable.PSVersion.ToString() }
                 })
                 $xmlDoc = $null
                 $xmlText = $originalXmlText
