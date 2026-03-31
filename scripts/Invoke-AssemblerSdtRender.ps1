@@ -574,7 +574,10 @@ function Render-DocxTemplate {
         $controlsDiscovered = 0
         $taggedControlsMatched = 0
         $controlsPopulated = 0
-        $unmatchedTaggedControls = [System.Collections.Generic.List[string]]::new()
+        $controlsDiscoveredMapped = 0
+        $controlsDiscoveredUnmapped = 0
+        $discoveredTaggedControls = [System.Collections.Generic.List[string]]::new()
+        $discoveredUnmappedTaggedControls = [System.Collections.Generic.List[string]]::new()
         $partErrors = [System.Collections.Generic.List[hashtable]]::new()
         $tableStyleId = ''
         if ($null -ne $TableByTag -and @($TableByTag.Keys).Count -gt 0) {
@@ -623,8 +626,15 @@ function Render-DocxTemplate {
 
                         $tag = [string]$tagAttr.Value
                         if ([string]::IsNullOrWhiteSpace($tag)) { continue }
-                        if (-not (Test-MapHasKey -Map $ReplaceByTag -Key $tag) -and -not ($null -ne $TableByTag -and (Test-MapHasKey -Map $TableByTag -Key $tag))) {
-                            $unmatchedTaggedControls.Add($tag)
+                        $discoveredTaggedControls.Add($tag)
+
+                        $tagHasMapping = (Test-MapHasKey -Map $ReplaceByTag -Key $tag) -or ($null -ne $TableByTag -and (Test-MapHasKey -Map $TableByTag -Key $tag))
+                        if ($tagHasMapping) {
+                            $controlsDiscoveredMapped++
+                        }
+                        else {
+                            $controlsDiscoveredUnmapped++
+                            $discoveredUnmappedTaggedControls.Add($tag)
                         }
 
                         $sdtContent = $sdtNode.SelectSingleNode('./w:sdtContent', $nsMgrTyped)
@@ -690,13 +700,40 @@ function Render-DocxTemplate {
             Merge-UnresolvedSdtTagOccurrences -Target $unresolvedLiteralByTag -Source $partUnresolved
         }
 
+        $mappedTagsNotDiscovered = [System.Collections.Generic.List[string]]::new()
+        $discoveredLookup = @{}
+        foreach ($discoveredTag in @($discoveredTaggedControls)) {
+            if ([string]::IsNullOrWhiteSpace([string]$discoveredTag)) { continue }
+            $discoveredLookup[[string]$discoveredTag] = $true
+        }
+        foreach ($mappedTag in @($ReplaceByTag.Keys)) {
+            $mappedTagText = [string]$mappedTag
+            if ([string]::IsNullOrWhiteSpace($mappedTagText)) { continue }
+            if (-not (Test-MapHasKey -Map $discoveredLookup -Key $mappedTagText)) {
+                $mappedTagsNotDiscovered.Add($mappedTagText)
+            }
+        }
+        if ($null -ne $TableByTag) {
+            foreach ($mappedTag in @($TableByTag.Keys)) {
+                $mappedTagText = [string]$mappedTag
+                if ([string]::IsNullOrWhiteSpace($mappedTagText)) { continue }
+                if (-not (Test-MapHasKey -Map $discoveredLookup -Key $mappedTagText)) {
+                    $mappedTagsNotDiscovered.Add($mappedTagText)
+                }
+            }
+        }
+
         return [ordered]@{
             unresolvedLiteralByTag = $unresolvedLiteralByTag
             partsUpdated = $partsUpdated
             controlsDiscovered = $controlsDiscovered
+            controlsDiscoveredMapped = $controlsDiscoveredMapped
+            controlsDiscoveredUnmapped = $controlsDiscoveredUnmapped
             taggedControlsMatched = $taggedControlsMatched
             controlsPopulated = $controlsPopulated
-            unmatchedTaggedControls = @($unmatchedTaggedControls | Sort-Object -Unique)
+            discoveredTaggedControls = @($discoveredTaggedControls | Sort-Object -Unique)
+            discoveredUnmappedTaggedControls = @($discoveredUnmappedTaggedControls | Sort-Object -Unique)
+            unmatchedTaggedControls = @($mappedTagsNotDiscovered | Sort-Object -Unique)
             partErrors = @($partErrors)
         }
     }
@@ -1948,8 +1985,12 @@ try {
         $unresolvedByTag = $docxUnresolvedLiteralByTag
         $renderDetails.partsUpdated = [int]$docxRender.partsUpdated
         $renderDetails.controlsDiscovered = [int]$docxRender.controlsDiscovered
+        $renderDetails.controlsDiscoveredMapped = [int]$docxRender.controlsDiscoveredMapped
+        $renderDetails.controlsDiscoveredUnmapped = [int]$docxRender.controlsDiscoveredUnmapped
         $renderDetails.taggedControlsMatched = [int]$docxRender.taggedControlsMatched
         $renderDetails.controlsPopulated = [int]$docxRender.controlsPopulated
+        $renderDetails.discoveredTaggedControls = @($docxRender.discoveredTaggedControls)
+        $renderDetails.discoveredUnmappedTaggedControls = @($docxRender.discoveredUnmappedTaggedControls)
         $renderDetails.unmatchedTaggedControls = @($docxRender.unmatchedTaggedControls)
         $renderDetails.partErrors = @($docxRender.partErrors)
         $renderDetails.unresolvedLiteralTokens = @($docxUnresolvedLiteralByTag.Keys | Sort-Object)
@@ -1965,7 +2006,7 @@ try {
             $issues.Add([ordered]@{
                 code = 'ASB-ASM-SDT-DOCX-NO-POPULATION'
                 severity = 'ERROR'
-                message = "DOCX render did not populate any tagged content controls despite resolved mapping matches. docxMatchMode='$DocxMatchMode'; controlsDiscovered=$($renderDetails.controlsDiscovered); taggedControlsMatched=$($renderDetails.taggedControlsMatched); controlsPopulated=$controlsPopulatedCount; mappingMatches=$expectedMatchCount; sampleMatchedTags=$sampleMatchedTagsText"
+                message = "DOCX render did not populate any tagged content controls despite resolved mapping matches. docxMatchMode='$DocxMatchMode'; discoveredControls=$($renderDetails.controlsDiscovered); discoveredMappedControls=$($renderDetails.controlsDiscoveredMapped); discoveredUnmappedControls=$($renderDetails.controlsDiscoveredUnmapped); partErrorCount=$(@($renderDetails.partErrors).Count); taggedControlsMatched=$($renderDetails.taggedControlsMatched); controlsPopulated=$controlsPopulatedCount; mappingMatches=$expectedMatchCount; sampleMatchedTags=$sampleMatchedTagsText"
                 path = $TemplatePath
             })
         }
@@ -2068,8 +2109,12 @@ try {
         templateKind = $(if ($isDocxTemplate) { 'docx' } else { 'text' })
         docxPartsUpdated = $(if ($isDocxTemplate) { [int]$renderDetails.partsUpdated } else { 0 })
         docxControlsDiscovered = $(if ($isDocxTemplate) { [int]$renderDetails.controlsDiscovered } else { 0 })
+        docxControlsDiscoveredMapped = $(if ($isDocxTemplate) { [int]$renderDetails.controlsDiscoveredMapped } else { 0 })
+        docxControlsDiscoveredUnmapped = $(if ($isDocxTemplate) { [int]$renderDetails.controlsDiscoveredUnmapped } else { 0 })
         docxTaggedControlsMatched = $(if ($isDocxTemplate) { [int]$renderDetails.taggedControlsMatched } else { 0 })
         docxControlsPopulated = $(if ($isDocxTemplate) { [int]$renderDetails.controlsPopulated } else { 0 })
+        docxDiscoveredTaggedControls = $(if ($isDocxTemplate) { @($renderDetails.discoveredTaggedControls) } else { @() })
+        docxDiscoveredUnmappedTaggedControls = $(if ($isDocxTemplate) { @($renderDetails.discoveredUnmappedTaggedControls) } else { @() })
         docxUnmatchedTaggedControls = $(if ($isDocxTemplate) { @($renderDetails.unmatchedTaggedControls) } else { @() })
         docxPartErrors = $(if ($isDocxTemplate) { @($renderDetails.partErrors) } else { @() })
         docxUnresolvedLiteralTokens = $(if ($isDocxTemplate) { @($renderDetails.unresolvedLiteralTokens) } else { @() })
