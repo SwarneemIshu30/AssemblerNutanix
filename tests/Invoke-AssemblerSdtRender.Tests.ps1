@@ -226,6 +226,113 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
+    function New-TestTaggedContentControlDocxTemplate {
+        param(
+            [Parameter(Mandatory = $true)][string]$Path,
+            [Parameter(Mandatory = $true)][string]$ScalarTag,
+            [Parameter(Mandatory = $true)][string]$TableTag,
+            [Parameter(Mandatory = $false)][string]$LegacyTokenTag
+        )
+
+        Add-Type -AssemblyName System.IO.Compression
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+        $templateDir = Split-Path -Parent $Path
+        if (-not (Test-Path -LiteralPath $templateDir -PathType Container)) {
+            $null = New-Item -Path $templateDir -ItemType Directory -Force
+        }
+
+        $legacyParagraphXml = ''
+        if (-not [string]::IsNullOrWhiteSpace($LegacyTokenTag)) {
+            $legacyParagraphXml = "<w:p><w:r><w:t>&lt;&lt;SDT:$LegacyTokenTag&gt;&gt;</w:t></w:r></w:p>"
+        }
+
+        $documentXml = @"
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:sdt>
+      <w:sdtPr>
+        <w:tag w:val="$ScalarTag"/>
+      </w:sdtPr>
+      <w:sdtContent>
+        <w:p><w:r><w:t>ORIGINAL-SCALAR</w:t></w:r></w:p>
+      </w:sdtContent>
+    </w:sdt>
+    <w:sdt>
+      <w:sdtPr>
+        <w:tag w:val="$TableTag"/>
+      </w:sdtPr>
+      <w:sdtContent>
+        <w:p><w:r><w:t>ORIGINAL-TABLE</w:t></w:r></w:p>
+      </w:sdtContent>
+    </w:sdt>
+    $legacyParagraphXml
+  </w:body>
+</w:document>
+"@
+
+        $fs = [System.IO.File]::Open($Path, [System.IO.FileMode]::Create)
+        try {
+            $archive = [System.IO.Compression.ZipArchive]::new($fs, [System.IO.Compression.ZipArchiveMode]::Create, $true)
+            try {
+                $contentTypes = $archive.CreateEntry('[Content_Types].xml')
+                $contentTypesStream = $contentTypes.Open()
+                try {
+                    $writer = [System.IO.StreamWriter]::new($contentTypesStream, [System.Text.UTF8Encoding]::new($false))
+                    $writer.Write('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>')
+                    $writer.Flush()
+                    $writer.Dispose()
+                }
+                finally {
+                    $contentTypesStream.Dispose()
+                }
+
+                $rels = $archive.CreateEntry('_rels/.rels')
+                $relsStream = $rels.Open()
+                try {
+                    $writer = [System.IO.StreamWriter]::new($relsStream, [System.Text.UTF8Encoding]::new($false))
+                    $writer.Write('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>')
+                    $writer.Flush()
+                    $writer.Dispose()
+                }
+                finally {
+                    $relsStream.Dispose()
+                }
+
+                $document = $archive.CreateEntry('word/document.xml')
+                $docStream = $document.Open()
+                try {
+                    $writer = [System.IO.StreamWriter]::new($docStream, [System.Text.UTF8Encoding]::new($false))
+                    $writer.Write($documentXml)
+                    $writer.Flush()
+                    $writer.Dispose()
+                }
+                finally {
+                    $docStream.Dispose()
+                }
+
+                $styles = $archive.CreateEntry('word/styles.xml')
+                $stylesStream = $styles.Open()
+                try {
+                    $writer = [System.IO.StreamWriter]::new($stylesStream, [System.Text.UTF8Encoding]::new($false))
+                    $writer.Write('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:style w:type="table" w:styleId="LNVTable1-9ptHeadBandedGrid"><w:name w:val="LNV Table 1 - 9pt Head Banded Grid"/></w:style></w:styles>')
+                    $writer.Flush()
+                    $writer.Dispose()
+                }
+                finally {
+                    $stylesStream.Dispose()
+                }
+            }
+            finally {
+                $archive.Dispose()
+            }
+        }
+        finally {
+            $fs.Dispose()
+        }
+    }
+
     It 'keeps successful render reports schema-valid when matches are emitted' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot '.deps/contracts'
@@ -332,6 +439,90 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             if ($documentXml -notmatch '<w:t>Controller</w:t>') { throw "Expected table header cells from projection columns, got '$documentXml'" }
             if ($documentXml -notmatch '<w:t xml:space=\"preserve\">10.0.0.1</w:t>') { throw "Expected projected body cell values, got '$documentXml'" }
             if ($documentXml -match '&lt;&lt;SDT:LNV\.Test\.Tech\.System\[ArrayName\]\.Tables\.Sample&gt;&gt;') { throw "Expected SDT placeholder token to be replaced, got '$documentXml'" }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'prefers w:sdt tag-based replacement for rich content controls while keeping legacy token fallback' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-docx-tagged-sdt-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'unused' -TechId 'Test.Tech' -DatasetRelativePath 'datasets/transport.json' -Mappings @(
+                @{
+                    dataset = 'datasets/transport.json'
+                    required = $true
+                    selectors = @('items', '0', 'name')
+                    target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Summary.Name' }
+                },
+                @{
+                    dataset = 'datasets/transport.json'
+                    required = $true
+                    selectors = @('items')
+                    target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Tables.Sample' }
+                },
+                @{
+                    dataset = 'datasets/transport.json'
+                    required = $true
+                    selectors = @('items', '0', 'status')
+                    target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus' }
+                }
+            ) -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'transport'
+                item_count = 2
+                items = @(
+                    @{ name = 'Alpha & Beta <Prod>'; status = 'Ready'; controllerLabel = 'A'; ipv4Address = '10.0.0.1'; iqn = 'iqn.1' },
+                    @{ name = 'Backup Node'; status = 'Standby'; controllerLabel = 'B'; ipv4Address = '10.0.0.2'; iqn = 'iqn.2' }
+                )
+            }
+
+            $contractsRoot = New-MinimalContractsRoot -Root $tempRoot -DatasetName 'transport'
+            $templatePath = Join-Path $tempRoot 'tagged-template.docx'
+            New-TestTaggedContentControlDocxTemplate -Path $templatePath -ScalarTag 'LNV.Test.Tech.System[ArrayName].Summary.Name' -TableTag 'LNV.Test.Tech.System[ArrayName].Tables.Sample' -LegacyTokenTag 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus'
+            $outputPath = Join-Path $tempRoot 'tagged-rendered.docx'
+            $reportPath = Join-Path $tempRoot 'report.json'
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+            if ($exitCode -ne 0) { throw "Expected successful render exit code, got $exitCode. Output: $output" }
+
+            $zip = [System.IO.Compression.ZipFile]::OpenRead($outputPath)
+            try {
+                $entry = $zip.GetEntry('word/document.xml')
+                if ($null -eq $entry) { throw 'Expected rendered DOCX to contain word/document.xml.' }
+                $reader = [System.IO.StreamReader]::new($entry.Open())
+                try {
+                    $documentXml = $reader.ReadToEnd()
+                }
+                finally {
+                    $reader.Dispose()
+                }
+            }
+            finally {
+                $zip.Dispose()
+            }
+
+            if ($documentXml -notmatch 'Alpha &amp; Beta &lt;Prod&gt;') { throw "Expected scalar SDT content to be XML-escaped replacement text, got '$documentXml'" }
+            if ($documentXml -notmatch '<w:tag w:val=\"LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.Name\"/>') { throw "Expected scalar SDT tag to remain in document, got '$documentXml'" }
+            if ($documentXml -notmatch '<w:tbl') { throw "Expected table SDT content to include a Word table node, got '$documentXml'" }
+            if ($documentXml -notmatch 'w:tblStyle w:val=\"LNVTable1-9ptHeadBandedGrid\"') { throw "Expected table SDT content to apply template styleId, got '$documentXml'" }
+            if ($documentXml -notmatch '<w:t xml:space=\"preserve\">Ready</w:t>') { throw "Expected legacy literal placeholder token outside SDT to still be replaced, got '$documentXml'" }
+            if ($documentXml -match 'ORIGINAL-SCALAR|ORIGINAL-TABLE') { throw "Expected original SDT placeholder content to be replaced, got '$documentXml'" }
+            if ($documentXml -match '&lt;&lt;SDT:LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.LegacyStatus&gt;&gt;') { throw "Expected legacy SDT token to be replaced, got '$documentXml'" }
         }
         finally {
             if (Test-Path -LiteralPath $tempRoot -PathType Container) {
