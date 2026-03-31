@@ -45,29 +45,26 @@ Source: `templates/skeletons/Lenovo.DE/DE-SDT-Collector.token-audit.md`
 
 ## Replace in document order (aligned to current SK DOCX section flow)
 
-# System Overview / Platform Summary
+# Platform Configuration / System Summary
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Summary>>
 
-# System Overview / Controller Topology
+# Platform Configuration / Hardware Configuration / Controller Inventory
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Controllers>>
 
-# System Overview / Management Interfaces
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces>>
-
-# System Overview / DNS Configuration
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.DNS>>
-
-# System Overview / Time Configuration
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Time>>
-
-# Architecture / Logical Architecture
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings>>
-
-# Architecture / Physical Layout
+# Platform Configuration / Hardware Configuration / Tray / Shelf Inventory
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Trays>>
 
-# Architecture / Physical Layout
+# Platform Configuration / Hardware Configuration / Drive Inventory
 <<SDT: LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory>>
+
+# Platform Configuration / Controller Configuration / Management Interfaces
+<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces>>
+
+# Platform Configuration / Controller Configuration / DNS Configuration
+<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.DNS>>
+
+# Platform Configuration / Controller Configuration / Time Configuration
+<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Time>>
 
 # Platform Configuration / Controller Configuration / Transport Summary
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Transport>>
