@@ -645,6 +645,11 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             if ($null -eq $renderStage) { throw 'Expected render stage diagnostics in report.' }
             if ([int]$renderStage.details.docxControlsDiscovered -le 0) { throw "Expected docxControlsDiscovered>0, got '$($renderStage.details.docxControlsDiscovered)'" }
             if ([int]$renderStage.details.docxTaggedControlsMatched -le 0) { throw "Expected docxTaggedControlsMatched>0, got '$($renderStage.details.docxTaggedControlsMatched)'" }
+            if ([int]$renderStage.details.docxControlsPopulated -le 0) { throw "Expected docxControlsPopulated>0, got '$($renderStage.details.docxControlsPopulated)'" }
+            $partRewriteIssues = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-DOCX-PART-REWRITE-FAILED' })
+            if ($partRewriteIssues.Count -gt 0) {
+                throw "Expected no ASB-ASM-DOCX-PART-REWRITE-FAILED issues, got '$($partRewriteIssues.Count)'"
+            }
         }
         finally {
             if (Test-Path -LiteralPath $tempRoot -PathType Container) {
