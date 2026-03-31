@@ -576,6 +576,11 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             if ([int]$renderStage.details.docxControlsDiscovered -ne 3) { throw "Expected docxControlsDiscovered=3, got '$($renderStage.details.docxControlsDiscovered)'" }
             if ([int]$renderStage.details.docxTaggedControlsMatched -ne 0) { throw "Expected docxTaggedControlsMatched=0 for dataset tags in content-control mode, got '$($renderStage.details.docxTaggedControlsMatched)'" }
             if ([int]$renderStage.details.docxControlsPopulated -ne 0) { throw "Expected docxControlsPopulated=0 for dataset tags in content-control mode, got '$($renderStage.details.docxControlsPopulated)'" }
+            if ([int]$renderStage.details.docxLiteralDatasetTokensExpected -ne 2) { throw "Expected docxLiteralDatasetTokensExpected=2, got '$($renderStage.details.docxLiteralDatasetTokensExpected)'" }
+            if ([int]$renderStage.details.docxLiteralDatasetTokensPopulated -eq 0) { throw "Expected docxLiteralDatasetTokensPopulated>0 for unresolved literal token diagnostics, got '$($renderStage.details.docxLiteralDatasetTokensPopulated)'" }
+            if ([int]$renderStage.details.docxDocPropControlsExpected -ne 6) { throw "Expected docxDocPropControlsExpected=6, got '$($renderStage.details.docxDocPropControlsExpected)'" }
+            if ([int]$renderStage.details.docxDocPropControlsMatched -ne 0) { throw "Expected docxDocPropControlsMatched=0 in dataset-only template, got '$($renderStage.details.docxDocPropControlsMatched)'" }
+            if ([int]$renderStage.details.docxDocPropControlsPopulated -ne 0) { throw "Expected docxDocPropControlsPopulated=0 in dataset-only template, got '$($renderStage.details.docxDocPropControlsPopulated)'" }
             if ([string]$renderStage.details.docxMatchMode -ne 'content-control-tag') { throw "Expected docxMatchMode=content-control-tag, got '$($renderStage.details.docxMatchMode)'" }
             $unmatchedTags = @($renderStage.details.docxUnmatchedTaggedControls)
             if (@($unmatchedTags | Where-Object { $_ -eq 'LNV.Test.Tech.System[ArrayName].Summary.Name' }).Count -ne 1) {
@@ -731,6 +736,8 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
             if ($null -eq $renderStage) { throw 'Expected render stage diagnostics in report.' }
             if ([string]$renderStage.details.docxMatchMode -ne 'literal-token') { throw "Expected docxMatchMode=literal-token, got '$($renderStage.details.docxMatchMode)'" }
+            if ([int]$renderStage.details.docxLiteralDatasetTokensExpected -ne 1) { throw "Expected docxLiteralDatasetTokensExpected=1, got '$($renderStage.details.docxLiteralDatasetTokensExpected)'" }
+            if ([int]$renderStage.details.docxLiteralDatasetTokensPopulated -ne 1) { throw "Expected docxLiteralDatasetTokensPopulated=1, got '$($renderStage.details.docxLiteralDatasetTokensPopulated)'" }
         }
         finally {
             if (Test-Path -LiteralPath $tempRoot -PathType Container) {
