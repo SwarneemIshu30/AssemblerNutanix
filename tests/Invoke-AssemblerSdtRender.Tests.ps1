@@ -646,9 +646,20 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             if ([int]$renderStage.details.docxControlsDiscovered -le 0) { throw "Expected docxControlsDiscovered>0, got '$($renderStage.details.docxControlsDiscovered)'" }
             if ([int]$renderStage.details.docxTaggedControlsMatched -le 0) { throw "Expected docxTaggedControlsMatched>0, got '$($renderStage.details.docxTaggedControlsMatched)'" }
             if ([int]$renderStage.details.docxControlsPopulated -le 0) { throw "Expected docxControlsPopulated>0, got '$($renderStage.details.docxControlsPopulated)'" }
-            $partRewriteIssues = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-DOCX-PART-REWRITE-FAILED' })
+            $partRewriteIssues = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DOCX-PART-REWRITE' })
+            $partRewriteMessages = @($partRewriteIssues | ForEach-Object { [string]$_.message })
+            if (($partRewriteMessages -join "`n") -match 'System\.Object\[\]') {
+                throw "Expected part-rewrite diagnostics to not include System.Object[] binding errors, got '$($partRewriteMessages -join ' | ')'"
+            }
+            if (($partRewriteMessages -join "`n") -match '(?i)(XmlNamespaceManager|Unable to cast object|Cannot convert value)') {
+                throw "Expected part-rewrite diagnostics to not include XmlNamespaceManager cast/conversion failures, got '$($partRewriteMessages -join ' | ')'"
+            }
             if ($partRewriteIssues.Count -gt 0) {
-                throw "Expected no ASB-ASM-DOCX-PART-REWRITE-FAILED issues, got '$($partRewriteIssues.Count)'"
+                throw "Expected no ASB-ASM-SDT-DOCX-PART-REWRITE issues, got '$($partRewriteIssues.Count)'"
+            }
+            $docxPartErrors = @($renderStage.details.docxPartErrors)
+            if ($docxPartErrors.Count -ne 0) {
+                throw "Expected docxPartErrors to be empty, got '$($docxPartErrors.Count)'"
             }
         }
         finally {
