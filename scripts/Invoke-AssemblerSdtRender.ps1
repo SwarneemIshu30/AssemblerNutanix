@@ -756,6 +756,9 @@ function Render-DocxTemplate {
     try {
         $unresolvedLiteralByTag = @{}
         $partsUpdated = 0
+        $literalTokensMatched = 0
+        $literalTokensMatchedScalar = 0
+        $literalTokensMatchedTable = 0
         $controlsDiscovered = 0
         $taggedControlsMatched = 0
         $controlsPopulated = 0
@@ -810,12 +813,24 @@ function Render-DocxTemplate {
                     foreach ($tag in @($TableByTag.Keys)) {
                         $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
                         if (-not [string]::IsNullOrWhiteSpace($tableXml)) {
+                            $escapedTag = [regex]::Escape([string]$tag)
+                            $rawTokenPattern = "<<SDT:\\s*$escapedTag\\s*>>"
+                            $escapedTokenPattern = "&lt;&lt;SDT:\\s*$escapedTag\\s*&gt;&gt;"
+                            $tableTokenCount = [regex]::Matches($xmlText, "$rawTokenPattern|$escapedTokenPattern").Count
+                            $literalTokensMatched += [int]$tableTokenCount
+                            $literalTokensMatchedTable += [int]$tableTokenCount
                             $xmlText = Replace-DocxParagraphTokenWithBlockXml -XmlText $xmlText -Tag ([string]$tag) -BlockXml $tableXml
                         }
                     }
                 }
 
                 foreach ($tag in @($ReplaceByTag.Keys)) {
+                    $escapedTag = [regex]::Escape([string]$tag)
+                    $rawTokenPattern = "<<SDT:\\s*$escapedTag\\s*>>"
+                    $escapedTokenPattern = "&lt;&lt;SDT:\\s*$escapedTag\\s*&gt;&gt;"
+                    $scalarTokenCount = [regex]::Matches($xmlText, "$rawTokenPattern|$escapedTokenPattern").Count
+                    $literalTokensMatched += [int]$scalarTokenCount
+                    $literalTokensMatchedScalar += [int]$scalarTokenCount
                     $xmlText = Replace-LiteralSdtTokenXmlText -XmlText $xmlText -Tag ([string]$tag) -Replacement ([string]$ReplaceByTag[$tag])
                 }
             }
@@ -907,6 +922,9 @@ function Render-DocxTemplate {
         return [ordered]@{
             unresolvedLiteralByTag = $unresolvedLiteralByTag
             partsUpdated = $partsUpdated
+            literalTokensMatched = $literalTokensMatched
+            literalTokensMatchedScalar = $literalTokensMatchedScalar
+            literalTokensMatchedTable = $literalTokensMatchedTable
             controlsDiscovered = $controlsDiscovered
             controlsDiscoveredMapped = $controlsDiscoveredMapped
             controlsDiscoveredUnmapped = $controlsDiscoveredUnmapped
@@ -2167,6 +2185,9 @@ try {
         $unresolvedByTag = $docxUnresolvedLiteralByTag
         $renderDetails.partsUpdated = [int]$docxRender.partsUpdated
         $renderDetails.controlsDiscovered = [int]$docxRender.controlsDiscovered
+        $renderDetails.literalTokensMatched = [int]$docxRender.literalTokensMatched
+        $renderDetails.literalTokensMatchedScalar = [int]$docxRender.literalTokensMatchedScalar
+        $renderDetails.literalTokensMatchedTable = [int]$docxRender.literalTokensMatchedTable
         $renderDetails.controlsDiscoveredMapped = [int]$docxRender.controlsDiscoveredMapped
         $renderDetails.controlsDiscoveredUnmapped = [int]$docxRender.controlsDiscoveredUnmapped
         $renderDetails.taggedControlsMatched = [int]$docxRender.taggedControlsMatched
@@ -2178,18 +2199,27 @@ try {
         $renderDetails.partErrors = @($docxRender.partErrors)
         $renderDetails.unresolvedLiteralTokens = @($docxUnresolvedLiteralByTag.Keys | Sort-Object)
         $renderDetails.docxMatchMode = [string]$DocxMatchMode
-        $expectedMatchCount = @($renderDetails.contentControlMappedTags).Count
+        $expectedDocPropertyControlCount = @($renderDetails.contentControlMappedTags).Count
         $controlsPopulatedCount = [int]$renderDetails.controlsPopulated
-        if ((Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'content-control-tag') -and $expectedMatchCount -gt 0 -and $controlsPopulatedCount -eq 0) {
+        if ((Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token') -and ($replaceByTag.Count -gt 0 -or $docxTableByTag.Count -gt 0) -and [int]$renderDetails.literalTokensMatched -eq 0) {
+            $status = 'ERROR'
+            $issues.Add([ordered]@{
+                code = 'ASB-ASM-SDT-DOCX-NO-POPULATION'
+                severity = 'ERROR'
+                message = "DOCX literal-token render expected dataset mapping replacement but found no matching tokens to populate. docxMatchMode='$DocxMatchMode'; literalTokensMatched=$($renderDetails.literalTokensMatched); literalTokensMatchedScalar=$($renderDetails.literalTokensMatchedScalar); literalTokensMatchedTable=$($renderDetails.literalTokensMatchedTable); tagsResolved=$($replaceByTag.Count); tableTagsResolved=$($docxTableByTag.Count)"
+                path = $TemplatePath
+            })
+        }
+        if ((Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'content-control-tag') -and $expectedDocPropertyControlCount -gt 0 -and $controlsPopulatedCount -eq 0) {
             $status = 'ERROR'
             $sampleMatchedTags = @(
                 @($renderDetails.contentControlMappedTags | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | Select-Object -Unique -First 5)
             )
             $sampleMatchedTagsText = if ($sampleMatchedTags.Count -gt 0) { $sampleMatchedTags -join ', ' } else { 'n/a' }
             $issues.Add([ordered]@{
-                code = 'ASB-ASM-SDT-DOCX-NO-POPULATION'
+                code = 'ASB-ASM-DOCPROP-DOCX-NO-POPULATION'
                 severity = 'ERROR'
-                message = "DOCX render did not populate any tagged content controls for supplied document-property control tags. docxMatchMode='$DocxMatchMode'; discoveredControls=$($renderDetails.controlsDiscovered); discoveredMappedControls=$($renderDetails.controlsDiscoveredMapped); discoveredUnmappedControls=$($renderDetails.controlsDiscoveredUnmapped); partErrorCount=$(@($renderDetails.partErrors).Count); taggedControlsMatched=$($renderDetails.taggedControlsMatched); controlsPopulated=$controlsPopulatedCount; contentControlMappedTags=$expectedMatchCount; sampleMatchedTags=$sampleMatchedTagsText"
+                message = "DOCX document-property render expected tagged content controls but none were populated. docxMatchMode='$DocxMatchMode'; discoveredControls=$($renderDetails.controlsDiscovered); discoveredMappedControls=$($renderDetails.controlsDiscoveredMapped); discoveredUnmappedControls=$($renderDetails.controlsDiscoveredUnmapped); partErrorCount=$(@($renderDetails.partErrors).Count); taggedControlsMatched=$($renderDetails.taggedControlsMatched); controlsPopulated=$controlsPopulatedCount; docPropertyControlTags=$expectedDocPropertyControlCount; sampleDocPropertyTags=$sampleMatchedTagsText"
                 path = $TemplatePath
             })
         }
@@ -2294,6 +2324,9 @@ try {
         tagsPopulated = $replaceByTag.Count
         templateKind = $(if ($isDocxTemplate) { 'docx' } else { 'text' })
         docxPartsUpdated = $(if ($isDocxTemplate) { [int]$renderDetails.partsUpdated } else { 0 })
+        docxLiteralTokensMatched = $(if ($isDocxTemplate) { [int]$renderDetails.literalTokensMatched } else { 0 })
+        docxLiteralTokensMatchedScalar = $(if ($isDocxTemplate) { [int]$renderDetails.literalTokensMatchedScalar } else { 0 })
+        docxLiteralTokensMatchedTable = $(if ($isDocxTemplate) { [int]$renderDetails.literalTokensMatchedTable } else { 0 })
         docxControlsDiscovered = $(if ($isDocxTemplate) { [int]$renderDetails.controlsDiscovered } else { 0 })
         docxControlsDiscoveredMapped = $(if ($isDocxTemplate) { [int]$renderDetails.controlsDiscoveredMapped } else { 0 })
         docxControlsDiscoveredUnmapped = $(if ($isDocxTemplate) { [int]$renderDetails.controlsDiscoveredUnmapped } else { 0 })

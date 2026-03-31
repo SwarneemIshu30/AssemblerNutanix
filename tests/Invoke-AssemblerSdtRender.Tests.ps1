@@ -916,14 +916,14 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             $report = $output | ConvertFrom-Json -AsHashtable
             if ([string]$report.status -ne 'ERROR') { throw "Expected report.status ERROR, got '$($report.status)'" }
 
-            $noPopulationIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DOCX-NO-POPULATION' }) | Select-Object -First 1
-            if ($null -eq $noPopulationIssue) { throw 'Expected ASB-ASM-SDT-DOCX-NO-POPULATION issue when controlsPopulated is zero despite supplied document-property tags.' }
-            if ([string]$noPopulationIssue.severity -ne 'ERROR') { throw "Expected ASB-ASM-SDT-DOCX-NO-POPULATION severity ERROR, got '$($noPopulationIssue.severity)'" }
+            $noPopulationIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-DOCPROP-DOCX-NO-POPULATION' }) | Select-Object -First 1
+            if ($null -eq $noPopulationIssue) { throw 'Expected ASB-ASM-DOCPROP-DOCX-NO-POPULATION issue when controlsPopulated is zero despite supplied document-property tags.' }
+            if ([string]$noPopulationIssue.severity -ne 'ERROR') { throw "Expected ASB-ASM-DOCPROP-DOCX-NO-POPULATION severity ERROR, got '$($noPopulationIssue.severity)'" }
             if ([string]$noPopulationIssue.message -notmatch 'docxMatchMode=''content-control-tag''') { throw "Expected no-population issue to include docxMatchMode context, got '$($noPopulationIssue.message)'" }
             if ([string]$noPopulationIssue.message -notmatch 'controlsDiscovered=2') { throw "Expected no-population issue to include controlsDiscovered, got '$($noPopulationIssue.message)'" }
             if ([string]$noPopulationIssue.message -notmatch 'taggedControlsMatched=0') { throw "Expected no-population issue to include taggedControlsMatched, got '$($noPopulationIssue.message)'" }
             if ([string]$noPopulationIssue.message -notmatch 'controlsPopulated=0') { throw "Expected no-population issue to include controlsPopulated, got '$($noPopulationIssue.message)'" }
-            if ([string]$noPopulationIssue.message -notmatch 'sampleMatchedTags=Customer') { throw "Expected no-population issue to include sample document-property control tag, got '$($noPopulationIssue.message)'" }
+            if ([string]$noPopulationIssue.message -notmatch 'sampleDocPropertyTags=Customer') { throw "Expected no-population issue to include sample document-property control tag, got '$($noPopulationIssue.message)'" }
         }
         finally {
             if (Test-Path -LiteralPath $tempRoot -PathType Container) {
