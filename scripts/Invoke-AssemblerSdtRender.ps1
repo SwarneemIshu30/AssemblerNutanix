@@ -593,6 +593,7 @@ function Render-DocxTemplate {
             $reader = [System.IO.StreamReader]::new($entry.Open())
             try {
                 $xmlText = $reader.ReadToEnd()
+                $originalXmlText = $xmlText
             }
             finally {
                 $reader.Dispose()
