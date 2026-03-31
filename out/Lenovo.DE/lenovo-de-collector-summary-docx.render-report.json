@@ -1,47 +1,84 @@
 {
   "schemaVersion": 1,
-  "status": "OK",
-  "startedUtc": "2026-03-31T05:58:38.2339486Z",
-  "completedUtc": "2026-03-31T05:58:41.5267641Z",
+  "status": "ERROR",
+  "startedUtc": "2026-03-31T06:13:10.2548923Z",
+  "completedUtc": "2026-03-31T06:13:13.7743764Z",
   "bundleId": "bc8e726c-0b55-4b6e-af58-c84fa426a26a",
   "stages": [
     {
       "details": null,
-      "completedUtc": "2026-03-31T05:58:38.2340233Z",
+      "completedUtc": "2026-03-31T06:13:10.2549595Z",
       "name": "Load",
-      "startedUtc": "2026-03-31T05:58:38.2340233Z",
+      "startedUtc": "2026-03-31T06:13:10.2549595Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-31T05:58:38.2340233Z",
+      "completedUtc": "2026-03-31T06:13:10.2549595Z",
       "name": "Validate",
-      "startedUtc": "2026-03-31T05:58:38.2340233Z",
+      "startedUtc": "2026-03-31T06:13:10.2549595Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-31T05:58:38.2340233Z",
+      "completedUtc": "2026-03-31T06:13:10.2549595Z",
       "name": "Transform",
-      "startedUtc": "2026-03-31T05:58:38.2340233Z",
+      "startedUtc": "2026-03-31T06:13:10.2549595Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-31T05:58:38.2340233Z",
+      "completedUtc": "2026-03-31T06:13:10.2549595Z",
       "name": "Render",
-      "startedUtc": "2026-03-31T05:58:38.2340233Z",
+      "startedUtc": "2026-03-31T06:13:10.2549595Z",
       "status": "SKIPPED"
     },
     {
       "details": null,
-      "completedUtc": "2026-03-31T05:58:38.2340233Z",
+      "completedUtc": "2026-03-31T06:13:10.2549595Z",
       "name": "Finalize",
-      "startedUtc": "2026-03-31T05:58:38.2340233Z",
+      "startedUtc": "2026-03-31T06:13:10.2549595Z",
       "status": "SKIPPED"
     }
   ],
-  "issues": [],
+  "issues": [
+    {
+      "message": "DOCX render did not populate any tagged content controls despite resolved mapping matches. docxMatchMode='content-control-tag'; controlsDiscovered=0; taggedControlsMatched=0; controlsPopulated=0; mappingMatches=33; sampleMatchedTags=LNV.Lenovo.DE.System[ArrayName].Summary, LNV.Lenovo.DE.System[ArrayName].Tables.Controllers, LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces, LNV.Lenovo.DE.System[ArrayName].Tables.Transport, LNV.Lenovo.DE.System[ArrayName].Tables.DNS",
+      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-DOCX-NO-POPULATION"
+    },
+    {
+      "message": "DOCX part 'word/document.xml' failed during content-control parsing/replacement (match mode 'content-control-tag'): Cannot find an overload for \"SelectNodes\" and the argument count: \"2\".",
+      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-DOCX-PART-REWRITE"
+    },
+    {
+      "message": "DOCX part 'word/footer2.xml' failed during content-control parsing/replacement (match mode 'content-control-tag'): Cannot find an overload for \"SelectNodes\" and the argument count: \"2\".",
+      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-DOCX-PART-REWRITE"
+    },
+    {
+      "message": "DOCX part 'word/header1.xml' failed during content-control parsing/replacement (match mode 'content-control-tag'): Cannot find an overload for \"SelectNodes\" and the argument count: \"2\".",
+      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-DOCX-PART-REWRITE"
+    },
+    {
+      "message": "DOCX part 'word/footer1.xml' failed during content-control parsing/replacement (match mode 'content-control-tag'): Cannot find an overload for \"SelectNodes\" and the argument count: \"2\".",
+      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-DOCX-PART-REWRITE"
+    },
+    {
+      "message": "DOCX part 'word/header2.xml' failed during content-control parsing/replacement (match mode 'content-control-tag'): Cannot find an overload for \"SelectNodes\" and the argument count: \"2\".",
+      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
+      "severity": "ERROR",
+      "code": "ASB-ASM-SDT-DOCX-PART-REWRITE"
+    }
+  ],
   "matches": [
     {
       "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json",
