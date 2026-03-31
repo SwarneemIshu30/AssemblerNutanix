@@ -12,7 +12,7 @@ param(
     [Parameter(Mandatory = $false)][string[]]$EntryId,
     [Parameter(Mandatory = $false)][ValidateSet('docx','text')][string[]]$OutputType,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
-    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token')][string]$DocxMatchMode = 'content-control-tag'
+    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag'
 )
 
 Set-StrictMode -Version Latest

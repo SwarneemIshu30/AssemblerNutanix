@@ -17,7 +17,7 @@ param(
     [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
     [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true,
     [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
-    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token')][string]$DocxMatchMode = 'content-control-tag'
+    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both'
 )
 
 Set-StrictMode -Version Latest
@@ -53,7 +53,7 @@ function Invoke-BundleRender {
         [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
         [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true,
         [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
-        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token')][string]$DocxMatchMode = 'content-control-tag'
+        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both'
     )
 
     if ([string]::IsNullOrWhiteSpace($BundleRoot) -or -not (Test-Path -LiteralPath $BundleRoot -PathType Container)) {
@@ -110,7 +110,7 @@ function Invoke-TerminalMode {
         [bool]$IncludeDocx = $true,
         [bool]$IncludeTxt = $true,
         [bool]$AnnotateResolvedTags = $false,
-        [ValidateSet('content-control-tag','literal-token')][string]$DocxMatchMode = 'content-control-tag',
+        [ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
         [bool]$PromptIncludeDocx = $true,
         [bool]$PromptIncludeTxt = $true
     )
@@ -156,14 +156,14 @@ function Invoke-TerminalMode {
         }
     }
     if ($IncludeDocx) {
-        $docxModeInput = Read-Host "Debug/Advanced - DOCX matching mode [content-control-tag/literal-token] [$DocxMatchMode]"
+        $docxModeInput = Read-Host "Debug/Advanced - DOCX matching mode [both/content-control-tag/literal-token] [$DocxMatchMode]"
         if (-not [string]::IsNullOrWhiteSpace($docxModeInput)) {
             $candidateDocxMode = $docxModeInput.Trim().ToLowerInvariant()
-            if ($candidateDocxMode -in @('content-control-tag','literal-token')) {
+            if ($candidateDocxMode -in @('both','content-control-tag','literal-token')) {
                 $DocxMatchMode = $candidateDocxMode
             }
             else {
-                throw "Unsupported DOCX matching mode '$candidateDocxMode'. Use 'content-control-tag' or 'literal-token'."
+                throw "Unsupported DOCX matching mode '$candidateDocxMode'. Use 'both', 'content-control-tag', or 'literal-token'."
             }
         }
     }
@@ -186,7 +186,7 @@ function Invoke-WinFormsMode {
         [bool]$IncludeDocx = $true,
         [bool]$IncludeTxt = $true,
         [bool]$AnnotateResolvedTags = $false,
-        [ValidateSet('content-control-tag','literal-token')][string]$DocxMatchMode = 'content-control-tag'
+        [ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both'
     )
 
     if (-not $IsWindows) {
@@ -297,6 +297,7 @@ function Invoke-WinFormsMode {
     $docxMatchCombo.Top = 170
     $docxMatchCombo.Width = 340
     $docxMatchCombo.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
+    [void]$docxMatchCombo.Items.Add('both')
     [void]$docxMatchCombo.Items.Add('content-control-tag')
     [void]$docxMatchCombo.Items.Add('literal-token')
     $docxMatchCombo.SelectedItem = [string]$DocxMatchMode

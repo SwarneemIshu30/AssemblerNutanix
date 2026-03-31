@@ -13,7 +13,7 @@ param(
     [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
     [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true,
     [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
-    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token')][string]$DocxMatchMode = 'content-control-tag'
+    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both'
 )
 
 Set-StrictMode -Version Latest
@@ -55,7 +55,7 @@ function Invoke-BundleRender {
         [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
         [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true,
         [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
-        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token')][string]$DocxMatchMode = 'content-control-tag'
+        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both'
     )
 
     if ([string]::IsNullOrWhiteSpace($BundleRoot) -or -not (Test-Path -LiteralPath $BundleRoot -PathType Container)) {
@@ -155,6 +155,7 @@ $xaml = @"
           <StackPanel Margin='0,0,24,0'>
             <TextBlock Margin='0,0,0,4'>DOCX</TextBlock>
             <ComboBox Name='DocxMatchModeCombo' Width='190' SelectedIndex='0'>
+              <ComboBoxItem>both</ComboBoxItem>
               <ComboBoxItem>content-control-tag</ComboBoxItem>
               <ComboBoxItem>literal-token</ComboBoxItem>
             </ComboBox>
@@ -213,7 +214,11 @@ $entryIdText.Text = (($EntryId ?? @()) -join ',')
 $docxCheckBox.IsChecked = $IncludeDocx
 $txtCheckBox.IsChecked = $IncludeTxt
 $annotateCheckBox.IsChecked = $AnnotateResolvedTags
-if ([string]$DocxMatchMode -eq 'literal-token') { $docxMatchModeCombo.SelectedIndex = 1 } else { $docxMatchModeCombo.SelectedIndex = 0 }
+switch ([string]$DocxMatchMode) {
+    'literal-token' { $docxMatchModeCombo.SelectedIndex = 2 }
+    'content-control-tag' { $docxMatchModeCombo.SelectedIndex = 1 }
+    default { $docxMatchModeCombo.SelectedIndex = 0 }
+}
 
 $bundleBrowseButton.Add_Click({
     $dialog = New-Object System.Windows.Forms.FolderBrowserDialog

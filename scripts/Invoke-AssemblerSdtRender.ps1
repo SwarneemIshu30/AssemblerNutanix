@@ -11,7 +11,7 @@ param(
     [Parameter(Mandatory = $false)][string]$ReportPath,
     [Parameter(Mandatory = $false)][string]$ContractsRoot,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
-    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token')][string]$DocxMatchMode = 'content-control-tag'
+    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag'
 )
 
 Set-StrictMode -Version Latest
@@ -293,7 +293,7 @@ function Get-UnresolvedSdtTagOccurrences {
         [Parameter(Mandatory = $true)][string]$RenderedText
     )
 
-    $matches = [regex]::Matches($RenderedText, '<<SDT:(?<tag>[^>]+)>>')
+    $matches = [regex]::Matches($RenderedText, '<<SDT:\s*(?<tag>[^>]+?)\s*>>')
     $occurrencesByTag = @{}
     if ($matches.Count -eq 0) { return $occurrencesByTag }
 
@@ -306,7 +306,7 @@ function Get-UnresolvedSdtTagOccurrences {
     }
 
     foreach ($tokenMatch in $matches) {
-        $tag = [string]$tokenMatch.Groups['tag'].Value
+        $tag = ([string]$tokenMatch.Groups['tag'].Value).Trim()
         if ([string]::IsNullOrWhiteSpace($tag)) { continue }
 
         if (-not (Test-MapHasKey -Map $occurrencesByTag -Key $tag)) {
@@ -481,10 +481,46 @@ function Replace-DocxParagraphTokenWithBlockXml {
 
     if ([string]::IsNullOrWhiteSpace($BlockXml)) { return $XmlText }
 
-    $rawToken = [regex]::Escape("<<SDT:$Tag>>")
-    $escapedToken = [regex]::Escape("&lt;&lt;SDT:$Tag&gt;&gt;")
+    $escapedTag = [regex]::Escape([string]$Tag)
+    $rawToken = "<<SDT:\\s*$escapedTag\\s*>>"
+    $escapedToken = "&lt;&lt;SDT:\\s*$escapedTag\\s*&gt;&gt;"
     $paragraphPattern = "(?s)<w:p\b[^>]*>.*?($rawToken|$escapedToken).*?</w:p>"
     return ([regex]::Replace($XmlText, $paragraphPattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $BlockXml }))
+}
+
+function Replace-LiteralSdtTokenText {
+    param(
+        [Parameter(Mandatory = $true)][string]$Text,
+        [Parameter(Mandatory = $true)][string]$Tag,
+        [Parameter(Mandatory = $true)][string]$Replacement
+    )
+
+    $escapedTag = [regex]::Escape([string]$Tag)
+    $pattern = "<<SDT:\\s*$escapedTag\\s*>>"
+    return [regex]::Replace($Text, $pattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $Replacement })
+}
+
+function Replace-LiteralSdtTokenXmlText {
+    param(
+        [Parameter(Mandatory = $true)][string]$XmlText,
+        [Parameter(Mandatory = $true)][string]$Tag,
+        [Parameter(Mandatory = $true)][string]$Replacement
+    )
+
+    $updated = Replace-LiteralSdtTokenText -Text $XmlText -Tag $Tag -Replacement $Replacement
+    $escapedTag = [regex]::Escape([string]$Tag)
+    $escapedPattern = "&lt;&lt;SDT:\\s*$escapedTag\\s*&gt;&gt;"
+    return [regex]::Replace($updated, $escapedPattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $Replacement })
+}
+
+function Test-DocxMatchModeIncludes {
+    param(
+        [Parameter(Mandatory = $true)][string]$DocxMatchMode,
+        [Parameter(Mandatory = $true)][ValidateSet('content-control-tag','literal-token')][string]$Mode
+    )
+
+    if ($DocxMatchMode -eq 'both') { return $true }
+    return ($DocxMatchMode -eq $Mode)
 }
 
 function New-WordXmlNamespaceManager {
@@ -562,7 +598,7 @@ function Render-DocxTemplate {
         [Parameter(Mandatory = $true)][string]$OutputPath,
         [Parameter(Mandatory = $true)][System.Collections.IDictionary]$ReplaceByTag,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$TableByTag,
-        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token')][string]$DocxMatchMode = 'content-control-tag'
+        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag'
     )
 
     Copy-Item -LiteralPath $TemplatePath -Destination $OutputPath -Force
@@ -607,18 +643,16 @@ function Render-DocxTemplate {
             $xmlDocTyped = $null
             $nsMgrTyped = $null
             try {
-                if ($DocxMatchMode -eq 'content-control-tag') {
+                if (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'content-control-tag') {
                     [System.Xml.XmlDocument]$xmlDocTyped = [xml]$xmlText
-                    [System.Xml.XmlNamespaceManager]$nsMgrTyped = [System.Xml.XmlNamespaceManager]::new($xmlDocTyped.NameTable)
-                    [void]$nsMgrTyped.AddNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main')
                     $selectionContextNode = [System.Xml.XmlNode]$xmlDocTyped.DocumentElement
                     if ($null -eq $selectionContextNode) {
                         throw 'Unable to discover content controls because XML document element was null.'
                     }
-                    $sdtNodes = @($selectionContextNode.SelectNodes('//w:sdt[w:sdtPr/w:tag[@w:val]]', $nsMgrTyped))
+                    $sdtNodes = @($selectionContextNode.SelectNodes("//*[local-name()='sdt'][*[local-name()='sdtPr']/*[local-name()='tag'][@*[local-name()='val']]]"))
                     $controlsDiscovered += @($sdtNodes).Count
                     foreach ($sdtNode in $sdtNodes) {
-                        $tagAttr = $sdtNode.SelectSingleNode('./w:sdtPr/w:tag/@w:val', $nsMgrTyped)
+                        $tagAttr = $sdtNode.SelectSingleNode("./*[local-name()='sdtPr']/*[local-name()='tag']/@*[local-name()='val']")
                         if ($null -eq $tagAttr) { continue }
 
                         $tag = [string]$tagAttr.Value
@@ -634,7 +668,7 @@ function Render-DocxTemplate {
                             $discoveredUnmappedTaggedControls.Add($tag)
                         }
 
-                        $sdtContent = $sdtNode.SelectSingleNode('./w:sdtContent', $nsMgrTyped)
+                        $sdtContent = $sdtNode.SelectSingleNode("./*[local-name()='sdtContent']")
                         if ($null -eq $sdtContent) { continue }
 
                         if ($null -ne $TableByTag -and (Test-MapHasKey -Map $TableByTag -Key $tag)) {
@@ -675,7 +709,7 @@ function Render-DocxTemplate {
             }
 
             # Legacy literal-token replacement path is opt-in via DocxMatchMode.
-            if ($DocxMatchMode -eq 'literal-token') {
+            if (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token') {
                 if ($null -ne $TableByTag) {
                     foreach ($tag in @($TableByTag.Keys)) {
                         $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
@@ -686,7 +720,7 @@ function Render-DocxTemplate {
                 }
 
                 foreach ($tag in @($ReplaceByTag.Keys)) {
-                    $xmlText = $xmlText.Replace("<<SDT:$tag>>", [string]$ReplaceByTag[$tag])
+                    $xmlText = Replace-LiteralSdtTokenXmlText -XmlText $xmlText -Tag ([string]$tag) -Replacement ([string]$ReplaceByTag[$tag])
                 }
             }
 
@@ -1994,7 +2028,7 @@ try {
         $renderDetails.docxMatchMode = [string]$DocxMatchMode
         $expectedMatchCount = @($matches).Count
         $controlsPopulatedCount = [int]$renderDetails.controlsPopulated
-        if ($DocxMatchMode -eq 'content-control-tag' -and $expectedMatchCount -gt 0 -and $controlsPopulatedCount -eq 0) {
+        if ((Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'content-control-tag') -and $expectedMatchCount -gt 0 -and $controlsPopulatedCount -eq 0) {
             $status = 'ERROR'
             $sampleMatchedTags = @(
                 @($matches | Select-Object -ExpandProperty tag -ErrorAction SilentlyContinue | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | Select-Object -Unique -First 5)
@@ -2011,7 +2045,7 @@ try {
             $partName = if (Test-MapHasKey -Map $partError -Key 'partName') { [string]$partError.partName } else { '' }
             $partErrorMessage = if (Test-MapHasKey -Map $partError -Key 'message') { [string]$partError.message } else { '' }
             $partMatchMode = if (Test-MapHasKey -Map $partError -Key 'matchMode') { [string]$partError.matchMode } else { [string]$DocxMatchMode }
-            $partErrorSeverity = if ($partMatchMode -eq 'content-control-tag') { 'ERROR' } else { 'WARN' }
+            $partErrorSeverity = if (Test-DocxMatchModeIncludes -DocxMatchMode $partMatchMode -Mode 'content-control-tag') { 'ERROR' } else { 'WARN' }
             if ($partErrorSeverity -eq 'ERROR') {
                 $status = 'ERROR'
             }
@@ -2028,16 +2062,15 @@ try {
         $rendered = $templateText
         $annotatedTagCount = 0
         foreach ($tag in $replaceByTag.Keys) {
-            $token = "<<SDT:$tag>>"
             $replacementText = [string]$replaceByTag[$tag]
             if ($AnnotateResolvedTags.IsPresent) {
                 $traceMarker = "[SDT-TAG:$tag]"
-                $tokenCount = [regex]::Matches($rendered, [regex]::Escape($token)).Count
+                $tokenCount = [regex]::Matches($rendered, "<<SDT:\s*$([regex]::Escape([string]$tag))\s*>>").Count
                 $annotatedTagCount += [int]$tokenCount
-                $rendered = $rendered.Replace($token, "$traceMarker`n$replacementText")
+                $rendered = Replace-LiteralSdtTokenText -Text $rendered -Tag ([string]$tag) -Replacement "$traceMarker`n$replacementText"
             }
             else {
-                $rendered = $rendered.Replace($token, $replacementText)
+                $rendered = Replace-LiteralSdtTokenText -Text $rendered -Tag ([string]$tag) -Replacement $replacementText
             }
         }
         if ($AnnotateResolvedTags.IsPresent) {
@@ -2078,7 +2111,7 @@ try {
 
         $unresolvedIssueCode = 'ASB-ASM-SDT-UNRESOLVED-TAG'
         $unresolvedIssueSubject = 'SDT tag'
-        if ($isDocxTemplate -and $DocxMatchMode -eq 'content-control-tag') {
+        if ($isDocxTemplate -and (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'content-control-tag')) {
             $unresolvedIssueCode = 'ASB-ASM-SDT-UNRESOLVED-LITERAL-TOKEN'
             $unresolvedIssueSubject = 'literal SDT token'
         }
