@@ -601,6 +601,58 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
+    It 'discovers and matches tagged controls for the Lenovo template fixture in content-control-tag mode' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-docx-lenovo-template-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'unused' -DatasetRelativePath 'datasets/systems.json' -Mappings @(
+                @{
+                    dataset = 'datasets/systems.json'
+                    required = $true
+                    selectors = @('items', '0', 'name')
+                    target = @{ sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Summary' }
+                }
+            ) -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'systems'
+                item_count = 1
+                items = @(
+                    @{ name = 'Lenovo Fixture System' }
+                )
+            }
+
+            $templatePath = Join-Path $repoRoot 'templates/skeletons/Lenovo.DE/SK_Lenovo_DE_DRAFT_v0.1.docx'
+            $outputPath = Join-Path $tempRoot 'lenovo-template-rendered.docx'
+            $reportPath = Join-Path $tempRoot 'report.json'
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot -DocxMatchMode 'content-control-tag'
+            $exitCode = $LASTEXITCODE
+            if ($exitCode -ne 0) { throw "Expected successful render exit code, got $exitCode. Output: $output" }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
+            if ($null -eq $renderStage) { throw 'Expected render stage diagnostics in report.' }
+            if ([int]$renderStage.details.docxControlsDiscovered -le 0) { throw "Expected docxControlsDiscovered>0, got '$($renderStage.details.docxControlsDiscovered)'" }
+            if ([int]$renderStage.details.docxTaggedControlsMatched -le 0) { throw "Expected docxTaggedControlsMatched>0, got '$($renderStage.details.docxTaggedControlsMatched)'" }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'uses literal-token DOCX replacement only when DocxMatchMode is explicitly literal-token' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
