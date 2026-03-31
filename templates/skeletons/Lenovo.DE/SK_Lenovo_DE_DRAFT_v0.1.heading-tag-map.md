@@ -3,7 +3,7 @@
 Use this as:
 
 # Heading path in DOCX
-<<SDT: tag>>
+`<SDT: tag>`
 
 ## Current mapping alignment snapshot (runtime mapping vs template tokens)
 
@@ -45,44 +45,11 @@ Source: `templates/skeletons/Lenovo.DE/DE-SDT-Collector.token-audit.md`
 
 ## Replace in document order (aligned to current SK DOCX section flow)
 
-# System Overview / Platform Summary
+# Platform Configuration / System Summary
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Summary>>
 
-# System Overview / Platform Summary
-<<SDT: LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory>>
-
-# System Overview / Platform Summary
-<<SDT: LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory>>
-
-# System Overview / Controller Topology
+# Platform Configuration / Hardware Configuration / Controller Inventory
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Controllers>>
-
-# System Overview / Management Interfaces
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces>>
-
-# System Overview / DNS Configuration
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.DNS>>
-
-# System Overview / Time Configuration
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Time>>
-
-# Architecture / Logical Architecture
-<<SDT: LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory>>
-
-# Architecture / Logical Architecture
-<<SDT: LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory>>
-
-# Architecture / Logical Architecture
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings>>
-
-# Architecture / Physical Layout
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Trays>>
-
-# Architecture / Physical Layout
-<<SDT: LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory>>
-
-# Architecture / SAN Fabric Architecture (Conditional)
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC>>
 
 # Platform Configuration / Hardware Configuration / Tray / Shelf Inventory
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Trays>>
@@ -92,6 +59,12 @@ Source: `templates/skeletons/Lenovo.DE/DE-SDT-Collector.token-audit.md`
 
 # Platform Configuration / Controller Configuration / Management Interfaces
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces>>
+
+# Platform Configuration / Controller Configuration / DNS Configuration
+<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.DNS>>
+
+# Platform Configuration / Controller Configuration / Time Configuration
+<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Time>>
 
 # Platform Configuration / Controller Configuration / Transport Summary
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Transport>>
@@ -141,21 +114,6 @@ Transports configured:
 
 # Platform Configuration / Performance & Cache Configuration / Feature Limits / Consumption
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits>>
-
-# Operational Behaviour (Day-2) / Monitoring & Alert Flow
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport>>
-
-# Appendix / Detailed Inventory
-<<SDT: LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory>>
-
-# Appendix / Detailed Inventory
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Trays>>
-
-# Appendix / Detailed Inventory
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Controllers>>
-
-# Appendix / Version Summary
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Summary>>
 
 ## Available but not placed in template (for future insertion)
 
