@@ -486,6 +486,75 @@ function Replace-DocxParagraphTokenWithBlockXml {
     return ([regex]::Replace($XmlText, $paragraphPattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $BlockXml }))
 }
 
+function New-WordXmlNamespaceManager {
+    param([Parameter(Mandatory = $true)][xml]$XmlDocument)
+
+    $nsMgr = [System.Xml.XmlNamespaceManager]::new($XmlDocument.NameTable)
+    $nsMgr.AddNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main')
+    return $nsMgr
+}
+
+function Convert-TextToWordParagraphNodes {
+    param(
+        [Parameter(Mandatory = $true)][xml]$XmlDocument,
+        [Parameter(Mandatory = $false)][string]$Text
+    )
+
+    $namespaceUri = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+    $paragraphNodes = [System.Collections.Generic.List[System.Xml.XmlNode]]::new()
+    $lines = @(([string]$Text) -split "`r?`n", 0, [System.StringSplitOptions]::None)
+    if ($lines.Count -eq 0) { $lines = @('') }
+
+    foreach ($line in $lines) {
+        $paragraph = $XmlDocument.CreateElement('w', 'p', $namespaceUri)
+        $run = $XmlDocument.CreateElement('w', 'r', $namespaceUri)
+        $textNode = $XmlDocument.CreateElement('w', 't', $namespaceUri)
+        $spaceAttr = $XmlDocument.CreateAttribute('xml', 'space', 'http://www.w3.org/XML/1998/namespace')
+        $spaceAttr.Value = 'preserve'
+        [void]$textNode.Attributes.Append($spaceAttr)
+        $textNode.InnerText = [string]$line
+
+        [void]$run.AppendChild($textNode)
+        [void]$paragraph.AppendChild($run)
+        [void]$paragraphNodes.Add($paragraph)
+    }
+
+    return @($paragraphNodes.ToArray())
+}
+
+function Set-WordSdtContentNodes {
+    param(
+        [Parameter(Mandatory = $true)][System.Xml.XmlNode]$SdtContentNode,
+        [Parameter(Mandatory = $true)][System.Xml.XmlNode[]]$Nodes
+    )
+
+    while ($SdtContentNode.HasChildNodes) {
+        [void]$SdtContentNode.RemoveChild($SdtContentNode.FirstChild)
+    }
+
+    foreach ($node in @($Nodes)) {
+        if ($null -eq $node) { continue }
+        [void]$SdtContentNode.AppendChild($node)
+    }
+}
+
+function Convert-WordXmlFragmentToNodes {
+    param(
+        [Parameter(Mandatory = $true)][xml]$OwnerDocument,
+        [Parameter(Mandatory = $true)][string]$XmlFragment
+    )
+
+    if ([string]::IsNullOrWhiteSpace($XmlFragment)) { return @() }
+
+    $fragmentDoc = [xml]("<root xmlns:w='http://schemas.openxmlformats.org/wordprocessingml/2006/main'>$XmlFragment</root>")
+    $importedNodes = [System.Collections.Generic.List[System.Xml.XmlNode]]::new()
+    foreach ($child in @($fragmentDoc.DocumentElement.ChildNodes)) {
+        [void]$importedNodes.Add($OwnerDocument.ImportNode($child, $true))
+    }
+
+    return @($importedNodes.ToArray())
+}
+
 function Render-DocxTemplate {
     param(
         [Parameter(Mandatory = $true)][string]$TemplatePath,
@@ -521,6 +590,43 @@ function Render-DocxTemplate {
             }
             finally {
                 $reader.Dispose()
+            }
+
+            $xmlDoc = $null
+            try {
+                $xmlDoc = [xml]$xmlText
+                $nsMgr = New-WordXmlNamespaceManager -XmlDocument $xmlDoc
+                $sdtNodes = @($xmlDoc.SelectNodes('//w:sdt[w:sdtPr/w:tag[@w:val]]', $nsMgr))
+                foreach ($sdtNode in $sdtNodes) {
+                    $tagAttr = $sdtNode.SelectSingleNode('./w:sdtPr/w:tag/@w:val', $nsMgr)
+                    if ($null -eq $tagAttr) { continue }
+
+                    $tag = [string]$tagAttr.Value
+                    if ([string]::IsNullOrWhiteSpace($tag)) { continue }
+
+                    $sdtContent = $sdtNode.SelectSingleNode('./w:sdtContent', $nsMgr)
+                    if ($null -eq $sdtContent) { continue }
+
+                    if ($null -ne $TableByTag -and (Test-MapHasKey -Map $TableByTag -Key $tag)) {
+                        $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
+                        if (-not [string]::IsNullOrWhiteSpace($tableXml)) {
+                            $tableNodes = Convert-WordXmlFragmentToNodes -OwnerDocument $xmlDoc -XmlFragment $tableXml
+                            if ($tableNodes.Count -gt 0) {
+                                Set-WordSdtContentNodes -SdtContentNode $sdtContent -Nodes $tableNodes
+                                continue
+                            }
+                        }
+                    }
+
+                    if (Test-MapHasKey -Map $ReplaceByTag -Key $tag) {
+                        $paragraphNodes = Convert-TextToWordParagraphNodes -XmlDocument $xmlDoc -Text ([string]$ReplaceByTag[$tag])
+                        Set-WordSdtContentNodes -SdtContentNode $sdtContent -Nodes $paragraphNodes
+                    }
+                }
+                $xmlText = $xmlDoc.OuterXml
+            }
+            catch {
+                $xmlDoc = $null
             }
 
             if ($null -ne $TableByTag) {
