@@ -85,9 +85,6 @@ Transports configured:
 # Platform Configuration / Storage Configuration / Volumes
 <<SDT: LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory>>
 
-# Platform Configuration / Storage Configuration / Volume Mapping Summary
-<<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings>>
-
 # Platform Configuration / Host Connectivity / Host Definitions
 <<SDT: LNV.Lenovo.DE.System[ArrayName].Tables.Hosts>>
 
