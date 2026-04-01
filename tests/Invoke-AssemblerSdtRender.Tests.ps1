@@ -1209,6 +1209,42 @@ Describe 'Invoke-AssemblerSdtRender integration' {
     }
 
 
+    It 'summarizes multi-row literal diagnostics without throwing and aggregates contiguous token hits' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $scriptPath = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+        $scriptSource = Get-Content -LiteralPath $scriptPath -Raw -Encoding UTF8
+        $functionBlock = [regex]::Match(
+            $scriptSource,
+            '(?s)function Get-LiteralTagDiagnosticsSummary \{.*?^}\s*',
+            [System.Text.RegularExpressions.RegexOptions]::Multiline
+        ).Value
+
+        if ([string]::IsNullOrWhiteSpace($functionBlock)) {
+            throw 'Failed to load Get-LiteralTagDiagnosticsSummary from script under test.'
+        }
+
+        Invoke-Expression $functionBlock
+
+        $diagnostics = @(
+            [ordered]@{ tag = 'A'; partName = 'word/document.xml'; mode = 'literal-token'; contiguousTokenHits = '2' }
+            [ordered]@{ tag = 'A'; partName = 'word/header1.xml'; mode = 'literal-token'; contiguousTokenHits = 0 }
+            [ordered]@{ tag = 'B'; partName = 'word/footer1.xml'; mode = 'literal-token'; contiguousTokenHits = '3' }
+        )
+
+        try {
+            $summary = Get-LiteralTagDiagnosticsSummary -Diagnostics $diagnostics -TopEntries 10 -TopZeroHitTags 10 -TopInspectedPartsPerTag 10
+        }
+        catch {
+            throw "Expected multi-row literal diagnostics summary to complete without throwing, got '$($_.Exception.Message)'"
+        }
+
+        if ($summary.totalEntries -ne 3) { throw "Expected totalEntries=3, got '$($summary.totalEntries)'" }
+        if ($summary.hitEntries -ne 2) { throw "Expected hitEntries=2, got '$($summary.hitEntries)'" }
+        if ($summary.zeroHitEntries -ne 1) { throw "Expected zeroHitEntries=1, got '$($summary.zeroHitEntries)'" }
+        if ($summary.contiguousTokenHitTotal -ne 5) { throw "Expected contiguousTokenHitTotal=5, got '$($summary.contiguousTokenHitTotal)'" }
+    }
+
+
     It 'preserves one-item projection filter arrays through normalization and JSON reserialization' {
         $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-projection-array-shape-test-" + [guid]::NewGuid().ToString())
         $null = New-Item -ItemType Directory -Path $tempRoot -Force
