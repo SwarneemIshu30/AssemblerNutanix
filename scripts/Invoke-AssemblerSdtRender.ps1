@@ -789,6 +789,7 @@ function Get-LiteralTagDiagnosticsSummary {
             totalEntries = 0
             hitEntries = 0
             zeroHitEntries = 0
+            contiguousTokenHitTotal = 0
             distinctTagCount = 0
             distinctPartCount = 0
             topEntryLimit = [int]$topEntriesBounded
@@ -816,6 +817,10 @@ function Get-LiteralTagDiagnosticsSummary {
             }
         }
     )
+
+    $hits = @($diagnosticsNormalized | ForEach-Object { [int]($_.contiguousTokenHits ?? 0) })
+    $totalContiguousTokenHits = ($hits | Measure-Object -Sum).Sum
+    if ($null -eq $totalContiguousTokenHits) { $totalContiguousTokenHits = 0 }
 
     $hitDiagnostics = @($diagnosticsNormalized | Where-Object { $_.contiguousTokenHits -gt 0 })
     $zeroHitDiagnostics = @($diagnosticsNormalized | Where-Object { $_.contiguousTokenHits -eq 0 })
@@ -853,7 +858,7 @@ function Get-LiteralTagDiagnosticsSummary {
             tag = $groupTag
             mode = $groupMode
             inspectedParts = @($inspectedParts | Select-Object -First $topInspectedPartsBounded)
-            inspectedPartCount = [int]@($inspectedParts).Count
+            inspectedPartCount = @($inspectedParts).Count
         })
     }
 
@@ -864,11 +869,12 @@ function Get-LiteralTagDiagnosticsSummary {
     )
 
     return [ordered]@{
-        totalEntries = [int]$diagnosticsNormalized.Count
-        hitEntries = [int]$hitDiagnostics.Count
-        zeroHitEntries = [int]$zeroHitDiagnostics.Count
-        distinctTagCount = [int]@($diagnosticsNormalized | ForEach-Object { [string]$_.tag } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique).Count
-        distinctPartCount = [int]@($diagnosticsNormalized | ForEach-Object { [string]$_.partName } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique).Count
+        totalEntries = $diagnosticsNormalized.Count
+        hitEntries = $hitDiagnostics.Count
+        zeroHitEntries = $zeroHitDiagnostics.Count
+        contiguousTokenHitTotal = [int]$totalContiguousTokenHits
+        distinctTagCount = @($diagnosticsNormalized | ForEach-Object { [string]$_.tag } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique).Count
+        distinctPartCount = @($diagnosticsNormalized | ForEach-Object { [string]$_.partName } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique).Count
         topEntryLimit = [int]$topEntriesBounded
         topEntries = $topEntries
         zeroHitTagSampleLimit = [int]$topZeroHitTagsBounded
