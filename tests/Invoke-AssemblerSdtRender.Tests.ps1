@@ -380,6 +380,34 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
+    function Assert-DocxTemplateArtifactDiagnosticsMatch {
+        param(
+            [Parameter(Mandatory = $true)][hashtable]$RenderStage,
+            [Parameter(Mandatory = $true)][string]$TemplatePath
+        )
+
+        if (-not (Test-Path -LiteralPath $TemplatePath -PathType Leaf)) {
+            throw "Expected template path '$TemplatePath' to exist."
+        }
+
+        $resolvedExpectedPath = (Resolve-Path -LiteralPath $TemplatePath).Path
+        $expectedTemplateHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $resolvedExpectedPath).Hash.ToLowerInvariant()
+        $expectedTemplateLength = [int64](Get-Item -LiteralPath $resolvedExpectedPath).Length
+        $reportedTemplatePath = [string]$RenderStage.details.docxTemplatePathResolved
+        $reportedTemplateHash = [string]$RenderStage.details.docxTemplateBytesSha256
+        $reportedTemplateLength = [int64]$RenderStage.details.docxTemplateLengthBytes
+
+        if ($reportedTemplatePath -ne $resolvedExpectedPath) {
+            throw "Artifact hash diagnostics mismatch for template path. expected='$resolvedExpectedPath' reported='$reportedTemplatePath'"
+        }
+        if ($reportedTemplateHash -ne $expectedTemplateHash) {
+            throw "Artifact hash diagnostics mismatch for template sha256. expected='$expectedTemplateHash' reported='$reportedTemplateHash'"
+        }
+        if ($reportedTemplateLength -ne $expectedTemplateLength) {
+            throw "Artifact hash diagnostics mismatch for template length. expected='$expectedTemplateLength' reported='$reportedTemplateLength'"
+        }
+    }
+
     It 'keeps successful render reports schema-valid when matches are emitted' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot '.deps/contracts'
@@ -774,6 +802,8 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             $contractsRoot = New-MinimalContractsRoot -Root $tempRoot -DatasetName 'transport'
             $templatePath = Join-Path $tempRoot 'both-mode-template.docx'
             New-TestTaggedContentControlDocxTemplate -Path $templatePath -ScalarTag 'LNV.Test.Tech.System[ArrayName].Summary.Name' -TableTag 'LNV.Test.Tech.System[ArrayName].Tables.Sample' -LegacyTokenTag 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus'
+            $mismatchedTemplatePath = Join-Path $tempRoot 'both-mode-template-mismatch.docx'
+            New-TestDocxTemplate -Path $mismatchedTemplatePath -Tag 'LNV.Test.Tech.System[ArrayName].Tables.Sample'
             $outputPath = Join-Path $tempRoot 'both-mode-rendered.docx'
             $reportPath = Join-Path $tempRoot 'report.json'
 
@@ -807,6 +837,18 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             if ([string]$renderStage.details.docxMatchMode -ne 'both') { throw "Expected docxMatchMode=both, got '$($renderStage.details.docxMatchMode)'" }
             if ([int]$renderStage.details.docxLiteralDatasetTokensExpected -ne 1) { throw "Expected docxLiteralDatasetTokensExpected=1 when DocxMatchMode=both, got '$($renderStage.details.docxLiteralDatasetTokensExpected)'" }
             if ([int]$renderStage.details.docxLiteralDatasetTokensPopulated -ne 1) { throw "Expected docxLiteralDatasetTokensPopulated=1 when DocxMatchMode=both, got '$($renderStage.details.docxLiteralDatasetTokensPopulated)'" }
+            $noPopulationIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DOCX-NO-POPULATION' }) | Select-Object -First 1
+            if ($null -ne $noPopulationIssue) { throw "Expected no ASB-ASM-SDT-DOCX-NO-POPULATION issue when literal dataset tokens were populated, got '$($noPopulationIssue.message)'" }
+            Assert-DocxTemplateArtifactDiagnosticsMatch -RenderStage $renderStage -TemplatePath $templatePath
+            try {
+                Assert-DocxTemplateArtifactDiagnosticsMatch -RenderStage $renderStage -TemplatePath $mismatchedTemplatePath
+                throw 'Expected artifact-hash mismatch assertion to fail when pointing at a different template path.'
+            }
+            catch {
+                if ([string]$_.Exception.Message -notmatch 'Artifact hash diagnostics mismatch') {
+                    throw "Expected mismatch assertion to report artifact-hash diagnostics mismatch, got '$($_.Exception.Message)'"
+                }
+            }
         }
         finally {
             if (Test-Path -LiteralPath $tempRoot -PathType Container) {
