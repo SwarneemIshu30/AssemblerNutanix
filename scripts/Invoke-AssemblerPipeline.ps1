@@ -49,6 +49,7 @@ param(
     [Parameter(Mandatory = $false)][string]$RenderCatalogPath,
     [Parameter(Mandatory = $false)][string]$RenderOutputRoot,
     [Parameter(Mandatory = $false)][string[]]$RenderTechId,
+    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
     [Parameter(Mandatory = $false)][ValidateSet('legacy', 'dual', 'target')][string]$MappingShapeMode,
     [Parameter(Mandatory = $false)][string]$ContractMappingPath,
     [Parameter(Mandatory = $false)][string]$RuntimeMappingPath
@@ -78,7 +79,7 @@ function New-StageRecord {
 }
 
 function Start-Stage {
-    param([Parameter(Mandatory = $true)][hashtable]$Stage)
+    param([Parameter(Mandatory = $true)][System.Collections.IDictionary]$Stage)
     $Stage.startedUtc = Get-UtcTimestamp
     $Stage.completedUtc = $null
     $Stage.status = 'OK'
@@ -86,7 +87,7 @@ function Start-Stage {
 
 function Complete-Stage {
     param(
-        [Parameter(Mandatory = $true)][hashtable]$Stage,
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Stage,
         [Parameter(Mandatory = $true)][string]$Status,
         [Parameter(Mandatory = $false)][hashtable]$Details
     )
@@ -245,7 +246,8 @@ function Invoke-AssemblerPipeline {
                 '-BundleRoot', $BundleRoot,
                 '-CatalogPath', $RenderCatalogPath,
                 '-OutputRoot', $RenderOutputRoot,
-                '-ContractsRoot', $ContractsRoot
+                '-ContractsRoot', $ContractsRoot,
+                '-DocxMatchMode', $DocxMatchMode
             )
             if ($RenderTechId -and @($RenderTechId).Count -gt 0) {
                 $renderArguments += @('-TechId')
@@ -271,7 +273,7 @@ function Invoke-AssemblerPipeline {
                 default { 'OK' }
             }
             $renderIssueCount = if ($renderReport.ContainsKey('issues')) { @($renderReport.issues).Count } else { 0 }
-            $diagnostics.Add((New-Diagnostic -Stage 'Render' -Level 'INFO' -Code 'ASB-ASM-RENDER-HANDOFF' -Message "Render handoff executed via Invoke-AssemblerBundleRender.ps1 (status=$renderStatus, issues=$renderIssueCount)."))
+            $diagnostics.Add((New-Diagnostic -Stage 'Render' -Level 'INFO' -Code 'ASB-ASM-RENDER-HANDOFF' -Message "Render handoff executed via Invoke-AssemblerBundleRender.ps1 (status=$renderStatus, issues=$renderIssueCount, docxMatchMode=$DocxMatchMode)."))
             Complete-Stage -Stage $stages.Render -Status $renderStageStatus -Details ([ordered]@{
                 handoffScript = $invokeBundleRenderScript
                 catalogPath = $RenderCatalogPath
@@ -334,3 +336,4 @@ function Invoke-AssemblerPipeline {
 }
 
 Invoke-AssemblerPipeline -BundleRoot $BundleRoot -ContractsRoot $ContractsRoot -OutputPath $OutputPath -RenderCatalogPath $RenderCatalogPath -RenderOutputRoot $RenderOutputRoot -RenderTechId $RenderTechId -MappingShapeMode $MappingShapeMode -ContractMappingPath $ContractMappingPath -RuntimeMappingPath $RuntimeMappingPath
+

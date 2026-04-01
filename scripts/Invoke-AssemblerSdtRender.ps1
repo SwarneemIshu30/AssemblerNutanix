@@ -17,7 +17,7 @@ param(
     [Parameter(Mandatory = $false)][string]$DocSubsidiary,
     [Parameter(Mandatory = $false)][string]$DocEnvironment,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
-    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag',
+    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
     [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
 )
 
@@ -25,6 +25,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 Import-Module (Join-Path $PSScriptRoot 'internal/AssemblerSchemaValidation.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'internal/AssemblerDocxLiteralTokens.psm1') -Force
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
@@ -386,12 +387,9 @@ function Get-WordXmlPartEntries {
     param([Parameter(Mandatory = $true)][System.IO.Compression.ZipArchive]$Archive)
 
     return @(
-        $Archive.Entries | Where-Object {
-            $fullName = [string]$_.FullName
-            $fullName -eq 'word/document.xml' -or
-            $fullName -match '^word/header\d*\.xml$' -or
-            $fullName -match '^word/footer\d*\.xml$'
-        }
+        Get-AssemblerWordXmlPartNames -Archive $Archive |
+            ForEach-Object { $Archive.GetEntry([string]$_) } |
+            Where-Object { $null -ne $_ }
     )
 }
 
@@ -403,7 +401,6 @@ function Set-ZipEntryText {
 
     $stream = $Entry.Open()
     try {
-        $stream.SetLength(0)
         $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
         $writer = [System.IO.StreamWriter]::new($stream, $utf8NoBom)
         try {
@@ -463,7 +460,9 @@ function Update-DocxMetadataProperties {
             }
         }
         Set-XmlNodeInnerText -Node $titleNode -Value $Title
-        Set-ZipEntryText -Entry $coreEntry -Text $coreXml.OuterXml
+        $coreEntry.Delete()
+        $updatedCoreEntry = $Archive.CreateEntry('docProps/core.xml')
+        Set-ZipEntryText -Entry $updatedCoreEntry -Text $coreXml.OuterXml
     }
 
     $customEntry = $Archive.GetEntry('docProps/custom.xml')
@@ -504,7 +503,9 @@ function Update-DocxMetadataProperties {
         Set-XmlNodeInnerText -Node $valueNode -Value $propertyValue
     }
 
-    Set-ZipEntryText -Entry $customEntry -Text $customXml.OuterXml
+    $customEntry.Delete()
+    $updatedCustomEntry = $Archive.CreateEntry('docProps/custom.xml')
+    Set-ZipEntryText -Entry $updatedCustomEntry -Text $customXml.OuterXml
 }
 
 function Get-WordTableStyleId {
@@ -549,7 +550,7 @@ function Convert-TableModelToWordTableXml {
     [void]$sb.Append('<w:tbl>')
     [void]$sb.Append('<w:tblPr>')
     if (-not [string]::IsNullOrWhiteSpace($TableStyleId)) {
-        [void]$sb.Append("<w:tblStyle w:val=""$(ConvertTo-WordXmlEscapedText -Text $TableStyleId)""/>")
+        [void]$sb.Append("<w:tblStyle w:val=`"$(ConvertTo-WordXmlEscapedText -Text $TableStyleId)`"/>")
     }
     [void]$sb.Append('<w:tblW w:w="0" w:type="auto"/>')
     [void]$sb.Append('<w:tblLook w:firstRow="1" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="0" w:noVBand="1" w:val="04A0"/>')
@@ -592,8 +593,8 @@ function Replace-DocxParagraphTokenWithBlockXml {
     if ([string]::IsNullOrWhiteSpace($BlockXml)) { return $XmlText }
 
     $escapedTag = [regex]::Escape([string]$Tag)
-    $rawToken = "<<SDT:\\s*$escapedTag\\s*>>"
-    $escapedToken = "&lt;&lt;SDT:\\s*$escapedTag\\s*&gt;&gt;"
+    $rawToken = "<<SDT:\s*$escapedTag\s*>>"
+    $escapedToken = "&lt;&lt;SDT:\s*$escapedTag\s*&gt;&gt;"
     $paragraphPattern = "(?s)<w:p\b[^>]*>.*?($rawToken|$escapedToken).*?</w:p>"
     return ([regex]::Replace($XmlText, $paragraphPattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $BlockXml }))
 }
@@ -606,7 +607,7 @@ function Replace-LiteralSdtTokenText {
     )
 
     $escapedTag = [regex]::Escape([string]$Tag)
-    $pattern = "<<SDT:\\s*$escapedTag\\s*>>"
+    $pattern = "<<SDT:\s*$escapedTag\s*>>"
     return [regex]::Replace($Text, $pattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $Replacement })
 }
 
@@ -619,7 +620,7 @@ function Replace-LiteralSdtTokenXmlText {
 
     $updated = Replace-LiteralSdtTokenText -Text $XmlText -Tag $Tag -Replacement $Replacement
     $escapedTag = [regex]::Escape([string]$Tag)
-    $escapedPattern = "&lt;&lt;SDT:\\s*$escapedTag\\s*&gt;&gt;"
+    $escapedPattern = "&lt;&lt;SDT:\s*$escapedTag\s*&gt;&gt;"
     return [regex]::Replace($updated, $escapedPattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $Replacement })
 }
 
@@ -647,7 +648,6 @@ function New-WordXmlNamespaceManager {
     $nsMgr.AddNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main')
     return $nsMgr
 }
-
 function Convert-TextToWordParagraphNodes {
     param(
         [Parameter(Mandatory = $true)][xml]$XmlDocument,
@@ -960,6 +960,201 @@ function Get-LiteralTagDiagnosticsSummary {
     }
 }
 
+function Get-LiteralTokenDiagnosticLookup {
+    param(
+        [Parameter(Mandatory = $false)][object[]]$Diagnostics
+    )
+
+    $lookup = @{}
+    foreach ($diagnostic in @($Diagnostics)) {
+        if ($null -eq $diagnostic) { continue }
+        $key = "{0}`n{1}" -f [string]$diagnostic.partName, [string]$diagnostic.tag
+        $lookup[$key] = $diagnostic
+    }
+
+    return $lookup
+}
+
+function Get-LiteralTagHitSummary {
+    param(
+        [Parameter(Mandatory = $false)][object[]]$Diagnostics
+    )
+
+    $summary = [System.Collections.Generic.List[hashtable]]::new()
+    foreach ($group in @(@($Diagnostics) | Group-Object -Property tag, mode)) {
+        $items = @($group.Group)
+        $first = @($items | Select-Object -First 1)
+        if (@($first).Count -eq 0) { continue }
+
+        $rawTokenHits = ($items | Measure-Object -Property rawTokenHits -Sum).Sum
+        if ($null -eq $rawTokenHits) { $rawTokenHits = 0 }
+        $escapedTokenHits = ($items | Measure-Object -Property escapedTokenHits -Sum).Sum
+        if ($null -eq $escapedTokenHits) { $escapedTokenHits = 0 }
+        $contiguousTokenHits = ($items | Measure-Object -Property contiguousTokenHits -Sum).Sum
+        if ($null -eq $contiguousTokenHits) { $contiguousTokenHits = 0 }
+
+        $matchedParts = @(
+            $items |
+                Where-Object { [int]$_.contiguousTokenHits -gt 0 } |
+                ForEach-Object { [string]$_.partName } |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+                Sort-Object -Unique
+        )
+        $fragmentHintParts = @(
+            $items |
+                Where-Object { [bool]$_.fragmentHint } |
+                ForEach-Object { [string]$_.partName } |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+                Sort-Object -Unique
+        )
+
+        $summary.Add([ordered]@{
+            tag = [string]$first[0].tag
+            mode = [string]$first[0].mode
+            rawTokenHits = [int]$rawTokenHits
+            escapedTokenHits = [int]$escapedTokenHits
+            contiguousTokenHits = [int]$contiguousTokenHits
+            matchedPartCount = @($matchedParts).Count
+            matchedParts = @($matchedParts)
+            fragmentHintPartCount = @($fragmentHintParts).Count
+            fragmentHintParts = @($fragmentHintParts)
+        })
+    }
+
+    return @(
+        $summary |
+            Sort-Object -Property @{ Expression = { [string]$_.tag }; Descending = $false }, @{ Expression = { [string]$_.mode }; Descending = $false }
+    )
+}
+
+function Get-LiteralPartHitSummary {
+    param(
+        [Parameter(Mandatory = $false)][object[]]$Diagnostics
+    )
+
+    $summary = [System.Collections.Generic.List[hashtable]]::new()
+    foreach ($group in @(@($Diagnostics) | Group-Object -Property partName)) {
+        $items = @($group.Group)
+        $first = @($items | Select-Object -First 1)
+        if (@($first).Count -eq 0) { continue }
+
+        $contiguousTokenHits = ($items | Measure-Object -Property contiguousTokenHits -Sum).Sum
+        if ($null -eq $contiguousTokenHits) { $contiguousTokenHits = 0 }
+
+        $matchedTags = @(
+            $items |
+                Where-Object { [int]$_.contiguousTokenHits -gt 0 } |
+                ForEach-Object { [string]$_.tag } |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+                Sort-Object -Unique
+        )
+        $fragmentHintTags = @(
+            $items |
+                Where-Object { [bool]$_.fragmentHint } |
+                ForEach-Object { [string]$_.tag } |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+                Sort-Object -Unique
+        )
+
+        $summary.Add([ordered]@{
+            partName = [string]$first[0].partName
+            contiguousTokenHits = [int]$contiguousTokenHits
+            matchedTagCount = @($matchedTags).Count
+            matchedTags = @($matchedTags)
+            fragmentHintTagCount = @($fragmentHintTags).Count
+            fragmentHintTags = @($fragmentHintTags)
+        })
+    }
+
+    return @(
+        $summary |
+            Sort-Object -Property @{ Expression = { [string]$_.partName }; Descending = $false }
+    )
+}
+function Invoke-DocxLiteralTokenPass {
+    param(
+        [Parameter(Mandatory = $true)][string]$DocxPath,
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$ReplaceByTag,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$TableByTag
+    )
+
+    $archive = [System.IO.Compression.ZipFile]::Open($DocxPath, [System.IO.Compression.ZipArchiveMode]::Update)
+    try {
+        $tableStyleId = ''
+        if ($null -ne $TableByTag -and @($TableByTag.Keys).Count -gt 0) {
+            $stylesEntry = $archive.GetEntry('word/styles.xml')
+            if ($null -ne $stylesEntry) {
+                $stylesReader = [System.IO.StreamReader]::new($stylesEntry.Open())
+                try {
+                    $stylesXmlText = $stylesReader.ReadToEnd()
+                    $tableStyleId = Get-WordTableStyleId -StylesXmlText $stylesXmlText -StyleName 'LNV Table 1 - 9pt Head Banded Grid'
+                }
+                finally {
+                    $stylesReader.Dispose()
+                }
+            }
+        }
+
+        $literalTokensMatched = 0
+        $literalTokensMatchedScalar = 0
+        $literalTokensMatchedTable = 0
+        foreach ($partName in @(Get-AssemblerWordXmlPartNames -Archive $archive)) {
+            $entry = $archive.GetEntry([string]$partName)
+            if ($null -eq $entry) { continue }
+
+            $reader = [System.IO.StreamReader]::new($entry.Open())
+            try {
+                $xmlText = $reader.ReadToEnd()
+            }
+            finally {
+                $reader.Dispose()
+            }
+
+            $originalXmlText = $xmlText
+            if ($null -ne $TableByTag) {
+                foreach ($tag in @($TableByTag.Keys)) {
+                    $tagText = [string]$tag
+                    $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
+                    if ([string]::IsNullOrWhiteSpace($tableXml)) { continue }
+                    $escapedTag = [regex]::Escape($tagText)
+                    $rawTokenPattern = "<<SDT:\s*$escapedTag\s*>>"
+                    $escapedTokenPattern = "&lt;&lt;SDT:\s*$escapedTag\s*&gt;&gt;"
+                    $tableTokenCount = [regex]::Matches($xmlText, "$rawTokenPattern|$escapedTokenPattern").Count
+                    $literalTokensMatched += [int]$tableTokenCount
+                    $literalTokensMatchedTable += [int]$tableTokenCount
+                    $xmlText = Replace-DocxParagraphTokenWithBlockXml -XmlText $xmlText -Tag $tagText -BlockXml $tableXml
+                }
+            }
+
+            foreach ($tag in @($ReplaceByTag.Keys)) {
+                $tagText = [string]$tag
+                $escapedTag = [regex]::Escape($tagText)
+                $rawTokenPattern = "<<SDT:\s*$escapedTag\s*>>"
+                $escapedTokenPattern = "&lt;&lt;SDT:\s*$escapedTag\s*&gt;&gt;"
+                $scalarTokenCount = [regex]::Matches($xmlText, "$rawTokenPattern|$escapedTokenPattern").Count
+                $literalTokensMatched += [int]$scalarTokenCount
+                $literalTokensMatchedScalar += [int]$scalarTokenCount
+                $xmlText = Replace-LiteralSdtTokenXmlText -XmlText $xmlText -Tag $tagText -Replacement ([string]$ReplaceByTag[$tag])
+            }
+
+            if ($xmlText -ne $originalXmlText) {
+                $entry.Delete()
+                $updatedEntry = $archive.CreateEntry([string]$partName)
+                Set-ZipEntryText -Entry $updatedEntry -Text $xmlText
+            }
+        }
+
+        return [ordered]@{
+            literalTokensMatched = [int]$literalTokensMatched
+            literalTokensMatchedScalar = [int]$literalTokensMatchedScalar
+            literalTokensMatchedTable = [int]$literalTokensMatchedTable
+        }
+    }
+    finally {
+        $archive.Dispose()
+    }
+}
+
 function Render-DocxTemplate {
     param(
         [Parameter(Mandatory = $true)][string]$TemplatePath,
@@ -972,7 +1167,7 @@ function Render-DocxTemplate {
         [Parameter(Mandatory = $false)][string]$DocLocation,
         [Parameter(Mandatory = $false)][string]$DocSubsidiary,
         [Parameter(Mandatory = $false)][string]$DocEnvironment,
-        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag',
+        [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
         [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
     )
 
@@ -996,6 +1191,8 @@ function Render-DocxTemplate {
             }
         }
         $literalDatasetTokensExpected = @($literalDatasetTokenLookup.Keys).Count
+        $literalDatasetTokensDiscovered = 0
+        $literalDatasetTagsDiscovered = 0
         $literalTokensMatched = 0
         $literalTokensMatchedScalar = 0
         $literalTokensMatchedTable = 0
@@ -1008,9 +1205,10 @@ function Render-DocxTemplate {
         $discoveredUnmappedTaggedControls = [System.Collections.Generic.List[string]]::new()
         $partErrors = [System.Collections.Generic.List[hashtable]]::new()
         $literalTagDiagnostics = [System.Collections.Generic.List[hashtable]]::new()
-        # Contract: document-property replacement is the content-control-tag engine only.
-        # Get-DocxContentControlReplacementMap builds the tag->value map for tagged content controls
-        # (for example DocumentTitle/DocumentCustomer* tags), and is not used for literal-token paths.
+        $literalDatasetFragmentHintTags = @()
+        $literalDatasetTagStatus = @()
+        $literalTagHitSummary = @()
+        $literalPartHitSummary = @()
         $contentControlReplaceByTag = Get-DocxContentControlReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment
         $tableStyleId = ''
         if ($null -ne $TableByTag -and @($TableByTag.Keys).Count -gt 0) {
@@ -1026,80 +1224,120 @@ function Render-DocxTemplate {
                 }
             }
         }
-        foreach ($entry in @(Get-WordXmlPartEntries -Archive $archive)) {
+
+        $tableXmlByTag = @{}
+        if ($null -ne $TableByTag) {
+            foreach ($tag in @($TableByTag.Keys)) {
+                $tagText = [string]$tag
+                $tableXmlByTag[$tagText] = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
+            }
+        }
+
+        $partEntries = @(Get-WordXmlPartEntries -Archive $archive)
+        $updatedPartXmlByName = [ordered]@{}
+        $partXmlByName = [ordered]@{}
+        foreach ($entry in @($partEntries)) {
             $reader = [System.IO.StreamReader]::new($entry.Open())
             try {
-                $xmlText = $reader.ReadToEnd()
-                $originalXmlText = $xmlText
+                $partXmlByName[[string]$entry.FullName] = $reader.ReadToEnd()
             }
             finally {
                 $reader.Dispose()
             }
+        }
 
+        $literalDiagnosticLookup = @{}
+        if ($literalDatasetTokensExpected -gt 0) {
+            $sharedLiteralDiagnostics = @(Get-AssemblerDocxLiteralTokenDiagnosticsFromXmlParts -XmlPartsByName $partXmlByName -Tags @($literalDatasetTokenLookup.Keys))
+            $literalDiagnosticLookup = Get-LiteralTokenDiagnosticLookup -Diagnostics $sharedLiteralDiagnostics
+            $literalDatasetTagStatus = @(Get-AssemblerDocxLiteralTokenTagSummary -Diagnostics $sharedLiteralDiagnostics)
+
+            $literalDatasetTokensDiscovered = ($sharedLiteralDiagnostics | Measure-Object -Property contiguousTokenHits -Sum).Sum
+            if ($null -eq $literalDatasetTokensDiscovered) { $literalDatasetTokensDiscovered = 0 }
+            $literalDatasetTokensDiscovered = [int]$literalDatasetTokensDiscovered
+
+            $literalDatasetTagsDiscovered = @($literalDatasetTagStatus | Where-Object { [int]$_.contiguousLiteralHits -gt 0 }).Count
+            $literalDatasetFragmentHintTags = @(
+                $literalDatasetTagStatus |
+                    Where-Object { [string]$_.status -eq 'FRAGMENTED_OR_NON_LITERAL' } |
+                    ForEach-Object { [string]$_.tag } |
+                    Sort-Object -Unique
+            )
+
+            foreach ($diagnostic in @($sharedLiteralDiagnostics)) {
+                $tagText = [string]$diagnostic.tag
+                if (Test-MapHasKey -Map $tableXmlByTag -Key $tagText) {
+                    $literalTagDiagnostics.Add([ordered]@{
+                        partName = [string]$diagnostic.partName
+                        tag = $tagText
+                        mode = 'table'
+                        tableXmlGenerated = -not [string]::IsNullOrWhiteSpace([string]$tableXmlByTag[$tagText])
+                        rawTokenHits = [int]$diagnostic.rawTokenHits
+                        escapedTokenHits = [int]$diagnostic.escapedTokenHits
+                        contiguousTokenHits = [int]$diagnostic.contiguousTokenHits
+                        containsTagText = [bool]$diagnostic.containsTagText
+                        fragmentHint = [bool]$diagnostic.fragmentHint
+                    })
+                }
+                if (Test-MapHasKey -Map $ReplaceByTag -Key $tagText) {
+                    $literalTagDiagnostics.Add([ordered]@{
+                        partName = [string]$diagnostic.partName
+                        tag = $tagText
+                        mode = 'scalar'
+                        rawTokenHits = [int]$diagnostic.rawTokenHits
+                        escapedTokenHits = [int]$diagnostic.escapedTokenHits
+                        contiguousTokenHits = [int]$diagnostic.contiguousTokenHits
+                        containsTagText = [bool]$diagnostic.containsTagText
+                        fragmentHint = [bool]$diagnostic.fragmentHint
+                    })
+                }
+            }
+
+            $literalTagHitSummary = @(Get-LiteralTagHitSummary -Diagnostics $literalTagDiagnostics.ToArray())
+            $literalPartHitSummary = @(Get-LiteralPartHitSummary -Diagnostics $literalTagDiagnostics.ToArray())
+        }
+
+        foreach ($entry in @($partEntries)) {
+            $xmlText = [string]$partXmlByName[[string]$entry.FullName]
+            $originalXmlText = $xmlText
             $selectionContextNode = $null
             $xmlDocTyped = $null
             $nsMgrTyped = $null
 
-            # Contract: dataset mapping replacement uses the literal-token engine only.
-            # It consumes ReplaceByTag (scalar <<SDT:...>> tokens) and TableByTag (table block tokens)
-            # via Replace-LiteralSdtTokenXmlText + Replace-DocxParagraphTokenWithBlockXml.
-            #
-            # Mode behavior:
-            # - DocxMatchMode='literal-token' -> run only this branch.
-            # - DocxMatchMode='both'          -> run this branch and the content-control branch below.
-            # Run literal-token replacement first because XML parsing can normalize/split runs and make
-            # later regex token matching less reliable.
             if (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token') {
                 if ($null -ne $TableByTag) {
                     foreach ($tag in @($TableByTag.Keys)) {
                         $tagText = [string]$tag
-                        $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
                         $tableTokenCount = 0
-                        $tableXmlGenerated = -not [string]::IsNullOrWhiteSpace($tableXml)
-                        if (-not [string]::IsNullOrWhiteSpace($tableXml)) {
-                            $escapedTag = [regex]::Escape($tagText)
-                            $rawTokenPattern = "<<SDT:\\s*$escapedTag\\s*>>"
-                            $escapedTokenPattern = "&lt;&lt;SDT:\\s*$escapedTag\\s*&gt;&gt;"
-                            $tableTokenCount = [regex]::Matches($xmlText, "$rawTokenPattern|$escapedTokenPattern").Count
-                            $literalTokensMatched += [int]$tableTokenCount
-                            $literalTokensMatchedTable += [int]$tableTokenCount
-                            $xmlText = Replace-DocxParagraphTokenWithBlockXml -XmlText $xmlText -Tag $tagText -BlockXml $tableXml
+                        $diagKey = "{0}`n{1}" -f [string]$entry.FullName, $tagText
+                        if (Test-MapHasKey -Map $literalDiagnosticLookup -Key $diagKey) {
+                            $tableTokenCount = [int]$literalDiagnosticLookup[$diagKey].contiguousTokenHits
                         }
 
-                        $literalTagDiagnostics.Add([ordered]@{
-                            partName = [string]$entry.FullName
-                            tag = $tagText
-                            mode = 'table'
-                            tableXmlGenerated = [bool]$tableXmlGenerated
-                            contiguousTokenHits = [int]$tableTokenCount
-                        })
+                        $literalTokensMatched += [int]$tableTokenCount
+                        $literalTokensMatchedTable += [int]$tableTokenCount
+                        $tableXml = if (Test-MapHasKey -Map $tableXmlByTag -Key $tagText) { [string]$tableXmlByTag[$tagText] } else { '' }
+                        if (-not [string]::IsNullOrWhiteSpace($tableXml)) {
+                            $xmlText = Replace-DocxParagraphTokenWithBlockXml -XmlText $xmlText -Tag $tagText -BlockXml $tableXml
+                        }
                     }
                 }
 
                 foreach ($tag in @($ReplaceByTag.Keys)) {
                     $tagText = [string]$tag
-                    $escapedTag = [regex]::Escape($tagText)
-                    $rawTokenPattern = "<<SDT:\\s*$escapedTag\\s*>>"
-                    $escapedTokenPattern = "&lt;&lt;SDT:\\s*$escapedTag\\s*&gt;&gt;"
-                    $scalarTokenCount = [regex]::Matches($xmlText, "$rawTokenPattern|$escapedTokenPattern").Count
+                    $scalarTokenCount = 0
+                    $diagKey = "{0}`n{1}" -f [string]$entry.FullName, $tagText
+                    if (Test-MapHasKey -Map $literalDiagnosticLookup -Key $diagKey) {
+                        $scalarTokenCount = [int]$literalDiagnosticLookup[$diagKey].contiguousTokenHits
+                    }
+
                     $literalTokensMatched += [int]$scalarTokenCount
                     $literalTokensMatchedScalar += [int]$scalarTokenCount
                     $xmlText = Replace-LiteralSdtTokenXmlText -XmlText $xmlText -Tag $tagText -Replacement ([string]$ReplaceByTag[$tag])
-
-                    $literalTagDiagnostics.Add([ordered]@{
-                        partName = [string]$entry.FullName
-                        tag = $tagText
-                        mode = 'scalar'
-                        contiguousTokenHits = [int]$scalarTokenCount
-                    })
                 }
             }
 
             try {
-                # Contract: document-property replacement uses tagged content controls only.
-                # Mode behavior:
-                # - DocxMatchMode='content-control-tag' -> run only this branch.
-                # - DocxMatchMode='both'                -> run this branch after literal-token branch.
                 if (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'content-control-tag') {
                     [System.Xml.XmlDocument]$xmlDocTyped = [xml]$xmlText
                     $selectionContextNode = [System.Xml.XmlNode]$xmlDocTyped.DocumentElement
@@ -1156,11 +1394,20 @@ function Render-DocxTemplate {
                 $xmlText = Remove-UnresolvedSdtTokensFromText -Text $xmlText
             }
 
-            Set-ZipEntryText -Entry $entry -Text $xmlText
+            $updatedPartXmlByName[[string]$entry.FullName] = $xmlText
             $partsUpdated++
 
             $partUnresolved = Get-UnresolvedSdtTagOccurrences -RenderedText $xmlText
             Merge-UnresolvedSdtTagOccurrences -Target $unresolvedLiteralByTag -Source $partUnresolved
+        }
+
+        foreach ($partName in @($updatedPartXmlByName.Keys)) {
+            $existingEntry = $archive.GetEntry([string]$partName)
+            if ($null -ne $existingEntry) {
+                $existingEntry.Delete()
+            }
+            $updatedEntry = $archive.CreateEntry([string]$partName)
+            Set-ZipEntryText -Entry $updatedEntry -Text ([string]$updatedPartXmlByName[$partName])
         }
 
         $mappedTagsNotDiscovered = [System.Collections.Generic.List[string]]::new()
@@ -1182,7 +1429,12 @@ function Render-DocxTemplate {
         return [ordered]@{
             unresolvedLiteralByTag = $unresolvedLiteralByTag
             partsUpdated = $partsUpdated
+            outputPathResolved = [System.IO.Path]::GetFullPath($OutputPath)
             literalDatasetTokensExpected = [int]$literalDatasetTokensExpected
+            literalDatasetTokensDiscovered = [int]$literalDatasetTokensDiscovered
+            literalDatasetTagsDiscovered = [int]$literalDatasetTagsDiscovered
+            literalDatasetFragmentHintTags = @($literalDatasetFragmentHintTags)
+            literalDatasetTagStatus = @($literalDatasetTagStatus)
             literalDatasetTokensPopulated = [int]$literalTokensMatched
             literalTokensMatched = $literalTokensMatched
             literalTokensMatchedScalar = $literalTokensMatchedScalar
@@ -1202,13 +1454,14 @@ function Render-DocxTemplate {
             contentControlMappedTags = @($contentControlReplaceByTag.Keys | Sort-Object -Unique)
             partErrors = @($partErrors)
             literalTagDiagnostics = $literalTagDiagnostics.ToArray()
+            literalTagHitSummary = @($literalTagHitSummary)
+            literalPartHitSummary = @($literalPartHitSummary)
         }
     }
     finally {
         $archive.Dispose()
     }
 }
-
 
 function Format-SizeHuman {
     param([Parameter(Mandatory = $false)]$Bytes)
@@ -2203,7 +2456,7 @@ function Convert-ValueToString {
 
 $startedUtc = Get-UtcTimestamp
 $issues = [System.Collections.Generic.List[hashtable]]::new()
-$stageList = [System.Collections.Generic.List[hashtable]]::new()
+$stageList = [System.Collections.Generic.List[object]]::new()
 $outputs = [System.Collections.Generic.List[hashtable]]::new()
 $matches = [System.Collections.Generic.List[hashtable]]::new()
 $status = 'OK'
@@ -2226,7 +2479,7 @@ foreach ($stageName in @('Load','Validate','Transform','Render','Finalize')) {
 }
 
 function Start-RenderStage {
-    param([Parameter(Mandatory = $true)][hashtable]$Stage)
+    param([Parameter(Mandatory = $true)][System.Collections.IDictionary]$Stage)
     $script:currentStageName = [string]$Stage.name
     $Stage.startedUtc = Get-UtcTimestamp
     $Stage.completedUtc = $null
@@ -2235,7 +2488,7 @@ function Start-RenderStage {
 
 function Complete-RenderStage {
     param(
-        [Parameter(Mandatory = $true)][hashtable]$Stage,
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Stage,
         [Parameter(Mandatory = $true)][string]$Status,
         [Parameter(Mandatory = $false)][hashtable]$Details
     )
@@ -2456,24 +2709,29 @@ try {
             lastWriteTimeUtc = $templateItem.LastWriteTimeUtc.ToString('o')
             sha256 = $templateByteHashSha256
         }
-        Write-Host "[docx-render] template path: $($templateMetadata.path)"
-        Write-Host "[docx-render] template sha256: $($templateMetadata.sha256)"
-        Write-Host "[docx-render] template length bytes: $($templateMetadata.length)"
-        Write-Host "[docx-render] template lastWriteUtc: $($templateMetadata.lastWriteTimeUtc)"
+        Write-Verbose "[docx-render] template path: $($templateMetadata.path)"
+        Write-Verbose "[docx-render] template sha256: $($templateMetadata.sha256)"
+        Write-Verbose "[docx-render] template length bytes: $($templateMetadata.length)"
+        Write-Verbose "[docx-render] template lastWriteUtc: $($templateMetadata.lastWriteTimeUtc)"
 
         $outputDir = Split-Path -Path $OutputPath -Parent
         if ($outputDir -and -not (Test-Path -LiteralPath $outputDir -PathType Container)) {
             New-Item -Path $outputDir -ItemType Directory -Force | Out-Null
         }
-        $docxRender = Render-DocxTemplate -TemplatePath $resolvedTemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy
+        $docxRender = Render-DocxTemplate -TemplatePath $resolvedTemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy
         $docxUnresolvedLiteralByTag = $docxRender.unresolvedLiteralByTag
         $unresolvedByTag = $docxUnresolvedLiteralByTag
         $renderDetails.templatePathResolved = [string]$templateMetadata.path
+        $renderDetails.outputPathResolved = [string]$docxRender.outputPathResolved
         $renderDetails.templateBytesSha256 = [string]$templateMetadata.sha256
         $renderDetails.templateLengthBytes = [int64]$templateMetadata.length
         $renderDetails.templateLastWriteUtc = [string]$templateMetadata.lastWriteTimeUtc
         $renderDetails.partsUpdated = [int]$docxRender.partsUpdated
         $renderDetails.literalDatasetTokensExpected = [int]$docxRender.literalDatasetTokensExpected
+        $renderDetails.literalDatasetTokensDiscovered = [int]$docxRender.literalDatasetTokensDiscovered
+        $renderDetails.literalDatasetTagsDiscovered = [int]$docxRender.literalDatasetTagsDiscovered
+        $renderDetails.literalDatasetFragmentHintTags = @($docxRender.literalDatasetFragmentHintTags)
+        $renderDetails.literalDatasetTagStatus = @($docxRender.literalDatasetTagStatus)
         $renderDetails.literalDatasetTokensPopulated = [int]$docxRender.literalDatasetTokensPopulated
         $renderDetails.controlsDiscovered = [int]$docxRender.controlsDiscovered
         $renderDetails.literalTokensMatched = [int]$docxRender.literalTokensMatched
@@ -2494,12 +2752,27 @@ try {
         $renderDetails.partErrors = @($docxRender.partErrors)
         $renderDetails.literalTagDiagnostics = $docxRender.literalTagDiagnostics
         $renderDetails.literalTagDiagnosticsSummary = Get-LiteralTagDiagnosticsSummary -Diagnostics $docxRender.literalTagDiagnostics -TopEntries 25 -TopZeroHitTags 8 -TopInspectedPartsPerTag 4
+        $renderDetails.literalTagHitSummary = @($docxRender.literalTagHitSummary)
+        $renderDetails.literalPartHitSummary = @($docxRender.literalPartHitSummary)
         $renderDetails.unresolvedLiteralTokens = @($docxUnresolvedLiteralByTag.Keys | Sort-Object)
         $renderDetails.docxMatchMode = [string]$DocxMatchMode
         $expectedDocPropertyControlCount = [int]$renderDetails.docPropControlsExpected
         $controlsPopulatedCount = [int]$renderDetails.docPropControlsPopulated
         $docPropValuesSupplied = $expectedDocPropertyControlCount -gt 0
         $docPropNoPopulationSeverity = Resolve-DocPropNoPopulationSeverity
+        if ((-not (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token')) -and [int]$renderDetails.literalDatasetTokensExpected -gt 0 -and [int]$renderDetails.literalDatasetTokensDiscovered -gt 0) {
+            $sampleFoundTags = @(
+                @($renderDetails.literalDatasetTagStatus | Where-Object { [int]$_.contiguousLiteralHits -gt 0 } | Select-Object -First 5 | ForEach-Object { [string]$_.tag })
+            )
+            $sampleFoundTagsText = if ($sampleFoundTags.Count -gt 0) { $sampleFoundTags -join ', ' } else { 'n/a' }
+            $status = 'ERROR'
+            $issues.Add([ordered]@{
+                code = 'ASB-ASM-SDT-DOCX-MATCH-MODE-CONFLICT'
+                severity = 'ERROR'
+                message = "DOCX template contains literal dataset SDT tokens but docxMatchMode='$DocxMatchMode' excludes literal-token replacement. literalDatasetTokensExpected=$($renderDetails.literalDatasetTokensExpected); literalDatasetTokensDiscovered=$($renderDetails.literalDatasetTokensDiscovered); literalDatasetTagsDiscovered=$($renderDetails.literalDatasetTagsDiscovered); resolvedTemplatePath='$($renderDetails.templatePathResolved)'; sampleLiteralTags=$sampleFoundTagsText"
+                path = $TemplatePath
+            })
+        }
         if ((Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token') -and [int]$renderDetails.literalDatasetTokensExpected -gt 0 -and [int]$renderDetails.literalDatasetTokensPopulated -eq 0) {
             $zeroHitSamplesText = 'n/a'
             $zeroHitSamples = @($renderDetails.literalTagDiagnosticsSummary.zeroHitTagSamples)
@@ -2513,11 +2786,12 @@ try {
                         }
                 ) -join '; '
             }
+            $fragmentHintTagsSample = if (@($renderDetails.literalDatasetFragmentHintTags).Count -gt 0) { (@($renderDetails.literalDatasetFragmentHintTags | Select-Object -First 5) -join ', ') } else { 'n/a' }
             $status = 'ERROR'
             $issues.Add([ordered]@{
                 code = 'ASB-ASM-SDT-DOCX-NO-POPULATION'
                 severity = 'ERROR'
-                message = "DOCX literal-token render expected dataset mapping replacement but found no matching tokens to populate. docxMatchMode='$DocxMatchMode'; literalDatasetTokensExpected=$($renderDetails.literalDatasetTokensExpected); literalDatasetTokensPopulated=$($renderDetails.literalDatasetTokensPopulated); literalTokensMatched=$($renderDetails.literalTokensMatched); literalTokensMatchedScalar=$($renderDetails.literalTokensMatchedScalar); literalTokensMatchedTable=$($renderDetails.literalTokensMatchedTable); literalTagDiagnosticsTotal=$($renderDetails.literalTagDiagnosticsSummary.totalEntries); zeroHitTagsSample=$zeroHitSamplesText"
+                message = "DOCX literal-token render expected dataset mapping replacement but found no matching tokens to populate. docxMatchMode='$DocxMatchMode'; literalDatasetTokensExpected=$($renderDetails.literalDatasetTokensExpected); literalDatasetTokensDiscovered=$($renderDetails.literalDatasetTokensDiscovered); literalDatasetTokensPopulated=$($renderDetails.literalDatasetTokensPopulated); literalTokensMatched=$($renderDetails.literalTokensMatched); literalTokensMatchedScalar=$($renderDetails.literalTokensMatchedScalar); literalTokensMatchedTable=$($renderDetails.literalTokensMatchedTable); literalTagDiagnosticsTotal=$($renderDetails.literalTagDiagnosticsSummary.totalEntries); zeroHitTagsSample=$zeroHitSamplesText; fragmentHintTagsSample=$fragmentHintTagsSample"
                 path = $TemplatePath
             })
         }
@@ -2637,11 +2911,16 @@ try {
         tagsPopulated = $replaceByTag.Count
         templateKind = $(if ($isDocxTemplate) { 'docx' } else { 'text' })
         docxTemplatePathResolved = $(if ($isDocxTemplate) { [string]$renderDetails.templatePathResolved } else { '' })
+        docxOutputPathResolved = $(if ($isDocxTemplate) { [string]$renderDetails.outputPathResolved } else { '' })
         docxTemplateBytesSha256 = $(if ($isDocxTemplate) { [string]$renderDetails.templateBytesSha256 } else { '' })
         docxTemplateLengthBytes = $(if ($isDocxTemplate) { [int64]$renderDetails.templateLengthBytes } else { 0 })
         docxTemplateLastWriteUtc = $(if ($isDocxTemplate) { [string]$renderDetails.templateLastWriteUtc } else { '' })
         docxPartsUpdated = $(if ($isDocxTemplate) { [int]$renderDetails.partsUpdated } else { 0 })
         docxLiteralDatasetTokensExpected = $(if ($isDocxTemplate) { [int]$renderDetails.literalDatasetTokensExpected } else { 0 })
+        docxLiteralDatasetTokensDiscovered = $(if ($isDocxTemplate) { [int]$renderDetails.literalDatasetTokensDiscovered } else { 0 })
+        docxLiteralDatasetTagsDiscovered = $(if ($isDocxTemplate) { [int]$renderDetails.literalDatasetTagsDiscovered } else { 0 })
+        docxLiteralDatasetFragmentHintTags = $(if ($isDocxTemplate) { @($renderDetails.literalDatasetFragmentHintTags) } else { @() })
+        docxLiteralDatasetTagStatus = $(if ($isDocxTemplate) { @($renderDetails.literalDatasetTagStatus) } else { @() })
         docxLiteralDatasetTokensPopulated = $(if ($isDocxTemplate) { [int]$renderDetails.literalDatasetTokensPopulated } else { 0 })
         docxLiteralTokensMatched = $(if ($isDocxTemplate) { [int]$renderDetails.literalTokensMatched } else { 0 })
         docxLiteralTokensMatchedScalar = $(if ($isDocxTemplate) { [int]$renderDetails.literalTokensMatchedScalar } else { 0 })
@@ -2663,6 +2942,8 @@ try {
         docxLiteralTagDiagnosticsSummary = $(if ($isDocxTemplate) { $renderDetails.literalTagDiagnosticsSummary } else { [ordered]@{ totalEntries = 0; hitEntries = 0; zeroHitEntries = 0; distinctTagCount = 0; distinctPartCount = 0; topEntryLimit = 0; topEntries = @(); zeroHitTagSampleLimit = 0; zeroHitTagSamples = @() } })
         docxLiteralTagDiagnosticsCount = $(if ($isDocxTemplate) { [int]$renderDetails.literalTagDiagnosticsSummary.totalEntries } else { 0 })
         docxLiteralTagDiagnosticsHitCount = $(if ($isDocxTemplate) { [int]$renderDetails.literalTagDiagnosticsSummary.hitEntries } else { 0 })
+        docxLiteralTagHitSummary = $(if ($isDocxTemplate) { @($renderDetails.literalTagHitSummary) } else { @() })
+        docxLiteralPartHitSummary = $(if ($isDocxTemplate) { @($renderDetails.literalPartHitSummary) } else { @() })
         docxMatchMode = $(if ($isDocxTemplate) { [string]$renderDetails.docxMatchMode } else { '' })
         unresolvedTokenPolicy = [string]$UnresolvedTokenPolicy
         unresolved = $unresolvedSummary
@@ -2752,3 +3033,9 @@ $reportJson
 if ($status -eq 'ERROR') {
     exit 1
 }
+
+
+
+
+
+

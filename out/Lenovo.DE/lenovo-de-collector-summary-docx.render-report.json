@@ -1,263 +1,263 @@
 {
   "schemaVersion": 1,
   "status": "ERROR",
-  "startedUtc": "2026-04-01T03:01:27.7714833Z",
-  "completedUtc": "2026-04-01T03:01:42.1229636Z",
+  "startedUtc": "2026-04-01T03:46:43.8702746Z",
+  "completedUtc": "2026-04-01T03:47:06.1535248Z",
   "bundleId": "bc8e726c-0b55-4b6e-af58-c84fa426a26a",
   "stages": [
     {
-      "startedUtc": "2026-04-01T03:01:27.7715465Z",
-      "status": "SKIPPED",
-      "completedUtc": "2026-04-01T03:01:27.7715465Z",
+      "startedUtc": "2026-04-01T03:46:43.8703969Z",
+      "details": null,
       "name": "Load",
-      "details": null
+      "completedUtc": "2026-04-01T03:46:43.8703969Z",
+      "status": "SKIPPED"
     },
     {
-      "startedUtc": "2026-04-01T03:01:27.7715465Z",
-      "status": "SKIPPED",
-      "completedUtc": "2026-04-01T03:01:27.7715465Z",
+      "startedUtc": "2026-04-01T03:46:43.8703969Z",
+      "details": null,
       "name": "Validate",
-      "details": null
+      "completedUtc": "2026-04-01T03:46:43.8703969Z",
+      "status": "SKIPPED"
     },
     {
-      "startedUtc": "2026-04-01T03:01:27.7715465Z",
-      "status": "SKIPPED",
-      "completedUtc": "2026-04-01T03:01:27.7715465Z",
+      "startedUtc": "2026-04-01T03:46:43.8703969Z",
+      "details": null,
       "name": "Transform",
-      "details": null
+      "completedUtc": "2026-04-01T03:46:43.8703969Z",
+      "status": "SKIPPED"
     },
     {
-      "startedUtc": "2026-04-01T03:01:27.7715465Z",
-      "status": "SKIPPED",
-      "completedUtc": "2026-04-01T03:01:27.7715465Z",
+      "startedUtc": "2026-04-01T03:46:43.8703969Z",
+      "details": null,
       "name": "Render",
-      "details": null
+      "completedUtc": "2026-04-01T03:46:43.8703969Z",
+      "status": "SKIPPED"
     },
     {
-      "startedUtc": "2026-04-01T03:01:27.7715465Z",
-      "status": "SKIPPED",
-      "completedUtc": "2026-04-01T03:01:27.7715465Z",
+      "startedUtc": "2026-04-01T03:46:43.8703969Z",
+      "details": null,
       "name": "Finalize",
-      "details": null
+      "completedUtc": "2026-04-01T03:46:43.8703969Z",
+      "status": "SKIPPED"
     }
   ],
   "issues": [
     {
       "severity": "ERROR",
-      "code": "ASB-ASM-SDT-DOCX-NO-POPULATION",
-      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
-      "message": "DOCX literal-token render expected dataset mapping replacement but found no matching tokens to populate. docxMatchMode='both'; literalDatasetTokensExpected=33; literalDatasetTokensPopulated=0; literalTokensMatched=0; literalTokensMatchedScalar=0; literalTokensMatchedTable=0; literalTagDiagnosticsTotal=330; zeroHitTagsSample=LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI[table]=>parts{word/document.xml|word/footer1.xml|word/footer2.xml|word/header1.xml}"
+      "message": "DOCX literal-token render expected dataset mapping replacement but found no matching tokens to populate. docxMatchMode='both'; literalDatasetTokensExpected=33; literalDatasetTokensPopulated=0; literalTokensMatched=0; literalTokensMatchedScalar=0; literalTokensMatchedTable=0; literalTagDiagnosticsTotal=330; zeroHitTagsSample=LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port2[table]=>parts{word/document.xml|word/footer1.xml|word/footer2.xml|word/header1.xml}",
+      "path": "C:\\GitHub\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
+      "code": "ASB-ASM-SDT-DOCX-NO-POPULATION"
     },
     {
       "severity": "ERROR",
-      "code": "ASB-ASM-DOCPROP-DOCX-NO-POPULATION",
-      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
-      "message": "DOCX document-property render expected tagged content controls but none were populated. docxMatchMode='both'; discoveredControls=7; discoveredMappedControls=0; discoveredUnmappedControls=6; partErrorCount=0; taggedControlsMatched=0; controlsPopulated=0; docPropertyControlTags=13; docPropValuesSupplied=True; sampleDocPropertyTags=Customer, CustomerAbbr, DocCustomer, DocCustomerAbbr, DocEnvironment; policySeverity=ERROR"
+      "message": "DOCX document-property render expected tagged content controls but none were populated. docxMatchMode='both'; discoveredControls=7; discoveredMappedControls=0; discoveredUnmappedControls=6; partErrorCount=0; taggedControlsMatched=0; controlsPopulated=0; docPropertyControlTags=13; docPropValuesSupplied=True; sampleDocPropertyTags=Customer, CustomerAbbr, DocCustomer, DocCustomerAbbr, DocEnvironment; policySeverity=ERROR",
+      "path": "C:\\GitHub\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
+      "code": "ASB-ASM-DOCPROP-DOCX-NO-POPULATION"
     }
   ],
   "matches": [
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json",
       "valuePreview": "\r\nSystemName   Model  Status  FirmwareVersion ApplicationVersion BootVersion Nvs...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Summary"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Summary",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json",
       "valuePreview": "\r\nController Slot Status  AppVersion  BootVersion SerialNumber\r\n---------- ---- ...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Controllers"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Controllers",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
       "valuePreview": "\r\nController Slot Port Interface LinkStatus Address       Mask\r\n---------- ---- ...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/transport.json",
       "valuePreview": "\r\nActiveTransport IscsiIqn\r\n--------------- --------\r\niscsi           iqn.2002-0...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Transport"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Transport",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/transport.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
       "valuePreview": "\r\nAcquisition DnsServers DhcpServers\r\n----------- ---------- -----------\r\ndhcp  ...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.DNS"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.DNS",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
       "valuePreview": "\r\nAcquisition NtpServers DhcpServers DefaultRouter\r\n----------- ---------- -----...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Time"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Time",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/trays.json",
       "valuePreview": "\r\nTrayType TrayRole        SerialNumber PartNumber DriveSlots ControllerSlots St...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Trays"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Trays",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/trays.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
       "valuePreview": "\r\nController Slot Port Channel LinkStatus Address         Mask          Gateway ...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
       "valuePreview": "\r\nController     Slot Port Channel LinkStatus CurrentSpeed MaxSpeed PortWWN Node...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts.json",
       "valuePreview": "\r\nName        HostType\r\n----        --------\r\nNameofHost2 \r\nNameofHost1",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-groups.json",
       "valuePreview": "\r\nName              Members\r\n----              -------\r\nNameofHostCluster [\"Name...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-groups.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/drives.json",
       "valuePreview": "\r\nSlot Media Type Raw     Usable  Firmware Status  SerialNumber\r\n---- ----------...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory"
+      "tag": "LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/drives.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/storage-containers.json",
       "valuePreview": "\r\nName       ContainerType RaidLevel DriveMediaType Total    Used     Free      ...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory"
+      "tag": "LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/storage-containers.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/volumes.json",
       "valuePreview": "\r\nName          Size     Status  RaidLevel Container\r\n----          ----     ---...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory"
+      "tag": "LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/volumes.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/volume-mappings.json",
       "valuePreview": "\r\nVolume        Lun TargetType\r\n------        --- ----------\r\nVeeamVol1     3   ...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/volume-mappings.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts-to-host-groups.json",
       "valuePreview": "\r\nHost        HostGroup         HostType KeyType\r\n----        ---------         ...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts-to-host-groups.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-groups-to-volumes.json",
       "valuePreview": "\r\nHostGroup         Volume        Lun\r\n---------         ------        ---\r\nName...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-groups-to-volumes.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts-to-volumes.json",
       "valuePreview": "\r\nHost        Volume    Lun\r\n----        ------    ---\r\nNameofHost1 VeeamVol1 3",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts-to-volumes.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-asup.json",
       "valuePreview": "\r\nAsupEnabled OnDemandEnabled RemoteDiags DeliveryMethod RoutingType MaxHttps Ma...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-asup.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities-normalized.json",
       "valuePreview": "\r\nFeature                Category           State    Compliance Entitlement\r\n---...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities-normalized.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities-normalized.json",
       "valuePreview": "\r\nFeature                State    License     Notes\r\n-------                ----...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities-normalized.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities-normalized.json",
       "valuePreview": "\r\nFeature                Limit Used LimitState    Entitlement\r\n-------          ...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities-normalized.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
       "valuePreview": "\r\nController     Address Mask Gateway\r\n----------     ------- ---- -------\r\nNot ...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerA"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerA",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
       "valuePreview": "\r\nController Address       Mask          Gateway\r\n---------- -------       ---- ...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerB"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerB",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
       "valuePreview": "\r\nScope                    Acquisition DnsServers DhcpServers\r\n-----            ...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope1"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope1",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
       "valuePreview": "\r\nScope                    Acquisition DnsServers DhcpServers\r\n-----            ...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope2"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope2",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
       "valuePreview": "\r\nScope                    Acquisition NtpServers DhcpServers DefaultRouter\r\n---...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope1"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope1",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
       "valuePreview": "\r\nScope                    Acquisition NtpServers DhcpServers DefaultRouter\r\n---...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope2"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope2",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
       "valuePreview": "\r\nController Port Transport Address         IQN\r\n---------- ---- --------- -----...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port1"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port1",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
       "valuePreview": "\r\nController Port Transport Address         IQN\r\n---------- ---- --------- -----...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port2"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port2",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json",
       "valuePreview": "\r\nAsupEnabled OnDemandEnabled RemoteDiags DeliveryMethod\r\n----------- ----------...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Version"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Version",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json",
       "valuePreview": "\r\nDriveCount TrayCount AutoLoadBalancingEnabled HostConnectivityReportingEnabled...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Config"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Config",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json"
     },
     {
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/transport.json",
       "valuePreview": "\r\nActiveTransport IscsiIqn\r\n--------------- --------\r\niscsi           iqn.2002-0...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence",
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/transport.json"
     }
   ],
   "outputs": [
     {
-      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\Lenovo.DE\\DE-SDT-Collector.rendered.docx",
+      "path": "C:\\GitHub\\LNV.AsBuiltDoc.Assembler\\out\\Lenovo.DE\\DE-SDT-Collector.rendered.docx",
       "type": "docx/template-rendered"
     }
   ]

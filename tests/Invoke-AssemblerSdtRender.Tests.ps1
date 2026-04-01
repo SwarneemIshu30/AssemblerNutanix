@@ -573,7 +573,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
             $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot -DocxMatchMode 'content-control-tag'
             $exitCode = $LASTEXITCODE
-            if ($exitCode -ne 0) { throw "Expected successful render exit code, got $exitCode. Output: $output" }
+            if ($exitCode -eq 0) { throw "Expected non-zero exit code for literal-token mode conflict, got $exitCode. Output: $output" }
             $report = $output | ConvertFrom-Json -AsHashtable
 
             $zip = [System.IO.Compression.ZipFile]::OpenRead($outputPath)
@@ -593,7 +593,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             }
 
             if ($documentXml -match 'Alpha &amp; Beta &lt;Prod&gt;') { throw "Expected dataset scalar content-control tag to remain unchanged, got '$documentXml'" }
-            if ($documentXml -notmatch '<w:tag w:val=\"LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.Name\"/>') { throw "Expected scalar SDT tag to remain in document, got '$documentXml'" }
+            if ($documentXml -notmatch '<w:tag w:val=\"LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.Name\"\s*/>') { throw "Expected scalar SDT tag to remain in document, got '$documentXml'" }
             if ($documentXml -notmatch 'ORIGINAL-TABLE') { throw "Expected dataset table SDT content to remain unchanged, got '$documentXml'" }
             if ($documentXml -notmatch '&lt;&lt;SDT:LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.LegacyStatus&gt;&gt;') { throw "Expected legacy literal placeholder token to remain when DocxMatchMode=content-control-tag, got '$documentXml'" }
             if ($documentXml -notmatch 'ORIGINAL-SCALAR') { throw "Expected dataset scalar SDT content to remain unchanged, got '$documentXml'" }
@@ -603,11 +603,14 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             if ($null -eq $renderStage) { throw 'Expected render stage diagnostics in report.' }
             if ([int]$renderStage.details.docxControlsDiscovered -ne 3) { throw "Expected docxControlsDiscovered=3, got '$($renderStage.details.docxControlsDiscovered)'" }
             if ([int]$renderStage.details.docxLiteralDatasetTokensExpected -ne 2) { throw "Expected docxLiteralDatasetTokensExpected=2, got '$($renderStage.details.docxLiteralDatasetTokensExpected)'" }
-            if ([int]$renderStage.details.docxLiteralDatasetTokensPopulated -eq 0) { throw "Expected docxLiteralDatasetTokensPopulated>0 for unresolved literal token diagnostics, got '$($renderStage.details.docxLiteralDatasetTokensPopulated)'" }
+            if ([int]$renderStage.details.docxLiteralDatasetTokensDiscovered -le 0) { throw "Expected docxLiteralDatasetTokensDiscovered>0 in content-control-tag mode, got '$($renderStage.details.docxLiteralDatasetTokensDiscovered)'" }
+            if ([int]$renderStage.details.docxLiteralDatasetTokensPopulated -ne 0) { throw "Expected docxLiteralDatasetTokensPopulated=0 when literal-token mode is excluded, got '$($renderStage.details.docxLiteralDatasetTokensPopulated)'" }
             if ([int]$renderStage.details.docxDocPropControlsExpected -ne 6) { throw "Expected docxDocPropControlsExpected=6, got '$($renderStage.details.docxDocPropControlsExpected)'" }
             if ([int]$renderStage.details.docxDocPropControlsMatched -ne 0) { throw "Expected docxDocPropControlsMatched=0 in dataset-only template, got '$($renderStage.details.docxDocPropControlsMatched)'" }
             if ([int]$renderStage.details.docxDocPropControlsPopulated -ne 0) { throw "Expected docxDocPropControlsPopulated=0 in dataset-only template, got '$($renderStage.details.docxDocPropControlsPopulated)'" }
             if ([string]$renderStage.details.docxMatchMode -ne 'content-control-tag') { throw "Expected docxMatchMode=content-control-tag, got '$($renderStage.details.docxMatchMode)'" }
+            $modeConflictIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DOCX-MATCH-MODE-CONFLICT' }) | Select-Object -First 1
+            if ($null -eq $modeConflictIssue) { throw 'Expected targeted DOCX match-mode conflict issue in content-control-tag mode' }
             $unmatchedTags = @($renderStage.details.docxUnmatchedTaggedControls)
             if (@($unmatchedTags | Where-Object { $_ -eq 'LNV.Test.Tech.System[ArrayName].Summary.Name' }).Count -ne 1) {
                 throw "Expected unmatched tagged controls to include dataset tag LNV.Test.Tech.System[ArrayName].Summary.Name, got '$($unmatchedTags -join ',')'"
@@ -754,7 +757,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                 $zip.Dispose()
             }
 
-            if ($documentXml -notmatch '<w:t xml:space=\"preserve\">Ready</w:t>') { throw "Expected literal-token DOCX replacement when DocxMatchMode=literal-token, got '$documentXml'" }
+            if ($documentXml -notmatch '<w:t(?: xml:space=\"preserve\")?>Ready</w:t>') { throw "Expected literal-token DOCX replacement when DocxMatchMode=literal-token, got '$documentXml'" }
             if ($documentXml -match '&lt;&lt;SDT:LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.LegacyStatus&gt;&gt;') { throw "Expected legacy token to be removed in literal-token mode, got '$documentXml'" }
 
             $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
@@ -829,7 +832,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                 $zip.Dispose()
             }
 
-            if ($documentXml -notmatch '<w:t xml:space=\"preserve\">Ready</w:t>') { throw "Expected literal-token DOCX replacement when DocxMatchMode=both, got '$documentXml'" }
+            if ($documentXml -notmatch '<w:t(?: xml:space=\"preserve\")?>Ready</w:t>') { throw "Expected literal-token DOCX replacement when DocxMatchMode=both, got '$documentXml'" }
             if ($documentXml -match '&lt;&lt;SDT:\s*LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.LegacyStatus\s*&gt;&gt;') { throw "Expected legacy token to be removed in both mode, got '$documentXml'" }
 
             $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
@@ -2680,3 +2683,5 @@ Opt=<<SDT:OPT_NAME>>
     }
 
 }
+
+

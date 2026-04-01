@@ -18,7 +18,7 @@ param(
     [Parameter(Mandatory = $false)][string]$DocSubsidiary,
     [Parameter(Mandatory = $false)][string]$DocEnvironment,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
-    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'content-control-tag',
+    [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
     [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
 )
 
@@ -395,7 +395,9 @@ function Get-BundleEntryFailureMessage {
         }
         $codeSummary = @($codeCounts.Keys | Sort-Object | ForEach-Object { "$_=$($codeCounts[$_])" }) -join ', '
 
-        return "Entry '$EntryId' variant '$VariantName' failed render as a wrapper/aggregation error. Inspect nested renderer report '$RendererReportPath' and its issues array for the $rootCauseCount underlying renderer $rootCauseLabel (issue codes: $codeSummary)."
+        $renderStage = @($RendererReport.stages | Where-Object { [string]$_.name -eq 'Render' } | Select-Object -First 1)
+        $docxModeText = if (@($renderStage).Count -gt 0 -and $null -ne $renderStage[0] -and $null -ne $renderStage[0].details -and -not [string]::IsNullOrWhiteSpace([string]$renderStage[0].details.docxMatchMode)) { [string]$renderStage[0].details.docxMatchMode } else { 'n/a' }
+        return "Entry '$EntryId' variant '$VariantName' failed render as a wrapper/aggregation error. Inspect nested renderer report '$RendererReportPath' and its issues array for the $rootCauseCount underlying renderer $rootCauseLabel (docxMatchMode=$docxModeText; issue codes: $codeSummary)."
     }
 
     if (-not [string]::IsNullOrWhiteSpace($RendererReportPath)) {
@@ -404,7 +406,7 @@ function Get-BundleEntryFailureMessage {
 
     return "Entry '$EntryId' variant '$VariantName' failed render as a wrapper/aggregation error. Inspect the nested renderer report and its issues array for the underlying renderer failure details."
 }
-$stages = [System.Collections.Generic.List[hashtable]]::new()
+$stages = [System.Collections.Generic.List[object]]::new()
 $status = 'OK'
 $effectiveBundleRoot = $BundleRoot
 
@@ -416,7 +418,7 @@ foreach ($stageName in @('Load','Validate','Transform','Render','Finalize')) {
 }
 
 function Start-BundleStage {
-    param([Parameter(Mandatory = $true)][hashtable]$Stage)
+    param([Parameter(Mandatory = $true)][System.Collections.IDictionary]$Stage)
     $Stage.startedUtc = Get-UtcTimestamp
     $Stage.completedUtc = $null
     $Stage.status = 'OK'
@@ -424,7 +426,7 @@ function Start-BundleStage {
 
 function Complete-BundleStage {
     param(
-        [Parameter(Mandatory = $true)][hashtable]$Stage,
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Stage,
         [Parameter(Mandatory = $true)][string]$Status,
         [Parameter(Mandatory = $false)][hashtable]$Details
     )
@@ -633,7 +635,7 @@ try {
                     targetCandidateRoots = @($variant.targetCandidateRoots)
                 })
             }
-            Complete-BundleStage -Stage $runStageMap.Render -Status $runStatus
+            Complete-BundleStage -Stage $runStageMap.Render -Status $runStatus -Details ([ordered]@{ variantCount = @($mappingVariants).Count; docxMatchMode = [string]$DocxMatchMode })
 
             Start-BundleStage -Stage $runStageMap.Finalize
             if (@($mappingVariants).Count -gt 1 -and $sectionTexts.Count -gt 0) {
@@ -730,3 +732,5 @@ $reportJson
 if ($status -eq 'ERROR') {
     exit 1
 }
+
+
