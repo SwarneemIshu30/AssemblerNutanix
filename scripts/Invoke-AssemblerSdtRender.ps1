@@ -774,16 +774,100 @@ function Resolve-DocPropNoPopulationSeverity {
 function Get-LiteralTagDiagnosticsSummary {
     param(
         [Parameter(Mandatory = $false)][object[]]$Diagnostics,
-        [Parameter(Mandatory = $false)][int]$TopEntries = 20,
-        [Parameter(Mandatory = $false)][int]$TopZeroHitTags = 5,
-        [Parameter(Mandatory = $false)][int]$TopInspectedPartsPerTag = 3
+        [Parameter(Mandatory = $false)][object]$TopEntries = 20,
+        [Parameter(Mandatory = $false)][object]$TopZeroHitTags = 5,
+        [Parameter(Mandatory = $false)][object]$TopInspectedPartsPerTag = 3
     )
 
-    $topEntriesBounded = if ($TopEntries -gt 0) { $TopEntries } else { 20 }
-    $topZeroHitTagsBounded = if ($TopZeroHitTags -gt 0) { $TopZeroHitTags } else { 5 }
-    $topInspectedPartsBounded = if ($TopInspectedPartsPerTag -gt 0) { $TopInspectedPartsPerTag } else { 3 }
+    function Get-FirstBoundedIntValue {
+        param(
+            [Parameter(Mandatory = $false)][object]$Value,
+            [Parameter(Mandatory = $true)][int]$Default,
+            [Parameter(Mandatory = $true)][int]$Min
+        )
 
-    $allDiagnostics = @($Diagnostics)
+        $candidate = $Value
+        if ($candidate -is [System.Collections.IEnumerable] -and -not ($candidate -is [string])) {
+            $candidate = @($candidate | Select-Object -First 1)
+            if (@($candidate).Count -gt 0) {
+                $candidate = $candidate[0]
+            } else {
+                $candidate = $null
+            }
+        }
+
+        $parsed = 0
+        if ($null -eq $candidate -or -not [int]::TryParse([string]$candidate, [ref]$parsed)) {
+            return [int]$Default
+        }
+
+        if ($parsed -lt $Min) {
+            return [int]$Default
+        }
+
+        return [int]$parsed
+    }
+
+    function Get-DeterministicContiguousTokenHits {
+        param([Parameter(Mandatory = $false)][object]$Value)
+
+        if ($null -eq $Value) {
+            return 0
+        }
+
+        if ($Value -is [System.Collections.IEnumerable] -and -not ($Value -is [string])) {
+            # Deterministic rule: prefer the first numeric value in sequence order.
+            foreach ($candidate in @($Value)) {
+                $parsed = 0
+                if ([int]::TryParse([string]$candidate, [ref]$parsed)) {
+                    return [int]$parsed
+                }
+            }
+            return 0
+        }
+
+        $parsedScalar = 0
+        if ([int]::TryParse([string]$Value, [ref]$parsedScalar)) {
+            return [int]$parsedScalar
+        }
+
+        return 0
+    }
+
+    $topEntriesBounded = Get-FirstBoundedIntValue -Value $TopEntries -Default 20 -Min 1
+    $topZeroHitTagsBounded = Get-FirstBoundedIntValue -Value $TopZeroHitTags -Default 5 -Min 1
+    $topInspectedPartsBounded = Get-FirstBoundedIntValue -Value $TopInspectedPartsPerTag -Default 3 -Min 1
+
+    $diagnosticsFlattened = [System.Collections.Generic.List[object]]::new()
+    foreach ($item in @($Diagnostics)) {
+        if ($null -eq $item) {
+            continue
+        }
+
+        if (
+            ($item -is [System.Collections.IDictionary]) -or
+            ($item.PSObject -and $item.PSObject.Properties['tag']) -or
+            ($item.PSObject -and $item.PSObject.Properties['partName']) -or
+            ($item.PSObject -and $item.PSObject.Properties['mode']) -or
+            ($item.PSObject -and $item.PSObject.Properties['contiguousTokenHits'])
+        ) {
+            $diagnosticsFlattened.Add($item)
+            continue
+        }
+
+        if ($item -is [System.Collections.IEnumerable] -and -not ($item -is [string])) {
+            foreach ($nestedItem in @($item)) {
+                if ($null -ne $nestedItem) {
+                    $diagnosticsFlattened.Add($nestedItem)
+                }
+            }
+            continue
+        }
+
+        $diagnosticsFlattened.Add($item)
+    }
+
+    $allDiagnostics = @($diagnosticsFlattened)
     if ($null -eq $allDiagnostics -or $allDiagnostics.Count -eq 0) {
         return [ordered]@{
             totalEntries = 0
@@ -801,13 +885,7 @@ function Get-LiteralTagDiagnosticsSummary {
 
     $diagnosticsNormalized = @(
         $allDiagnostics | ForEach-Object {
-            $contiguousTokenHits = 0
-            if ($null -ne $_ -and $null -ne $_.contiguousTokenHits) {
-                $parsedContiguousTokenHits = 0
-                if ([int]::TryParse([string]$_.contiguousTokenHits, [ref]$parsedContiguousTokenHits)) {
-                    $contiguousTokenHits = $parsedContiguousTokenHits
-                }
-            }
+            $contiguousTokenHits = Get-DeterministicContiguousTokenHits -Value $_.contiguousTokenHits
 
             [ordered]@{
                 tag = [string]$_.tag
@@ -828,7 +906,7 @@ function Get-LiteralTagDiagnosticsSummary {
     $topEntries = @(
         $diagnosticsNormalized |
             Sort-Object -Property @{ Expression = { $_.contiguousTokenHits }; Descending = $true }, @{ Expression = { [string]$_.tag }; Descending = $false }, @{ Expression = { [string]$_.partName }; Descending = $false } |
-            Select-Object -First $topEntriesBounded |
+            Select-Object -First ([int]$topEntriesBounded) |
             ForEach-Object {
                 [ordered]@{
                     tag = [string]$_.tag
@@ -857,7 +935,7 @@ function Get-LiteralTagDiagnosticsSummary {
         $zeroHitSamplesByTag.Add([ordered]@{
             tag = $groupTag
             mode = $groupMode
-            inspectedParts = @($inspectedParts | Select-Object -First $topInspectedPartsBounded)
+            inspectedParts = @($inspectedParts | Select-Object -First ([int]$topInspectedPartsBounded))
             inspectedPartCount = @($inspectedParts).Count
         })
     }
@@ -865,7 +943,7 @@ function Get-LiteralTagDiagnosticsSummary {
     $zeroHitSampleBounded = @(
         $zeroHitSamplesByTag |
             Sort-Object -Property @{ Expression = { [string]$_.tag }; Descending = $false }, @{ Expression = { [string]$_.mode }; Descending = $false } |
-            Select-Object -First $topZeroHitTagsBounded
+            Select-Object -First ([int]$topZeroHitTagsBounded)
     )
 
     return [ordered]@{
