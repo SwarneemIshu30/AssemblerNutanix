@@ -30,7 +30,8 @@ Describe 'Start-AssemblerGui shared helper module' {
                             [ordered]@{ tag = 'LNV.Tag.One'; valuePreview = 'value-1' }
                         )
                         issues = @(
-                            [ordered]@{ severity = 'ERROR'; message = 'nested render failure' }
+                            [ordered]@{ code = 'ASB-ASM-SDT-DOCX-NO-POPULATION'; severity = 'ERROR'; message = 'nested render failure' },
+                                    [ordered]@{ code = 'ASB-ASM-DOCPROP-DOCX-NO-POPULATION'; severity = 'ERROR'; message = 'docprop render failure' }
                         )
                     }
                     variants = @(
@@ -38,7 +39,8 @@ Describe 'Start-AssemblerGui shared helper module' {
                             reportPath = '/tmp/out/collector.render-report.json'
                             rendererOutput = [ordered]@{
                                 issues = @(
-                                    [ordered]@{ severity = 'ERROR'; message = 'nested render failure' }
+                                    [ordered]@{ code = 'ASB-ASM-SDT-DOCX-NO-POPULATION'; severity = 'ERROR'; message = 'nested render failure' },
+                                    [ordered]@{ code = 'ASB-ASM-DOCPROP-DOCX-NO-POPULATION'; severity = 'ERROR'; message = 'docprop render failure' }
                                 )
                             }
                         }
@@ -61,6 +63,9 @@ Describe 'Start-AssemblerGui shared helper module' {
 
         if ($summary -notmatch 'Derived bundle wrapper failures: 1') {
             throw "Expected derived wrapper classification in summary, got: $summary"
+        }
+        if ($summary -notmatch 'Issues by code: ASB-ASM-DOCPROP-DOCX-NO-POPULATION=1, ASB-ASM-SDT-DOCX-NO-POPULATION=1') {
+            throw "Expected issue code summary with distinct no-population codes, got: $summary"
         }
         if ($verbose -notmatch 'Found <LNV.Tag.One> = value-1') {
             throw "Expected matched tags in verbose output, got: $verbose"
