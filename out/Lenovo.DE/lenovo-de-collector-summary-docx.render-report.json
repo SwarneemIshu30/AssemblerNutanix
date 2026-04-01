@@ -1,42 +1,42 @@
 {
   "schemaVersion": 1,
   "status": "ERROR",
-  "startedUtc": "2026-04-01T02:38:32.0743324Z",
-  "completedUtc": "2026-04-01T02:38:46.7509651Z",
+  "startedUtc": "2026-04-01T02:51:11.7453289Z",
+  "completedUtc": "2026-04-01T02:51:25.6270918Z",
   "bundleId": "bc8e726c-0b55-4b6e-af58-c84fa426a26a",
   "stages": [
     {
-      "startedUtc": "2026-04-01T02:38:32.0744194Z",
+      "startedUtc": "2026-04-01T02:51:11.7453931Z",
       "status": "SKIPPED",
-      "completedUtc": "2026-04-01T02:38:32.0744194Z",
+      "completedUtc": "2026-04-01T02:51:11.7453931Z",
       "name": "Load",
       "details": null
     },
     {
-      "startedUtc": "2026-04-01T02:38:32.0744194Z",
+      "startedUtc": "2026-04-01T02:51:11.7453931Z",
       "status": "SKIPPED",
-      "completedUtc": "2026-04-01T02:38:32.0744194Z",
+      "completedUtc": "2026-04-01T02:51:11.7453931Z",
       "name": "Validate",
       "details": null
     },
     {
-      "startedUtc": "2026-04-01T02:38:32.0744194Z",
+      "startedUtc": "2026-04-01T02:51:11.7453931Z",
       "status": "SKIPPED",
-      "completedUtc": "2026-04-01T02:38:32.0744194Z",
+      "completedUtc": "2026-04-01T02:51:11.7453931Z",
       "name": "Transform",
       "details": null
     },
     {
-      "startedUtc": "2026-04-01T02:38:32.0744194Z",
+      "startedUtc": "2026-04-01T02:51:11.7453931Z",
       "status": "SKIPPED",
-      "completedUtc": "2026-04-01T02:38:32.0744194Z",
+      "completedUtc": "2026-04-01T02:51:11.7453931Z",
       "name": "Render",
       "details": null
     },
     {
-      "startedUtc": "2026-04-01T02:38:32.0744194Z",
+      "startedUtc": "2026-04-01T02:51:11.7453931Z",
       "status": "SKIPPED",
-      "completedUtc": "2026-04-01T02:38:32.0744194Z",
+      "completedUtc": "2026-04-01T02:51:11.7453931Z",
       "name": "Finalize",
       "details": null
     }
@@ -46,7 +46,7 @@
       "severity": "ERROR",
       "code": "ASB-ASM-SDT-UNHANDLED",
       "path": null,
-      "message": "message=Cannot convert the \"System.Object[]\" value of type \"System.Object[]\" to type \"System.Int32\". | position=At C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1:2379 char:55\r\n+ … csSummary = Get-LiteralTagDiagnosticsSummary -Diagnostics @($docxRend …\r\n+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ | stack=at Get-LiteralTagDiagnosticsSummary, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 791\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 2379\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerBundleRender.ps1: line 592\r\nat Invoke-BundleRender, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 109\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 374\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 392\r\nat <ScriptBlock>, <No file>: line 1 | stage=Render"
+      "message": "message=Cannot convert the \"System.Object[]\" value of type \"System.Object[]\" to type \"System.Int32\". | position=At C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1:2418 char:55\r\n+ … csSummary = Get-LiteralTagDiagnosticsSummary -Diagnostics @($docxRend …\r\n+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ | stack=at Get-LiteralTagDiagnosticsSummary, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 829\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 2418\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerBundleRender.ps1: line 592\r\nat Invoke-BundleRender, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 109\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 374\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 392\r\nat <ScriptBlock>, <No file>: line 1 | stage=Render"
     }
   ],
   "matches": [
