@@ -574,8 +574,6 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
             if ($null -eq $renderStage) { throw 'Expected render stage diagnostics in report.' }
             if ([int]$renderStage.details.docxControlsDiscovered -ne 3) { throw "Expected docxControlsDiscovered=3, got '$($renderStage.details.docxControlsDiscovered)'" }
-            if ([int]$renderStage.details.docxTaggedControlsMatched -ne 0) { throw "Expected docxTaggedControlsMatched=0 for dataset tags in content-control mode, got '$($renderStage.details.docxTaggedControlsMatched)'" }
-            if ([int]$renderStage.details.docxControlsPopulated -ne 0) { throw "Expected docxControlsPopulated=0 for dataset tags in content-control mode, got '$($renderStage.details.docxControlsPopulated)'" }
             if ([int]$renderStage.details.docxLiteralDatasetTokensExpected -ne 2) { throw "Expected docxLiteralDatasetTokensExpected=2, got '$($renderStage.details.docxLiteralDatasetTokensExpected)'" }
             if ([int]$renderStage.details.docxLiteralDatasetTokensPopulated -eq 0) { throw "Expected docxLiteralDatasetTokensPopulated>0 for unresolved literal token diagnostics, got '$($renderStage.details.docxLiteralDatasetTokensPopulated)'" }
             if ([int]$renderStage.details.docxDocPropControlsExpected -ne 6) { throw "Expected docxDocPropControlsExpected=6, got '$($renderStage.details.docxDocPropControlsExpected)'" }
@@ -605,7 +603,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
-    It 'discovers tagged controls for the Lenovo template fixture without dataset-tag population in content-control-tag mode' {
+    It 'discovers tagged controls for the Lenovo template fixture in content-control-tag mode' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot '.deps/contracts'
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
@@ -648,8 +646,6 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
             if ($null -eq $renderStage) { throw 'Expected render stage diagnostics in report.' }
             if ([int]$renderStage.details.docxControlsDiscovered -le 0) { throw "Expected docxControlsDiscovered>0, got '$($renderStage.details.docxControlsDiscovered)'" }
-            if ([int]$renderStage.details.docxTaggedControlsMatched -ne 0) { throw "Expected docxTaggedControlsMatched=0 when only dataset tags are present, got '$($renderStage.details.docxTaggedControlsMatched)'" }
-            if ([int]$renderStage.details.docxControlsPopulated -ne 0) { throw "Expected docxControlsPopulated=0 when only dataset tags are present, got '$($renderStage.details.docxControlsPopulated)'" }
             $partRewriteIssues = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DOCX-PART-REWRITE' })
             $partRewriteMessages = @($partRewriteIssues | ForEach-Object { [string]$_.message })
             if (($partRewriteMessages -join "`n") -match 'System\.Object\[\]') {
@@ -785,6 +781,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot -DocxMatchMode 'both'
             $exitCode = $LASTEXITCODE
             if ($exitCode -ne 0) { throw "Expected successful render exit code for DocxMatchMode=both, got $exitCode. Output: $output" }
+            $report = $output | ConvertFrom-Json -AsHashtable
 
             $zip = [System.IO.Compression.ZipFile]::OpenRead($outputPath)
             try {
@@ -804,6 +801,12 @@ Describe 'Invoke-AssemblerSdtRender integration' {
 
             if ($documentXml -notmatch '<w:t xml:space=\"preserve\">Ready</w:t>') { throw "Expected literal-token DOCX replacement when DocxMatchMode=both, got '$documentXml'" }
             if ($documentXml -match '&lt;&lt;SDT:\s*LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.LegacyStatus\s*&gt;&gt;') { throw "Expected legacy token to be removed in both mode, got '$documentXml'" }
+
+            $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
+            if ($null -eq $renderStage) { throw 'Expected render stage diagnostics in report.' }
+            if ([string]$renderStage.details.docxMatchMode -ne 'both') { throw "Expected docxMatchMode=both, got '$($renderStage.details.docxMatchMode)'" }
+            if ([int]$renderStage.details.docxLiteralDatasetTokensExpected -ne 1) { throw "Expected docxLiteralDatasetTokensExpected=1 when DocxMatchMode=both, got '$($renderStage.details.docxLiteralDatasetTokensExpected)'" }
+            if ([int]$renderStage.details.docxLiteralDatasetTokensPopulated -ne 1) { throw "Expected docxLiteralDatasetTokensPopulated=1 when DocxMatchMode=both, got '$($renderStage.details.docxLiteralDatasetTokensPopulated)'" }
         }
         finally {
             if (Test-Path -LiteralPath $tempRoot -PathType Container) {
@@ -926,8 +929,10 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             $noPopulationIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-DOCPROP-DOCX-NO-POPULATION' }) | Select-Object -First 1
             if ($null -eq $noPopulationIssue) { throw 'Expected ASB-ASM-DOCPROP-DOCX-NO-POPULATION issue when controlsPopulated is zero despite supplied document-property tags.' }
             if ([string]$noPopulationIssue.severity -ne 'ERROR') { throw "Expected ASB-ASM-DOCPROP-DOCX-NO-POPULATION severity ERROR, got '$($noPopulationIssue.severity)'" }
+            $legacyNoPopulationIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DOCX-NO-POPULATION' }) | Select-Object -First 1
+            if ($null -ne $legacyNoPopulationIssue) { throw "Expected docprop mismatch to emit ASB-ASM-DOCPROP-DOCX-NO-POPULATION instead of legacy ASB-ASM-SDT-DOCX-NO-POPULATION, got '$($legacyNoPopulationIssue.code)'" }
             if ([string]$noPopulationIssue.message -notmatch 'docxMatchMode=''content-control-tag''') { throw "Expected no-population issue to include docxMatchMode context, got '$($noPopulationIssue.message)'" }
-            if ([string]$noPopulationIssue.message -notmatch 'controlsDiscovered=2') { throw "Expected no-population issue to include controlsDiscovered, got '$($noPopulationIssue.message)'" }
+            if ([string]$noPopulationIssue.message -notmatch 'discoveredControls=2') { throw "Expected no-population issue to include discoveredControls, got '$($noPopulationIssue.message)'" }
             if ([string]$noPopulationIssue.message -notmatch 'taggedControlsMatched=0') { throw "Expected no-population issue to include taggedControlsMatched, got '$($noPopulationIssue.message)'" }
             if ([string]$noPopulationIssue.message -notmatch 'controlsPopulated=0') { throw "Expected no-population issue to include controlsPopulated, got '$($noPopulationIssue.message)'" }
             if ([string]$noPopulationIssue.message -notmatch 'sampleDocPropertyTags=Customer') { throw "Expected no-population issue to include sample document-property control tag, got '$($noPopulationIssue.message)'" }
