@@ -2417,6 +2417,9 @@ try {
         docxDocPropMappedTags = $(if ($isDocxTemplate) { @($renderDetails.docPropMappedTags) } else { @() })
         docxPartErrors = $(if ($isDocxTemplate) { @($renderDetails.partErrors) } else { @() })
         docxUnresolvedLiteralTokens = $(if ($isDocxTemplate) { @($renderDetails.unresolvedLiteralTokens) } else { @() })
+        docxLiteralTagDiagnostics = $(if ($isDocxTemplate) { @($renderDetails.literalTagDiagnostics) } else { @() })
+        docxLiteralTagDiagnosticsCount = $(if ($isDocxTemplate) { @($renderDetails.literalTagDiagnostics).Count } else { 0 })
+        docxLiteralTagDiagnosticsHitCount = $(if ($isDocxTemplate) { @(@($renderDetails.literalTagDiagnostics) | Where-Object { [int]$_.contiguousTokenHits -gt 0 }).Count } else { 0 })
         docxMatchMode = $(if ($isDocxTemplate) { [string]$renderDetails.docxMatchMode } else { '' })
         unresolvedTokenPolicy = [string]$UnresolvedTokenPolicy
         unresolved = $unresolvedSummary
