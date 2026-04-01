@@ -1123,7 +1123,7 @@ function Render-DocxTemplate {
             docPropMappedTags = @($contentControlReplaceByTag.Keys | Sort-Object -Unique)
             contentControlMappedTags = @($contentControlReplaceByTag.Keys | Sort-Object -Unique)
             partErrors = @($partErrors)
-            literalTagDiagnostics = @($literalTagDiagnostics)
+            literalTagDiagnostics = $literalTagDiagnostics.ToArray()
         }
     }
     finally {
@@ -2414,8 +2414,8 @@ try {
         $renderDetails.docPropMappedTags = @($docxRender.docPropMappedTags)
         $renderDetails.contentControlMappedTags = @($docxRender.contentControlMappedTags)
         $renderDetails.partErrors = @($docxRender.partErrors)
-        $renderDetails.literalTagDiagnostics = @($docxRender.literalTagDiagnostics)
-        $renderDetails.literalTagDiagnosticsSummary = Get-LiteralTagDiagnosticsSummary -Diagnostics @($docxRender.literalTagDiagnostics) -TopEntries 25 -TopZeroHitTags 8 -TopInspectedPartsPerTag 4
+        $renderDetails.literalTagDiagnostics = $docxRender.literalTagDiagnostics
+        $renderDetails.literalTagDiagnosticsSummary = Get-LiteralTagDiagnosticsSummary -Diagnostics $docxRender.literalTagDiagnostics -TopEntries 25 -TopZeroHitTags 8 -TopInspectedPartsPerTag 4
         $renderDetails.unresolvedLiteralTokens = @($docxUnresolvedLiteralByTag.Keys | Sort-Object)
         $renderDetails.docxMatchMode = [string]$DocxMatchMode
         $expectedDocPropertyControlCount = [int]$renderDetails.docPropControlsExpected
