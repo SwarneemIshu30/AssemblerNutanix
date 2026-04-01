@@ -65,6 +65,21 @@ function Read-JsonFile {
     Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
 }
 
+function Get-FileSha256Hex {
+    param(
+        [Parameter(Mandatory = $true)][byte[]]$Bytes
+    )
+
+    $sha256 = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $hashBytes = $sha256.ComputeHash($Bytes)
+        return ([System.BitConverter]::ToString($hashBytes)).Replace('-', '').ToLowerInvariant()
+    }
+    finally {
+        $sha256.Dispose()
+    }
+}
+
 function Resolve-AssemblerContractsRoot {
     param(
         [Parameter(Mandatory = $false)][string]$ContractsRoot,
@@ -2238,14 +2253,36 @@ try {
     $rendered = $null
     $unresolvedByTag = @{}
     $renderDetails = [ordered]@{}
+    $resolvedTemplatePath = $null
+    $templateMetadata = $null
+    $templateByteHashSha256 = $null
     if ($isDocxTemplate) {
+        $resolvedTemplatePath = (Resolve-Path -LiteralPath $TemplatePath).Path
+        $templateItem = Get-Item -LiteralPath $resolvedTemplatePath
+        $templateBytes = [System.IO.File]::ReadAllBytes($resolvedTemplatePath)
+        $templateByteHashSha256 = Get-FileSha256Hex -Bytes $templateBytes
+        $templateMetadata = [ordered]@{
+            path = $resolvedTemplatePath
+            length = [int64]$templateItem.Length
+            lastWriteTimeUtc = $templateItem.LastWriteTimeUtc.ToString('o')
+            sha256 = $templateByteHashSha256
+        }
+        Write-Host "[docx-render] template path: $($templateMetadata.path)"
+        Write-Host "[docx-render] template sha256: $($templateMetadata.sha256)"
+        Write-Host "[docx-render] template length bytes: $($templateMetadata.length)"
+        Write-Host "[docx-render] template lastWriteUtc: $($templateMetadata.lastWriteTimeUtc)"
+
         $outputDir = Split-Path -Path $OutputPath -Parent
         if ($outputDir -and -not (Test-Path -LiteralPath $outputDir -PathType Container)) {
             New-Item -Path $outputDir -ItemType Directory -Force | Out-Null
         }
-        $docxRender = Render-DocxTemplate -TemplatePath $TemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy
+        $docxRender = Render-DocxTemplate -TemplatePath $resolvedTemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy
         $docxUnresolvedLiteralByTag = $docxRender.unresolvedLiteralByTag
         $unresolvedByTag = $docxUnresolvedLiteralByTag
+        $renderDetails.templatePathResolved = [string]$templateMetadata.path
+        $renderDetails.templateBytesSha256 = [string]$templateMetadata.sha256
+        $renderDetails.templateLengthBytes = [int64]$templateMetadata.length
+        $renderDetails.templateLastWriteUtc = [string]$templateMetadata.lastWriteTimeUtc
         $renderDetails.partsUpdated = [int]$docxRender.partsUpdated
         $renderDetails.literalDatasetTokensExpected = [int]$docxRender.literalDatasetTokensExpected
         $renderDetails.literalDatasetTokensPopulated = [int]$docxRender.literalDatasetTokensPopulated
@@ -2397,6 +2434,10 @@ try {
     Complete-RenderStage -Stage $stageMap.Render -Status $renderStatus -Details ([ordered]@{
         tagsPopulated = $replaceByTag.Count
         templateKind = $(if ($isDocxTemplate) { 'docx' } else { 'text' })
+        docxTemplatePathResolved = $(if ($isDocxTemplate) { [string]$renderDetails.templatePathResolved } else { '' })
+        docxTemplateBytesSha256 = $(if ($isDocxTemplate) { [string]$renderDetails.templateBytesSha256 } else { '' })
+        docxTemplateLengthBytes = $(if ($isDocxTemplate) { [int64]$renderDetails.templateLengthBytes } else { 0 })
+        docxTemplateLastWriteUtc = $(if ($isDocxTemplate) { [string]$renderDetails.templateLastWriteUtc } else { '' })
         docxPartsUpdated = $(if ($isDocxTemplate) { [int]$renderDetails.partsUpdated } else { 0 })
         docxLiteralDatasetTokensExpected = $(if ($isDocxTemplate) { [int]$renderDetails.literalDatasetTokensExpected } else { 0 })
         docxLiteralDatasetTokensPopulated = $(if ($isDocxTemplate) { [int]$renderDetails.literalDatasetTokensPopulated } else { 0 })
