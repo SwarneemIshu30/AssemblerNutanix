@@ -939,6 +939,56 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
+    It 'does not emit docprop no-population when no document-property values are supplied' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-docx-no-docprop-values-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'unused' -TechId 'Test.Tech' -DatasetRelativePath 'datasets/transport.json' -Mappings @(
+                @{
+                    dataset = 'datasets/transport.json'
+                    required = $true
+                    selectors = @('items', '0', 'name')
+                    target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Summary.Name' }
+                }
+            ) -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'transport'
+                item_count = 1
+                items = @(
+                    @{ name = 'Alpha Node' }
+                )
+            }
+
+            $contractsRoot = New-MinimalContractsRoot -Root $tempRoot -DatasetName 'transport'
+            $templatePath = Join-Path $tempRoot 'no-docprop-values-template.docx'
+            New-TestTaggedContentControlDocxTemplate -Path $templatePath -ScalarTag 'LNV.Test.Tech.System[ArrayName].Summary.Other' -TableTag 'LNV.Test.Tech.System[ArrayName].Tables.Other'
+            $outputPath = Join-Path $tempRoot 'no-docprop-values-rendered.docx'
+            $reportPath = Join-Path $tempRoot 'report.json'
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot -DocxMatchMode 'content-control-tag'
+            $exitCode = $LASTEXITCODE
+            if ($exitCode -ne 0) { throw "Expected successful render exit code when no document-property values were supplied, got $exitCode. Output: $output" }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            $noPopulationIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-DOCPROP-DOCX-NO-POPULATION' }) | Select-Object -First 1
+            if ($null -ne $noPopulationIssue) { throw "Expected no ASB-ASM-DOCPROP-DOCX-NO-POPULATION issue when no document-property values are supplied, got '$($noPopulationIssue.message)'" }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'surfaces DOCX content-control parse failures as renderer issues instead of silently ignoring them' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
