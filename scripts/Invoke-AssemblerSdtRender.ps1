@@ -779,17 +779,50 @@ function Get-LiteralTagDiagnosticsSummary {
         [Parameter(Mandatory = $false)][int]$TopInspectedPartsPerTag = 3
     )
 
-    $allDiagnostics = @($Diagnostics)
-    $hitDiagnostics = @($allDiagnostics | Where-Object { [int]$_.contiguousTokenHits -gt 0 })
-    $zeroHitDiagnostics = @($allDiagnostics | Where-Object { [int]$_.contiguousTokenHits -eq 0 })
-
     $topEntriesBounded = if ($TopEntries -gt 0) { $TopEntries } else { 20 }
     $topZeroHitTagsBounded = if ($TopZeroHitTags -gt 0) { $TopZeroHitTags } else { 5 }
     $topInspectedPartsBounded = if ($TopInspectedPartsPerTag -gt 0) { $TopInspectedPartsPerTag } else { 3 }
 
+    $allDiagnostics = @($Diagnostics)
+    if ($null -eq $allDiagnostics -or $allDiagnostics.Count -eq 0) {
+        return [ordered]@{
+            totalEntries = 0
+            hitEntries = 0
+            zeroHitEntries = 0
+            distinctTagCount = 0
+            distinctPartCount = 0
+            topEntryLimit = [int]$topEntriesBounded
+            topEntries = @()
+            zeroHitTagSampleLimit = [int]$topZeroHitTagsBounded
+            zeroHitTagSamples = @()
+        }
+    }
+
+    $diagnosticsNormalized = @(
+        $allDiagnostics | ForEach-Object {
+            $contiguousTokenHits = 0
+            if ($null -ne $_ -and $null -ne $_.contiguousTokenHits) {
+                $parsedContiguousTokenHits = 0
+                if ([int]::TryParse([string]$_.contiguousTokenHits, [ref]$parsedContiguousTokenHits)) {
+                    $contiguousTokenHits = $parsedContiguousTokenHits
+                }
+            }
+
+            [ordered]@{
+                tag = [string]$_.tag
+                partName = [string]$_.partName
+                mode = [string]$_.mode
+                contiguousTokenHits = [int]$contiguousTokenHits
+            }
+        }
+    )
+
+    $hitDiagnostics = @($diagnosticsNormalized | Where-Object { $_.contiguousTokenHits -gt 0 })
+    $zeroHitDiagnostics = @($diagnosticsNormalized | Where-Object { $_.contiguousTokenHits -eq 0 })
+
     $topEntries = @(
-        $allDiagnostics |
-            Sort-Object -Property @{ Expression = { [int]$_.contiguousTokenHits }; Descending = $true }, @{ Expression = { [string]$_.tag }; Descending = $false }, @{ Expression = { [string]$_.partName }; Descending = $false } |
+        $diagnosticsNormalized |
+            Sort-Object -Property @{ Expression = { $_.contiguousTokenHits }; Descending = $true }, @{ Expression = { [string]$_.tag }; Descending = $false }, @{ Expression = { [string]$_.partName }; Descending = $false } |
             Select-Object -First $topEntriesBounded |
             ForEach-Object {
                 [ordered]@{
@@ -831,11 +864,11 @@ function Get-LiteralTagDiagnosticsSummary {
     )
 
     return [ordered]@{
-        totalEntries = [int]$allDiagnostics.Count
+        totalEntries = [int]$diagnosticsNormalized.Count
         hitEntries = [int]$hitDiagnostics.Count
         zeroHitEntries = [int]$zeroHitDiagnostics.Count
-        distinctTagCount = [int]@($allDiagnostics | ForEach-Object { [string]$_.tag } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique).Count
-        distinctPartCount = [int]@($allDiagnostics | ForEach-Object { [string]$_.partName } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique).Count
+        distinctTagCount = [int]@($diagnosticsNormalized | ForEach-Object { [string]$_.tag } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique).Count
+        distinctPartCount = [int]@($diagnosticsNormalized | ForEach-Object { [string]$_.partName } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique).Count
         topEntryLimit = [int]$topEntriesBounded
         topEntries = $topEntries
         zeroHitTagSampleLimit = [int]$topZeroHitTagsBounded
