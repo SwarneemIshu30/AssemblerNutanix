@@ -771,6 +771,78 @@ function Resolve-DocPropNoPopulationSeverity {
     return 'ERROR'
 }
 
+function Get-LiteralTagDiagnosticsSummary {
+    param(
+        [Parameter(Mandatory = $false)][object[]]$Diagnostics,
+        [Parameter(Mandatory = $false)][int]$TopEntries = 20,
+        [Parameter(Mandatory = $false)][int]$TopZeroHitTags = 5,
+        [Parameter(Mandatory = $false)][int]$TopInspectedPartsPerTag = 3
+    )
+
+    $allDiagnostics = @($Diagnostics)
+    $hitDiagnostics = @($allDiagnostics | Where-Object { [int]$_.contiguousTokenHits -gt 0 })
+    $zeroHitDiagnostics = @($allDiagnostics | Where-Object { [int]$_.contiguousTokenHits -eq 0 })
+
+    $topEntriesBounded = if ($TopEntries -gt 0) { $TopEntries } else { 20 }
+    $topZeroHitTagsBounded = if ($TopZeroHitTags -gt 0) { $TopZeroHitTags } else { 5 }
+    $topInspectedPartsBounded = if ($TopInspectedPartsPerTag -gt 0) { $TopInspectedPartsPerTag } else { 3 }
+
+    $topEntries = @(
+        $allDiagnostics |
+            Sort-Object -Property @{ Expression = { [int]$_.contiguousTokenHits }; Descending = $true }, @{ Expression = { [string]$_.tag }; Descending = $false }, @{ Expression = { [string]$_.partName }; Descending = $false } |
+            Select-Object -First $topEntriesBounded |
+            ForEach-Object {
+                [ordered]@{
+                    tag = [string]$_.tag
+                    partName = [string]$_.partName
+                    mode = [string]$_.mode
+                    contiguousTokenHits = [int]$_.contiguousTokenHits
+                }
+            }
+    )
+
+    $zeroHitSamplesByTag = [System.Collections.Generic.List[hashtable]]::new()
+    foreach ($group in @($zeroHitDiagnostics | Group-Object -Property tag, mode)) {
+        $groupTag = ''
+        $groupMode = ''
+        $first = @($group.Group | Select-Object -First 1)
+        if (@($first).Count -gt 0) {
+            $groupTag = [string]$first[0].tag
+            $groupMode = [string]$first[0].mode
+        }
+        $inspectedParts = @(
+            $group.Group |
+                ForEach-Object { [string]$_.partName } |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+                Sort-Object -Unique
+        )
+        $zeroHitSamplesByTag.Add([ordered]@{
+            tag = $groupTag
+            mode = $groupMode
+            inspectedParts = @($inspectedParts | Select-Object -First $topInspectedPartsBounded)
+            inspectedPartCount = [int]@($inspectedParts).Count
+        })
+    }
+
+    $zeroHitSampleBounded = @(
+        $zeroHitSamplesByTag |
+            Sort-Object -Property @{ Expression = { [string]$_.tag }; Descending = $false }, @{ Expression = { [string]$_.mode }; Descending = $false } |
+            Select-Object -First $topZeroHitTagsBounded
+    )
+
+    return [ordered]@{
+        totalEntries = [int]$allDiagnostics.Count
+        hitEntries = [int]$hitDiagnostics.Count
+        zeroHitEntries = [int]$zeroHitDiagnostics.Count
+        distinctTagCount = [int]@($allDiagnostics | ForEach-Object { [string]$_.tag } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique).Count
+        distinctPartCount = [int]@($allDiagnostics | ForEach-Object { [string]$_.partName } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique).Count
+        topEntryLimit = [int]$topEntriesBounded
+        topEntries = $topEntries
+        zeroHitTagSampleLimit = [int]$topZeroHitTagsBounded
+        zeroHitTagSamples = $zeroHitSampleBounded
+    }
+}
+
 function Render-DocxTemplate {
     param(
         [Parameter(Mandatory = $true)][string]$TemplatePath,
@@ -2304,6 +2376,7 @@ try {
         $renderDetails.contentControlMappedTags = @($docxRender.contentControlMappedTags)
         $renderDetails.partErrors = @($docxRender.partErrors)
         $renderDetails.literalTagDiagnostics = @($docxRender.literalTagDiagnostics)
+        $renderDetails.literalTagDiagnosticsSummary = Get-LiteralTagDiagnosticsSummary -Diagnostics @($docxRender.literalTagDiagnostics) -TopEntries 25 -TopZeroHitTags 8 -TopInspectedPartsPerTag 4
         $renderDetails.unresolvedLiteralTokens = @($docxUnresolvedLiteralByTag.Keys | Sort-Object)
         $renderDetails.docxMatchMode = [string]$DocxMatchMode
         $expectedDocPropertyControlCount = [int]$renderDetails.docPropControlsExpected
@@ -2311,11 +2384,23 @@ try {
         $docPropValuesSupplied = $expectedDocPropertyControlCount -gt 0
         $docPropNoPopulationSeverity = Resolve-DocPropNoPopulationSeverity
         if ((Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token') -and [int]$renderDetails.literalDatasetTokensExpected -gt 0 -and [int]$renderDetails.literalDatasetTokensPopulated -eq 0) {
+            $zeroHitSamplesText = 'n/a'
+            $zeroHitSamples = @($renderDetails.literalTagDiagnosticsSummary.zeroHitTagSamples)
+            if ($zeroHitSamples.Count -gt 0) {
+                $zeroHitSamplesText = @(
+                    $zeroHitSamples |
+                        Select-Object -First 3 |
+                        ForEach-Object {
+                            $inspectedPartsText = if (@($_.inspectedParts).Count -gt 0) { @($_.inspectedParts) -join '|' } else { 'none' }
+                            "$($_.tag)[$($_.mode)]=>parts{$inspectedPartsText}"
+                        }
+                ) -join '; '
+            }
             $status = 'ERROR'
             $issues.Add([ordered]@{
                 code = 'ASB-ASM-SDT-DOCX-NO-POPULATION'
                 severity = 'ERROR'
-                message = "DOCX literal-token render expected dataset mapping replacement but found no matching tokens to populate. docxMatchMode='$DocxMatchMode'; literalDatasetTokensExpected=$($renderDetails.literalDatasetTokensExpected); literalDatasetTokensPopulated=$($renderDetails.literalDatasetTokensPopulated); literalTokensMatched=$($renderDetails.literalTokensMatched); literalTokensMatchedScalar=$($renderDetails.literalTokensMatchedScalar); literalTokensMatchedTable=$($renderDetails.literalTokensMatchedTable)"
+                message = "DOCX literal-token render expected dataset mapping replacement but found no matching tokens to populate. docxMatchMode='$DocxMatchMode'; literalDatasetTokensExpected=$($renderDetails.literalDatasetTokensExpected); literalDatasetTokensPopulated=$($renderDetails.literalDatasetTokensPopulated); literalTokensMatched=$($renderDetails.literalTokensMatched); literalTokensMatchedScalar=$($renderDetails.literalTokensMatchedScalar); literalTokensMatchedTable=$($renderDetails.literalTokensMatchedTable); literalTagDiagnosticsTotal=$($renderDetails.literalTagDiagnosticsSummary.totalEntries); zeroHitTagsSample=$zeroHitSamplesText"
                 path = $TemplatePath
             })
         }
@@ -2458,9 +2543,9 @@ try {
         docxDocPropMappedTags = $(if ($isDocxTemplate) { @($renderDetails.docPropMappedTags) } else { @() })
         docxPartErrors = $(if ($isDocxTemplate) { @($renderDetails.partErrors) } else { @() })
         docxUnresolvedLiteralTokens = $(if ($isDocxTemplate) { @($renderDetails.unresolvedLiteralTokens) } else { @() })
-        docxLiteralTagDiagnostics = $(if ($isDocxTemplate) { @($renderDetails.literalTagDiagnostics) } else { @() })
-        docxLiteralTagDiagnosticsCount = $(if ($isDocxTemplate) { @($renderDetails.literalTagDiagnostics).Count } else { 0 })
-        docxLiteralTagDiagnosticsHitCount = $(if ($isDocxTemplate) { @(@($renderDetails.literalTagDiagnostics) | Where-Object { [int]$_.contiguousTokenHits -gt 0 }).Count } else { 0 })
+        docxLiteralTagDiagnosticsSummary = $(if ($isDocxTemplate) { $renderDetails.literalTagDiagnosticsSummary } else { [ordered]@{ totalEntries = 0; hitEntries = 0; zeroHitEntries = 0; distinctTagCount = 0; distinctPartCount = 0; topEntryLimit = 0; topEntries = @(); zeroHitTagSampleLimit = 0; zeroHitTagSamples = @() } })
+        docxLiteralTagDiagnosticsCount = $(if ($isDocxTemplate) { [int]$renderDetails.literalTagDiagnosticsSummary.totalEntries } else { 0 })
+        docxLiteralTagDiagnosticsHitCount = $(if ($isDocxTemplate) { [int]$renderDetails.literalTagDiagnosticsSummary.hitEntries } else { 0 })
         docxMatchMode = $(if ($isDocxTemplate) { [string]$renderDetails.docxMatchMode } else { '' })
         unresolvedTokenPolicy = [string]$UnresolvedTokenPolicy
         unresolved = $unresolvedSummary
