@@ -17,6 +17,8 @@ param(
     [Parameter(Mandatory = $false)][string]$DocLocation,
     [Parameter(Mandatory = $false)][string]$DocSubsidiary,
     [Parameter(Mandatory = $false)][string]$DocEnvironment,
+    [Parameter(Mandatory = $false)][string]$DocDocumentReference,
+    [Parameter(Mandatory = $false)][string]$DocClassification,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
     [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
     [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
@@ -28,6 +30,52 @@ $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'internal/AssemblerSchemaValidation.psm1') -Force
 
 function Get-UtcTimestamp { (Get-Date).ToUniversalTime().ToString('o') }
+
+function ConvertTo-SafeOutputFileNameSegment {
+    param([Parameter(Mandatory = $false)][string]$Text)
+
+    $value = [string]$Text
+    if ([string]::IsNullOrWhiteSpace($value)) { return '' }
+
+    $invalidChars = [System.IO.Path]::GetInvalidFileNameChars()
+    $sanitizedChars = foreach ($char in $value.ToCharArray()) {
+        if ($invalidChars -contains $char) { '-' } else { $char }
+    }
+
+    $sanitized = (-join $sanitizedChars).Trim()
+    $sanitized = [regex]::Replace($sanitized, '\s+', ' ')
+    $sanitized = [regex]::Replace($sanitized, '\s*-\s*', ' - ')
+    $sanitized = [regex]::Replace($sanitized, '(\s-\s){2,}', ' - ')
+    $sanitized = $sanitized.Trim(' ', '.')
+    return $sanitized
+}
+
+function Get-PreferredRenderOutputFileName {
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$CatalogEntry,
+        [Parameter(Mandatory = $false)][string]$DocTitle,
+        [Parameter(Mandatory = $false)][string]$DocCustomer
+    )
+
+    $originalFileName = [string]$CatalogEntry.outputFileName
+    $extension = [System.IO.Path]::GetExtension($originalFileName)
+    if ([string]::IsNullOrWhiteSpace($extension)) {
+        $extension = if ((Get-CatalogEntryOutputType -Entry $CatalogEntry) -eq 'docx') { '.docx' } else { '.txt' }
+    }
+
+    if ((Get-CatalogEntryOutputType -Entry $CatalogEntry) -ne 'docx') {
+        return $originalFileName
+    }
+
+    $titleSegment = ConvertTo-SafeOutputFileNameSegment -Text $DocTitle
+    $customerSegment = ConvertTo-SafeOutputFileNameSegment -Text $DocCustomer
+    $segments = @($titleSegment, $customerSegment) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    if (@($segments).Count -eq 0) {
+        return $originalFileName
+    }
+
+    return ((@($segments) -join ' - ') + $extension)
+}
 
 function Read-JsonFile {
     param([Parameter(Mandatory = $true)][string]$Path)
@@ -532,7 +580,8 @@ try {
 
         $mappingPath = Join-Path $catalogBase ([string]$entry.mappingPath)
         $templatePath = Join-Path $catalogBase ([string]$entry.templatePath)
-        $outputPath = Join-Path $techOutputRoot ([string]$entry.outputFileName)
+        $preferredOutputFileName = Get-PreferredRenderOutputFileName -CatalogEntry $entry -DocTitle $DocTitle -DocCustomer $DocCustomer
+        $outputPath = Join-Path $techOutputRoot $preferredOutputFileName
         $reportPath = Join-Path $techOutputRoot ("$([string]$entry.id).render-report.json")
 
         $variantReports = [System.Collections.Generic.List[hashtable]]::new()
@@ -567,7 +616,7 @@ try {
             foreach ($variant in @($mappingVariants)) {
                 $variantName = if ([string]::IsNullOrWhiteSpace([string]$variant.variantName)) { 'default' } else { [string]$variant.variantName }
                 $variantSafe = $variantName.Replace('/', '_').Replace('\', '_')
-                $variantOutputPath = if (@($mappingVariants).Count -gt 1) { Join-Path $techOutputRoot ("$([System.IO.Path]::GetFileNameWithoutExtension([string]$entry.outputFileName)).$variantSafe.rendered.txt") } else { $outputPath }
+                $variantOutputPath = if (@($mappingVariants).Count -gt 1) { Join-Path $techOutputRoot ("$([System.IO.Path]::GetFileNameWithoutExtension([string]$preferredOutputFileName)).$variantSafe$([System.IO.Path]::GetExtension([string]$preferredOutputFileName))") } else { $outputPath }
                 $variantReportPath = if (@($mappingVariants).Count -gt 1) { Join-Path $techOutputRoot ("$([string]$entry.id).$variantSafe.render-report.json") } else { $reportPath }
 
                 $renderParams = @{
@@ -590,6 +639,8 @@ try {
                     if (-not [string]::IsNullOrWhiteSpace($DocLocation)) { $renderParams.DocLocation = [string]$DocLocation }
                     if (-not [string]::IsNullOrWhiteSpace($DocSubsidiary)) { $renderParams.DocSubsidiary = [string]$DocSubsidiary }
                     if (-not [string]::IsNullOrWhiteSpace($DocEnvironment)) { $renderParams.DocEnvironment = [string]$DocEnvironment }
+                    if (-not [string]::IsNullOrWhiteSpace($DocDocumentReference)) { $renderParams.DocDocumentReference = [string]$DocDocumentReference }
+                    if (-not [string]::IsNullOrWhiteSpace($DocClassification)) { $renderParams.DocClassification = [string]$DocClassification }
                 }
                 $json = & $invokeRenderScript @renderParams
 

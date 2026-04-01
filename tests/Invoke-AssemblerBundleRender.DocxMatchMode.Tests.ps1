@@ -187,7 +187,7 @@ Describe 'Invoke-AssemblerBundleRender DOCX match mode forwarding' {
 
             $contractsRoot = New-MinimalContractsRoot -Root $tempRoot
             $scriptPath = Join-Path $repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1'
-            $json = & $pwshPath -NoLogo -NoProfile -File $scriptPath -BundleRoot $bundleRoot -CatalogPath $catalogPath -OutputRoot $outputRoot -ContractsRoot $contractsRoot -TechId 'Test.Tech' -DocxMatchMode 'literal-token'
+            $json = & $pwshPath -NoLogo -NoProfile -File $scriptPath -BundleRoot $bundleRoot -CatalogPath $catalogPath -OutputRoot $outputRoot -ContractsRoot $contractsRoot -TechId 'Test.Tech' -DocTitle 'My Title' -DocCustomer 'Acme Customer' -DocxMatchMode 'literal-token'
             if ($LASTEXITCODE -ne 0) {
                 throw "Expected successful bundle render exit code, got $LASTEXITCODE. Output: $json"
             }
@@ -199,6 +199,9 @@ Describe 'Invoke-AssemblerBundleRender DOCX match mode forwarding' {
 
             $run = @($report.runs)[0]
             $variant = @($run.variants)[0]
+            if ([System.IO.Path]::GetFileName([string]$variant.outputPath) -ne 'My Title - Acme Customer.docx') {
+                throw "Expected preferred output filename, got '$([System.IO.Path]::GetFileName([string]$variant.outputPath))'"
+            }
             $renderStage = @($variant.rendererOutput.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
             if ($null -eq $renderStage) { throw 'Expected nested renderer render stage diagnostics.' }
             if ($null -ne $renderStage.details -and -not [string]::IsNullOrWhiteSpace([string]$renderStage.details.docxMatchMode)) {
@@ -223,6 +226,12 @@ Describe 'Invoke-AssemblerBundleRender DOCX match mode forwarding' {
             }
             finally {
                 $zip.Dispose()
+            }
+            try {
+                [xml]$null = $documentXml
+            }
+            catch {
+                throw "Expected bundle-rendered DOCX document.xml to be well-formed XML, got '$($_.Exception.Message)'"
             }
             if ($documentXml -notmatch '<w:t(?: xml:space="preserve")?>Ready</w:t>') {
                 throw "Expected bundle-rendered DOCX to contain the literal-token replacement, got '$documentXml'"

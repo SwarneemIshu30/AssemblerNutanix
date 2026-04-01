@@ -16,6 +16,8 @@ param(
     [Parameter(Mandatory = $false)][string]$DocLocation,
     [Parameter(Mandatory = $false)][string]$DocSubsidiary,
     [Parameter(Mandatory = $false)][string]$DocEnvironment,
+    [Parameter(Mandatory = $false)][string]$DocDocumentReference,
+    [Parameter(Mandatory = $false)][string]$DocClassification,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
     [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
     [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
@@ -434,7 +436,9 @@ function Update-DocxMetadataProperties {
         [Parameter(Mandatory = $false)][string]$CustomerAbbr,
         [Parameter(Mandatory = $false)][string]$Location,
         [Parameter(Mandatory = $false)][string]$Subsidiary,
-        [Parameter(Mandatory = $false)][string]$Environment
+        [Parameter(Mandatory = $false)][string]$Environment,
+        [Parameter(Mandatory = $false)][string]$DocumentReference,
+        [Parameter(Mandatory = $false)][string]$Classification
     )
 
     $coreEntry = $Archive.GetEntry('docProps/core.xml')
@@ -485,6 +489,8 @@ function Update-DocxMetadataProperties {
         'Location' = $Location
         'Subsidiary' = $Subsidiary
         'Environment' = $Environment
+        'DocumentReference' = $DocumentReference
+        'ClassificationContentMarkingHeaderText' = $Classification
     }
 
     foreach ($propertyName in @($propertyUpdates.Keys)) {
@@ -508,10 +514,11 @@ function Update-DocxMetadataProperties {
     Set-ZipEntryText -Entry $updatedCustomEntry -Text $customXml.OuterXml
 }
 
-function Get-WordTableStyleId {
+function Get-WordStyleId {
     param(
         [Parameter(Mandatory = $false)][string]$StylesXmlText,
-        [Parameter(Mandatory = $true)][string]$StyleName
+        [Parameter(Mandatory = $true)][string]$StyleName,
+        [Parameter(Mandatory = $true)][string]$StyleType
     )
 
     if ([string]::IsNullOrWhiteSpace($StylesXmlText)) { return '' }
@@ -519,7 +526,7 @@ function Get-WordTableStyleId {
         $doc = [xml]$StylesXmlText
         $nsMgr = [System.Xml.XmlNamespaceManager]::new($doc.NameTable)
         $nsMgr.AddNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main')
-        $styleNode = $doc.SelectSingleNode("//w:style[@w:type='table'][w:name[@w:val='$StyleName']]", $nsMgr)
+        $styleNode = $doc.SelectSingleNode("//w:style[@w:type='$StyleType'][w:name[@w:val='$StyleName']]", $nsMgr)
         if ($null -eq $styleNode) { return '' }
 
         $idAttr = $styleNode.Attributes.GetNamedItem('styleId', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main')
@@ -531,6 +538,24 @@ function Get-WordTableStyleId {
     }
 }
 
+function Get-WordTableStyleId {
+    param(
+        [Parameter(Mandatory = $false)][string]$StylesXmlText,
+        [Parameter(Mandatory = $true)][string]$StyleName
+    )
+
+    return Get-WordStyleId -StylesXmlText $StylesXmlText -StyleName $StyleName -StyleType 'table'
+}
+
+function Get-WordParagraphStyleId {
+    param(
+        [Parameter(Mandatory = $false)][string]$StylesXmlText,
+        [Parameter(Mandatory = $true)][string]$StyleName
+    )
+
+    return Get-WordStyleId -StylesXmlText $StylesXmlText -StyleName $StyleName -StyleType 'paragraph'
+}
+
 function ConvertTo-WordXmlEscapedText {
     param([Parameter(Mandatory = $false)][string]$Text)
     return [System.Security.SecurityElement]::Escape([string]$Text)
@@ -539,12 +564,48 @@ function ConvertTo-WordXmlEscapedText {
 function Convert-TableModelToWordTableXml {
     param(
         [Parameter(Mandatory = $true)][System.Collections.IDictionary]$TableModel,
-        [Parameter(Mandatory = $false)][string]$TableStyleId
+        [Parameter(Mandatory = $false)][string]$TableStyleId,
+        [Parameter(Mandatory = $false)][string]$ParagraphStyleId
     )
 
     $displayColumns = @($TableModel.displayColumns | ForEach-Object { [string]$_ })
     $rows = @($TableModel.rows)
     if (@($displayColumns).Count -eq 0 -or @($rows).Count -eq 0) { return '' }
+
+    $tableWidthPct = 4783
+    $columnWeights = [System.Collections.Generic.List[int]]::new()
+    foreach ($columnName in @($displayColumns)) {
+        $maxLength = [Math]::Max(1, ([string]$columnName).Length)
+        foreach ($row in @($rows)) {
+            $cellValue = ''
+            $property = $row.PSObject.Properties[[string]$columnName]
+            if ($null -ne $property -and $null -ne $property.Value) {
+                $cellValue = [string]$property.Value
+            }
+            $cellMaxSegmentLength = 1
+            foreach ($segment in @($cellValue -split "`r?`n")) {
+                $cellMaxSegmentLength = [Math]::Max($cellMaxSegmentLength, ([string]$segment).Length)
+            }
+            $maxLength = [Math]::Max($maxLength, $cellMaxSegmentLength)
+        }
+        [void]$columnWeights.Add([Math]::Max(1, $maxLength))
+    }
+
+    $weightTotal = ($columnWeights | Measure-Object -Sum).Sum
+    if ($null -eq $weightTotal -or [int]$weightTotal -le 0) { $weightTotal = @($displayColumns).Count }
+    $columnWidthPctValues = [System.Collections.Generic.List[int]]::new()
+    $pctAssigned = 0
+    for ($columnIndex = 0; $columnIndex -lt @($displayColumns).Count; $columnIndex++) {
+        $weight = [int]$columnWeights[$columnIndex]
+        $columnPct = if ($columnIndex -eq (@($displayColumns).Count - 1)) {
+            $tableWidthPct - $pctAssigned
+        }
+        else {
+            [Math]::Max(1, [int][Math]::Round(($tableWidthPct * $weight) / [double]$weightTotal))
+        }
+        $pctAssigned += $columnPct
+        [void]$columnWidthPctValues.Add($columnPct)
+    }
 
     $sb = [System.Text.StringBuilder]::new()
     [void]$sb.Append('<w:tbl>')
@@ -552,13 +613,24 @@ function Convert-TableModelToWordTableXml {
     if (-not [string]::IsNullOrWhiteSpace($TableStyleId)) {
         [void]$sb.Append("<w:tblStyle w:val=`"$(ConvertTo-WordXmlEscapedText -Text $TableStyleId)`"/>")
     }
-    [void]$sb.Append('<w:tblW w:w="0" w:type="auto"/>')
-    [void]$sb.Append('<w:tblLook w:firstRow="1" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="0" w:noVBand="1" w:val="04A0"/>')
+    [void]$sb.Append("<w:tblW w:w=`"$tableWidthPct`" w:type=`"pct`"/>")
+    [void]$sb.Append('<w:tblLook w:firstRow="1" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="0" w:noVBand="1" w:val="0420"/>')
     [void]$sb.Append('</w:tblPr>')
+    [void]$sb.Append('<w:tblGrid>')
+    foreach ($columnPct in @($columnWidthPctValues)) {
+        [void]$sb.Append("<w:gridCol w:w=`"$columnPct`"/>")
+    }
+    [void]$sb.Append('</w:tblGrid>')
 
     [void]$sb.Append('<w:tr>')
-    foreach ($columnName in $displayColumns) {
-        [void]$sb.Append('<w:tc><w:p><w:r><w:t>')
+    for ($columnIndex = 0; $columnIndex -lt @($displayColumns).Count; $columnIndex++) {
+        $columnName = [string]$displayColumns[$columnIndex]
+        $columnPct = [int]$columnWidthPctValues[$columnIndex]
+        [void]$sb.Append("<w:tc><w:tcPr><w:tcW w:w=`"$columnPct`" w:type=`"pct`"/></w:tcPr><w:p><w:pPr>")
+        if (-not [string]::IsNullOrWhiteSpace($ParagraphStyleId)) {
+            [void]$sb.Append("<w:pStyle w:val=`"$(ConvertTo-WordXmlEscapedText -Text $ParagraphStyleId)`"/>")
+        }
+        [void]$sb.Append('</w:pPr><w:r><w:t>')
         [void]$sb.Append((ConvertTo-WordXmlEscapedText -Text $columnName))
         [void]$sb.Append('</w:t></w:r></w:p></w:tc>')
     }
@@ -566,13 +638,19 @@ function Convert-TableModelToWordTableXml {
 
     foreach ($row in $rows) {
         [void]$sb.Append('<w:tr>')
-        foreach ($columnName in $displayColumns) {
+        for ($columnIndex = 0; $columnIndex -lt @($displayColumns).Count; $columnIndex++) {
+            $columnName = [string]$displayColumns[$columnIndex]
+            $columnPct = [int]$columnWidthPctValues[$columnIndex]
             $cellValue = ''
             $property = $row.PSObject.Properties[$columnName]
             if ($null -ne $property -and $null -ne $property.Value) {
                 $cellValue = [string]$property.Value
             }
-            [void]$sb.Append('<w:tc><w:p><w:r><w:t xml:space="preserve">')
+            [void]$sb.Append("<w:tc><w:tcPr><w:tcW w:w=`"$columnPct`" w:type=`"pct`"/></w:tcPr><w:p><w:pPr>")
+            if (-not [string]::IsNullOrWhiteSpace($ParagraphStyleId)) {
+                [void]$sb.Append("<w:pStyle w:val=`"$(ConvertTo-WordXmlEscapedText -Text $ParagraphStyleId)`"/>")
+            }
+            [void]$sb.Append('</w:pPr><w:r><w:t xml:space="preserve">')
             [void]$sb.Append((ConvertTo-WordXmlEscapedText -Text $cellValue))
             [void]$sb.Append('</w:t></w:r></w:p></w:tc>')
         }
@@ -592,11 +670,40 @@ function Replace-DocxParagraphTokenWithBlockXml {
 
     if ([string]::IsNullOrWhiteSpace($BlockXml)) { return $XmlText }
 
+    [xml]$xmlDoc = $XmlText
     $escapedTag = [regex]::Escape([string]$Tag)
-    $rawToken = "<<SDT:\s*$escapedTag\s*>>"
-    $escapedToken = "&lt;&lt;SDT:\s*$escapedTag\s*&gt;&gt;"
-    $paragraphPattern = "(?s)<w:p\b[^>]*>.*?($rawToken|$escapedToken).*?</w:p>"
-    return ([regex]::Replace($XmlText, $paragraphPattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $BlockXml }))
+    $tokenPattern = "<<SDT:\s*$escapedTag\s*>>"
+    $paragraphNodes = @(
+        $xmlDoc.SelectNodes("//*[local-name()='p']") |
+            Where-Object { [string]$_.InnerText -match $tokenPattern }
+    )
+
+    if (@($paragraphNodes).Count -eq 0) {
+        return $XmlText
+    }
+
+    foreach ($paragraphNode in @($paragraphNodes)) {
+        $parentNode = $paragraphNode.ParentNode
+        if ($null -eq $parentNode) { continue }
+
+        $importedNodes = @(Convert-WordXmlFragmentToNodes -OwnerDocument $xmlDoc -XmlFragment $BlockXml)
+        if (@($importedNodes).Count -eq 0) { continue }
+
+        foreach ($importedNode in @($importedNodes)) {
+            [void]$parentNode.InsertBefore($importedNode, $paragraphNode)
+        }
+        [void]$parentNode.RemoveChild($paragraphNode)
+
+        if (
+            $parentNode.LocalName -eq 'tc' -and
+            ($null -eq $parentNode.LastChild -or $parentNode.LastChild.LocalName -ne 'p')
+        ) {
+            $emptyParagraph = (Convert-TextToWordParagraphNodes -XmlDocument $xmlDoc -Text '')[0]
+            [void]$parentNode.AppendChild($emptyParagraph)
+        }
+    }
+
+    return $xmlDoc.OuterXml
 }
 
 function Replace-LiteralSdtTokenText {
@@ -676,6 +783,59 @@ function Convert-TextToWordParagraphNodes {
     return @($paragraphNodes.ToArray())
 }
 
+function Convert-TextToWordRunNodes {
+    param(
+        [Parameter(Mandatory = $true)][xml]$XmlDocument,
+        [Parameter(Mandatory = $false)][string]$Text
+    )
+
+    $namespaceUri = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+    $runNodes = [System.Collections.Generic.List[System.Xml.XmlNode]]::new()
+    $lines = @(([string]$Text) -split "`r?`n", 0, [System.StringSplitOptions]::None)
+    if ($lines.Count -eq 0) { $lines = @('') }
+
+    for ($lineIndex = 0; $lineIndex -lt $lines.Count; $lineIndex++) {
+        if ($lineIndex -gt 0) {
+            $breakRun = $XmlDocument.CreateElement('w', 'r', $namespaceUri)
+            $breakNode = $XmlDocument.CreateElement('w', 'br', $namespaceUri)
+            [void]$breakRun.AppendChild($breakNode)
+            [void]$runNodes.Add($breakRun)
+        }
+
+        $run = $XmlDocument.CreateElement('w', 'r', $namespaceUri)
+        $textNode = $XmlDocument.CreateElement('w', 't', $namespaceUri)
+        $spaceAttr = $XmlDocument.CreateAttribute('xml', 'space', 'http://www.w3.org/XML/1998/namespace')
+        $spaceAttr.Value = 'preserve'
+        [void]$textNode.Attributes.Append($spaceAttr)
+        $textNode.InnerText = [string]$lines[$lineIndex]
+
+        [void]$run.AppendChild($textNode)
+        [void]$runNodes.Add($run)
+    }
+
+    return @($runNodes.ToArray())
+}
+
+function Convert-TextToWordSdtContentNodes {
+    param(
+        [Parameter(Mandatory = $true)][xml]$XmlDocument,
+        [Parameter(Mandatory = $true)][System.Xml.XmlNode]$SdtContentNode,
+        [Parameter(Mandatory = $false)][string]$Text
+    )
+
+    $hasBlockChildren = @(
+        $SdtContentNode.ChildNodes |
+            Where-Object { $_.NodeType -eq [System.Xml.XmlNodeType]::Element -and $_.LocalName -eq 'p' }
+    ).Count -gt 0
+    $isRunLevel = $SdtContentNode.ParentNode -and $SdtContentNode.ParentNode.LocalName -eq 'sdt' -and $SdtContentNode.ParentNode.ParentNode -and $SdtContentNode.ParentNode.ParentNode.LocalName -eq 'p'
+
+    if ($hasBlockChildren -or (-not $isRunLevel)) {
+        return @(Convert-TextToWordParagraphNodes -XmlDocument $XmlDocument -Text $Text)
+    }
+
+    return @(Convert-TextToWordRunNodes -XmlDocument $XmlDocument -Text $Text)
+}
+
 function Set-WordSdtContentNodes {
     param(
         [Parameter(Mandatory = $true)][System.Xml.XmlNode]$SdtContentNode,
@@ -716,7 +876,9 @@ function Get-DocxContentControlReplacementMap {
         [Parameter(Mandatory = $false)][string]$DocCustomerAbbr,
         [Parameter(Mandatory = $false)][string]$DocLocation,
         [Parameter(Mandatory = $false)][string]$DocSubsidiary,
-        [Parameter(Mandatory = $false)][string]$DocEnvironment
+        [Parameter(Mandatory = $false)][string]$DocEnvironment,
+        [Parameter(Mandatory = $false)][string]$DocDocumentReference,
+        [Parameter(Mandatory = $false)][string]$DocClassification
     )
 
     $map = [ordered]@{}
@@ -727,6 +889,8 @@ function Get-DocxContentControlReplacementMap {
         Location = @('Location', 'DocLocation')
         Subsidiary = @('Subsidiary', 'DocSubsidiary')
         Environment = @('Environment', 'DocEnvironment')
+        DocumentReference = @('DocumentReference', 'DocDocumentReference')
+        Classification = @('ClassificationContentMarkingHeaderText', 'Classification', 'DocClassification')
     }
     $propertyValues = [ordered]@{
         Title = $DocTitle
@@ -735,6 +899,8 @@ function Get-DocxContentControlReplacementMap {
         Location = $DocLocation
         Subsidiary = $DocSubsidiary
         Environment = $DocEnvironment
+        DocumentReference = $DocDocumentReference
+        Classification = $DocClassification
     }
 
     foreach ($propertyName in @($propertyValues.Keys)) {
@@ -747,6 +913,191 @@ function Get-DocxContentControlReplacementMap {
     }
 
     return $map
+}
+
+function Get-DocxDocPropertyFieldReplacementMap {
+    param(
+        [Parameter(Mandatory = $false)][string]$DocTitle,
+        [Parameter(Mandatory = $false)][string]$DocCustomer,
+        [Parameter(Mandatory = $false)][string]$DocCustomerAbbr,
+        [Parameter(Mandatory = $false)][string]$DocLocation,
+        [Parameter(Mandatory = $false)][string]$DocSubsidiary,
+        [Parameter(Mandatory = $false)][string]$DocEnvironment,
+        [Parameter(Mandatory = $false)][string]$DocDocumentReference,
+        [Parameter(Mandatory = $false)][string]$DocClassification
+    )
+
+    $map = [ordered]@{}
+    foreach ($entry in @(
+        @{ name = 'Title'; value = $DocTitle },
+        @{ name = 'Customer'; value = $DocCustomer },
+        @{ name = 'CustomerAbbr'; value = $DocCustomerAbbr },
+        @{ name = 'Location'; value = $DocLocation },
+        @{ name = 'Subsidiary'; value = $DocSubsidiary },
+        @{ name = 'Environment'; value = $DocEnvironment },
+        @{ name = 'DocumentReference'; value = $DocDocumentReference },
+        @{ name = 'ClassificationContentMarkingHeaderText'; value = $DocClassification }
+    )) {
+        $name = [string]$entry.name
+        $value = [string]$entry.value
+        if ([string]::IsNullOrWhiteSpace($name) -or [string]::IsNullOrWhiteSpace($value)) { continue }
+        $map[$name] = $value
+    }
+
+    return $map
+}
+
+function Get-DocPropertyFieldNameFromInstructionText {
+    param([Parameter(Mandatory = $false)][string]$InstructionText)
+
+    $text = [string]$InstructionText
+    if ([string]::IsNullOrWhiteSpace($text)) { return '' }
+
+    $match = [regex]::Match($text, '(?i)\bDOCPROPERTY\b\s+(?:"([^"]+)"|([^\s\\]+))')
+    if (-not $match.Success) { return '' }
+
+    $quoted = [string]$match.Groups[1].Value
+    if (-not [string]::IsNullOrWhiteSpace($quoted)) {
+        return $quoted.Trim()
+    }
+
+    return ([string]$match.Groups[2].Value).Trim()
+}
+
+function Get-WordNodeFieldCharType {
+    param([Parameter(Mandatory = $false)][System.Xml.XmlNode]$Node)
+
+    if ($null -eq $Node) { return '' }
+    $attr = $Node.SelectSingleNode(".//*[local-name()='fldChar']/@*[local-name()='fldCharType'] | ./*[local-name()='fldChar']/@*[local-name()='fldCharType']")
+    if ($null -eq $attr) { return '' }
+    return [string]$attr.Value
+}
+
+function Get-WordNodeInstructionText {
+    param([Parameter(Mandatory = $false)][System.Xml.XmlNode]$Node)
+
+    if ($null -eq $Node) { return '' }
+    return (@(
+        $Node.SelectNodes(".//*[local-name()='instrText'] | ./*[local-name()='instrText']") |
+            ForEach-Object { [string]$_.InnerText }
+    ) -join '')
+}
+
+function Get-WordSdtCandidateIdentifiers {
+    param([Parameter(Mandatory = $true)][System.Xml.XmlNode]$SdtNode)
+
+    $candidates = [System.Collections.Generic.List[string]]::new()
+    foreach ($candidate in @(
+        $SdtNode.SelectSingleNode("./*[local-name()='sdtPr']/*[local-name()='tag']/@*[local-name()='val']"),
+        $SdtNode.SelectSingleNode("./*[local-name()='sdtPr']/*[local-name()='alias']/@*[local-name()='val']")
+    )) {
+        if ($null -eq $candidate) { continue }
+        $value = [string]$candidate.Value
+        if ([string]::IsNullOrWhiteSpace($value)) { continue }
+        $candidates.Add($value.Trim())
+    }
+
+    $dataBindingXPath = $SdtNode.SelectSingleNode("./*[local-name()='sdtPr']/*[local-name()='dataBinding']/@*[local-name()='xpath']")
+    if ($null -ne $dataBindingXPath) {
+        $xpathValue = [string]$dataBindingXPath.Value
+        if ($xpathValue -match '(?i)/title(?:\[\d+\])?$') {
+            $candidates.Add('Title')
+        }
+    }
+
+    $fieldInstructionText = @(
+        $SdtNode.SelectNodes(".//*[local-name()='instrText']") |
+            ForEach-Object { [string]$_.InnerText }
+    ) -join ' '
+    $fieldName = Get-DocPropertyFieldNameFromInstructionText -InstructionText $fieldInstructionText
+    if (-not [string]::IsNullOrWhiteSpace($fieldName)) {
+        $candidates.Add($fieldName)
+    }
+
+    return @($candidates | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
+}
+
+function Update-DocPropertyFieldResults {
+    param(
+        [Parameter(Mandatory = $true)][xml]$XmlDocument,
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$ReplaceByPropertyName
+    )
+
+    $discovered = 0
+    $populated = 0
+
+    foreach ($simpleField in @($XmlDocument.SelectNodes("//*[local-name()='fldSimple'][@*[local-name()='instr']]"))) {
+        $instrAttr = $simpleField.Attributes | Where-Object { $_.LocalName -eq 'instr' } | Select-Object -First 1
+        if ($null -eq $instrAttr) { continue }
+        $propertyName = Get-DocPropertyFieldNameFromInstructionText -InstructionText ([string]$instrAttr.Value)
+        if ([string]::IsNullOrWhiteSpace($propertyName)) { continue }
+        $discovered++
+        if (-not (Test-MapHasKey -Map $ReplaceByPropertyName -Key $propertyName)) { continue }
+        Set-WordSdtContentNodes -SdtContentNode $simpleField -Nodes @(Convert-TextToWordRunNodes -XmlDocument $XmlDocument -Text ([string]$ReplaceByPropertyName[$propertyName]))
+        $populated++
+    }
+
+    foreach ($paragraphNode in @($XmlDocument.SelectNodes("//*[local-name()='p']"))) {
+        $currentNode = $paragraphNode.FirstChild
+        while ($null -ne $currentNode) {
+            $nextNode = $currentNode.NextSibling
+            if ((Get-WordNodeFieldCharType -Node $currentNode) -ne 'begin') {
+                $currentNode = $nextNode
+                continue
+            }
+
+            $scanNode = $currentNode.NextSibling
+            $separateNode = $null
+            $endNode = $null
+            $instructionText = ''
+            while ($null -ne $scanNode) {
+                $fieldCharType = Get-WordNodeFieldCharType -Node $scanNode
+                if ($fieldCharType -eq 'separate') {
+                    $separateNode = $scanNode
+                    $scanNode = $scanNode.NextSibling
+                    continue
+                }
+                if ($fieldCharType -eq 'end') {
+                    $endNode = $scanNode
+                    break
+                }
+                if ($null -eq $separateNode) {
+                    $instructionText += (Get-WordNodeInstructionText -Node $scanNode)
+                }
+                $scanNode = $scanNode.NextSibling
+            }
+
+            if ($null -eq $separateNode -or $null -eq $endNode) {
+                $currentNode = $nextNode
+                continue
+            }
+
+            $propertyName = Get-DocPropertyFieldNameFromInstructionText -InstructionText $instructionText
+            if (-not [string]::IsNullOrWhiteSpace($propertyName)) {
+                $discovered++
+                if (Test-MapHasKey -Map $ReplaceByPropertyName -Key $propertyName) {
+                    $removeNode = $separateNode.NextSibling
+                    while ($null -ne $removeNode -and $removeNode -ne $endNode) {
+                        $nextRemoveNode = $removeNode.NextSibling
+                        [void]$paragraphNode.RemoveChild($removeNode)
+                        $removeNode = $nextRemoveNode
+                    }
+
+                    foreach ($replacementNode in @(Convert-TextToWordRunNodes -XmlDocument $XmlDocument -Text ([string]$ReplaceByPropertyName[$propertyName]))) {
+                        [void]$paragraphNode.InsertBefore($replacementNode, $endNode)
+                    }
+                    $populated++
+                }
+            }
+
+            $currentNode = $endNode.NextSibling
+        }
+    }
+
+    return [ordered]@{
+        discovered = [int]$discovered
+        populated = [int]$populated
+    }
 }
 
 function Resolve-DocPropNoPopulationSeverity {
@@ -1081,6 +1432,7 @@ function Invoke-DocxLiteralTokenPass {
     $archive = [System.IO.Compression.ZipFile]::Open($DocxPath, [System.IO.Compression.ZipArchiveMode]::Update)
     try {
         $tableStyleId = ''
+        $tableParagraphStyleId = ''
         if ($null -ne $TableByTag -and @($TableByTag.Keys).Count -gt 0) {
             $stylesEntry = $archive.GetEntry('word/styles.xml')
             if ($null -ne $stylesEntry) {
@@ -1088,6 +1440,7 @@ function Invoke-DocxLiteralTokenPass {
                 try {
                     $stylesXmlText = $stylesReader.ReadToEnd()
                     $tableStyleId = Get-WordTableStyleId -StylesXmlText $stylesXmlText -StyleName 'LNV Table 1 - 9pt Head Banded Grid'
+                    $tableParagraphStyleId = Get-WordParagraphStyleId -StylesXmlText $stylesXmlText -StyleName 'LNVTableText1-9Pt-Indented'
                 }
                 finally {
                     $stylesReader.Dispose()
@@ -1114,7 +1467,7 @@ function Invoke-DocxLiteralTokenPass {
             if ($null -ne $TableByTag) {
                 foreach ($tag in @($TableByTag.Keys)) {
                     $tagText = [string]$tag
-                    $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
+                    $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId -ParagraphStyleId $tableParagraphStyleId
                     if ([string]::IsNullOrWhiteSpace($tableXml)) { continue }
                     $escapedTag = [regex]::Escape($tagText)
                     $rawTokenPattern = "<<SDT:\s*$escapedTag\s*>>"
@@ -1167,6 +1520,8 @@ function Render-DocxTemplate {
         [Parameter(Mandatory = $false)][string]$DocLocation,
         [Parameter(Mandatory = $false)][string]$DocSubsidiary,
         [Parameter(Mandatory = $false)][string]$DocEnvironment,
+        [Parameter(Mandatory = $false)][string]$DocDocumentReference,
+        [Parameter(Mandatory = $false)][string]$DocClassification,
         [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
         [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
     )
@@ -1201,6 +1556,8 @@ function Render-DocxTemplate {
         $controlsPopulated = 0
         $controlsDiscoveredMapped = 0
         $controlsDiscoveredUnmapped = 0
+        $docPropertyFieldsDiscovered = 0
+        $docPropertyFieldsPopulated = 0
         $discoveredTaggedControls = [System.Collections.Generic.List[string]]::new()
         $discoveredUnmappedTaggedControls = [System.Collections.Generic.List[string]]::new()
         $partErrors = [System.Collections.Generic.List[hashtable]]::new()
@@ -1209,8 +1566,10 @@ function Render-DocxTemplate {
         $literalDatasetTagStatus = @()
         $literalTagHitSummary = @()
         $literalPartHitSummary = @()
-        $contentControlReplaceByTag = Get-DocxContentControlReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment
+        $contentControlReplaceByTag = Get-DocxContentControlReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocClassification $DocClassification
+        $docPropertyFieldReplaceByName = Get-DocxDocPropertyFieldReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocClassification $DocClassification
         $tableStyleId = ''
+        $tableParagraphStyleId = ''
         if ($null -ne $TableByTag -and @($TableByTag.Keys).Count -gt 0) {
             $stylesEntry = $archive.GetEntry('word/styles.xml')
             if ($null -ne $stylesEntry) {
@@ -1218,6 +1577,7 @@ function Render-DocxTemplate {
                 try {
                     $stylesXmlText = $stylesReader.ReadToEnd()
                     $tableStyleId = Get-WordTableStyleId -StylesXmlText $stylesXmlText -StyleName 'LNV Table 1 - 9pt Head Banded Grid'
+                    $tableParagraphStyleId = Get-WordParagraphStyleId -StylesXmlText $stylesXmlText -StyleName 'LNVTableText1-9Pt-Indented'
                 }
                 finally {
                     $stylesReader.Dispose()
@@ -1229,7 +1589,7 @@ function Render-DocxTemplate {
         if ($null -ne $TableByTag) {
             foreach ($tag in @($TableByTag.Keys)) {
                 $tagText = [string]$tag
-                $tableXmlByTag[$tagText] = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
+                $tableXmlByTag[$tagText] = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId -ParagraphStyleId $tableParagraphStyleId
             }
         }
 
@@ -1344,35 +1704,45 @@ function Render-DocxTemplate {
                     if ($null -eq $selectionContextNode) {
                         throw 'Unable to discover content controls because XML document element was null.'
                     }
-                    $sdtNodes = @($selectionContextNode.SelectNodes("//*[local-name()='sdt'][*[local-name()='sdtPr']/*[local-name()='tag'][@*[local-name()='val']]]"))
-                    $controlsDiscovered += @($sdtNodes).Count
+                    $sdtNodes = @($selectionContextNode.SelectNodes("//*[local-name()='sdt'][*[local-name()='sdtPr']]"))
                     foreach ($sdtNode in $sdtNodes) {
-                        $tagAttr = $sdtNode.SelectSingleNode("./*[local-name()='sdtPr']/*[local-name()='tag']/@*[local-name()='val']")
-                        if ($null -eq $tagAttr) { continue }
+                        $candidateIdentifiers = @(Get-WordSdtCandidateIdentifiers -SdtNode $sdtNode)
+                        if (@($candidateIdentifiers).Count -eq 0) { continue }
+                        $controlsDiscovered++
+                        foreach ($candidateIdentifier in @($candidateIdentifiers)) {
+                            $discoveredTaggedControls.Add([string]$candidateIdentifier)
+                        }
 
-                        $tag = [string]$tagAttr.Value
-                        if ([string]::IsNullOrWhiteSpace($tag)) { continue }
-                        $discoveredTaggedControls.Add($tag)
+                        $matchedIdentifier = @(
+                            $candidateIdentifiers |
+                                Where-Object { Test-MapHasKey -Map $contentControlReplaceByTag -Key ([string]$_) } |
+                                Select-Object -First 1
+                        ) | Select-Object -First 1
 
-                        $tagHasMapping = (Test-MapHasKey -Map $contentControlReplaceByTag -Key $tag)
-                        if ($tagHasMapping) {
+                        if (-not [string]::IsNullOrWhiteSpace([string]$matchedIdentifier)) {
                             $controlsDiscoveredMapped++
                         }
                         else {
                             $controlsDiscoveredUnmapped++
-                            $discoveredUnmappedTaggedControls.Add($tag)
+                            foreach ($candidateIdentifier in @($candidateIdentifiers)) {
+                                $discoveredUnmappedTaggedControls.Add([string]$candidateIdentifier)
+                            }
                         }
 
                         $sdtContent = $sdtNode.SelectSingleNode("./*[local-name()='sdtContent']")
                         if ($null -eq $sdtContent) { continue }
 
-                        if (Test-MapHasKey -Map $contentControlReplaceByTag -Key $tag) {
+                        if (-not [string]::IsNullOrWhiteSpace([string]$matchedIdentifier) -and (Test-MapHasKey -Map $contentControlReplaceByTag -Key ([string]$matchedIdentifier))) {
                             $taggedControlsMatched++
-                            $paragraphNodes = Convert-TextToWordParagraphNodes -XmlDocument $xmlDocTyped -Text ([string]$contentControlReplaceByTag[$tag])
-                            Set-WordSdtContentNodes -SdtContentNode $sdtContent -Nodes $paragraphNodes
+                            $replacementNodes = Convert-TextToWordSdtContentNodes -XmlDocument $xmlDocTyped -SdtContentNode $sdtContent -Text ([string]$contentControlReplaceByTag[[string]$matchedIdentifier])
+                            Set-WordSdtContentNodes -SdtContentNode $sdtContent -Nodes $replacementNodes
                             $controlsPopulated++
                         }
                     }
+
+                    $fieldUpdate = Update-DocPropertyFieldResults -XmlDocument $xmlDocTyped -ReplaceByPropertyName $docPropertyFieldReplaceByName
+                    $docPropertyFieldsDiscovered += [int]$fieldUpdate.discovered
+                    $docPropertyFieldsPopulated += [int]$fieldUpdate.populated
                     $xmlText = $xmlDocTyped.OuterXml
                 }
             }
@@ -1424,7 +1794,7 @@ function Render-DocxTemplate {
             }
         }
 
-        Update-DocxMetadataProperties -Archive $archive -Title $DocTitle -Customer $DocCustomer -CustomerAbbr $DocCustomerAbbr -Location $DocLocation -Subsidiary $DocSubsidiary -Environment $DocEnvironment
+        Update-DocxMetadataProperties -Archive $archive -Title $DocTitle -Customer $DocCustomer -CustomerAbbr $DocCustomerAbbr -Location $DocLocation -Subsidiary $DocSubsidiary -Environment $DocEnvironment -DocumentReference $DocDocumentReference -Classification $DocClassification
 
         return [ordered]@{
             unresolvedLiteralByTag = $unresolvedLiteralByTag
@@ -1445,6 +1815,8 @@ function Render-DocxTemplate {
             controlsDiscovered = $controlsDiscovered
             controlsDiscoveredMapped = $controlsDiscoveredMapped
             controlsDiscoveredUnmapped = $controlsDiscoveredUnmapped
+            docPropertyFieldsDiscovered = [int]$docPropertyFieldsDiscovered
+            docPropertyFieldsPopulated = [int]$docPropertyFieldsPopulated
             taggedControlsMatched = $taggedControlsMatched
             controlsPopulated = $controlsPopulated
             discoveredTaggedControls = @($discoveredTaggedControls | Sort-Object -Unique)
@@ -2718,7 +3090,7 @@ try {
         if ($outputDir -and -not (Test-Path -LiteralPath $outputDir -PathType Container)) {
             New-Item -Path $outputDir -ItemType Directory -Force | Out-Null
         }
-        $docxRender = Render-DocxTemplate -TemplatePath $resolvedTemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy
+        $docxRender = Render-DocxTemplate -TemplatePath $resolvedTemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocClassification $DocClassification -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy
         $docxUnresolvedLiteralByTag = $docxRender.unresolvedLiteralByTag
         $unresolvedByTag = $docxUnresolvedLiteralByTag
         $renderDetails.templatePathResolved = [string]$templateMetadata.path
@@ -2742,6 +3114,8 @@ try {
         $renderDetails.docPropControlsPopulated = [int]$docxRender.docPropControlsPopulated
         $renderDetails.controlsDiscoveredMapped = [int]$docxRender.controlsDiscoveredMapped
         $renderDetails.controlsDiscoveredUnmapped = [int]$docxRender.controlsDiscoveredUnmapped
+        $renderDetails.docPropertyFieldsDiscovered = [int]$docxRender.docPropertyFieldsDiscovered
+        $renderDetails.docPropertyFieldsPopulated = [int]$docxRender.docPropertyFieldsPopulated
         $renderDetails.taggedControlsMatched = [int]$docxRender.taggedControlsMatched
         $renderDetails.controlsPopulated = [int]$docxRender.controlsPopulated
         $renderDetails.discoveredTaggedControls = @($docxRender.discoveredTaggedControls)
@@ -2758,6 +3132,8 @@ try {
         $renderDetails.docxMatchMode = [string]$DocxMatchMode
         $expectedDocPropertyControlCount = [int]$renderDetails.docPropControlsExpected
         $controlsPopulatedCount = [int]$renderDetails.docPropControlsPopulated
+        $docPropertyFieldPopulatedCount = [int]$renderDetails.docPropertyFieldsPopulated
+        $docPropertyPopulationCount = $controlsPopulatedCount + $docPropertyFieldPopulatedCount
         $docPropValuesSupplied = $expectedDocPropertyControlCount -gt 0
         $docPropNoPopulationSeverity = Resolve-DocPropNoPopulationSeverity
         if ((-not (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token')) -and [int]$renderDetails.literalDatasetTokensExpected -gt 0 -and [int]$renderDetails.literalDatasetTokensDiscovered -gt 0) {
@@ -2795,7 +3171,7 @@ try {
                 path = $TemplatePath
             })
         }
-        if ((Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'content-control-tag') -and $docPropValuesSupplied -and $controlsPopulatedCount -eq 0) {
+        if ((Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'content-control-tag') -and $docPropValuesSupplied -and $docPropertyPopulationCount -eq 0) {
             if ($docPropNoPopulationSeverity -eq 'ERROR') {
                 $status = 'ERROR'
             }
@@ -2806,7 +3182,7 @@ try {
             $issues.Add([ordered]@{
                 code = 'ASB-ASM-DOCPROP-DOCX-NO-POPULATION'
                 severity = $docPropNoPopulationSeverity
-                message = "DOCX document-property render expected tagged content controls but none were populated. docxMatchMode='$DocxMatchMode'; discoveredControls=$($renderDetails.controlsDiscovered); discoveredMappedControls=$($renderDetails.controlsDiscoveredMapped); discoveredUnmappedControls=$($renderDetails.controlsDiscoveredUnmapped); partErrorCount=$(@($renderDetails.partErrors).Count); taggedControlsMatched=$($renderDetails.taggedControlsMatched); controlsPopulated=$controlsPopulatedCount; docPropertyControlTags=$expectedDocPropertyControlCount; docPropValuesSupplied=$docPropValuesSupplied; sampleDocPropertyTags=$sampleMatchedTagsText; policySeverity=$docPropNoPopulationSeverity"
+                message = "DOCX document-property render expected document placeholders but none were populated. docxMatchMode='$DocxMatchMode'; discoveredControls=$($renderDetails.controlsDiscovered); discoveredMappedControls=$($renderDetails.controlsDiscoveredMapped); discoveredUnmappedControls=$($renderDetails.controlsDiscoveredUnmapped); discoveredDocPropertyFields=$($renderDetails.docPropertyFieldsDiscovered); partErrorCount=$(@($renderDetails.partErrors).Count); taggedControlsMatched=$($renderDetails.taggedControlsMatched); controlsPopulated=$controlsPopulatedCount; docPropertyFieldsPopulated=$docPropertyFieldPopulatedCount; docPropertyPopulated=$docPropertyPopulationCount; docPropertyControlTags=$expectedDocPropertyControlCount; docPropValuesSupplied=$docPropValuesSupplied; sampleDocPropertyTags=$sampleMatchedTagsText; policySeverity=$docPropNoPopulationSeverity"
                 path = $TemplatePath
             })
         }
@@ -2928,6 +3304,8 @@ try {
         docxDocPropControlsExpected = $(if ($isDocxTemplate) { [int]$renderDetails.docPropControlsExpected } else { 0 })
         docxDocPropControlsMatched = $(if ($isDocxTemplate) { [int]$renderDetails.docPropControlsMatched } else { 0 })
         docxDocPropControlsPopulated = $(if ($isDocxTemplate) { [int]$renderDetails.docPropControlsPopulated } else { 0 })
+        docxDocPropertyFieldsDiscovered = $(if ($isDocxTemplate) { [int]$renderDetails.docPropertyFieldsDiscovered } else { 0 })
+        docxDocPropertyFieldsPopulated = $(if ($isDocxTemplate) { [int]$renderDetails.docPropertyFieldsPopulated } else { 0 })
         docxControlsDiscovered = $(if ($isDocxTemplate) { [int]$renderDetails.controlsDiscovered } else { 0 })
         docxControlsDiscoveredMapped = $(if ($isDocxTemplate) { [int]$renderDetails.controlsDiscoveredMapped } else { 0 })
         docxControlsDiscoveredUnmapped = $(if ($isDocxTemplate) { [int]$renderDetails.controlsDiscoveredUnmapped } else { 0 })

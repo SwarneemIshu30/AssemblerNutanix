@@ -209,7 +209,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                 $stylesStream = $styles.Open()
                 try {
                     $writer = [System.IO.StreamWriter]::new($stylesStream, [System.Text.UTF8Encoding]::new($false))
-                    $writer.Write('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:style w:type="table" w:styleId="LNVTable1-9ptHeadBandedGrid"><w:name w:val="LNV Table 1 - 9pt Head Banded Grid"/></w:style></w:styles>')
+                    $writer.Write('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:style w:type="table" w:styleId="LNVTable1-9ptHeadBandedGrid"><w:name w:val="LNV Table 1 - 9pt Head Banded Grid"/></w:style><w:style w:type="paragraph" w:styleId="LNVTableText1-9Pt-Indented"><w:name w:val="LNVTableText1-9Pt-Indented"/></w:style></w:styles>')
                     $writer.Flush()
                     $writer.Dispose()
                 }
@@ -337,6 +337,131 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                 }
                 finally {
                     $stylesStream.Dispose()
+                }
+            }
+            finally {
+                $archive.Dispose()
+            }
+        }
+        finally {
+            $fs.Dispose()
+        }
+    }
+
+    function New-TestDocPropertyWorkflowDocxTemplate {
+        param(
+            [Parameter(Mandatory = $true)][string]$Path,
+            [Parameter(Mandatory = $true)][string]$LiteralTag
+        )
+
+        Add-Type -AssemblyName System.IO.Compression
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+        $templateDir = Split-Path -Parent $Path
+        if (-not (Test-Path -LiteralPath $templateDir -PathType Container)) {
+            $null = New-Item -Path $templateDir -ItemType Directory -Force
+        }
+
+        $documentXml = @"
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:p>
+      <w:r><w:t>[</w:t></w:r>
+      <w:sdt>
+        <w:sdtPr>
+          <w:alias w:val="Title"/>
+          <w:tag w:val=""/>
+          <w:dataBinding w:xpath="/ns1:coreProperties[1]/ns0:title[1]"/>
+          <w:text/>
+        </w:sdtPr>
+        <w:sdtContent>
+          <w:r><w:t>OLD-TITLE</w:t></w:r>
+        </w:sdtContent>
+      </w:sdt>
+      <w:r><w:t>]</w:t></w:r>
+    </w:p>
+    <w:p>
+      <w:r><w:t>For </w:t></w:r>
+      <w:sdt>
+        <w:sdtPr>
+          <w:alias w:val="Customer Name"/>
+          <w:tag w:val="Enter Customer Name"/>
+          <w:text/>
+        </w:sdtPr>
+        <w:sdtContent>
+          <w:r><w:fldChar w:fldCharType="begin"/></w:r>
+          <w:r><w:instrText xml:space="preserve"> DOCPROPERTY "Customer" \* MERGEFORMAT </w:instrText></w:r>
+          <w:r><w:fldChar w:fldCharType="separate"/></w:r>
+          <w:r><w:t>OLD-CUSTOMER</w:t></w:r>
+          <w:r><w:fldChar w:fldCharType="end"/></w:r>
+        </w:sdtContent>
+      </w:sdt>
+    </w:p>
+    <w:p>
+      <w:r><w:t xml:space="preserve">Environment: </w:t></w:r>
+      <w:r><w:fldChar w:fldCharType="begin"/></w:r>
+      <w:r><w:instrText xml:space="preserve"> DOCPROPERTY  Environment  \* MERGEFORMAT </w:instrText></w:r>
+      <w:r><w:fldChar w:fldCharType="separate"/></w:r>
+      <w:r><w:t>OLD-ENVIRONMENT</w:t></w:r>
+      <w:r><w:fldChar w:fldCharType="end"/></w:r>
+    </w:p>
+    <w:p>
+      <w:r><w:t xml:space="preserve">Reference ID: </w:t></w:r>
+      <w:fldSimple w:instr=" DOCPROPERTY  DocumentReference  \\* MERGEFORMAT ">
+        <w:r><w:t>OLD-DOCREF</w:t></w:r>
+      </w:fldSimple>
+    </w:p>
+    <w:p>
+      <w:r><w:t xml:space="preserve">Classification: </w:t></w:r>
+      <w:fldSimple w:instr=" DOCPROPERTY  ClassificationContentMarkingHeaderText  \\* MERGEFORMAT ">
+        <w:r><w:t>OLD-CLASSIFICATION</w:t></w:r>
+      </w:fldSimple>
+    </w:p>
+    <w:p><w:r><w:t>&lt;&lt;SDT:$LiteralTag&gt;&gt;</w:t></w:r></w:p>
+  </w:body>
+</w:document>
+"@
+
+        $coreXml = @"
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <dc:title>OLD-TITLE</dc:title>
+</cp:coreProperties>
+"@
+
+        $customXml = @"
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/custom-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes">
+  <property pid="2" fmtid="{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" name="Customer"><vt:lpwstr>OLD-CUSTOMER</vt:lpwstr></property>
+  <property pid="3" fmtid="{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" name="Environment"><vt:lpwstr>OLD-ENVIRONMENT</vt:lpwstr></property>
+  <property pid="4" fmtid="{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" name="DocumentReference"><vt:lpwstr>OLD-DOCREF</vt:lpwstr></property>
+  <property pid="5" fmtid="{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" name="ClassificationContentMarkingHeaderText"><vt:lpwstr>OLD-CLASSIFICATION</vt:lpwstr></property>
+</Properties>
+"@
+
+        $fs = [System.IO.File]::Open($Path, [System.IO.FileMode]::Create)
+        try {
+            $archive = [System.IO.Compression.ZipArchive]::new($fs, [System.IO.Compression.ZipArchiveMode]::Create, $true)
+            try {
+                foreach ($entryDef in @(
+                    @{ path = '[Content_Types].xml'; content = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/custom.xml" ContentType="application/vnd.openxmlformats-officedocument.custom-properties+xml"/></Types>' },
+                    @{ path = '_rels/.rels'; content = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties" Target="docProps/custom.xml"/></Relationships>' },
+                    @{ path = 'word/document.xml'; content = $documentXml },
+                    @{ path = 'docProps/core.xml'; content = $coreXml },
+                    @{ path = 'docProps/custom.xml'; content = $customXml }
+                )) {
+                    $zipEntry = $archive.CreateEntry([string]$entryDef.path)
+                    $entryStream = $zipEntry.Open()
+                    try {
+                        $writer = [System.IO.StreamWriter]::new($entryStream, [System.Text.UTF8Encoding]::new($false))
+                        $writer.Write([string]$entryDef.content)
+                        $writer.Flush()
+                        $writer.Dispose()
+                    }
+                    finally {
+                        $entryStream.Dispose()
+                    }
                 }
             }
             finally {
@@ -509,8 +634,17 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                 $zip.Dispose()
             }
 
+            try {
+                [xml]$null = $documentXml
+            }
+            catch {
+                throw "Expected rendered DOCX document.xml to be well-formed XML, got '$($_.Exception.Message)'"
+            }
+
             if ($documentXml -notmatch '<w:tbl') { throw "Expected rendered DOCX to include a Word table node, got '$documentXml'" }
             if ($documentXml -notmatch 'w:tblStyle w:val=\"LNVTable1-9ptHeadBandedGrid\"') { throw "Expected rendered DOCX table to apply template styleId, got '$documentXml'" }
+            if ($documentXml -notmatch 'w:tblW w:w=\"4783\" w:type=\"pct\"') { throw "Expected rendered DOCX table to use template-style percentage width, got '$documentXml'" }
+            if ($documentXml -notmatch 'w:pStyle w:val=\"LNVTableText1-9Pt-Indented\"') { throw "Expected rendered DOCX table paragraphs to use the indented table text style, got '$documentXml'" }
             if ($documentXml -notmatch '<w:t>Controller</w:t>') { throw "Expected table header cells from projection columns, got '$documentXml'" }
             if ($documentXml -notmatch '<w:t xml:space=\"preserve\">10.0.0.1</w:t>') { throw "Expected projected body cell values, got '$documentXml'" }
             if ($documentXml -match '&lt;&lt;SDT:LNV\.Test\.Tech\.System\[ArrayName\]\.Tables\.Sample&gt;&gt;') { throw "Expected SDT placeholder token to be replaced, got '$documentXml'" }
@@ -757,6 +891,13 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                 $zip.Dispose()
             }
 
+            try {
+                [xml]$null = $documentXml
+            }
+            catch {
+                throw "Expected literal-token rendered DOCX document.xml to be well-formed XML, got '$($_.Exception.Message)'"
+            }
+
             if ($documentXml -notmatch '<w:t(?: xml:space=\"preserve\")?>Ready</w:t>') { throw "Expected literal-token DOCX replacement when DocxMatchMode=literal-token, got '$documentXml'" }
             if ($documentXml -match '&lt;&lt;SDT:LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.LegacyStatus&gt;&gt;') { throw "Expected legacy token to be removed in literal-token mode, got '$documentXml'" }
 
@@ -832,6 +973,13 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                 $zip.Dispose()
             }
 
+            try {
+                [xml]$null = $documentXml
+            }
+            catch {
+                throw "Expected both-mode rendered DOCX document.xml to be well-formed XML, got '$($_.Exception.Message)'"
+            }
+
             if ($documentXml -notmatch '<w:t(?: xml:space=\"preserve\")?>Ready</w:t>') { throw "Expected literal-token DOCX replacement when DocxMatchMode=both, got '$documentXml'" }
             if ($documentXml -match '&lt;&lt;SDT:\s*LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.LegacyStatus\s*&gt;&gt;') { throw "Expected legacy token to be removed in both mode, got '$documentXml'" }
 
@@ -852,6 +1000,92 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                     throw "Expected mismatch assertion to report artifact-hash diagnostics mismatch, got '$($_.Exception.Message)'"
                 }
             }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'supports mixed alias-backed controls and DOCPROPERTY fields when DocxMatchMode=both' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-docx-both-docprops-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'unused' -TechId 'Test.Tech' -DatasetRelativePath 'datasets/transport.json' -Mappings @(
+                @{
+                    dataset = 'datasets/transport.json'
+                    required = $true
+                    selectors = @('items', '0', 'status')
+                    target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus' }
+                }
+            ) -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'transport'
+                item_count = 1
+                items = @(
+                    @{ status = 'Ready' }
+                )
+            }
+
+            $contractsRoot = New-MinimalContractsRoot -Root $tempRoot -DatasetName 'transport'
+            $templatePath = Join-Path $tempRoot 'docprop-both-template.docx'
+            New-TestDocPropertyWorkflowDocxTemplate -Path $templatePath -LiteralTag 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus'
+            $outputPath = Join-Path $tempRoot 'docprop-both-rendered.docx'
+            $reportPath = Join-Path $tempRoot 'report.json'
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot -DocxMatchMode 'both' -DocTitle 'Solution X' -DocCustomer 'Acme Corp' -DocEnvironment 'Production' -DocDocumentReference 'LNV-DE-001' -DocClassification 'PROTECTED'
+            $exitCode = $LASTEXITCODE
+            if ($exitCode -ne 0) { throw "Expected successful render exit code for mixed doc-property workflow, got $exitCode. Output: $output" }
+            $report = $output | ConvertFrom-Json -AsHashtable
+
+            $zip = [System.IO.Compression.ZipFile]::OpenRead($outputPath)
+            try {
+                $entry = $zip.GetEntry('word/document.xml')
+                if ($null -eq $entry) { throw 'Expected rendered DOCX to contain word/document.xml.' }
+                $reader = [System.IO.StreamReader]::new($entry.Open())
+                try {
+                    $documentXml = $reader.ReadToEnd()
+                }
+                finally {
+                    $reader.Dispose()
+                }
+            }
+            finally {
+                $zip.Dispose()
+            }
+
+            try {
+                [xml]$null = $documentXml
+            }
+            catch {
+                throw "Expected mixed both-mode DOCX document.xml to be well-formed XML, got '$($_.Exception.Message)'"
+            }
+
+            if ($documentXml -notmatch 'Solution X') { throw "Expected alias-backed Title control to be populated, got '$documentXml'" }
+            if ($documentXml -notmatch 'Acme Corp') { throw "Expected DOCPROPERTY-backed Customer control to be populated, got '$documentXml'" }
+            if ($documentXml -notmatch 'Production') { throw "Expected plain DOCPROPERTY field to be populated, got '$documentXml'" }
+            if ($documentXml -notmatch 'LNV-DE-001') { throw "Expected DocumentReference field to be populated, got '$documentXml'" }
+            if ($documentXml -notmatch 'PROTECTED') { throw "Expected Classification field to be populated, got '$documentXml'" }
+            if ($documentXml -match 'OLD-TITLE|OLD-CUSTOMER|OLD-ENVIRONMENT|OLD-DOCREF|OLD-CLASSIFICATION') { throw "Expected stale doc-property placeholders to be replaced, got '$documentXml'" }
+            if ($documentXml -match '&lt;&lt;SDT:\s*LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.LegacyStatus\s*&gt;&gt;') { throw "Expected literal token to be removed in mixed both mode, got '$documentXml'" }
+
+            $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
+            if ($null -eq $renderStage) { throw 'Expected render stage diagnostics in report.' }
+            if ([int]$renderStage.details.docxDocPropControlsPopulated -lt 2) { throw "Expected at least two content-control doc-property populations, got '$($renderStage.details.docxDocPropControlsPopulated)'" }
+            if ([int]$renderStage.details.docxDocPropertyFieldsPopulated -lt 3) { throw "Expected at least three DOCPROPERTY field result populations, got '$($renderStage.details.docxDocPropertyFieldsPopulated)'" }
+            $docPropIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-DOCPROP-DOCX-NO-POPULATION' }) | Select-Object -First 1
+            if ($null -ne $docPropIssue) { throw "Expected no ASB-ASM-DOCPROP-DOCX-NO-POPULATION issue in mixed workflow, got '$($docPropIssue.message)'" }
         }
         finally {
             if (Test-Path -LiteralPath $tempRoot -PathType Container) {

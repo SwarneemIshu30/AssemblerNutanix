@@ -16,8 +16,10 @@ param(
     [Parameter(Mandatory = $false)][string]$DocLocation = 'Australia',
     [Parameter(Mandatory = $false)][string]$DocSubsidiary = 'subsid',
     [Parameter(Mandatory = $false)][string]$DocEnvironment = 'Production',
+    [Parameter(Mandatory = $false)][string]$DocDocumentReference = 'Lenovo ThinkSystem DE As Built',
+    [Parameter(Mandatory = $false)][string]$DocClassification = 'PROTECTED',
     [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
-    [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true,
+    [Parameter(Mandatory = $false)][bool]$IncludeTxt = $false,
     [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
     [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
     [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
@@ -65,8 +67,10 @@ function Invoke-BundleRender {
         [Parameter(Mandatory = $false)][string]$DocLocation,
         [Parameter(Mandatory = $false)][string]$DocSubsidiary,
         [Parameter(Mandatory = $false)][string]$DocEnvironment,
+        [Parameter(Mandatory = $false)][string]$DocDocumentReference,
+        [Parameter(Mandatory = $false)][string]$DocClassification,
         [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
-        [Parameter(Mandatory = $false)][bool]$IncludeTxt = $true,
+        [Parameter(Mandatory = $false)][bool]$IncludeTxt = $false,
         [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
         [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
         [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
@@ -92,6 +96,8 @@ function Invoke-BundleRender {
     if (-not [string]::IsNullOrWhiteSpace($DocLocation)) { $params.DocLocation = $DocLocation }
     if (-not [string]::IsNullOrWhiteSpace($DocSubsidiary)) { $params.DocSubsidiary = $DocSubsidiary }
     if (-not [string]::IsNullOrWhiteSpace($DocEnvironment)) { $params.DocEnvironment = $DocEnvironment }
+    if (-not [string]::IsNullOrWhiteSpace($DocDocumentReference)) { $params.DocDocumentReference = $DocDocumentReference }
+    if (-not [string]::IsNullOrWhiteSpace($DocClassification)) { $params.DocClassification = $DocClassification }
 
     $outputType = @()
     if ($IncludeDocx) { $outputType += 'docx' }
@@ -130,6 +136,8 @@ $xaml = @"
             <RowDefinition Height='Auto'/>
             <RowDefinition Height='Auto'/>
             <RowDefinition Height='Auto'/>
+            <RowDefinition Height='Auto'/>
+            <RowDefinition Height='Auto'/>
             <RowDefinition Height='*'/>
           </Grid.RowDefinitions>
           <Grid.ColumnDefinitions>
@@ -154,6 +162,12 @@ $xaml = @"
 
           <TextBlock Grid.Row='5' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Environment (custom property)</TextBlock>
           <TextBox Name='DocEnvironmentText' Grid.Row='5' Grid.Column='1' Margin='0,0,0,8'/>
+
+          <TextBlock Grid.Row='6' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>DocumentReference (custom property)</TextBlock>
+          <TextBox Name='DocDocumentReferenceText' Grid.Row='6' Grid.Column='1' Margin='0,0,0,8'/>
+
+          <TextBlock Grid.Row='7' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Classification (custom property)</TextBlock>
+          <TextBox Name='DocClassificationText' Grid.Row='7' Grid.Column='1' Margin='0,0,0,8'/>
         </Grid>
       </TabItem>
 
@@ -293,6 +307,8 @@ $docCustomerAbbrText = $window.FindName('DocCustomerAbbrText')
 $docLocationText = $window.FindName('DocLocationText')
 $docSubsidiaryText = $window.FindName('DocSubsidiaryText')
 $docEnvironmentText = $window.FindName('DocEnvironmentText')
+$docDocumentReferenceText = $window.FindName('DocDocumentReferenceText')
+$docClassificationText = $window.FindName('DocClassificationText')
 $brandLogoImage = $window.FindName('BrandLogoImage')
 
 $brandLogoPath = Join-Path $PSScriptRoot 'internal/lenovo-logo.png'
@@ -332,6 +348,8 @@ $docCustomerAbbrText.Text = $DocCustomerAbbr
 $docLocationText.Text = $DocLocation
 $docSubsidiaryText.Text = $DocSubsidiary
 $docEnvironmentText.Text = $DocEnvironment
+$docDocumentReferenceText.Text = $DocDocumentReference
+$docClassificationText.Text = $DocClassification
 $techIdText.Text = (($TechId ?? @()) -join ',')
 $entryIdText.Text = (($EntryId ?? @()) -join ',')
 $docxCheckBox.IsChecked = $IncludeDocx
@@ -371,7 +389,7 @@ $runButton.Add_Click({
         $entrySelection = @($entryIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
         $docxModeSelection = [string]$docxMatchModeCombo.SelectedItem.Content
         $unresolvedTokenPolicySelection = [string]$unresolvedTokenPolicyCombo.SelectedItem.Content
-        $resultJson = Invoke-BundleRender -BundleRoot $bundleRootText.Text -CatalogPath $catalogPathText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text -TechId $techSelection -EntryId $entrySelection -DocTitle $docTitleText.Text -DocCustomer $docCustomerText.Text -DocCustomerAbbr $docCustomerAbbrText.Text -DocLocation $docLocationText.Text -DocSubsidiary $docSubsidiaryText.Text -DocEnvironment $docEnvironmentText.Text -IncludeDocx ([bool]$docxCheckBox.IsChecked) -IncludeTxt ([bool]$txtCheckBox.IsChecked) -AnnotateResolvedTags ([bool]$annotateCheckBox.IsChecked) -DocxMatchMode $docxModeSelection -UnresolvedTokenPolicy $unresolvedTokenPolicySelection
+        $resultJson = Invoke-BundleRender -BundleRoot $bundleRootText.Text -CatalogPath $catalogPathText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text -TechId $techSelection -EntryId $entrySelection -DocTitle $docTitleText.Text -DocCustomer $docCustomerText.Text -DocCustomerAbbr $docCustomerAbbrText.Text -DocLocation $docLocationText.Text -DocSubsidiary $docSubsidiaryText.Text -DocEnvironment $docEnvironmentText.Text -DocDocumentReference $docDocumentReferenceText.Text -DocClassification $docClassificationText.Text -IncludeDocx ([bool]$docxCheckBox.IsChecked) -IncludeTxt ([bool]$txtCheckBox.IsChecked) -AnnotateResolvedTags ([bool]$annotateCheckBox.IsChecked) -DocxMatchMode $docxModeSelection -UnresolvedTokenPolicy $unresolvedTokenPolicySelection
         $statusText.Text = 'Render completed successfully.'
         $outputText.Text = if ($debugCheckBox.IsChecked) {
             Format-DebugBundleOutput -BundleResultJson $resultJson
