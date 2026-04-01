@@ -803,6 +803,7 @@ function Render-DocxTemplate {
         $discoveredTaggedControls = [System.Collections.Generic.List[string]]::new()
         $discoveredUnmappedTaggedControls = [System.Collections.Generic.List[string]]::new()
         $partErrors = [System.Collections.Generic.List[hashtable]]::new()
+        $literalTagDiagnostics = [System.Collections.Generic.List[hashtable]]::new()
         # Contract: document-property replacement is the content-control-tag engine only.
         # Get-DocxContentControlReplacementMap builds the tag->value map for tagged content controls
         # (for example DocumentTitle/DocumentCustomer* tags), and is not used for literal-token paths.
@@ -847,27 +848,46 @@ function Render-DocxTemplate {
             if (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token') {
                 if ($null -ne $TableByTag) {
                     foreach ($tag in @($TableByTag.Keys)) {
+                        $tagText = [string]$tag
                         $tableXml = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId
+                        $tableTokenCount = 0
+                        $tableXmlGenerated = -not [string]::IsNullOrWhiteSpace($tableXml)
                         if (-not [string]::IsNullOrWhiteSpace($tableXml)) {
-                            $escapedTag = [regex]::Escape([string]$tag)
+                            $escapedTag = [regex]::Escape($tagText)
                             $rawTokenPattern = "<<SDT:\\s*$escapedTag\\s*>>"
                             $escapedTokenPattern = "&lt;&lt;SDT:\\s*$escapedTag\\s*&gt;&gt;"
                             $tableTokenCount = [regex]::Matches($xmlText, "$rawTokenPattern|$escapedTokenPattern").Count
                             $literalTokensMatched += [int]$tableTokenCount
                             $literalTokensMatchedTable += [int]$tableTokenCount
-                            $xmlText = Replace-DocxParagraphTokenWithBlockXml -XmlText $xmlText -Tag ([string]$tag) -BlockXml $tableXml
+                            $xmlText = Replace-DocxParagraphTokenWithBlockXml -XmlText $xmlText -Tag $tagText -BlockXml $tableXml
                         }
+
+                        $literalTagDiagnostics.Add([ordered]@{
+                            partName = [string]$entry.FullName
+                            tag = $tagText
+                            mode = 'table'
+                            tableXmlGenerated = [bool]$tableXmlGenerated
+                            contiguousTokenHits = [int]$tableTokenCount
+                        })
                     }
                 }
 
                 foreach ($tag in @($ReplaceByTag.Keys)) {
-                    $escapedTag = [regex]::Escape([string]$tag)
+                    $tagText = [string]$tag
+                    $escapedTag = [regex]::Escape($tagText)
                     $rawTokenPattern = "<<SDT:\\s*$escapedTag\\s*>>"
                     $escapedTokenPattern = "&lt;&lt;SDT:\\s*$escapedTag\\s*&gt;&gt;"
                     $scalarTokenCount = [regex]::Matches($xmlText, "$rawTokenPattern|$escapedTokenPattern").Count
                     $literalTokensMatched += [int]$scalarTokenCount
                     $literalTokensMatchedScalar += [int]$scalarTokenCount
-                    $xmlText = Replace-LiteralSdtTokenXmlText -XmlText $xmlText -Tag ([string]$tag) -Replacement ([string]$ReplaceByTag[$tag])
+                    $xmlText = Replace-LiteralSdtTokenXmlText -XmlText $xmlText -Tag $tagText -Replacement ([string]$ReplaceByTag[$tag])
+
+                    $literalTagDiagnostics.Add([ordered]@{
+                        partName = [string]$entry.FullName
+                        tag = $tagText
+                        mode = 'scalar'
+                        contiguousTokenHits = [int]$scalarTokenCount
+                    })
                 }
             }
 
@@ -977,6 +997,7 @@ function Render-DocxTemplate {
             docPropMappedTags = @($contentControlReplaceByTag.Keys | Sort-Object -Unique)
             contentControlMappedTags = @($contentControlReplaceByTag.Keys | Sort-Object -Unique)
             partErrors = @($partErrors)
+            literalTagDiagnostics = @($literalTagDiagnostics)
         }
     }
     finally {
@@ -2245,6 +2266,7 @@ try {
         $renderDetails.docPropMappedTags = @($docxRender.docPropMappedTags)
         $renderDetails.contentControlMappedTags = @($docxRender.contentControlMappedTags)
         $renderDetails.partErrors = @($docxRender.partErrors)
+        $renderDetails.literalTagDiagnostics = @($docxRender.literalTagDiagnostics)
         $renderDetails.unresolvedLiteralTokens = @($docxUnresolvedLiteralByTag.Keys | Sort-Object)
         $renderDetails.docxMatchMode = [string]$DocxMatchMode
         $expectedDocPropertyControlCount = [int]$renderDetails.docPropControlsExpected
