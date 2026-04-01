@@ -1,42 +1,42 @@
 {
   "schemaVersion": 1,
   "status": "ERROR",
-  "startedUtc": "2026-03-31T23:19:58.8156093Z",
-  "completedUtc": "2026-03-31T23:20:31.7747878Z",
+  "startedUtc": "2026-04-01T00:13:35.4110583Z",
+  "completedUtc": "2026-04-01T00:14:10.2606201Z",
   "bundleId": "bc8e726c-0b55-4b6e-af58-c84fa426a26a",
   "stages": [
     {
-      "startedUtc": "2026-03-31T23:19:58.8156861Z",
+      "startedUtc": "2026-04-01T00:13:35.4111208Z",
       "status": "SKIPPED",
-      "completedUtc": "2026-03-31T23:19:58.8156861Z",
+      "completedUtc": "2026-04-01T00:13:35.4111208Z",
       "name": "Load",
       "details": null
     },
     {
-      "startedUtc": "2026-03-31T23:19:58.8156861Z",
+      "startedUtc": "2026-04-01T00:13:35.4111208Z",
       "status": "SKIPPED",
-      "completedUtc": "2026-03-31T23:19:58.8156861Z",
+      "completedUtc": "2026-04-01T00:13:35.4111208Z",
       "name": "Validate",
       "details": null
     },
     {
-      "startedUtc": "2026-03-31T23:19:58.8156861Z",
+      "startedUtc": "2026-04-01T00:13:35.4111208Z",
       "status": "SKIPPED",
-      "completedUtc": "2026-03-31T23:19:58.8156861Z",
+      "completedUtc": "2026-04-01T00:13:35.4111208Z",
       "name": "Transform",
       "details": null
     },
     {
-      "startedUtc": "2026-03-31T23:19:58.8156861Z",
+      "startedUtc": "2026-04-01T00:13:35.4111208Z",
       "status": "SKIPPED",
-      "completedUtc": "2026-03-31T23:19:58.8156861Z",
+      "completedUtc": "2026-04-01T00:13:35.4111208Z",
       "name": "Render",
       "details": null
     },
     {
-      "startedUtc": "2026-03-31T23:19:58.8156861Z",
+      "startedUtc": "2026-04-01T00:13:35.4111208Z",
       "status": "SKIPPED",
-      "completedUtc": "2026-03-31T23:19:58.8156861Z",
+      "completedUtc": "2026-04-01T00:13:35.4111208Z",
       "name": "Finalize",
       "details": null
     }
@@ -46,7 +46,13 @@
       "severity": "ERROR",
       "code": "ASB-ASM-SDT-DOCX-NO-POPULATION",
       "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
-      "message": "DOCX render did not populate any tagged content controls for supplied document-property control tags. docxMatchMode='both'; discoveredControls=25; discoveredMappedControls=0; discoveredUnmappedControls=24; partErrorCount=0; taggedControlsMatched=0; controlsPopulated=0; contentControlMappedTags=13; sampleMatchedTags=Customer, CustomerAbbr, DocCustomer, DocCustomerAbbr, DocEnvironment"
+      "message": "DOCX literal-token render expected dataset mapping replacement but found no matching tokens to populate. docxMatchMode='both'; literalDatasetTokensExpected=33; literalDatasetTokensPopulated=0; literalTokensMatched=0; literalTokensMatchedScalar=0; literalTokensMatchedTable=0"
+    },
+    {
+      "severity": "ERROR",
+      "code": "ASB-ASM-DOCPROP-DOCX-NO-POPULATION",
+      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
+      "message": "DOCX document-property render expected tagged content controls but none were populated. docxMatchMode='both'; discoveredControls=25; discoveredMappedControls=0; discoveredUnmappedControls=24; partErrorCount=0; taggedControlsMatched=0; controlsPopulated=0; docPropertyControlTags=13; docPropValuesSupplied=True; sampleDocPropertyTags=Customer, CustomerAbbr, DocCustomer, DocCustomerAbbr, DocEnvironment; policySeverity=ERROR"
     }
   ],
   "matches": [
