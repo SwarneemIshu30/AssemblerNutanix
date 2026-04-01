@@ -734,6 +734,28 @@ function Get-DocxContentControlReplacementMap {
     return $map
 }
 
+function Resolve-DocPropNoPopulationSeverity {
+    param(
+        [Parameter(Mandatory = $false)][string]$PolicyValue
+    )
+
+    $candidate = [string]$PolicyValue
+    if ([string]::IsNullOrWhiteSpace($candidate)) {
+        $candidate = [string]$env:ASB_ASM_DOCPROP_NO_POPULATION_SEVERITY
+    }
+
+    if ([string]::IsNullOrWhiteSpace($candidate)) {
+        return 'ERROR'
+    }
+
+    $normalized = $candidate.Trim().ToUpperInvariant()
+    if ($normalized -eq 'WARN') {
+        return 'WARN'
+    }
+
+    return 'ERROR'
+}
+
 function Render-DocxTemplate {
     param(
         [Parameter(Mandatory = $true)][string]$TemplatePath,
@@ -2227,6 +2249,8 @@ try {
         $renderDetails.docxMatchMode = [string]$DocxMatchMode
         $expectedDocPropertyControlCount = [int]$renderDetails.docPropControlsExpected
         $controlsPopulatedCount = [int]$renderDetails.docPropControlsPopulated
+        $docPropValuesSupplied = $expectedDocPropertyControlCount -gt 0
+        $docPropNoPopulationSeverity = Resolve-DocPropNoPopulationSeverity
         if ((Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token') -and [int]$renderDetails.literalDatasetTokensExpected -gt 0 -and [int]$renderDetails.literalDatasetTokensPopulated -eq 0) {
             $status = 'ERROR'
             $issues.Add([ordered]@{
@@ -2236,16 +2260,18 @@ try {
                 path = $TemplatePath
             })
         }
-        if ((Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'content-control-tag') -and $expectedDocPropertyControlCount -gt 0 -and $controlsPopulatedCount -eq 0) {
-            $status = 'ERROR'
+        if ((Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'content-control-tag') -and $docPropValuesSupplied -and $controlsPopulatedCount -eq 0) {
+            if ($docPropNoPopulationSeverity -eq 'ERROR') {
+                $status = 'ERROR'
+            }
             $sampleMatchedTags = @(
                 @($renderDetails.docPropMappedTags | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | Select-Object -Unique -First 5)
             )
             $sampleMatchedTagsText = if ($sampleMatchedTags.Count -gt 0) { $sampleMatchedTags -join ', ' } else { 'n/a' }
             $issues.Add([ordered]@{
                 code = 'ASB-ASM-DOCPROP-DOCX-NO-POPULATION'
-                severity = 'ERROR'
-                message = "DOCX document-property render expected tagged content controls but none were populated. docxMatchMode='$DocxMatchMode'; discoveredControls=$($renderDetails.controlsDiscovered); discoveredMappedControls=$($renderDetails.controlsDiscoveredMapped); discoveredUnmappedControls=$($renderDetails.controlsDiscoveredUnmapped); partErrorCount=$(@($renderDetails.partErrors).Count); taggedControlsMatched=$($renderDetails.taggedControlsMatched); controlsPopulated=$controlsPopulatedCount; docPropertyControlTags=$expectedDocPropertyControlCount; sampleDocPropertyTags=$sampleMatchedTagsText"
+                severity = $docPropNoPopulationSeverity
+                message = "DOCX document-property render expected tagged content controls but none were populated. docxMatchMode='$DocxMatchMode'; discoveredControls=$($renderDetails.controlsDiscovered); discoveredMappedControls=$($renderDetails.controlsDiscoveredMapped); discoveredUnmappedControls=$($renderDetails.controlsDiscoveredUnmapped); partErrorCount=$(@($renderDetails.partErrors).Count); taggedControlsMatched=$($renderDetails.taggedControlsMatched); controlsPopulated=$controlsPopulatedCount; docPropertyControlTags=$expectedDocPropertyControlCount; docPropValuesSupplied=$docPropValuesSupplied; sampleDocPropertyTags=$sampleMatchedTagsText; policySeverity=$docPropNoPopulationSeverity"
                 path = $TemplatePath
             })
         }
