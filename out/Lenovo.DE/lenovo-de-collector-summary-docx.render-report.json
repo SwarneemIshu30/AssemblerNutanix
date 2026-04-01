@@ -1,42 +1,42 @@
 {
   "schemaVersion": 1,
   "status": "ERROR",
-  "startedUtc": "2026-04-01T02:51:11.7453289Z",
-  "completedUtc": "2026-04-01T02:51:25.6270918Z",
+  "startedUtc": "2026-04-01T03:01:27.7714833Z",
+  "completedUtc": "2026-04-01T03:01:42.1229636Z",
   "bundleId": "bc8e726c-0b55-4b6e-af58-c84fa426a26a",
   "stages": [
     {
-      "startedUtc": "2026-04-01T02:51:11.7453931Z",
+      "startedUtc": "2026-04-01T03:01:27.7715465Z",
       "status": "SKIPPED",
-      "completedUtc": "2026-04-01T02:51:11.7453931Z",
+      "completedUtc": "2026-04-01T03:01:27.7715465Z",
       "name": "Load",
       "details": null
     },
     {
-      "startedUtc": "2026-04-01T02:51:11.7453931Z",
+      "startedUtc": "2026-04-01T03:01:27.7715465Z",
       "status": "SKIPPED",
-      "completedUtc": "2026-04-01T02:51:11.7453931Z",
+      "completedUtc": "2026-04-01T03:01:27.7715465Z",
       "name": "Validate",
       "details": null
     },
     {
-      "startedUtc": "2026-04-01T02:51:11.7453931Z",
+      "startedUtc": "2026-04-01T03:01:27.7715465Z",
       "status": "SKIPPED",
-      "completedUtc": "2026-04-01T02:51:11.7453931Z",
+      "completedUtc": "2026-04-01T03:01:27.7715465Z",
       "name": "Transform",
       "details": null
     },
     {
-      "startedUtc": "2026-04-01T02:51:11.7453931Z",
+      "startedUtc": "2026-04-01T03:01:27.7715465Z",
       "status": "SKIPPED",
-      "completedUtc": "2026-04-01T02:51:11.7453931Z",
+      "completedUtc": "2026-04-01T03:01:27.7715465Z",
       "name": "Render",
       "details": null
     },
     {
-      "startedUtc": "2026-04-01T02:51:11.7453931Z",
+      "startedUtc": "2026-04-01T03:01:27.7715465Z",
       "status": "SKIPPED",
-      "completedUtc": "2026-04-01T02:51:11.7453931Z",
+      "completedUtc": "2026-04-01T03:01:27.7715465Z",
       "name": "Finalize",
       "details": null
     }
@@ -44,9 +44,15 @@
   "issues": [
     {
       "severity": "ERROR",
-      "code": "ASB-ASM-SDT-UNHANDLED",
-      "path": null,
-      "message": "message=Cannot convert the \"System.Object[]\" value of type \"System.Object[]\" to type \"System.Int32\". | position=At C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1:2418 char:55\r\n+ … csSummary = Get-LiteralTagDiagnosticsSummary -Diagnostics @($docxRend …\r\n+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ | stack=at Get-LiteralTagDiagnosticsSummary, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 829\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerSdtRender.ps1: line 2418\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\scripts\\Invoke-AssemblerBundleRender.ps1: line 592\r\nat Invoke-BundleRender, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 109\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 374\r\nat <ScriptBlock>, C:\\Github\\LNV.AsBuiltDoc.Assembler\\gui\\Start-AssemblerGui.Wpf.ps1: line 392\r\nat <ScriptBlock>, <No file>: line 1 | stage=Render"
+      "code": "ASB-ASM-SDT-DOCX-NO-POPULATION",
+      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
+      "message": "DOCX literal-token render expected dataset mapping replacement but found no matching tokens to populate. docxMatchMode='both'; literalDatasetTokensExpected=33; literalDatasetTokensPopulated=0; literalTokensMatched=0; literalTokensMatchedScalar=0; literalTokensMatchedTable=0; literalTagDiagnosticsTotal=330; zeroHitTagsSample=LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI[table]=>parts{word/document.xml|word/footer1.xml|word/footer2.xml|word/header1.xml}"
+    },
+    {
+      "severity": "ERROR",
+      "code": "ASB-ASM-DOCPROP-DOCX-NO-POPULATION",
+      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
+      "message": "DOCX document-property render expected tagged content controls but none were populated. docxMatchMode='both'; discoveredControls=7; discoveredMappedControls=0; discoveredUnmappedControls=6; partErrorCount=0; taggedControlsMatched=0; controlsPopulated=0; docPropertyControlTags=13; docPropValuesSupplied=True; sampleDocPropertyTags=Customer, CustomerAbbr, DocCustomer, DocCustomerAbbr, DocEnvironment; policySeverity=ERROR"
     }
   ],
   "matches": [
@@ -249,5 +255,10 @@
       "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence"
     }
   ],
-  "outputs": []
+  "outputs": [
+    {
+      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\Lenovo.DE\\DE-SDT-Collector.rendered.docx",
+      "type": "docx/template-rendered"
+    }
+  ]
 }
