@@ -125,6 +125,7 @@ Behavior:
 - filters enabled catalog entries by detected/requested `techId`
 - invokes `Invoke-AssemblerSdtRender.ps1` once per selected entry
 - writes aggregate report to `assembler-bundle-render-report.json`
+- when a run fails due to nested renderer issues, wrapper diagnostics now preserve a distinct `issue codes: CODE=n` breakdown (for example both `ASB-ASM-SDT-DOCX-NO-POPULATION` and `ASB-ASM-DOCPROP-DOCX-NO-POPULATION` when both appear) so downstream parsers can classify root causes without collapsing them by severity alone
 
 ### Output selection controls
 

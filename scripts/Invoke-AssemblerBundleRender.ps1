@@ -385,7 +385,17 @@ function Get-BundleEntryFailureMessage {
         $errorCount = @($rendererIssues | Where-Object { [string]$_.severity -eq 'ERROR' }).Count
         $rootCauseCount = if ($errorCount -gt 0) { $errorCount } else { @($rendererIssues).Count }
         $rootCauseLabel = if ($errorCount -gt 0) { 'ERROR issue(s)' } else { 'issue(s)' }
-        return "Entry '$EntryId' variant '$VariantName' failed render as a wrapper/aggregation error. Inspect nested renderer report '$RendererReportPath' and its issues array for the $rootCauseCount underlying renderer $rootCauseLabel."
+
+        $codeCounts = @{}
+        foreach ($rendererIssue in @($rendererIssues)) {
+            $issueCode = [string]$rendererIssue.code
+            if ([string]::IsNullOrWhiteSpace($issueCode)) { $issueCode = 'UNKNOWN' }
+            if (-not $codeCounts.ContainsKey($issueCode)) { $codeCounts[$issueCode] = 0 }
+            $codeCounts[$issueCode]++
+        }
+        $codeSummary = @($codeCounts.Keys | Sort-Object | ForEach-Object { "$_=$($codeCounts[$_])" }) -join ', '
+
+        return "Entry '$EntryId' variant '$VariantName' failed render as a wrapper/aggregation error. Inspect nested renderer report '$RendererReportPath' and its issues array for the $rootCauseCount underlying renderer $rootCauseLabel (issue codes: $codeSummary)."
     }
 
     if (-not [string]::IsNullOrWhiteSpace($RendererReportPath)) {

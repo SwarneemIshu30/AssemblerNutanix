@@ -120,6 +120,7 @@ function Get-RootCauseIssueSummary {
     param([Parameter(Mandatory = $true)]$BundleReport)
 
     $issueCounts = @{}
+    $issueCodeCounts = @{}
     $derivedWrapperCount = 0
     $firstIssueMessage = ''
 
@@ -131,6 +132,11 @@ function Get-RootCauseIssueSummary {
                     if ([string]::IsNullOrWhiteSpace($severity)) { $severity = 'UNKNOWN' }
                     if (-not $issueCounts.ContainsKey($severity)) { $issueCounts[$severity] = 0 }
                     $issueCounts[$severity]++
+
+                    $code = [string]$issue.code
+                    if ([string]::IsNullOrWhiteSpace($code)) { $code = 'UNKNOWN' }
+                    if (-not $issueCodeCounts.ContainsKey($code)) { $issueCodeCounts[$code] = 0 }
+                    $issueCodeCounts[$code]++
 
                     if ([string]::IsNullOrWhiteSpace($firstIssueMessage)) {
                         $firstIssueMessage = [string]$issue.message
@@ -151,6 +157,11 @@ function Get-RootCauseIssueSummary {
         if (-not $issueCounts.ContainsKey($severity)) { $issueCounts[$severity] = 0 }
         $issueCounts[$severity]++
 
+        $code = [string]$issue.code
+        if ([string]::IsNullOrWhiteSpace($code)) { $code = 'UNKNOWN' }
+        if (-not $issueCodeCounts.ContainsKey($code)) { $issueCodeCounts[$code] = 0 }
+        $issueCodeCounts[$code]++
+
         if ([string]::IsNullOrWhiteSpace($firstIssueMessage)) {
             $firstIssueMessage = [string]$issue.message
         }
@@ -158,6 +169,7 @@ function Get-RootCauseIssueSummary {
 
     return [ordered]@{
         issueCounts = $issueCounts
+        issueCodeCounts = $issueCodeCounts
         derivedWrapperCount = $derivedWrapperCount
         firstIssueMessage = $firstIssueMessage
     }
@@ -177,6 +189,7 @@ function Format-RenderFindingsSummary {
     $totalMatches = 0
     $rootCauseSummary = Get-RootCauseIssueSummary -BundleReport $bundleReport
     $issueCounts = $rootCauseSummary.issueCounts
+    $issueCodeCounts = $rootCauseSummary.issueCodeCounts
 
     foreach ($run in @($bundleReport.runs)) {
         if ($run.ContainsKey('rendererOutput') -and $null -ne $run.rendererOutput -and $run.rendererOutput.ContainsKey('matches')) {
@@ -196,6 +209,11 @@ function Format-RenderFindingsSummary {
     else {
         $issueSegments = @($issueCounts.Keys | Sort-Object | ForEach-Object { "$_=$($issueCounts[$_])" })
         $summaryLines.Add("  Issues by severity: $($issueSegments -join ', ')")
+
+        if ($issueCodeCounts.Count -gt 0) {
+            $codeSegments = @($issueCodeCounts.Keys | Sort-Object | ForEach-Object { "$_=$($issueCodeCounts[$_])" })
+            $summaryLines.Add("  Issues by code: $($codeSegments -join ', ')")
+        }
 
         if ($rootCauseSummary.derivedWrapperCount -gt 0) {
             $summaryLines.Add("  Derived bundle wrapper failures: $($rootCauseSummary.derivedWrapperCount) (see nested renderer report issues)")
