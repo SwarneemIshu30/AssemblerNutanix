@@ -8,6 +8,7 @@ Runtime direction is **PowerShell 7**.
 - `Invoke-AssemblerSdtRender.ps1` - reads a dataset-to-SDT mapping and skeleton template, validates mapping contract shape, resolves dataset selectors, and renders SDT placeholders.
 - `Invoke-AssemblerBundleRender.ps1` - bundle-aware orchestration skeleton that discovers tech in bundle and runs renderer once per TemplateCatalog entry.
 - `New-AssemblerSkeleton.ps1` - copies a built-in skeleton pack (mapping + template) into a local ingest folder.
+- `New-AssemblerPackage.ps1` - creates a runtime-oriented distribution zip that bundles the checked-in `.deps/contracts` snapshot, operator-facing docs, scripts, GUI launchers, and built-in skeleton assets.
 - `Sync-AssemblerContractsToRepo.ps1` - syncs contracts into deterministic repo-local ingest path (`.deps/contracts`) and regenerates `templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json` from `tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml`.
   - Collector mapping generation now honors contract-owned `syncPolicy.collectorSkeletonMapping` (allowed `renderAs`, selector defaults, and unsupported-shape behavior) instead of script-side hardcoded render assumptions.
   - Supports explicit rollout control via `-OutputShapeMode legacy|dual|target` and logs migration dashboard counts (`sdtTag`-only, dual, target-only) for both contract and runtime mapping shapes.
@@ -75,6 +76,26 @@ Both paths converge on **bundle render** before SDT render. This is required whe
 The SDT render script loads `standards/mapping.dataset-to-sdt.schema.v1.json` and `standards/assembler/assembler.render-report.schema.v1.json` from the resolved root and performs schema validation for mapping input and single-render output. It also requires a tech-specific projection contract at `tech/<techId>/assembler.projections.v1.json`; if that file is missing for the selected tech, render fails with an error explaining that contracts sync is incomplete so operators know to sync `tech/<techId>/assembler.projections.v1.json` into `.deps/contracts` outside this repo. Bundle orchestration separately validates `standards/assembler/assembler.bundle-render-report.schema.v1.json` for its aggregate report.
 
 Repo ownership note: `.deps/contracts` is the runtime snapshot used for immediate testing. Owned contract artifacts changed there should be mirrored into `exports/LNV.AsBuiltDoc.Contracts/...` for offline handoff to the contracts repo in the same change. Do not claim a complete export mirror unless those files actually exist under `exports/...`.
+
+Packaged runtime distributions bundle that checked-in `.deps/contracts` snapshot by default, so operators can run the extracted package without an initial sync step. `Sync-AssemblerContractsToRepo.ps1` is the supported update/override path for replacing the packaged snapshot after extraction, while `-ContractsRoot` remains the explicit runtime override when a different contracts tree must be used.
+
+## Packaging runtime distributions
+
+`New-AssemblerPackage.ps1` creates a runtime-oriented zip that includes:
+- `README.md`
+- selected operator-facing docs under `docs/`
+- selected runtime/operator scripts plus `scripts/internal/`
+- `gui/`
+- `templates/skeletons/`
+- `.deps/contracts/`
+
+The package intentionally excludes sample bundles/outputs, tests, exports, packaging/CI helpers, document-generation helpers, and other repo-only working content so the zip stays focused on the runnable assembler runtime.
+
+Example:
+
+```powershell
+pwsh ./scripts/New-AssemblerPackage.ps1 -BuildChannel dev
+```
 
 ## Projection/view ownership direction
 

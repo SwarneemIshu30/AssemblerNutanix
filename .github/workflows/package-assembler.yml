@@ -1,0 +1,91 @@
+name: Package Assembler Runtime
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_version:
+        description: Optional package version override for manual builds
+        required: false
+        type: string
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build package
+        shell: pwsh
+        run: |
+          $eventName = '${{ github.event_name }}'
+          $refType = '${{ github.ref_type }}'
+          $refName = '${{ github.ref_name }}'
+          $manualVersion = '${{ inputs.package_version }}'
+
+          $timestamp = (Get-Date -AsUTC).ToString('yyyyMMddHHmmss')
+          $buildChannel = 'ci'
+          $packageVersion = $manualVersion
+
+          if ($eventName -eq 'workflow_dispatch') {
+            $buildChannel = 'dev'
+            if ([string]::IsNullOrWhiteSpace($packageVersion)) {
+              $packageVersion = "0.0.0-dev.$timestamp"
+            }
+          }
+          elseif ($refType -eq 'tag') {
+            $buildChannel = 'release'
+            $packageVersion = if ($refName.StartsWith('v')) { $refName.Substring(1) } else { $refName }
+          }
+          else {
+            $buildChannel = 'ci'
+            $packageVersion = "0.0.0-ci.$timestamp"
+          }
+
+          ./scripts/New-AssemblerPackage.ps1 `
+            -OutputDir 'dist' `
+            -BuildChannel $buildChannel `
+            -PackageVersion $packageVersion
+
+      - name: Read package manifest
+        id: pkg
+        shell: pwsh
+        run: |
+          $manifest = Get-Content -Raw -LiteralPath ./dist/package.manifest.json | ConvertFrom-Json -Depth 10
+          $zipPath = [string]$manifest.zipPath
+          $packageVersion = [string]$manifest.packageVersion
+          if ([string]::IsNullOrWhiteSpace($zipPath)) {
+            throw 'package.manifest.json did not contain zipPath'
+          }
+          if ([string]::IsNullOrWhiteSpace($packageVersion)) {
+            throw 'package.manifest.json did not contain packageVersion'
+          }
+
+          "path=$zipPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "name=$([IO.Path]::GetFileName($zipPath))" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "version=$packageVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: assembler-package-${{ steps.pkg.outputs.version }}
+          path: |
+            ${{ steps.pkg.outputs.path }}
+            dist/package.manifest.json
+
+      - name: Publish package to release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ steps.pkg.outputs.path }}
+            dist/package.manifest.json
+          fail_on_unmatched_files: true

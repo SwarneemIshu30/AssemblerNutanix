@@ -1,2 +1,4 @@
 
 before-discard.patch
+dist/
+.packaging/staging/

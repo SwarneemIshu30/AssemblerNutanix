@@ -32,6 +32,8 @@ The assembler resolves contracts from:
 
 `.deps/contracts` is a synced runtime dependency used by the assembler at render time. It is **not** the long-term source of truth for contract authoring.
 
+Packaged assembler runtime distributions bundle the checked-in `.deps/contracts` snapshot by default so the extracted package is runnable without a first-run sync. `scripts/Sync-AssemblerContractsToRepo.ps1` remains the supported way to refresh or replace that bundled snapshot after extraction, and `-ContractsRoot` remains the explicit runtime override when operators need to point at a different contracts tree.
+
 When assembler work requires editing or adding contract files under `.deps/contracts` in this repo, mirror the same owned artifacts under:
 - `exports/LNV.AsBuiltDoc.Contracts/...`
 
