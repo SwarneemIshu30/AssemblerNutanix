@@ -35,7 +35,7 @@ The assembler resolves contracts from:
 When assembler work requires editing or adding contract files under `.deps/contracts` in this repo, mirror the same owned artifacts under:
 - `exports/LNV.AsBuiltDoc.Contracts/...`
 
-That export tree exists so contract changes can be handed off offline to the contracts repo that owns them.
+That export tree exists so contract changes can be handed off offline to the contracts repo that owns them. For immediate testing, owned contract changes may be applied in `.deps/contracts`, but the same changed artifacts must also be mirrored into `exports/...` in the same change. Do not assume `exports/...` is a complete mirror unless the files are actually present there.
 
 ## Contract-driven projection model
 
@@ -46,6 +46,8 @@ The current assembler direction is to keep rendering behavior declarative and co
 - dataset presentation sidecars under `tech/<techId>/dataset/*.assembler.meta.json` describe document intent such as `summary`, `table`, `relationshipTable`, or `evidence`
 - document-facing SDTs should resolve through explicit projection/view metadata rather than ad hoc technology-specific renderer logic
 - raw JSON output is reserved for evidence/debug use cases, not as the preferred fallback for document-facing tables
+- current runtime execution still uses legacy-compatible mode precedence: projection `renderMode`, then mapping `renderMode`, then mapping `renderAs`
+- current projection execution supports aliases, `filter`, `sortBy`, `columns`, supported column formats, and partial `emptyBehavior` handling; `renderAs`-first precedence, `list`, `rowOrder`, `identityKeys`, `formatProfiles`, and full `emptyBehavior` remain target semantics rather than fully implemented runtime behavior
 
 For Lenovo.DE specifically, the authoritative mapping and projection intent now lives in the contracts snapshot under:
 - `.deps/contracts/tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml`
@@ -53,6 +55,7 @@ For Lenovo.DE specifically, the authoritative mapping and projection intent now 
 - `.deps/contracts/tech/Lenovo.DE/dataset/*.assembler.meta.json`
 
 The runtime skeleton mapping under `templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json` should stay aligned with that contract data.
+See `docs/contract-driven-projections.md` for the repo-level explanation of current runtime support versus roadmap semantics.
 
 ## Public entrypoints and chaining
 
@@ -71,7 +74,14 @@ Output selection is controlled in layers:
 2. **CLI filter parameters** on bundle render (`-TechId`, `-EntryId`, `-OutputType docx|text`) provide run-time narrowing.
 3. **GUI debug/advanced toggles** expose equivalent filtering (Entry IDs and DOCX/TXT toggles).
 
-Current default behavior is to emit both output variants (**DOCX + TXT**) when not filtered. Planned default behavior is **DOCX-only**, with a debug override that can enable TXT output.
+Current default behavior is **DOCX-only**. TXT output is still available through explicit CLI filters or GUI debug/advanced toggles.
+
+## Current DOCX behavior
+
+- GUI and bundle-render flows currently expose document-property inputs for `Title`, `Customer`, `CustomerAbbr`, `Location`, `Subsidiary`, `Environment`, `DocumentReference`, and classification.
+- DOCX matching currently supports `literal-token`, `content-control-tag`, and `both`.
+- `literal-token` populates dataset-driven `<<SDT:...>>` placeholders, while `content-control-tag` populates document controls and `DOCPROPERTY`-backed fields. `both` runs both paths.
+- When `DocTitle` and `DocCustomer` are supplied, generated DOCX filenames currently resolve to `Title - Customer.docx`.
 
 ## Current runtime coverage
 
@@ -107,7 +117,7 @@ pwsh ./scripts/Invoke-AssemblerSdtRender.ps1 \
 # Right: bundle orchestration resolves mapping paths before SDT render
 pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
   -BundleRoot ./bundle/<id> \
-  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json \
+  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json \
   -OutputRoot ./out/bundle-render
 ```
 

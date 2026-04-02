@@ -6,8 +6,8 @@ This folder contains side-by-side launcher options for bundle rendering via
 ## Standard GUI input locations
 
 Both GUI launchers initialize with the same canonical defaults:
-- `BundleRoot`: `<repo>/bundle` (if `objectIndex.json` is not directly under this folder, the renderer auto-selects the most recently updated child bundle folder containing `objectIndex.json`)
-- `CatalogPath`: `templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json` (or first `*.catalog.json` under `templates/`)
+- `BundleRoot`: the concrete bundle under `<repo>/bundle` when that folder is itself a valid bundle, or the single valid child bundle under `<repo>/bundle` when exactly one exists; otherwise the operator must choose a bundle path manually
+- `CatalogPath`: `templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json` (then `DE-SDT-Dummy.catalog.json`, then the first `*.catalog.json` under `templates/`)
 - `OutputRoot`: `<repo>/out`
 - `ContractsRoot`: `<repo>/.deps/contracts`
 
@@ -15,6 +15,22 @@ Mandatory inputs for execution are:
 - `BundleRoot` (existing folder)
 - `CatalogPath` (existing file)
 - `OutputRoot` (created if missing)
+
+Document-property inputs exposed in the GUI:
+- `Title`
+- `Customer`
+- `CustomerAbbr`
+- `Location`
+- `Subsidiary`
+- `Environment`
+- `DocumentReference`
+- `Classification`
+
+Workflow defaults exposed in the GUI:
+- DOCX enabled
+- TXT disabled
+- `DocxMatchMode=both`
+- `UnresolvedTokenPolicy=retain`
 
 ## `Start-AssemblerGui.ps1` (cross-platform launcher)
 
@@ -55,6 +71,12 @@ Public entrypoint map:
 
 Bundle render is intentionally the GUI handoff boundary. If mappings contain runtime placeholders such as `__TARGET__` and `__SYSTEM__`, bundle render is required to resolve those values before SDT rendering.
 
+DOCX behavior exposed through the GUI:
+- `literal-token` populates dataset-driven literal `<<SDT:...>>` tokens in DOCX parts.
+- `content-control-tag` populates tagged DOCX controls and `DOCPROPERTY`-backed fields such as title, customer, environment, document reference, and classification.
+- `both` runs both DOCX paths and is the current default.
+- When `Title` and `Customer` are supplied, generated DOCX filenames currently resolve to `Title - Customer.docx`.
+
 ## Output selection guidance
 
 The GUI participates in the same output-selection model as CLI orchestration:
@@ -64,4 +86,4 @@ The GUI participates in the same output-selection model as CLI orchestration:
 3. **GUI Debug/Advanced controls** expose the same narrowing behavior through Entry ID and DOCX/TXT toggles.
 4. **GUI Debug/Advanced unresolved-token policy** lets operators keep unresolved `<<SDT:...>>` tokens (`retain`, default) for reruns/troubleshooting or strip them (`remove`) in final output.
 
-Current default behavior is to keep both output variants enabled (**DOCX + TXT**). Planned roadmap behavior is to default to **DOCX-only**, with a debug/advanced override to re-enable TXT when needed.
+Current default behavior is **DOCX-only**. TXT output remains available through the GUI debug/advanced toggles when needed.

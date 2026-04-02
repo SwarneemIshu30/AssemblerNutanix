@@ -28,7 +28,7 @@ Assembler should then execute that declarative intent deterministically.
 ### Not owned here
 - `.deps/contracts` as a long-term source-of-truth authoring location
 
-The `.deps/contracts` tree is a synced runtime dependency. If assembler work needs a contract edit in this repo, mirror the owned files into `exports/LNV.AsBuiltDoc.Contracts/...` so they can be moved into the contracts repo offline.
+The `.deps/contracts` tree is a synced runtime dependency. If assembler work needs a contract edit in this repo, update `.deps/contracts` for immediate runtime testing and mirror the same changed owned files into `exports/LNV.AsBuiltDoc.Contracts/...` so they can be moved into the contracts repo offline.
 
 ## Current contract facts in this repo
 
@@ -83,6 +83,70 @@ Relevant files:
 - `.deps/contracts/tech/Lenovo.DE/dataset/host-ports.assembler.meta.json`
 - `.deps/contracts/tech/Lenovo.DE/dataset/volume-mappings.assembler.meta.json`
 - `.deps/contracts/tech/Lenovo.DE/dataset/capabilities-normalized.assembler.meta.json`
+
+## Direct-v1 dependency chain
+
+The intended dependency chain in this repo is:
+
+1. Collector emits Direct-v1 datasets in `lnv.collector.dataset.v1` envelopes.
+2. `mapping.dataset-to-sdt` binds those datasets to SDT destinations and declares render intent through `renderHint` fields such as `renderAs`, `projectionRef`, and `view`.
+3. Dataset sidecars under `tech/<techId>/dataset/*.assembler.meta.json` describe upstream document intent and dataset path templates used by sync/runtime generation.
+4. `Sync-AssemblerContractsToRepo.ps1` consumes `renderAs` and `syncPolicy` to generate the runtime-facing skeleton mapping copy.
+5. `Invoke-AssemblerSdtRender.ps1` resolves the selected projection through `projectionRef`, `view`, tag, and alias lookup, then executes the currently implemented projection subset against DOCX or text output.
+
+## Current runtime subset
+
+The current renderer already consumes the Direct-v1 contract model, but only a subset is fully implemented.
+
+Current supported runtime behavior:
+- Direct-v1 facts are read from `lnv.collector.dataset.v1` envelopes, with a narrow compatibility path for legacy `run_summary.json`.
+- Mapping contracts already declare `renderHint.renderAs`, `projectionRef`, and `view`.
+- Sync already consumes `renderAs` and `syncPolicy.collectorSkeletonMapping`.
+- Projection lookup already supports direct tag lookup, alias lookup, `projectionRef`, and `view`.
+- Current projection execution supports aliases, `filter`, legacy `sortBy`, `columns`, and column formats `bytesHuman` and `join`.
+- Current table empty-state handling is partial: `emptyBehavior=placeholder` can synthesize a placeholder row, but the full `emptyBehavior` model is not yet enforced.
+
+Current runtime mode precedence:
+- projection `renderMode`
+- mapping `renderMode`
+- mapping `renderAs`
+- `_TABLE_JSON` suffix heuristic
+- fallback `scalar`
+
+Current unsupported or partial areas:
+- `renderAs` is not yet authoritative
+- `list` is not yet a distinct runtime rendering mode
+- `rowOrder`, `identityKeys`, and `formatProfiles` are defined in contracts but not yet executed by the renderer
+- `renderAs`/`renderMode` disagreement is not yet enforced as a contract error
+- `emptyBehavior` values other than the current placeholder path are not yet fully implemented
+
+## Why `renderAs` does not win today
+
+`renderAs` is the more mature Direct-v1 contract form, but it cannot be described as authoritative today because the runtime dependency chain is still mixed:
+
+- The contract layer already uses `renderAs` heavily in Lenovo.DE mappings.
+- Sync depends on `renderAs` today through `allowedRenderAs` and `selectors.defaultByRenderAs`.
+- The renderer still depends on legacy `renderMode` precedence because the execution engine and validation rules have not yet caught up to the richer projection contract surface.
+- Lenovo.DE currently works because mappings and projections mostly duplicate intent safely, with `renderAs`, `projectionRef`, `view`, and projection `renderMode` aligned instead of conflicting.
+
+Mode differences in the current repo:
+- `renderMode`: legacy runtime execution switch still consumed first by the renderer.
+- `renderAs`: newer declarative contract intent already used by mappings and sync.
+- `projectionRef`: explicit projection identity for shaping rows/values.
+- `view`: named projection/view selector used during projection lookup.
+
+## Target semantics and backlog
+
+The intended Direct-v1 end state is still:
+- `renderAs` becomes canonical and wins over legacy `renderMode`.
+- `renderAs`/`renderMode` disagreement becomes a contract error.
+- Projection execution grows to support `list`, `rowOrder`, `identityKeys`, `formatProfiles`, and complete `emptyBehavior`.
+
+Dependencies before that transition should be described as backlog items, not implied as current behavior:
+- update runtime mode resolution
+- update explicitness and mismatch validation
+- extend projection execution semantics
+- add focused regression tests before changing precedence
 
 ## Practical guidance for assembler changes
 

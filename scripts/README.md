@@ -51,7 +51,7 @@ pwsh ./scripts/Invoke-AssemblerSdtRender.ps1 \
 # Right: bundle orchestration resolves mapping paths before SDT render
 pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
   -BundleRoot ./bundle/<id> \
-  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json \
+  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json \
   -OutputRoot ./out/bundle-render
 ```
 
@@ -74,7 +74,7 @@ Both paths converge on **bundle render** before SDT render. This is required whe
 
 The SDT render script loads `standards/mapping.dataset-to-sdt.schema.v1.json` and `standards/assembler/assembler.render-report.schema.v1.json` from the resolved root and performs schema validation for mapping input and single-render output. It also requires a tech-specific projection contract at `tech/<techId>/assembler.projections.v1.json`; if that file is missing for the selected tech, render fails with an error explaining that contracts sync is incomplete so operators know to sync `tech/<techId>/assembler.projections.v1.json` into `.deps/contracts` outside this repo. Bundle orchestration separately validates `standards/assembler/assembler.bundle-render-report.schema.v1.json` for its aggregate report.
 
-Repo ownership note: tracked contract handoff artifacts live under `exports/LNV.AsBuiltDoc.Contracts/...`, including `exports/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/assembler.projections.v1.json` and dataset presentation sidecars under `exports/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/dataset/*.assembler.meta.json`. The `.deps/contracts` tree is a repo-local synced runtime dependency populated by `Sync-AssemblerContractsToRepo.ps1`; do not make repo-managed contract edits there unless you also mirror the owned contract changes into `exports/...` for offline handoff.
+Repo ownership note: `.deps/contracts` is the runtime snapshot used for immediate testing. Owned contract artifacts changed there should be mirrored into `exports/LNV.AsBuiltDoc.Contracts/...` for offline handoff to the contracts repo in the same change. Do not claim a complete export mirror unless those files actually exist under `exports/...`.
 
 ## Projection/view ownership direction
 
@@ -84,6 +84,13 @@ Assembler documentation and runtime behavior should align to these rules:
 - `tech/<techId>/dataset/*.assembler.meta.json` carries dataset presentation intent so collectors can inform assembler how normalized data should be treated without pushing more tech logic into invoke scripts.
 - `tech/<techId>/dataset/*.assembler.meta.json` also owns dataset path templates for skeleton mapping generation via `datasetPath.template` (for example `datasets/__TECH_ID__/__TARGET__/__SYSTEM__/__DATASET__.json`). Supported placeholders are `__TECH_ID__` and `__DATASET__` (expanded during sync) plus `__TARGET__`, `__SYSTEM__`, and similar runtime placeholders (passed through for bundle-time expansion). Missing templates now fail mapping generation.
 - document-facing table outputs should be driven by explicit view/projection metadata; raw JSON output should be limited to declared evidence/debug scenarios.
+
+Current runtime subset versus target semantics:
+- Direct-v1 contracts already use `renderAs`, `projectionRef`, `view`, projection contracts, and dataset presentation sidecars.
+- Sync already consumes `renderAs` and `syncPolicy` when generating runtime-facing mapping copies.
+- The renderer still executes with legacy-compatible precedence: projection `renderMode`, then mapping `renderMode`, then mapping `renderAs`.
+- Current projection execution supports aliases, `filter`, `sortBy`, `columns`, supported column formats, and partial `emptyBehavior` handling.
+- `renderAs`-first precedence, `renderAs`/`renderMode` mismatch validation, `list`, `rowOrder`, `identityKeys`, `formatProfiles`, and full `emptyBehavior` remain target semantics until the renderer catches up.
 
 For Lenovo.DE, the authoritative contract mapping source is `.deps/contracts/tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml`; `templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json` is the runtime-facing/generated copy that must stay aligned with it.
 
@@ -115,6 +122,8 @@ Optional:
 - `-TechId` (one or more explicit technologies to render)
 - `-EntryId` (one or more catalog entry IDs; debug/advanced filter)
 - `-OutputType docx|text` (one or both output variants; debug/advanced filter)
+- `-DocTitle`, `-DocCustomer`, `-DocCustomerAbbr`, `-DocLocation`, `-DocSubsidiary`, `-DocEnvironment`, `-DocDocumentReference`, `-DocClassification` (DOCX document-property/content-control inputs)
+- `-DocxMatchMode content-control-tag|literal-token|both` (default `both`; controls whether DOCX render processes literal dataset tokens, document controls/DOCPROPERTY fields, or both)
 - `-AnnotateResolvedTags` (when rendering text output, prefix resolved `<<SDT:...>>` replacements with debug trace markers)
 - `-UnresolvedTokenPolicy retain|remove` (default `retain`; `remove` strips unresolved `<<SDT:...>>` tokens from rendered output)
 
@@ -124,6 +133,8 @@ Behavior:
 - validates aggregate bundle report contract against dedicated `assembler.bundle-render-report` schema
 - filters enabled catalog entries by detected/requested `techId`
 - invokes `Invoke-AssemblerSdtRender.ps1` once per selected entry
+- when DOCX output is selected, forwards document-property inputs to DOCX content-control/DOCPROPERTY population and literal dataset token replacement according to `DocxMatchMode`
+- when `DocTitle` and `DocCustomer` are supplied for DOCX output, prefers the generated filename `Title - Customer.docx`
 - writes aggregate report to `assembler-bundle-render-report.json`
 - when a run fails due to nested renderer issues, wrapper diagnostics now preserve a distinct `issue codes: CODE=n` breakdown (for example both `ASB-ASM-SDT-DOCX-NO-POPULATION` and `ASB-ASM-DOCPROP-DOCX-NO-POPULATION` when both appear) so downstream parsers can classify root causes without collapsing them by severity alone
 
@@ -140,7 +151,7 @@ Bundle render output can be narrowed in three layers:
 3. **GUI debug/advanced toggles**
    - GUI launchers pass `EntryId` and DOCX/TXT toggles through to bundle render filters.
 
-Current default behavior is to produce **both DOCX and TXT** when output filters are not constrained. Roadmap direction is to switch the default to **DOCX-only**, while keeping an explicit debug/advanced override to enable TXT output when needed.
+Current default behavior is **DOCX-only**. TXT output remains available through `-OutputType text` or GUI debug/advanced toggles.
 
 ## `Invoke-AssemblerPipeline.ps1`
 
@@ -203,7 +214,7 @@ pwsh ./scripts/Sync-AssemblerContractsToRepo.ps1 -ExportContractsPath ./contract
 # Run orchestration for all detected tech
 pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
   -BundleRoot ./bundle/417f4663-0922-423b-92a9-34d4e33ecd0e \
-  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json \
+  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json \
   -OutputRoot ./out/bundle-render
 ```
 
@@ -211,7 +222,7 @@ pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
 # Run orchestration only for Lenovo.DE
 pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
   -BundleRoot ./bundle/417f4663-0922-423b-92a9-34d4e33ecd0e \
-  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json \
+  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json \
   -OutputRoot ./out/bundle-render \
   -TechId Lenovo.DE
 ```
@@ -220,7 +231,7 @@ pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
 # Debug text output by annotating resolved SDT tags
 pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
   -BundleRoot ./bundle/417f4663-0922-423b-92a9-34d4e33ecd0e \
-  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json \
+  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json \
   -OutputRoot ./out/bundle-render \
   -OutputType text \
   -AnnotateResolvedTags
