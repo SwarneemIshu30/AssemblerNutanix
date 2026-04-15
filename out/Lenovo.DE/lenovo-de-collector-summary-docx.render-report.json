@@ -1,263 +1,1726 @@
 {
   "schemaVersion": 1,
-  "status": "ERROR",
-  "startedUtc": "2026-04-01T03:46:43.8702746Z",
-  "completedUtc": "2026-04-01T03:47:06.1535248Z",
+  "status": "OK",
+  "startedUtc": "2026-04-14T23:25:10.6463197Z",
+  "completedUtc": "2026-04-14T23:25:13.0641382Z",
   "bundleId": "bc8e726c-0b55-4b6e-af58-c84fa426a26a",
   "stages": [
     {
-      "startedUtc": "2026-04-01T03:46:43.8703969Z",
-      "details": null,
       "name": "Load",
-      "completedUtc": "2026-04-01T03:46:43.8703969Z",
-      "status": "SKIPPED"
+      "status": "OK",
+      "startedUtc": "2026-04-14T23:25:10.6511428Z",
+      "completedUtc": "2026-04-14T23:25:10.7076094Z",
+      "details": {
+        "templatePath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
+        "mappingPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\.resolved-mappings\\lenovo-de-collector-summary-docx.system_1_DE4200_Rack4.resolved.json",
+        "mappingSchemaPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts\\standards\\mapping.dataset-to-sdt.schema.v1.json",
+        "projectionContractPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts\\tech\\Lenovo.DE\\assembler.projections.v1.json",
+        "templateExtension": ".docx",
+        "projectionSchemaPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts\\standards\\assembler\\assembler.projections.schema.v1.json",
+        "contractsRoot": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\.deps\\contracts"
+      }
     },
     {
-      "startedUtc": "2026-04-01T03:46:43.8703969Z",
-      "details": null,
       "name": "Validate",
-      "completedUtc": "2026-04-01T03:46:43.8703969Z",
-      "status": "SKIPPED"
+      "status": "OK",
+      "startedUtc": "2026-04-14T23:25:10.7077534Z",
+      "completedUtc": "2026-04-14T23:25:10.7296817Z",
+      "details": {
+        "projectionCount": 34,
+        "mappingCount": 33
+      }
     },
     {
-      "startedUtc": "2026-04-01T03:46:43.8703969Z",
-      "details": null,
       "name": "Transform",
-      "completedUtc": "2026-04-01T03:46:43.8703969Z",
-      "status": "SKIPPED"
+      "status": "OK",
+      "startedUtc": "2026-04-14T23:25:10.7298107Z",
+      "completedUtc": "2026-04-14T23:25:11.2033839Z",
+      "details": {
+        "matches": 33,
+        "tagsResolved": 33
+      }
     },
     {
-      "startedUtc": "2026-04-01T03:46:43.8703969Z",
-      "details": null,
       "name": "Render",
-      "completedUtc": "2026-04-01T03:46:43.8703969Z",
-      "status": "SKIPPED"
+      "status": "OK",
+      "startedUtc": "2026-04-14T23:25:11.2034789Z",
+      "completedUtc": "2026-04-14T23:25:13.0598645Z",
+      "details": {
+        "docxLiteralDatasetTokensPopulated": 28,
+        "docxDocPropertyFieldsDiscovered": 7,
+        "docxLiteralTagDiagnosticsSummary": {
+          "totalEntries": 330,
+          "hitEntries": 26,
+          "zeroHitEntries": 304,
+          "contiguousTokenHitTotal": 28,
+          "distinctTagCount": 33,
+          "distinctPartCount": 5,
+          "topEntryLimit": 25,
+          "topEntries": [
+            {
+              "tag": "LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory",
+              "partName": "word/document.xml",
+              "mode": "table",
+              "contiguousTokenHits": 2
+            },
+            {
+              "tag": "LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory",
+              "partName": "word/document.xml",
+              "mode": "scalar",
+              "contiguousTokenHits": 2
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport",
+              "partName": "word/document.xml",
+              "mode": "scalar",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport",
+              "partName": "word/document.xml",
+              "mode": "table",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures",
+              "partName": "word/document.xml",
+              "mode": "scalar",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures",
+              "partName": "word/document.xml",
+              "mode": "table",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits",
+              "partName": "word/document.xml",
+              "mode": "scalar",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits",
+              "partName": "word/document.xml",
+              "mode": "table",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary",
+              "partName": "word/document.xml",
+              "mode": "scalar",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary",
+              "partName": "word/document.xml",
+              "mode": "table",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups",
+              "partName": "word/document.xml",
+              "mode": "scalar",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups",
+              "partName": "word/document.xml",
+              "mode": "table",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes",
+              "partName": "word/document.xml",
+              "mode": "scalar",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes",
+              "partName": "word/document.xml",
+              "mode": "table",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC",
+              "partName": "word/document.xml",
+              "mode": "table",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC",
+              "partName": "word/document.xml",
+              "mode": "scalar",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI",
+              "partName": "word/document.xml",
+              "mode": "table",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI",
+              "partName": "word/document.xml",
+              "mode": "scalar",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts",
+              "partName": "word/document.xml",
+              "mode": "table",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts",
+              "partName": "word/document.xml",
+              "mode": "scalar",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups",
+              "partName": "word/document.xml",
+              "mode": "table",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups",
+              "partName": "word/document.xml",
+              "mode": "scalar",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes",
+              "partName": "word/document.xml",
+              "mode": "scalar",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes",
+              "partName": "word/document.xml",
+              "mode": "table",
+              "contiguousTokenHits": 1
+            },
+            {
+              "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Trays",
+              "partName": "word/document.xml",
+              "mode": "table",
+              "contiguousTokenHits": 1
+            }
+          ],
+          "zeroHitTagSampleLimit": 8,
+          "zeroHitTagSamples": [
+            {
+              "inspectedPartCount": 5,
+              "mode": "table",
+              "tag": "LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory",
+              "inspectedParts": [
+                "word/document.xml",
+                "word/footer1.xml",
+                "word/footer2.xml",
+                "word/header1.xml"
+              ]
+            }
+          ]
+        },
+        "templateKind": "docx",
+        "docxPartsUpdated": 5,
+        "docxControlsDiscoveredUnmapped": 0,
+        "docxDocPropertyFieldsPopulated": 7,
+        "docxLiteralPartHitSummary": [
+          {
+            "fragmentHintTagCount": 20,
+            "contiguousTokenHits": 28,
+            "matchedTags": [
+              "LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.Trays"
+            ],
+            "fragmentHintTags": [
+              "LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory",
+              "LNV.Lenovo.DE.System[ArrayName].Narrative.Config",
+              "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope1",
+              "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope2",
+              "LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence",
+              "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port1",
+              "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port2",
+              "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerA",
+              "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerB",
+              "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope1",
+              "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope2",
+              "LNV.Lenovo.DE.System[ArrayName].Narrative.Version",
+              "LNV.Lenovo.DE.System[ArrayName].Summary",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.Controllers",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.DNS",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.Time",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.Transport",
+              "LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings",
+              "LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory"
+            ],
+            "matchedTagCount": 13,
+            "partName": "word/document.xml"
+          },
+          {
+            "fragmentHintTagCount": 0,
+            "contiguousTokenHits": 0,
+            "matchedTags": [],
+            "fragmentHintTags": [],
+            "matchedTagCount": 0,
+            "partName": "word/footer1.xml"
+          },
+          {
+            "fragmentHintTagCount": 0,
+            "contiguousTokenHits": 0,
+            "matchedTags": [],
+            "fragmentHintTags": [],
+            "matchedTagCount": 0,
+            "partName": "word/footer2.xml"
+          },
+          {
+            "fragmentHintTagCount": 0,
+            "contiguousTokenHits": 0,
+            "matchedTags": [],
+            "fragmentHintTags": [],
+            "matchedTagCount": 0,
+            "partName": "word/header1.xml"
+          },
+          {
+            "fragmentHintTagCount": 0,
+            "contiguousTokenHits": 0,
+            "matchedTags": [],
+            "fragmentHintTags": [],
+            "matchedTagCount": 0,
+            "partName": "word/header2.xml"
+          }
+        ],
+        "docxControlsDiscovered": 2,
+        "docxOutputPathResolved": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\Lenovo.DE\\Solution Name [Lenovo DE] - Customer.docx",
+        "docxTemplateLengthBytes": 266969,
+        "tagsPopulated": 33,
+        "docxUnmatchedTaggedControls": [
+          "Classification",
+          "ClassificationContentMarkingHeaderText",
+          "CustomerAbbr",
+          "DocClassification",
+          "DocCustomer",
+          "DocCustomerAbbr",
+          "DocDocumentReference",
+          "DocEnvironment",
+          "DocLocation",
+          "DocSubsidiary",
+          "DocTitle",
+          "DocumentReference",
+          "DocumentTitle",
+          "Environment",
+          "Location",
+          "Subsidiary"
+        ],
+        "docxLiteralTokensMatched": 28,
+        "docxLiteralTagDiagnosticsHitCount": 26,
+        "docxLiteralDatasetTagStatus": [
+          {
+            "status": "OK",
+            "fragmentHintParts": [],
+            "tag": "LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory",
+            "contiguousLiteralHits": 2
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Config",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope1",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope2",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port1",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port2",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerA",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerB",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope1",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope2",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Version",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Summary",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "OK",
+            "fragmentHintParts": [],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport",
+            "contiguousLiteralHits": 1
+          },
+          {
+            "status": "OK",
+            "fragmentHintParts": [],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures",
+            "contiguousLiteralHits": 1
+          },
+          {
+            "status": "OK",
+            "fragmentHintParts": [],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits",
+            "contiguousLiteralHits": 1
+          },
+          {
+            "status": "OK",
+            "fragmentHintParts": [],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary",
+            "contiguousLiteralHits": 1
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Controllers",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.DNS",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "OK",
+            "fragmentHintParts": [],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups",
+            "contiguousLiteralHits": 1
+          },
+          {
+            "status": "OK",
+            "fragmentHintParts": [],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes",
+            "contiguousLiteralHits": 1
+          },
+          {
+            "status": "OK",
+            "fragmentHintParts": [],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC",
+            "contiguousLiteralHits": 1
+          },
+          {
+            "status": "OK",
+            "fragmentHintParts": [],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI",
+            "contiguousLiteralHits": 1
+          },
+          {
+            "status": "OK",
+            "fragmentHintParts": [],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts",
+            "contiguousLiteralHits": 1
+          },
+          {
+            "status": "OK",
+            "fragmentHintParts": [],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups",
+            "contiguousLiteralHits": 1
+          },
+          {
+            "status": "OK",
+            "fragmentHintParts": [],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes",
+            "contiguousLiteralHits": 1
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Time",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Transport",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "OK",
+            "fragmentHintParts": [],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Trays",
+            "contiguousLiteralHits": 1
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings",
+            "contiguousLiteralHits": 0
+          },
+          {
+            "status": "FRAGMENTED_OR_NON_LITERAL",
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "tag": "LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory",
+            "contiguousLiteralHits": 0
+          }
+        ],
+        "docxControlsDiscoveredMapped": 2,
+        "unresolvedTokenPolicy": "retain",
+        "docxLiteralTokensMatchedScalar": 14,
+        "docxDocPropControlsMatched": 2,
+        "docxTemplatePathResolved": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
+        "docxMatchMode": "both",
+        "docxDocPropMappedTags": [
+          "Classification",
+          "ClassificationContentMarkingHeaderText",
+          "Customer",
+          "CustomerAbbr",
+          "DocClassification",
+          "DocCustomer",
+          "DocCustomerAbbr",
+          "DocDocumentReference",
+          "DocEnvironment",
+          "DocLocation",
+          "DocSubsidiary",
+          "DocTitle",
+          "DocumentReference",
+          "DocumentTitle",
+          "Environment",
+          "Location",
+          "Subsidiary",
+          "Title"
+        ],
+        "docxDiscoveredTaggedControls": [
+          "Customer",
+          "Customer Name",
+          "Enter Customer Name",
+          "Title"
+        ],
+        "docxDocPropControlsPopulated": 2,
+        "unresolvedPolicy": {
+          "requiredOrUnknown": "ERROR",
+          "optionalMapped": "WARN"
+        },
+        "docxLiteralDatasetTokensDiscovered": 14,
+        "unresolved": {
+          "unresolvedTagCount": 0,
+          "unresolvedOccurrences": 0,
+          "tags": []
+        },
+        "docxUnresolvedLiteralTokens": null,
+        "docxTemplateBytesSha256": "d93ad8377051c2d6454122a70ab750c2d45e92da3900a305a7292b081ca7be69",
+        "docxLiteralTagHitSummary": [
+          {
+            "tag": "LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "scalar",
+            "contiguousTokenHits": 2,
+            "escapedTokenHits": 2,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "table",
+            "contiguousTokenHits": 2,
+            "escapedTokenHits": 2,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Config",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Config",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope1",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope1",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope2",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope2",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port1",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port1",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port2",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port2",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerA",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerA",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerB",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerB",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope1",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope1",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope2",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope2",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Version",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Version",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Summary",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Summary",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "scalar",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "table",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "scalar",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "table",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "scalar",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "table",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "scalar",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "table",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Controllers",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Controllers",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.DNS",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.DNS",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "scalar",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "table",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "scalar",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "table",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "scalar",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "table",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "scalar",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "table",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "scalar",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "table",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "scalar",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "table",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "scalar",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "table",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Time",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Time",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Transport",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Transport",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Trays",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "scalar",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Trays",
+            "rawTokenHits": 0,
+            "matchedPartCount": 1,
+            "mode": "table",
+            "contiguousTokenHits": 1,
+            "escapedTokenHits": 1,
+            "fragmentHintParts": [],
+            "matchedParts": [
+              "word/document.xml"
+            ],
+            "fragmentHintPartCount": 0
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "scalar",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          },
+          {
+            "tag": "LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory",
+            "rawTokenHits": 0,
+            "matchedPartCount": 0,
+            "mode": "table",
+            "contiguousTokenHits": 0,
+            "escapedTokenHits": 0,
+            "fragmentHintParts": [
+              "word/document.xml"
+            ],
+            "matchedParts": [],
+            "fragmentHintPartCount": 1
+          }
+        ],
+        "docxLiteralDatasetTagsDiscovered": 13,
+        "docxLiteralDatasetFragmentHintTags": [
+          "LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory",
+          "LNV.Lenovo.DE.System[ArrayName].Narrative.Config",
+          "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope1",
+          "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope2",
+          "LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence",
+          "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port1",
+          "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port2",
+          "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerA",
+          "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerB",
+          "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope1",
+          "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope2",
+          "LNV.Lenovo.DE.System[ArrayName].Narrative.Version",
+          "LNV.Lenovo.DE.System[ArrayName].Summary",
+          "LNV.Lenovo.DE.System[ArrayName].Tables.Controllers",
+          "LNV.Lenovo.DE.System[ArrayName].Tables.DNS",
+          "LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces",
+          "LNV.Lenovo.DE.System[ArrayName].Tables.Time",
+          "LNV.Lenovo.DE.System[ArrayName].Tables.Transport",
+          "LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings",
+          "LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory"
+        ],
+        "docxLiteralTokensMatchedTable": 14,
+        "docxDiscoveredUnmappedTaggedControls": null,
+        "docxDocPropControlsExpected": 18,
+        "docxTaggedControlsMatched": 2,
+        "docxPartErrors": null,
+        "docxControlsPopulated": 2,
+        "docxLiteralTagDiagnosticsCount": 330,
+        "docxTemplateLastWriteUtc": "2026-04-14T23:24:07.3559452Z",
+        "docxLiteralDatasetTokensExpected": 33
+      }
     },
     {
-      "startedUtc": "2026-04-01T03:46:43.8703969Z",
-      "details": null,
       "name": "Finalize",
-      "completedUtc": "2026-04-01T03:46:43.8703969Z",
-      "status": "SKIPPED"
+      "status": "OK",
+      "startedUtc": "2026-04-14T23:25:13.0600078Z",
+      "completedUtc": "2026-04-14T23:25:13.0639635Z",
+      "details": {
+        "outputPath": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\Lenovo.DE\\Solution Name [Lenovo DE] - Customer.docx"
+      }
     }
   ],
-  "issues": [
-    {
-      "severity": "ERROR",
-      "message": "DOCX literal-token render expected dataset mapping replacement but found no matching tokens to populate. docxMatchMode='both'; literalDatasetTokensExpected=33; literalDatasetTokensPopulated=0; literalTokensMatched=0; literalTokensMatchedScalar=0; literalTokensMatchedTable=0; literalTagDiagnosticsTotal=330; zeroHitTagsSample=LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port2[table]=>parts{word/document.xml|word/footer1.xml|word/footer2.xml|word/header1.xml}",
-      "path": "C:\\GitHub\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
-      "code": "ASB-ASM-SDT-DOCX-NO-POPULATION"
-    },
-    {
-      "severity": "ERROR",
-      "message": "DOCX document-property render expected tagged content controls but none were populated. docxMatchMode='both'; discoveredControls=7; discoveredMappedControls=0; discoveredUnmappedControls=6; partErrorCount=0; taggedControlsMatched=0; controlsPopulated=0; docPropertyControlTags=13; docPropValuesSupplied=True; sampleDocPropertyTags=Customer, CustomerAbbr, DocCustomer, DocCustomerAbbr, DocEnvironment; policySeverity=ERROR",
-      "path": "C:\\GitHub\\LNV.AsBuiltDoc.Assembler\\templates\\skeletons\\Lenovo.DE\\SK_Lenovo_DE_DRAFT_v0.1.docx",
-      "code": "ASB-ASM-DOCPROP-DOCX-NO-POPULATION"
-    }
-  ],
+  "issues": [],
   "matches": [
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json",
       "valuePreview": "\r\nSystemName   Model  Status  FirmwareVersion ApplicationVersion BootVersion Nvs...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Summary",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Summary"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json",
       "valuePreview": "\r\nController Slot Status  AppVersion  BootVersion SerialNumber\r\n---------- ---- ...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Controllers",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-controllers.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Controllers"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
       "valuePreview": "\r\nController Slot Port Interface LinkStatus Address       Mask\r\n---------- ---- ...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/transport.json",
       "valuePreview": "\r\nActiveTransport IscsiIqn\r\n--------------- --------\r\niscsi           iqn.2002-0...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Transport",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/transport.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Transport"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
       "valuePreview": "\r\nAcquisition DnsServers DhcpServers\r\n----------- ---------- -----------\r\ndhcp  ...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.DNS",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.DNS"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
       "valuePreview": "\r\nAcquisition NtpServers DhcpServers DefaultRouter\r\n----------- ---------- -----...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Time",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Time"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/trays.json",
       "valuePreview": "\r\nTrayType TrayRole        SerialNumber PartNumber DriveSlots ControllerSlots St...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Trays",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/trays.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Trays"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
       "valuePreview": "\r\nController Slot Port Channel LinkStatus Address         Mask          Gateway ...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
       "valuePreview": "\r\nController     Slot Port Channel LinkStatus CurrentSpeed MaxSpeed PortWWN Node...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts.json",
       "valuePreview": "\r\nName        HostType\r\n----        --------\r\nNameofHost2 \r\nNameofHost1",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-groups.json",
       "valuePreview": "\r\nName              Members\r\n----              -------\r\nNameofHostCluster [\"Name...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-groups.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/drives.json",
       "valuePreview": "\r\nSlot Media Type Raw     Usable  Firmware Status  SerialNumber\r\n---- ----------...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/drives.json"
+      "tag": "LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/storage-containers.json",
       "valuePreview": "\r\nName       ContainerType RaidLevel DriveMediaType Total    Used     Free      ...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/storage-containers.json"
+      "tag": "LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/volumes.json",
       "valuePreview": "\r\nName          Size     Status  RaidLevel Container\r\n----          ----     ---...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/volumes.json"
+      "tag": "LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/volume-mappings.json",
       "valuePreview": "\r\nVolume        Lun TargetType\r\n------        --- ----------\r\nVeeamVol1     3   ...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/volume-mappings.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts-to-host-groups.json",
       "valuePreview": "\r\nHost        HostGroup         HostType KeyType\r\n----        ---------         ...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts-to-host-groups.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-groups-to-volumes.json",
       "valuePreview": "\r\nHostGroup         Volume        Lun\r\n---------         ------        ---\r\nName...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-groups-to-volumes.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts-to-volumes.json",
       "valuePreview": "\r\nHost        Volume    Lun\r\n----        ------    ---\r\nNameofHost1 VeeamVol1 3",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/hosts-to-volumes.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-asup.json",
       "valuePreview": "\r\nAsupEnabled OnDemandEnabled RemoteDiags DeliveryMethod RoutingType MaxHttps Ma...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-asup.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities-normalized.json",
       "valuePreview": "\r\nFeature                Category           State    Compliance Entitlement\r\n---...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities-normalized.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities-normalized.json",
       "valuePreview": "\r\nFeature                State    License     Notes\r\n-------                ----...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities-normalized.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities-normalized.json",
       "valuePreview": "\r\nFeature                Limit Used LimitState    Entitlement\r\n-------          ...",
       "selector": "items",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/capabilities-normalized.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
       "valuePreview": "\r\nController     Address Mask Gateway\r\n----------     ------- ---- -------\r\nNot ...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerA",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerA"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json",
       "valuePreview": "\r\nController Address       Mask          Gateway\r\n---------- -------       ---- ...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerB",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/management-interfaces.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Management.ControllerB"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
       "valuePreview": "\r\nScope                    Acquisition DnsServers DhcpServers\r\n-----            ...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope1",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope1"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json",
       "valuePreview": "\r\nScope                    Acquisition DnsServers DhcpServers\r\n-----            ...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope2",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-dns.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope2"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
       "valuePreview": "\r\nScope                    Acquisition NtpServers DhcpServers DefaultRouter\r\n---...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope1",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope1"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json",
       "valuePreview": "\r\nScope                    Acquisition NtpServers DhcpServers DefaultRouter\r\n---...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope2",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/system-time.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope2"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
       "valuePreview": "\r\nController Port Transport Address         IQN\r\n---------- ---- --------- -----...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port1",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port1"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json",
       "valuePreview": "\r\nController Port Transport Address         IQN\r\n---------- ---- --------- -----...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port2",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/host-ports.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.HostPorts.Port2"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json",
       "valuePreview": "\r\nAsupEnabled OnDemandEnabled RemoteDiags DeliveryMethod\r\n----------- ----------...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Version",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Version"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json",
       "valuePreview": "\r\nDriveCount TrayCount AutoLoadBalancingEnabled HostConnectivityReportingEnabled...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Config",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Config"
     },
     {
+      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/transport.json",
       "valuePreview": "\r\nActiveTransport IscsiIqn\r\n--------------- --------\r\niscsi           iqn.2002-0...",
       "selector": "items.0",
-      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence",
-      "dataset": "datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4/transport.json"
+      "tag": "LNV.Lenovo.DE.System[ArrayName].Narrative.Evidence"
     }
   ],
   "outputs": [
     {
-      "path": "C:\\GitHub\\LNV.AsBuiltDoc.Assembler\\out\\Lenovo.DE\\DE-SDT-Collector.rendered.docx",
+      "path": "C:\\Github\\LNV.AsBuiltDoc.Assembler\\out\\Lenovo.DE\\Solution Name [Lenovo DE] - Customer.docx",
       "type": "docx/template-rendered"
     }
   ]
