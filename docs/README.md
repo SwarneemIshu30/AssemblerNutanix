@@ -15,6 +15,7 @@ Key current topics that should be documented here:
 
 See also:
 - `docs/contract-driven-projections.md`
+- `docs/mapping-studio-wip.md`
 - `AGENTS.md`
 
 Stale staging and handoff artifacts have been removed from the standalone repository. Add new docs here only when they reflect current assembler ownership and runtime behavior.

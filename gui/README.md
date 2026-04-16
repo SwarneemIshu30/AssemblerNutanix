@@ -24,6 +24,9 @@ Document-property inputs exposed in the GUI:
 - `Subsidiary`
 - `Environment`
 - `DocumentReference`
+- `Document Version` (`LNV.Version`)
+- `Configuration Snapshot Date` (`LNV.ConfigSnapDate`)
+- `Reference ID` (`LNV.ReferenceID`)
 - `Classification`
 
 Workflow defaults exposed in the GUI:
@@ -46,6 +49,26 @@ A dedicated WPF launcher for Windows desktop environments. It loads WPF assembli
 WPF window, provides **Browse** buttons for path fields, and invokes
 `Invoke-AssemblerBundleRender.ps1` with the provided inputs. It also includes
 **Verbose** and **Debug** checkboxes that provide two-step feedback: concise findings summary by default, matched-tag details in Verbose mode, and full raw render JSON in Debug mode.
+
+Current WPF layout:
+- `Document Properties` tab for operator-entered document metadata
+- `Render Workflow` tab for bundle/catalog/output selection and render execution
+- `Mapping Studio` tab for contract-driven mapping inspection and in-progress authoring
+
+Current WPF document-property behavior:
+- `Document Version` defaults to `v1.0.0`
+- `Configuration Snapshot Date` is refreshed from the loaded bundle capture date when available
+- `Reference ID` is available as an operator-entered field
+- `CoverKey.png` and `HeadFootKey.png` are shown beneath the document-property fields as a visual key for the cover page and header/footer regions
+
+Current `Mapping Studio` status:
+- WPF only
+- DOCX template collections only
+- nested `Overview`, `Datasets`, `Targets`, `Connector`, and `Changes` tabs
+- connector-first inspection flow with read-only details first and explicit edit actions second
+- still work in progress for mapping authoring
+
+See `../docs/mapping-studio-wip.md` for the current detailed status.
 
 ## Quick start
 
@@ -86,4 +109,4 @@ The GUI participates in the same output-selection model as CLI orchestration:
 3. **GUI Debug/Advanced controls** expose the same narrowing behavior through Entry ID and DOCX/TXT toggles.
 4. **GUI Debug/Advanced unresolved-token policy** lets operators keep unresolved `<<SDT:...>>` tokens (`retain`, default) for reruns/troubleshooting or strip them (`remove`) in final output.
 
-Current default behavior is **DOCX-only**. TXT output remains available through the GUI debug/advanced toggles when needed.
+Current default behavior is **DOCX-only**. In the WPF launcher, TXT output is currently hidden/disabled and the render flow is effectively DOCX-only.

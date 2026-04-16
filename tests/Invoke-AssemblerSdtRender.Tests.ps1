@@ -413,6 +413,27 @@ Describe 'Invoke-AssemblerSdtRender integration' {
       </w:fldSimple>
     </w:p>
     <w:p>
+      <w:r><w:t xml:space="preserve">Document Version: </w:t></w:r>
+      <w:fldSimple w:instr=' DOCPROPERTY  "LNV.Version"  \\* MERGEFORMAT '>
+        <w:r><w:t>OLD-VERSION</w:t></w:r>
+      </w:fldSimple>
+    </w:p>
+    <w:p>
+      <w:r><w:t xml:space="preserve">Configuration Snapshot Date: </w:t></w:r>
+      <w:fldSimple w:instr=' DOCPROPERTY  "LNV.ConfigSnapDate"  \\* MERGEFORMAT '>
+        <w:r><w:t>OLD-SNAPSHOT</w:t></w:r>
+      </w:fldSimple>
+    </w:p>
+    <w:p>
+      <w:r><w:t xml:space="preserve">Project Reference ID: </w:t></w:r>
+      <w:sdt>
+        <w:sdtPr><w:tag w:val="LNV.ReferenceID"/></w:sdtPr>
+        <w:sdtContent>
+          <w:r><w:t>OLD-REFERENCE-ID</w:t></w:r>
+        </w:sdtContent>
+      </w:sdt>
+    </w:p>
+    <w:p>
       <w:r><w:t xml:space="preserve">Classification: </w:t></w:r>
       <w:fldSimple w:instr=" DOCPROPERTY  ClassificationContentMarkingHeaderText  \\* MERGEFORMAT ">
         <w:r><w:t>OLD-CLASSIFICATION</w:t></w:r>
@@ -437,6 +458,9 @@ Describe 'Invoke-AssemblerSdtRender integration' {
   <property pid="3" fmtid="{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" name="Environment"><vt:lpwstr>OLD-ENVIRONMENT</vt:lpwstr></property>
   <property pid="4" fmtid="{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" name="DocumentReference"><vt:lpwstr>OLD-DOCREF</vt:lpwstr></property>
   <property pid="5" fmtid="{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" name="ClassificationContentMarkingHeaderText"><vt:lpwstr>OLD-CLASSIFICATION</vt:lpwstr></property>
+  <property pid="6" fmtid="{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" name="LNV.Version"><vt:lpwstr>OLD-VERSION</vt:lpwstr></property>
+  <property pid="7" fmtid="{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" name="LNV.ConfigSnapDate"><vt:lpwstr>OLD-SNAPSHOT</vt:lpwstr></property>
+  <property pid="8" fmtid="{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" name="LNV.ReferenceID"><vt:lpwstr>OLD-REFERENCE-ID</vt:lpwstr></property>
 </Properties>
 "@
 
@@ -1044,7 +1068,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             $reportPath = Join-Path $tempRoot 'report.json'
 
             $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
-            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot -DocxMatchMode 'both' -DocTitle 'Solution X' -DocCustomer 'Acme Corp' -DocEnvironment 'Production' -DocDocumentReference 'LNV-DE-001' -DocClassification 'PROTECTED'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot -DocxMatchMode 'both' -DocTitle 'Solution X' -DocCustomer 'Acme Corp' -DocEnvironment 'Production' -DocDocumentReference 'LNV-DE-001' -DocVersion 'v2.3.4' -DocConfigSnapDate '2026-03-23' -DocReferenceId 'LEN-12345' -DocClassification 'PROTECTED'
             $exitCode = $LASTEXITCODE
             if ($exitCode -ne 0) { throw "Expected successful render exit code for mixed doc-property workflow, got $exitCode. Output: $output" }
             $report = $output | ConvertFrom-Json -AsHashtable
@@ -1059,6 +1083,26 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                 }
                 finally {
                     $reader.Dispose()
+                }
+
+                $coreEntry = $zip.GetEntry('docProps/core.xml')
+                if ($null -eq $coreEntry) { throw 'Expected rendered DOCX to contain docProps/core.xml.' }
+                $coreReader = [System.IO.StreamReader]::new($coreEntry.Open())
+                try {
+                    $coreXmlText = $coreReader.ReadToEnd()
+                }
+                finally {
+                    $coreReader.Dispose()
+                }
+
+                $customEntry = $zip.GetEntry('docProps/custom.xml')
+                if ($null -eq $customEntry) { throw 'Expected rendered DOCX to contain docProps/custom.xml.' }
+                $customReader = [System.IO.StreamReader]::new($customEntry.Open())
+                try {
+                    $customXmlText = $customReader.ReadToEnd()
+                }
+                finally {
+                    $customReader.Dispose()
                 }
             }
             finally {
@@ -1076,14 +1120,26 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             if ($documentXml -notmatch 'Acme Corp') { throw "Expected DOCPROPERTY-backed Customer control to be populated, got '$documentXml'" }
             if ($documentXml -notmatch 'Production') { throw "Expected plain DOCPROPERTY field to be populated, got '$documentXml'" }
             if ($documentXml -notmatch 'LNV-DE-001') { throw "Expected DocumentReference field to be populated, got '$documentXml'" }
+            if ($documentXml -notmatch 'v2\.3\.4') { throw "Expected LNV.Version field to be populated, got '$documentXml'" }
+            if ($documentXml -notmatch '2026-03-23') { throw "Expected LNV.ConfigSnapDate field to be populated, got '$documentXml'" }
+            if ($documentXml -notmatch 'LEN-12345') { throw "Expected LNV.ReferenceID control to be populated, got '$documentXml'" }
             if ($documentXml -notmatch 'PROTECTED') { throw "Expected Classification field to be populated, got '$documentXml'" }
-            if ($documentXml -match 'OLD-TITLE|OLD-CUSTOMER|OLD-ENVIRONMENT|OLD-DOCREF|OLD-CLASSIFICATION') { throw "Expected stale doc-property placeholders to be replaced, got '$documentXml'" }
+            if ($documentXml -match 'OLD-TITLE|OLD-CUSTOMER|OLD-ENVIRONMENT|OLD-DOCREF|OLD-VERSION|OLD-SNAPSHOT|OLD-REFERENCE-ID|OLD-CLASSIFICATION') { throw "Expected stale doc-property placeholders to be replaced, got '$documentXml'" }
             if ($documentXml -match '&lt;&lt;SDT:\s*LNV\.Test\.Tech\.System\[ArrayName\]\.Summary\.LegacyStatus\s*&gt;&gt;') { throw "Expected literal token to be removed in mixed both mode, got '$documentXml'" }
+            if ($coreXmlText -notmatch 'Solution X') { throw "Expected core title metadata to be updated, got '$coreXmlText'" }
+            if ($customXmlText -notmatch 'Acme Corp') { throw "Expected custom metadata to contain updated Customer value, got '$customXmlText'" }
+            if ($customXmlText -notmatch 'Production') { throw "Expected custom metadata to contain updated Environment value, got '$customXmlText'" }
+            if ($customXmlText -notmatch 'LNV-DE-001') { throw "Expected custom metadata to contain updated DocumentReference value, got '$customXmlText'" }
+            if ($customXmlText -notmatch 'v2\.3\.4') { throw "Expected custom metadata to contain updated LNV.Version value, got '$customXmlText'" }
+            if ($customXmlText -notmatch '2026-03-23') { throw "Expected custom metadata to contain updated LNV.ConfigSnapDate value, got '$customXmlText'" }
+            if ($customXmlText -notmatch 'LEN-12345') { throw "Expected custom metadata to contain updated LNV.ReferenceID value, got '$customXmlText'" }
+            if ($customXmlText -notmatch 'PROTECTED') { throw "Expected custom metadata to contain updated Classification value, got '$customXmlText'" }
+            if ($customXmlText -match 'OLD-CUSTOMER|OLD-ENVIRONMENT|OLD-DOCREF|OLD-VERSION|OLD-SNAPSHOT|OLD-REFERENCE-ID|OLD-CLASSIFICATION') { throw "Expected custom metadata placeholders to be replaced, got '$customXmlText'" }
 
             $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
             if ($null -eq $renderStage) { throw 'Expected render stage diagnostics in report.' }
-            if ([int]$renderStage.details.docxDocPropControlsPopulated -lt 2) { throw "Expected at least two content-control doc-property populations, got '$($renderStage.details.docxDocPropControlsPopulated)'" }
-            if ([int]$renderStage.details.docxDocPropertyFieldsPopulated -lt 3) { throw "Expected at least three DOCPROPERTY field result populations, got '$($renderStage.details.docxDocPropertyFieldsPopulated)'" }
+            if ([int]$renderStage.details.docxDocPropControlsPopulated -lt 3) { throw "Expected at least three content-control doc-property populations, got '$($renderStage.details.docxDocPropControlsPopulated)'" }
+            if ([int]$renderStage.details.docxDocPropertyFieldsPopulated -lt 5) { throw "Expected at least five DOCPROPERTY field result populations, got '$($renderStage.details.docxDocPropertyFieldsPopulated)'" }
             $docPropIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-DOCPROP-DOCX-NO-POPULATION' }) | Select-Object -First 1
             if ($null -ne $docPropIssue) { throw "Expected no ASB-ASM-DOCPROP-DOCX-NO-POPULATION issue in mixed workflow, got '$($docPropIssue.message)'" }
         }
