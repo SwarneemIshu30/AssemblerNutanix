@@ -19,6 +19,18 @@
       "description": "Storage-system join key for per-system filtering and assembler partitioning."
     },
     "name": { "type": "string" },
+    "hostTypeIndex": {
+      "type": "string",
+      "description": "Collector-emitted host-type lookup key from the Lenovo.DE source payload."
+    },
+    "hostTypeRef": {
+      "type": "string",
+      "description": "Source-native host-type reference retained for lineage or join enrichment."
+    },
+    "hostTypeName": {
+      "type": "string",
+      "description": "Document-facing host type display name after collector-side lookup/enrichment."
+    },
     "clusterRef": { "type": "string" },
     "hostGroupRef": { "type": "string" }
   }

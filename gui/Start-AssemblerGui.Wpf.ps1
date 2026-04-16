@@ -153,10 +153,11 @@ $xaml = @"
         Title='Assembler Bundle Renderer (WPF launcher)' Height='860' Width='1280' WindowStartupLocation='CenterScreen'>
   <Grid Margin='12'>
     <Grid.RowDefinitions>
+      <RowDefinition Height='Auto'/>
       <RowDefinition Height='*'/>
     </Grid.RowDefinitions>
 
-    <TabControl Grid.Row='0' Name='MainTabs' Margin='0,34,0,0'>
+    <TabControl Grid.Row='1' Name='MainTabs' Margin='0'>
       <TabItem Header='Document Properties'>
         <Grid Margin='12'>
           <Grid.RowDefinitions>
@@ -178,10 +179,10 @@ $xaml = @"
             <ColumnDefinition Width='*'/>
           </Grid.ColumnDefinitions>
 
-          <TextBlock Grid.Row='0' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Title</TextBlock>
+          <TextBlock Grid.Row='0' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Title (1)</TextBlock>
           <TextBox Name='DocTitleText' Grid.Row='0' Grid.Column='1' Margin='0,0,0,8'/>
 
-          <TextBlock Grid.Row='1' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Customer</TextBlock>
+          <TextBlock Grid.Row='1' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Customer (2)</TextBlock>
           <TextBox Name='DocCustomerText' Grid.Row='1' Grid.Column='1' Margin='0,0,0,8'/>
 
           <TextBlock Grid.Row='2' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Customer Abbreviation</TextBlock>
@@ -193,55 +194,65 @@ $xaml = @"
           <TextBlock Grid.Row='4' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Subsidiary</TextBlock>
           <TextBox Name='DocSubsidiaryText' Grid.Row='4' Grid.Column='1' Margin='0,0,0,8'/>
 
-          <TextBlock Grid.Row='5' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Environment</TextBlock>
+          <TextBlock Grid.Row='5' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Environment (3)</TextBlock>
           <TextBox Name='DocEnvironmentText' Grid.Row='5' Grid.Column='1' Margin='0,0,0,8'/>
 
-          <TextBlock Grid.Row='6' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Document Reference</TextBlock>
+          <TextBlock Grid.Row='6' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Document Reference (7)</TextBlock>
           <TextBox Name='DocDocumentReferenceText' Grid.Row='6' Grid.Column='1' Margin='0,0,0,8'/>
 
-          <TextBlock Grid.Row='7' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Document Version</TextBlock>
+          <TextBlock Grid.Row='7' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Document Version (4)</TextBlock>
           <TextBox Name='DocVersionText' Grid.Row='7' Grid.Column='1' Margin='0,0,0,8'/>
 
-          <TextBlock Grid.Row='8' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Configuration Snapshot Date</TextBlock>
+          <TextBlock Grid.Row='8' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Configuration Snapshot Date (5)</TextBlock>
           <TextBox Name='DocConfigSnapDateText' Grid.Row='8' Grid.Column='1' Margin='0,0,0,8'/>
 
-          <TextBlock Grid.Row='9' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Reference ID</TextBlock>
+          <TextBlock Grid.Row='9' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Reference ID (6)</TextBlock>
           <TextBox Name='DocReferenceIdText' Grid.Row='9' Grid.Column='1' Margin='0,0,0,8'/>
 
-          <TextBlock Grid.Row='10' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Classification</TextBlock>
+          <TextBlock Grid.Row='10' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Classification (8)</TextBlock>
           <TextBox Name='DocClassificationText' Grid.Row='10' Grid.Column='1' Margin='0,0,0,8'/>
 
-          <Grid Grid.Row='11' Grid.Column='0' Grid.ColumnSpan='2' Margin='0,28,0,0'>
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width='*'/>
-              <ColumnDefinition Width='*'/>
-            </Grid.ColumnDefinitions>
-
-            <StackPanel Grid.Column='0' Margin='0,0,16,0' HorizontalAlignment='Left'>
-              <TextBlock Margin='0,0,0,10'
-                         FontSize='14'
+          <Border Grid.Row='11'
+                  Grid.Column='0'
+                  Grid.ColumnSpan='2'
+                  Margin='0,28,0,0'
+                  Padding='16'
+                  BorderBrush='#D0D7DE'
+                  BorderThickness='1'
+                  CornerRadius='6'
+                  HorizontalAlignment='Stretch'>
+            <StackPanel>
+              <TextBlock Margin='0,0,0,14'
+                         FontSize='15'
                          FontWeight='SemiBold'
-                         Text='Cover Page'/>
-              <Image Name='CoverKeyImage'
-                     Stretch='Uniform'
-                     HorizontalAlignment='Left'
-                     VerticalAlignment='Top'
-                     MaxHeight='280'/>
-            </StackPanel>
+                         Text='Document Layout Reference Diagrams'/>
+              <WrapPanel HorizontalAlignment='Left' ItemWidth='360'>
+                <StackPanel Width='340' Margin='0,0,20,12' HorizontalAlignment='Left'>
+                  <TextBlock Margin='0,0,0,10'
+                             FontSize='14'
+                             FontWeight='SemiBold'
+                             Text='Cover Page Diagram'/>
+                  <Image Name='CoverKeyImage'
+                         Stretch='Uniform'
+                         HorizontalAlignment='Left'
+                         VerticalAlignment='Top'
+                         MaxHeight='280'/>
+                </StackPanel>
 
-            <StackPanel Grid.Column='1' Margin='16,0,0,0' HorizontalAlignment='Right'>
-              <TextBlock Margin='0,0,0,10'
-                         FontSize='14'
-                         FontWeight='SemiBold'
-                         Text='Header Footer'
-                         TextAlignment='Right'/>
-              <Image Name='HeadFootKeyImage'
-                     Stretch='Uniform'
-                     HorizontalAlignment='Right'
-                     VerticalAlignment='Top'
-                     MaxHeight='280'/>
+                <StackPanel Width='340' Margin='0,0,0,12' HorizontalAlignment='Left'>
+                  <TextBlock Margin='0,0,0,10'
+                             FontSize='14'
+                             FontWeight='SemiBold'
+                             Text='Header/Footer Diagram'/>
+                  <Image Name='HeadFootKeyImage'
+                         Stretch='Uniform'
+                         HorizontalAlignment='Left'
+                         VerticalAlignment='Top'
+                         MaxHeight='280'/>
+                </StackPanel>
+              </WrapPanel>
             </StackPanel>
-          </Grid>
+          </Border>
         </Grid>
       </TabItem>
 
@@ -540,20 +551,24 @@ $xaml = @"
     <Border Grid.Row='0'
             HorizontalAlignment='Right'
             VerticalAlignment='Top'
-            Margin='0,2,4,0'
+            Margin='0,0,4,8'
             Background='#CCFFFFFF'
             CornerRadius='4'
-            Padding='8,6,8,6'
+            Padding='8,5,8,5'
             Panel.ZIndex='10'
             IsHitTestVisible='False'>
-      <StackPanel Orientation='Vertical'>
+      <StackPanel Orientation='Vertical' MaxWidth='280'>
         <Image Name='BrandLogoImage'
-               Height='24'
+               Width='112'
+               MaxHeight='36'
                Stretch='Uniform'
+               StretchDirection='Both'
+               SnapsToDevicePixels='True'
                HorizontalAlignment='Right'/>
-        <TextBlock Margin='0,4,0,0'
+        <TextBlock Margin='0,3,0,0'
                    Text='Professional Services AsBuilt Document Creation Toolset'
-                   FontSize='11'
+                   FontSize='10'
+                   TextWrapping='Wrap'
                    TextAlignment='Right'
                    Foreground='#FF1F1F1F'/>
       </StackPanel>
@@ -1510,6 +1525,7 @@ function Refresh-MappingStudioWorkbench {
 
 $bundleBrowseButton.Add_Click({
     $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+    $dialog.SelectedPath = Resolve-DialogInitialDirectory -Path $bundleRootText.Text -RepoRoot $repoRoot -FallbackPath $defaultBundleRoot -PathKind Directory
     if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
         $bundleRootText.Text = $dialog.SelectedPath
         Update-DocumentPropertyDefaultsFromBundle
@@ -1518,14 +1534,19 @@ $bundleBrowseButton.Add_Click({
 $catalogBrowseButton.Add_Click({
     $dialog = New-Object System.Windows.Forms.OpenFileDialog
     $dialog.Filter = 'Catalog JSON (*.catalog.json)|*.catalog.json|JSON (*.json)|*.json|All files (*.*)|*.*'
+    $dialog.InitialDirectory = Resolve-DialogInitialDirectory -Path $catalogPathText.Text -RepoRoot $repoRoot -FallbackPath $defaultCatalogPath -PathKind File
     if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $catalogPathText.Text = $dialog.FileName }
 })
 $outputBrowseButton.Add_Click({
     $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+    $outputBrowsePath = Resolve-DialogInitialDirectory -Path $outputRootText.Text -RepoRoot $repoRoot -FallbackPath $defaultOutputRoot -PathKind Directory -CreateIfMissing
+    $dialog.InitialDirectory = $outputBrowsePath
+    $dialog.SelectedPath = $outputBrowsePath
     if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $outputRootText.Text = $dialog.SelectedPath }
 })
 $contractsBrowseButton.Add_Click({
     $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+    $dialog.SelectedPath = Resolve-DialogInitialDirectory -Path $contractsRootText.Text -RepoRoot $repoRoot -FallbackPath $defaultContractsRoot -PathKind Directory
     if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $contractsRootText.Text = $dialog.SelectedPath }
 })
 $bundleRootText.Add_LostFocus({
