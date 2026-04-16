@@ -80,10 +80,31 @@ Current default behavior is **DOCX-only**. TXT output is still available through
 
 ## Current DOCX behavior
 
-- GUI and bundle-render flows currently expose document-property inputs for `Title`, `Customer`, `CustomerAbbr`, `Location`, `Subsidiary`, `Environment`, `DocumentReference`, and classification.
+- GUI and bundle-render flows currently expose document-property inputs for `Title`, `Customer`, `CustomerAbbr`, `Location`, `Subsidiary`, `Environment`, `DocumentReference`, `LNV.Version`, `LNV.ConfigSnapDate`, `LNV.ReferenceID`, and classification.
+- In the WPF launcher, those three additional document-property inputs are presented as `Document Version`, `Configuration Snapshot Date`, and `Reference ID`.
+- `Document Version` currently defaults to `v1.0.0`, and `Configuration Snapshot Date` is refreshed from the loaded bundle capture date when one can be resolved from bundle metadata.
 - DOCX matching currently supports `literal-token`, `content-control-tag`, and `both`.
 - `literal-token` populates dataset-driven `<<SDT:...>>` placeholders, while `content-control-tag` populates document controls and `DOCPROPERTY`-backed fields. `both` runs both paths.
 - When `DocTitle` and `DocCustomer` are supplied, generated DOCX filenames currently resolve to `Title - Customer.docx`.
+
+## WPF Mapping Studio status
+
+The Windows WPF launcher now includes a dedicated `Mapping Studio` tab for contract-driven mapping inspection and editing. This work is still in progress.
+
+Current implemented direction:
+- WPF only
+- DOCX template collections only
+- nested `Overview`, `Datasets`, `Targets`, `Connector`, and `Changes` tabs
+- connector-first inspection flow for viewing current dataset-to-target connections before editing
+- bundle-backed example preview for current mappings and draft changes
+- save path that updates `.deps/contracts/...`, mirrors the owned artifact under `exports/LNV.AsBuiltDoc.Contracts/...`, and regenerates the runtime skeleton mapping JSON
+
+Current work-in-progress boundaries:
+- mapping authoring is still evolving and should be treated as WIP
+- scalar and table authoring are the current focus; unsupported mapping shapes remain inspect-only
+- staged targets are valid contract targets, but they are not automatic DOCX template placements
+
+See `docs/mapping-studio-wip.md` for the current GUI status, implemented scope, and known limitations.
 
 ## Current runtime coverage
 

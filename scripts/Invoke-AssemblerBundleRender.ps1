@@ -18,6 +18,9 @@ param(
     [Parameter(Mandatory = $false)][string]$DocSubsidiary,
     [Parameter(Mandatory = $false)][string]$DocEnvironment,
     [Parameter(Mandatory = $false)][string]$DocDocumentReference,
+    [Parameter(Mandatory = $false)][string]$DocVersion,
+    [Parameter(Mandatory = $false)][string]$DocConfigSnapDate,
+    [Parameter(Mandatory = $false)][string]$DocReferenceId,
     [Parameter(Mandatory = $false)][string]$DocClassification,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
     [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
@@ -640,6 +643,9 @@ try {
                     if (-not [string]::IsNullOrWhiteSpace($DocSubsidiary)) { $renderParams.DocSubsidiary = [string]$DocSubsidiary }
                     if (-not [string]::IsNullOrWhiteSpace($DocEnvironment)) { $renderParams.DocEnvironment = [string]$DocEnvironment }
                     if (-not [string]::IsNullOrWhiteSpace($DocDocumentReference)) { $renderParams.DocDocumentReference = [string]$DocDocumentReference }
+                    if (-not [string]::IsNullOrWhiteSpace($DocVersion)) { $renderParams.DocVersion = [string]$DocVersion }
+                    if (-not [string]::IsNullOrWhiteSpace($DocConfigSnapDate)) { $renderParams.DocConfigSnapDate = [string]$DocConfigSnapDate }
+                    if (-not [string]::IsNullOrWhiteSpace($DocReferenceId)) { $renderParams.DocReferenceId = [string]$DocReferenceId }
                     if (-not [string]::IsNullOrWhiteSpace($DocClassification)) { $renderParams.DocClassification = [string]$DocClassification }
                 }
                 $json = & $invokeRenderScript @renderParams
