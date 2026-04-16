@@ -61,6 +61,99 @@ function Resolve-DefaultContractsRoot {
     return $candidate
 }
 
+function Get-NearestExistingDirectory {
+    param(
+        [Parameter(Mandatory = $false)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$BasePath,
+        [Parameter(Mandatory = $false)][ValidateSet('Directory','File')][string]$PathKind = 'Directory'
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+        return $null
+    }
+
+    $candidatePath = $Path
+    if (-not [System.IO.Path]::IsPathRooted($candidatePath)) {
+        $candidatePath = Join-Path $BasePath $candidatePath
+    }
+
+    try {
+        $candidatePath = [System.IO.Path]::GetFullPath($candidatePath)
+    }
+    catch {
+        return $null
+    }
+
+    if ((Test-Path -LiteralPath $candidatePath -PathType Leaf) -or $PathKind -eq 'File') {
+        $candidatePath = Split-Path -Path $candidatePath -Parent
+    }
+
+    while (-not [string]::IsNullOrWhiteSpace($candidatePath)) {
+        if (Test-Path -LiteralPath $candidatePath -PathType Container) {
+            return (Resolve-Path -LiteralPath $candidatePath).Path
+        }
+
+        $parentPath = Split-Path -Path $candidatePath -Parent
+        if ([string]::IsNullOrWhiteSpace($parentPath) -or $parentPath -eq $candidatePath) {
+            break
+        }
+
+        $candidatePath = $parentPath
+    }
+
+    return $null
+}
+
+function Resolve-DialogInitialDirectory {
+    param(
+        [Parameter(Mandatory = $false)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$RepoRoot,
+        [Parameter(Mandatory = $false)][string]$FallbackPath,
+        [Parameter(Mandatory = $false)][ValidateSet('Directory','File')][string]$PathKind = 'Directory',
+        [Parameter(Mandatory = $false)][switch]$CreateIfMissing
+    )
+
+    if ($CreateIfMissing -and $PathKind -eq 'Directory') {
+        foreach ($candidate in @($Path, $FallbackPath)) {
+            if ([string]::IsNullOrWhiteSpace($candidate)) { continue }
+
+            $targetDirectory = $candidate
+            if (-not [System.IO.Path]::IsPathRooted($targetDirectory)) {
+                $targetDirectory = Join-Path $RepoRoot $targetDirectory
+            }
+
+            try {
+                $targetDirectory = [System.IO.Path]::GetFullPath($targetDirectory)
+            }
+            catch {
+                continue
+            }
+
+            try {
+                if (-not (Test-Path -LiteralPath $targetDirectory -PathType Container)) {
+                    New-Item -Path $targetDirectory -ItemType Directory -Force | Out-Null
+                }
+            }
+            catch {
+                continue
+            }
+
+            if (Test-Path -LiteralPath $targetDirectory -PathType Container) {
+                return (Resolve-Path -LiteralPath $targetDirectory).Path
+            }
+        }
+    }
+
+    foreach ($candidate in @($Path, $FallbackPath, $RepoRoot)) {
+        $directory = Get-NearestExistingDirectory -Path $candidate -BasePath $RepoRoot -PathKind $PathKind
+        if (-not [string]::IsNullOrWhiteSpace($directory)) {
+            return $directory
+        }
+    }
+
+    return $RepoRoot
+}
+
 function Format-MatchedTagsSummary {
     param([Parameter(Mandatory = $true)][string]$BundleResultJson)
 
@@ -266,6 +359,7 @@ Export-ModuleMember -Function @(
     'Resolve-DefaultBundleRoot',
     'Resolve-DefaultCatalogPath',
     'Resolve-DefaultContractsRoot',
+    'Resolve-DialogInitialDirectory',
     'Format-MatchedTagsSummary',
     'Test-IsDerivedBundleWrapperIssue',
     'Get-RootCauseIssueSummary',

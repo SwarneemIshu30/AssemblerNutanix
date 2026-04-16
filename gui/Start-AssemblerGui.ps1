@@ -442,19 +442,25 @@ function Invoke-WinFormsMode {
 
     $bundleBrowse = New-BrowseButton -top 38 -text 'Browse' -onClick {
         $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+        $dialog.SelectedPath = Resolve-DialogInitialDirectory -Path $bundleTextBox.Text -RepoRoot $repoRoot -FallbackPath $defaultBundleRoot -PathKind Directory
         if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $bundleTextBox.Text = $dialog.SelectedPath }
     }
     $catalogBrowse = New-BrowseButton -top 88 -text 'Browse' -onClick {
         $dialog = New-Object System.Windows.Forms.OpenFileDialog
         $dialog.Filter = 'Catalog JSON (*.catalog.json)|*.catalog.json|JSON (*.json)|*.json|All files (*.*)|*.*'
+        $dialog.InitialDirectory = Resolve-DialogInitialDirectory -Path $catalogTextBox.Text -RepoRoot $repoRoot -FallbackPath $defaultCatalogPath -PathKind File
         if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $catalogTextBox.Text = $dialog.FileName }
     }
     $outputBrowse = New-BrowseButton -top 138 -text 'Browse' -onClick {
         $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+        $outputBrowsePath = Resolve-DialogInitialDirectory -Path $outputTextBox.Text -RepoRoot $repoRoot -FallbackPath $defaultOutputRoot -PathKind Directory -CreateIfMissing
+        $dialog.InitialDirectory = $outputBrowsePath
+        $dialog.SelectedPath = $outputBrowsePath
         if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $outputTextBox.Text = $dialog.SelectedPath }
     }
     $contractsBrowse = New-BrowseButton -top 188 -text 'Browse' -onClick {
         $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+        $dialog.SelectedPath = Resolve-DialogInitialDirectory -Path $contractsTextBox.Text -RepoRoot $repoRoot -FallbackPath $defaultContractsRoot -PathKind Directory
         if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $contractsTextBox.Text = $dialog.SelectedPath }
     }
 

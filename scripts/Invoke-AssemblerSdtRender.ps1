@@ -523,6 +523,149 @@ function Update-DocxMetadataProperties {
     Set-ZipEntryText -Entry $updatedCustomEntry -Text $customXml.OuterXml
 }
 
+function Enable-DocxUpdateFieldsOnOpen {
+    param(
+        [Parameter(Mandatory = $true)][System.IO.Compression.ZipArchive]$Archive
+    )
+
+    $settingsEntry = $Archive.GetEntry('word/settings.xml')
+    if ($null -eq $settingsEntry) {
+        return [ordered]@{
+            applied = $false
+            reason = 'word/settings.xml not found'
+        }
+    }
+
+    $settingsReader = [System.IO.StreamReader]::new($settingsEntry.Open())
+    try {
+        $settingsXmlText = $settingsReader.ReadToEnd()
+    }
+    finally {
+        $settingsReader.Dispose()
+    }
+
+    [xml]$settingsXml = $settingsXmlText
+    $settingsNode = $settingsXml.SelectSingleNode("/*[local-name()='settings']")
+    if ($null -eq $settingsNode) {
+        return [ordered]@{
+            applied = $false
+            reason = 'settings root not found'
+        }
+    }
+
+    $wordNamespace = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+    $updateFieldsNode = $settingsXml.SelectSingleNode("/*[local-name()='settings']/*[local-name()='updateFields']")
+    if ($null -eq $updateFieldsNode) {
+        $updateFieldsNode = $settingsXml.CreateElement('w', 'updateFields', $wordNamespace)
+        [void]$settingsNode.AppendChild($updateFieldsNode)
+    }
+
+    $valAttr = $updateFieldsNode.Attributes.GetNamedItem('val', $wordNamespace)
+    if ($null -eq $valAttr) {
+        $valAttr = $settingsXml.CreateAttribute('w', 'val', $wordNamespace)
+        [void]$updateFieldsNode.Attributes.Append($valAttr)
+    }
+    $valAttr.Value = 'true'
+
+    $settingsEntry.Delete()
+    $updatedSettingsEntry = $Archive.CreateEntry('word/settings.xml')
+    Set-ZipEntryText -Entry $updatedSettingsEntry -Text $settingsXml.OuterXml
+
+    return [ordered]@{
+        applied = $true
+        reason = 'word/settings.xml updated with w:updateFields=true'
+    }
+}
+
+function Try-RefreshDocxTableOfContents {
+    param(
+        [Parameter(Mandatory = $true)][string]$OutputPath
+    )
+
+    if (-not (Test-Path -LiteralPath $OutputPath -PathType Leaf)) {
+        return [ordered]@{
+            status = 'skipped'
+            method = 'none'
+            message = "Output DOCX not found: $OutputPath"
+        }
+    }
+
+    if (-not $IsWindows) {
+        return [ordered]@{
+            status = 'deferred'
+            method = 'updateFieldsOnOpen'
+            message = 'Word automation is unavailable on non-Windows platforms.'
+        }
+    }
+
+    $word = $null
+    $document = $null
+    try {
+        $word = New-Object -ComObject Word.Application -ErrorAction Stop
+        $word.Visible = $false
+        $word.ScreenUpdating = $false
+        $word.DisplayAlerts = 0
+
+        $document = $word.Documents.Open($OutputPath)
+        [void]$document.Fields.Update()
+        $document.Repaginate()
+
+        $tocCount = [int]$document.TablesOfContents.Count
+        for ($tocIndex = 1; $tocIndex -le $tocCount; $tocIndex++) {
+            $toc = $null
+            try {
+                $toc = $document.TablesOfContents.Item($tocIndex)
+                [void]$toc.Update()
+                [void]$toc.UpdatePageNumbers()
+            }
+            finally {
+                if ($null -ne $toc) {
+                    [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($toc)
+                }
+            }
+        }
+
+        $document.Repaginate()
+        $document.Save()
+
+        return [ordered]@{
+            status = 'updated'
+            method = 'word-com'
+            message = "Updated $tocCount table(s) of contents via Word automation."
+        }
+    }
+    catch {
+        return [ordered]@{
+            status = 'deferred'
+            method = 'updateFieldsOnOpen'
+            message = [string]$_.Exception.Message
+        }
+    }
+    finally {
+        if ($null -ne $document) {
+            try {
+                $document.Close()
+            }
+            catch {
+            }
+            finally {
+                [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document)
+            }
+        }
+
+        if ($null -ne $word) {
+            try {
+                $word.Quit()
+            }
+            catch {
+            }
+            finally {
+                [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($word)
+            }
+        }
+    }
+}
+
 function Get-WordStyleId {
     param(
         [Parameter(Mandatory = $false)][string]$StylesXmlText,
@@ -825,9 +968,98 @@ function Convert-TextToWordRunNodes {
     return @($runNodes.ToArray())
 }
 
+function Get-FirstWordRunPropertiesNode {
+    param(
+        [Parameter(Mandatory = $false)][System.Xml.XmlNode[]]$RunNodes,
+        [Parameter(Mandatory = $false)][System.Xml.XmlNode]$FallbackRunPropertiesNode
+    )
+
+    foreach ($runNode in @($RunNodes)) {
+        if ($null -eq $runNode -or $runNode.LocalName -ne 'r') { continue }
+        foreach ($childNode in @($runNode.ChildNodes)) {
+            if ($childNode.NodeType -eq [System.Xml.XmlNodeType]::Element -and $childNode.LocalName -eq 'rPr') {
+                return $childNode
+            }
+        }
+    }
+
+    return $FallbackRunPropertiesNode
+}
+
+function Add-WordRunPropertiesClone {
+    param(
+        [Parameter(Mandatory = $true)][xml]$XmlDocument,
+        [Parameter(Mandatory = $true)][System.Xml.XmlNode]$RunNode,
+        [Parameter(Mandatory = $false)][System.Xml.XmlNode]$RunPropertiesNode
+    )
+
+    if ($null -eq $RunPropertiesNode) { return }
+    $clonedRunProperties = $XmlDocument.ImportNode($RunPropertiesNode, $true)
+    if ($null -eq $RunNode.FirstChild) {
+        [void]$RunNode.AppendChild($clonedRunProperties)
+    }
+    else {
+        [void]$RunNode.InsertBefore($clonedRunProperties, $RunNode.FirstChild)
+    }
+}
+
+function Convert-TextToStyledWordRunNodes {
+    param(
+        [Parameter(Mandatory = $true)][xml]$XmlDocument,
+        [Parameter(Mandatory = $false)][string]$Text,
+        [Parameter(Mandatory = $false)][System.Xml.XmlNode[]]$PrototypeRunNodes,
+        [Parameter(Mandatory = $false)][System.Xml.XmlNode]$FallbackRunPropertiesNode
+    )
+
+    $namespaceUri = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+    $runNodes = [System.Collections.Generic.List[System.Xml.XmlNode]]::new()
+    $lines = @(([string]$Text) -split "`r?`n", 0, [System.StringSplitOptions]::None)
+    if ($lines.Count -eq 0) { $lines = @('') }
+
+    $runPropertiesNode = Get-FirstWordRunPropertiesNode -RunNodes $PrototypeRunNodes -FallbackRunPropertiesNode $FallbackRunPropertiesNode
+
+    for ($lineIndex = 0; $lineIndex -lt $lines.Count; $lineIndex++) {
+        if ($lineIndex -gt 0) {
+            $breakRun = $XmlDocument.CreateElement('w', 'r', $namespaceUri)
+            Add-WordRunPropertiesClone -XmlDocument $XmlDocument -RunNode $breakRun -RunPropertiesNode $runPropertiesNode
+            $breakNode = $XmlDocument.CreateElement('w', 'br', $namespaceUri)
+            [void]$breakRun.AppendChild($breakNode)
+            [void]$runNodes.Add($breakRun)
+        }
+
+        $run = $XmlDocument.CreateElement('w', 'r', $namespaceUri)
+        Add-WordRunPropertiesClone -XmlDocument $XmlDocument -RunNode $run -RunPropertiesNode $runPropertiesNode
+        $textNode = $XmlDocument.CreateElement('w', 't', $namespaceUri)
+        $spaceAttr = $XmlDocument.CreateAttribute('xml', 'space', 'http://www.w3.org/XML/1998/namespace')
+        $spaceAttr.Value = 'preserve'
+        [void]$textNode.Attributes.Append($spaceAttr)
+        $textNode.InnerText = [string]$lines[$lineIndex]
+
+        [void]$run.AppendChild($textNode)
+        [void]$runNodes.Add($run)
+    }
+
+    return @($runNodes.ToArray())
+}
+
+function Get-WordSdtRunPropertiesNode {
+    param([Parameter(Mandatory = $false)][System.Xml.XmlNode]$SdtNode)
+
+    if ($null -eq $SdtNode) { return $null }
+    return $SdtNode.SelectSingleNode("./*[local-name()='sdtPr']/*[local-name()='rPr']")
+}
+
+function Test-WordSdtContentContainsFieldCodes {
+    param([Parameter(Mandatory = $false)][System.Xml.XmlNode]$SdtContentNode)
+
+    if ($null -eq $SdtContentNode) { return $false }
+    return ($null -ne $SdtContentNode.SelectSingleNode(".//*[local-name()='fldChar' or local-name()='instrText'] | ./*[local-name()='fldChar' or local-name()='instrText']"))
+}
+
 function Convert-TextToWordSdtContentNodes {
     param(
         [Parameter(Mandatory = $true)][xml]$XmlDocument,
+        [Parameter(Mandatory = $false)][System.Xml.XmlNode]$SdtNode,
         [Parameter(Mandatory = $true)][System.Xml.XmlNode]$SdtContentNode,
         [Parameter(Mandatory = $false)][string]$Text
     )
@@ -842,7 +1074,13 @@ function Convert-TextToWordSdtContentNodes {
         return @(Convert-TextToWordParagraphNodes -XmlDocument $XmlDocument -Text $Text)
     }
 
-    return @(Convert-TextToWordRunNodes -XmlDocument $XmlDocument -Text $Text)
+    $prototypeRuns = @(
+        $SdtContentNode.ChildNodes |
+            Where-Object { $_.NodeType -eq [System.Xml.XmlNodeType]::Element -and $_.LocalName -eq 'r' }
+    )
+    $fallbackRunPropertiesNode = Get-WordSdtRunPropertiesNode -SdtNode $SdtNode
+
+    return @(Convert-TextToStyledWordRunNodes -XmlDocument $XmlDocument -Text $Text -PrototypeRunNodes $prototypeRuns -FallbackRunPropertiesNode $fallbackRunPropertiesNode)
 }
 
 function Set-WordSdtContentNodes {
@@ -1057,12 +1295,21 @@ function Update-DocPropertyFieldResults {
         if ([string]::IsNullOrWhiteSpace($propertyName)) { continue }
         $discovered++
         if (-not (Test-MapHasKey -Map $ReplaceByPropertyName -Key $propertyName)) { continue }
-        Set-WordSdtContentNodes -SdtContentNode $simpleField -Nodes @(Convert-TextToWordRunNodes -XmlDocument $XmlDocument -Text ([string]$ReplaceByPropertyName[$propertyName]))
+        $prototypeRuns = @(
+            $simpleField.ChildNodes |
+                Where-Object { $_.NodeType -eq [System.Xml.XmlNodeType]::Element -and $_.LocalName -eq 'r' }
+        )
+        $replacementNodes = Convert-TextToStyledWordRunNodes -XmlDocument $XmlDocument -Text ([string]$ReplaceByPropertyName[$propertyName]) -PrototypeRunNodes $prototypeRuns
+        Set-WordSdtContentNodes -SdtContentNode $simpleField -Nodes @($replacementNodes)
         $populated++
     }
 
-    foreach ($paragraphNode in @($XmlDocument.SelectNodes("//*[local-name()='p']"))) {
-        $currentNode = $paragraphNode.FirstChild
+    $fieldContainers = @(
+        $XmlDocument.SelectNodes("//*[local-name()='p'] | //*[local-name()='sdtContent' and not(*[local-name()='p'])]")
+    )
+
+    foreach ($containerNode in $fieldContainers) {
+        $currentNode = $containerNode.FirstChild
         while ($null -ne $currentNode) {
             $nextNode = $currentNode.NextSibling
             if ((Get-WordNodeFieldCharType -Node $currentNode) -ne 'begin') {
@@ -1100,15 +1347,24 @@ function Update-DocPropertyFieldResults {
             if (-not [string]::IsNullOrWhiteSpace($propertyName)) {
                 $discovered++
                 if (Test-MapHasKey -Map $ReplaceByPropertyName -Key $propertyName) {
+                    $prototypeRuns = [System.Collections.Generic.List[System.Xml.XmlNode]]::new()
+                    $prototypeScanNode = $separateNode.NextSibling
+                    while ($null -ne $prototypeScanNode -and $prototypeScanNode -ne $endNode) {
+                        if ($prototypeScanNode.NodeType -eq [System.Xml.XmlNodeType]::Element -and $prototypeScanNode.LocalName -eq 'r') {
+                            $prototypeRuns.Add($prototypeScanNode)
+                        }
+                        $prototypeScanNode = $prototypeScanNode.NextSibling
+                    }
+
                     $removeNode = $separateNode.NextSibling
                     while ($null -ne $removeNode -and $removeNode -ne $endNode) {
                         $nextRemoveNode = $removeNode.NextSibling
-                        [void]$paragraphNode.RemoveChild($removeNode)
+                        [void]$containerNode.RemoveChild($removeNode)
                         $removeNode = $nextRemoveNode
                     }
 
-                    foreach ($replacementNode in @(Convert-TextToWordRunNodes -XmlDocument $XmlDocument -Text ([string]$ReplaceByPropertyName[$propertyName]))) {
-                        [void]$paragraphNode.InsertBefore($replacementNode, $endNode)
+                    foreach ($replacementNode in @(Convert-TextToStyledWordRunNodes -XmlDocument $XmlDocument -Text ([string]$ReplaceByPropertyName[$propertyName]) -PrototypeRunNodes $prototypeRuns.ToArray())) {
+                        [void]$containerNode.InsertBefore($replacementNode, $endNode)
                     }
                     $populated++
                 }
@@ -1555,6 +1811,12 @@ function Render-DocxTemplate {
 
     Copy-Item -LiteralPath $TemplatePath -Destination $OutputPath -Force
 
+    $renderResult = $null
+    $updateFieldsOnOpenResult = [ordered]@{
+        applied = $false
+        reason = 'not-attempted'
+    }
+
     $archive = [System.IO.Compression.ZipFile]::Open($OutputPath, [System.IO.Compression.ZipArchiveMode]::Update)
     try {
         $unresolvedLiteralByTag = @{}
@@ -1761,9 +2023,11 @@ function Render-DocxTemplate {
 
                         if (-not [string]::IsNullOrWhiteSpace([string]$matchedIdentifier) -and (Test-MapHasKey -Map $contentControlReplaceByTag -Key ([string]$matchedIdentifier))) {
                             $taggedControlsMatched++
-                            $replacementNodes = Convert-TextToWordSdtContentNodes -XmlDocument $xmlDocTyped -SdtContentNode $sdtContent -Text ([string]$contentControlReplaceByTag[[string]$matchedIdentifier])
-                            Set-WordSdtContentNodes -SdtContentNode $sdtContent -Nodes $replacementNodes
-                            $controlsPopulated++
+                            if (-not (Test-WordSdtContentContainsFieldCodes -SdtContentNode $sdtContent)) {
+                                $replacementNodes = Convert-TextToWordSdtContentNodes -XmlDocument $xmlDocTyped -SdtNode $sdtNode -SdtContentNode $sdtContent -Text ([string]$contentControlReplaceByTag[[string]$matchedIdentifier])
+                                Set-WordSdtContentNodes -SdtContentNode $sdtContent -Nodes $replacementNodes
+                                $controlsPopulated++
+                            }
                         }
                     }
 
@@ -1822,8 +2086,9 @@ function Render-DocxTemplate {
         }
 
         Update-DocxMetadataProperties -Archive $archive -Title $DocTitle -Customer $DocCustomer -CustomerAbbr $DocCustomerAbbr -Location $DocLocation -Subsidiary $DocSubsidiary -Environment $DocEnvironment -DocumentReference $DocDocumentReference -Version $DocVersion -ConfigSnapDate $DocConfigSnapDate -ReferenceId $DocReferenceId -Classification $DocClassification
+        $updateFieldsOnOpenResult = Enable-DocxUpdateFieldsOnOpen -Archive $archive
 
-        return [ordered]@{
+        $renderResult = [ordered]@{
             unresolvedLiteralByTag = $unresolvedLiteralByTag
             partsUpdated = $partsUpdated
             outputPathResolved = [System.IO.Path]::GetFullPath($OutputPath)
@@ -1855,11 +2120,22 @@ function Render-DocxTemplate {
             literalTagDiagnostics = $literalTagDiagnostics.ToArray()
             literalTagHitSummary = @($literalTagHitSummary)
             literalPartHitSummary = @($literalPartHitSummary)
+            updateFieldsOnOpenEnabled = [bool]$updateFieldsOnOpenResult.applied
+            updateFieldsOnOpenReason = [string]$updateFieldsOnOpenResult.reason
         }
     }
     finally {
         $archive.Dispose()
     }
+
+    if ($null -ne $renderResult) {
+        $tocRefreshResult = Try-RefreshDocxTableOfContents -OutputPath $OutputPath
+        $renderResult.tocRefreshStatus = [string]$tocRefreshResult.status
+        $renderResult.tocRefreshMethod = [string]$tocRefreshResult.method
+        $renderResult.tocRefreshMessage = [string]$tocRefreshResult.message
+    }
+
+    return $renderResult
 }
 
 function Format-SizeHuman {
@@ -2346,7 +2622,7 @@ function Test-ProjectionContractJsonArrayShape {
         $projection = $projectionContract.projections[[string]$projectionTag]
         if (-not ($projection -is [System.Collections.IDictionary])) { continue }
 
-        foreach ($propertyName in @('filter', 'columns')) {
+        foreach ($propertyName in @('filter', 'columns', 'rowOrder')) {
             if ((Test-MapHasKey -Map $projection -Key $propertyName) -and $null -ne $projection[$propertyName] -and -not ($projection[$propertyName] -is [System.Collections.IList])) {
                 return [ordered]@{
                     isValid = $false
@@ -2390,6 +2666,9 @@ function Normalize-ProjectionDefinition {
             'columns' {
                 $normalized.columns = @(ConvertTo-ObjectArray -InputObject $Definition[$key] | Where-Object { $null -ne $_ })
             }
+            'rowOrder' {
+                $normalized.rowOrder = @(ConvertTo-ObjectArray -InputObject $Definition[$key] | Where-Object { $null -ne $_ })
+            }
             default {
                 $normalized[[string]$key] = $Definition[$key]
             }
@@ -2398,6 +2677,7 @@ function Normalize-ProjectionDefinition {
 
     if (-not $normalized.Contains('filter')) { $normalized.filter = @() }
     if (-not $normalized.Contains('columns')) { $normalized.columns = @() }
+    if (-not $normalized.Contains('rowOrder')) { $normalized.rowOrder = @() }
     if (-not $normalized.Contains('renderMode')) {
         if (@($normalized.columns).Count -gt 0) {
             $normalized.renderMode = 'table'
@@ -2606,9 +2886,157 @@ function Resolve-ProjectionColumnValue {
     return $value
 }
 
+function Get-ProjectionSortValue {
+    param([Parameter(Mandatory = $false)]$Value)
+
+    if ($null -eq $Value) { return $null }
+    if ($Value -is [bool] -or $Value -is [byte] -or $Value -is [int16] -or $Value -is [int32] -or $Value -is [int64] -or $Value -is [decimal] -or $Value -is [double] -or $Value -is [datetime]) {
+        return $Value
+    }
+
+    if ($Value -is [System.Collections.IEnumerable] -and -not ($Value -is [string]) -and -not ($Value -is [System.Collections.IDictionary])) {
+        return ((@($Value) | ForEach-Object { [string]$_ }) -join ', ')
+    }
+
+    $text = [string]$Value
+    if ([string]::IsNullOrWhiteSpace($text)) { return $text }
+
+    [int64]$int64Value = 0
+    if ([int64]::TryParse($text, [ref]$int64Value)) {
+        return $int64Value
+    }
+
+    [double]$doubleValue = 0
+    if ([double]::TryParse($text, [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$doubleValue)) {
+        return $doubleValue
+    }
+
+    [datetime]$dateValue = [datetime]::MinValue
+    if ([datetime]::TryParse($text, [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::RoundtripKind, [ref]$dateValue)) {
+        return $dateValue
+    }
+
+    return $text
+}
+
+function Get-ProjectionRowFieldValue {
+    param(
+        [Parameter(Mandatory = $true)]$Row,
+        [Parameter(Mandatory = $true)][string]$Field
+    )
+
+    if ($Row -is [System.Collections.IDictionary]) {
+        if ($Row.Contains($Field)) {
+            return $Row[$Field]
+        }
+    }
+
+    $property = $Row.PSObject.Properties[$Field]
+    if ($null -ne $property) {
+        return $property.Value
+    }
+
+    return $null
+}
+
+function Get-ProjectionRowOrder {
+    param([Parameter(Mandatory = $true)][System.Collections.IDictionary]$Definition)
+
+    $rowOrder = @()
+    if ((Test-MapHasKey -Map $Definition -Key 'rowOrder') -and @($Definition.rowOrder).Count -gt 0) {
+        foreach ($entry in @($Definition.rowOrder)) {
+            if ($entry -is [System.Collections.IDictionary]) {
+                $fieldName = if (Test-MapHasKey -Map $entry -Key 'by') { [string]$entry.by } else { '' }
+                if ([string]::IsNullOrWhiteSpace($fieldName)) { continue }
+
+                $direction = if (Test-MapHasKey -Map $entry -Key 'direction') { [string]$entry.direction } else { '' }
+                $directionNormalized = $direction.Trim().ToLowerInvariant()
+                $rowOrder += [ordered]@{
+                    by = $fieldName
+                    descending = ($directionNormalized -eq 'desc' -or $directionNormalized -eq 'descending')
+                }
+                continue
+            }
+
+            $fieldName = [string]$entry
+            if ([string]::IsNullOrWhiteSpace($fieldName)) { continue }
+            $rowOrder += [ordered]@{
+                by = $fieldName
+                descending = $false
+            }
+        }
+    }
+
+    if (@($rowOrder).Count -gt 0) {
+        return @($rowOrder)
+    }
+
+    if ((Test-MapHasKey -Map $Definition -Key 'sortBy') -and -not [string]::IsNullOrWhiteSpace([string]$Definition.sortBy)) {
+        return @([ordered]@{
+            by = [string]$Definition.sortBy
+            descending = $false
+        })
+    }
+
+    return @()
+}
+
+function Sort-ProjectionRows {
+    param(
+        [Parameter(Mandatory = $false)][object[]]$Rows,
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Definition
+    )
+
+    $rowOrder = @(Get-ProjectionRowOrder -Definition $Definition)
+    if (@($rowOrder).Count -eq 0) {
+        return @($Rows)
+    }
+
+    $decoratedRows = @()
+    $sortProperties = @()
+    $sortFieldNames = @()
+    $sortIndex = 0
+    foreach ($sortEntry in @($rowOrder)) {
+        $fieldName = [string]$sortEntry.by
+        if ([string]::IsNullOrWhiteSpace($fieldName)) { continue }
+
+        $descending = [bool]$sortEntry.descending
+        $sortFieldName = "__sort$sortIndex"
+        $sortFieldNames += $fieldName
+        $sortProperties += @{
+            Expression = $sortFieldName
+            Descending = $descending
+        }
+        $sortIndex++
+    }
+
+    if (@($sortProperties).Count -eq 0) {
+        return @($Rows)
+    }
+
+    foreach ($row in @($Rows)) {
+        $decoratedRow = [ordered]@{
+            __row = $row
+        }
+
+        for ($fieldIndex = 0; $fieldIndex -lt @($sortFieldNames).Count; $fieldIndex++) {
+            $fieldName = [string]$sortFieldNames[$fieldIndex]
+            $decoratedRow["__sort$fieldIndex"] = Get-ProjectionSortValue -Value (Get-ProjectionRowFieldValue -Row $row -Field $fieldName)
+        }
+
+        $decoratedRows += [pscustomobject]$decoratedRow
+    }
+
+    return @(
+        $decoratedRows |
+            Sort-Object -Stable -Property $sortProperties |
+            ForEach-Object { $_.__row }
+    )
+}
+
 function Invoke-TableProjection {
     param(
-        [Parameter(Mandatory = $true)][object[]]$Rows,
+        [Parameter(Mandatory = $false)][object[]]$Rows,
         [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Definition
     )
 
@@ -2620,9 +3048,7 @@ function Invoke-TableProjection {
             $projectedRows = @($projectedRows | Where-Object { Test-ProjectionCondition -Row $_ -Condition $condition })
         }
     }
-    if ((Test-MapHasKey -Map $normalizedDefinition -Key 'sortBy') -and -not [string]::IsNullOrWhiteSpace([string]$normalizedDefinition.sortBy)) {
-        $projectedRows = @($projectedRows | Sort-Object -Property ([string]$normalizedDefinition.sortBy))
-    }
+    $projectedRows = @(Sort-ProjectionRows -Rows $projectedRows -Definition $normalizedDefinition)
 
     if (@($normalizedDefinition.columns).Count -eq 0) {
         return @($projectedRows)
@@ -2646,7 +3072,7 @@ function Invoke-TableProjection {
 function Convert-TableRowsForTag {
     param(
         [Parameter(Mandatory = $true)][string]$Tag,
-        [Parameter(Mandatory = $true)][object[]]$Rows,
+        [Parameter(Mandatory = $false)][object[]]$Rows,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$ProjectionDefinitions,
         [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases
@@ -2889,7 +3315,7 @@ function Complete-RenderStage {
     param(
         [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Stage,
         [Parameter(Mandatory = $true)][string]$Status,
-        [Parameter(Mandatory = $false)][hashtable]$Details
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$Details
     )
     $Stage.status = $Status
     if ($Status -ne 'ERROR') { $script:currentStageName = $null }
@@ -3157,6 +3583,11 @@ try {
         $renderDetails.literalPartHitSummary = @($docxRender.literalPartHitSummary)
         $renderDetails.unresolvedLiteralTokens = @($docxUnresolvedLiteralByTag.Keys | Sort-Object)
         $renderDetails.docxMatchMode = [string]$DocxMatchMode
+        $renderDetails.updateFieldsOnOpenEnabled = $(if (Test-MapHasKey -Map $docxRender -Key 'updateFieldsOnOpenEnabled') { [bool]$docxRender.updateFieldsOnOpenEnabled } else { $false })
+        $renderDetails.updateFieldsOnOpenReason = $(if (Test-MapHasKey -Map $docxRender -Key 'updateFieldsOnOpenReason') { [string]$docxRender.updateFieldsOnOpenReason } else { '' })
+        $renderDetails.tocRefreshStatus = $(if (Test-MapHasKey -Map $docxRender -Key 'tocRefreshStatus') { [string]$docxRender.tocRefreshStatus } else { '' })
+        $renderDetails.tocRefreshMethod = $(if (Test-MapHasKey -Map $docxRender -Key 'tocRefreshMethod') { [string]$docxRender.tocRefreshMethod } else { '' })
+        $renderDetails.tocRefreshMessage = $(if (Test-MapHasKey -Map $docxRender -Key 'tocRefreshMessage') { [string]$docxRender.tocRefreshMessage } else { '' })
         $expectedDocPropertyControlCount = [int]$renderDetails.docPropControlsExpected
         $controlsPopulatedCount = [int]$renderDetails.docPropControlsPopulated
         $docPropertyFieldPopulatedCount = [int]$renderDetails.docPropertyFieldsPopulated
@@ -3350,6 +3781,11 @@ try {
         docxLiteralTagHitSummary = $(if ($isDocxTemplate) { @($renderDetails.literalTagHitSummary) } else { @() })
         docxLiteralPartHitSummary = $(if ($isDocxTemplate) { @($renderDetails.literalPartHitSummary) } else { @() })
         docxMatchMode = $(if ($isDocxTemplate) { [string]$renderDetails.docxMatchMode } else { '' })
+        docxUpdateFieldsOnOpenEnabled = $(if ($isDocxTemplate) { [bool]$renderDetails.updateFieldsOnOpenEnabled } else { $false })
+        docxUpdateFieldsOnOpenReason = $(if ($isDocxTemplate) { [string]$renderDetails.updateFieldsOnOpenReason } else { '' })
+        docxTocRefreshStatus = $(if ($isDocxTemplate) { [string]$renderDetails.tocRefreshStatus } else { '' })
+        docxTocRefreshMethod = $(if ($isDocxTemplate) { [string]$renderDetails.tocRefreshMethod } else { '' })
+        docxTocRefreshMessage = $(if ($isDocxTemplate) { [string]$renderDetails.tocRefreshMessage } else { '' })
         unresolvedTokenPolicy = [string]$UnresolvedTokenPolicy
         unresolved = $unresolvedSummary
         unresolvedPolicy = [ordered]@{
