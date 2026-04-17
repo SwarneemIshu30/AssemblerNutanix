@@ -164,6 +164,8 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
             BundleRoot = $bundleRoot
             ContractPath = $contractPath
             ExportMirrorPath = Join-Path $exportDestination 'mapping.dataset-to-sdt.v1.yaml'
+            ProjectionContractPath = Join-Path $contractsDestination 'assembler.projections.v1.json'
+            ProjectionExportMirrorPath = Join-Path $exportDestination 'assembler.projections.v1.json'
             RuntimeMappingPath = Join-Path $skeletonDestination 'DE-SDT-Collector.mapping.json'
             TokenAuditPath = $tokenAuditPath
             HeadingMapPath = $headingMapPath
@@ -194,6 +196,9 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         }
         if ($wpfScriptText -match '@\(\$projectionCandidates \| Select-Object -First 1\)\[0\]') {
             throw 'Expected connector editor to avoid direct [0] indexing when projection candidates can be empty'
+        }
+        if ($wpfScriptText -match '@\(\$mappingStudioState\.DraftProjection(Columns|Filter|RowOrder).*\)\[0\]') {
+            throw 'Expected projection draft selection helpers to avoid direct [0] indexing when editor lists can be empty'
         }
         if ($wpfScriptText -match '\(if \(\$null -ne \$selectedConnection\)') {
             throw 'Expected connector editor to avoid inline (if ...) expressions in selection-change code paths'
@@ -239,7 +244,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         $wpfScriptPath = Join-Path $repoRoot 'gui/Start-AssemblerGui.Wpf.ps1'
         $wpfScriptText = Get-Content -LiteralPath $wpfScriptPath -Raw -Encoding UTF8
 
-        foreach ($expectedText in @('Document Version', 'Configuration Snapshot Date', 'Reference ID', 'Cover Page', 'Header Footer', 'CoverKeyImage', 'HeadFootKeyImage')) {
+        foreach ($expectedText in @('Document Version', 'Configuration Snapshot Date', 'Reference ID', 'Cover Page Diagram', 'Header/Footer Diagram', 'CoverKeyImage', 'HeadFootKeyImage')) {
             if ($wpfScriptText -notmatch [regex]::Escape($expectedText)) {
                 throw "Expected the WPF launcher to contain '$expectedText'"
             }
@@ -252,16 +257,39 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         }
     }
 
-    It 'shows the connection-first connector controls in the WPF launcher' {
+    It 'shows the simplified connector editor controls in the WPF launcher' {
         $wpfScriptPath = Join-Path $repoRoot 'gui/Start-AssemblerGui.Wpf.ps1'
         $wpfScriptText = Get-Content -LiteralPath $wpfScriptPath -Raw -Encoding UTF8
 
-        foreach ($expectedText in @('Current Connections', 'ConnectorConnectionList', 'ConnectorSearchTextBox', 'ConnectorQuickFilterCombo', 'ConnectorDetailText', 'ConnectorAuthoringExpander', 'Edit mapping', 'Replace target', 'New connection', 'Open dataset', 'Open target', 'Create or Rebind (choose an action above)')) {
+        foreach ($expectedText in @('Current Connections', 'ConnectorConnectionList', 'ConnectorSearchTextBox', 'ConnectorQuickFilterCombo', 'ConnectorDetailText', 'ConnectorAuthoringExpander', 'Edit mapping', 'Replace target', 'New connection', 'Open dataset', 'Open target', 'Create or Rebind (choose an action above)', 'Mapping Setup', 'Columns', 'Rendered Table Preview', 'Advanced preview and data tools', 'Source Preview', 'Rendered Preview Detail', 'Filters (secondary)', 'Sort (secondary)', 'ConnectorProjectionColumnsList', 'ConnectorProjectionFiltersList', 'ConnectorProjectionSortList', 'ConnectorProjectionRefText', 'ConnectorRenderedPreviewGrid', 'ConnectorRenderedGridStatusText')) {
             if ($wpfScriptText -notmatch [regex]::Escape($expectedText)) {
                 throw "Expected the WPF connector tab to contain '$expectedText'"
             }
         }
 
+        foreach ($unexpectedText in @("Header='Projection Shaping'", "Header='Rendered Preview'", "<ListBox Name='ConnectorDatasetList'", "<ListBox Name='ConnectorTargetList'")) {
+            if ($wpfScriptText -match [regex]::Escape($unexpectedText)) {
+                throw "Expected the simplified connector editor to remove '$unexpectedText' from the primary layout"
+            }
+        }
+        if ($wpfScriptText -notmatch "<ComboBox Name='ConnectorDatasetList'") {
+            throw 'Expected the connector editor to use a compact dataset selector combo box'
+        }
+        if ($wpfScriptText -notmatch "<ComboBox Name='ConnectorTargetList'") {
+            throw 'Expected the connector editor to use a compact target selector combo box'
+        }
+        if ($wpfScriptText -notmatch "<Expander Grid\.Row='4' Header='Advanced preview and data tools' IsExpanded='False'>") {
+            throw 'Expected the connector editor to keep preview detail and data tools collapsed behind an advanced expander by default'
+        }
+        if ($wpfScriptText -notmatch "<ScrollViewer VerticalScrollBarVisibility='Auto' HorizontalScrollBarVisibility='Disabled'>") {
+            throw 'Expected the connector editor to wrap the authoring workspace in a ScrollViewer'
+        }
+        if ($wpfScriptText -notmatch "Name='ConnectorRenderedPreviewGrid'[\s\S]*?CanUserSortColumns='False'") {
+            throw 'Expected the live rendered preview grid to disable column-header sorting'
+        }
+        if ($wpfScriptText -notmatch '\$column\.CanUserSort = \$false') {
+            throw 'Expected dynamic rendered preview columns to disable per-column sorting'
+        }
         if ($wpfScriptText -notmatch "FindName\('MappingStudioTabs'\)") {
             throw 'Expected the WPF launcher to bind the MappingStudioTabs control for connector navigation actions'
         }
@@ -304,7 +332,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         if ([string]$managementConnection.Label -ne 'management-interfaces -> LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces') {
             throw "Unexpected connection label '$($managementConnection.Label)'"
         }
-        foreach ($badgeFragment in @('table', 'placed', 'projection', 'Table Projection')) {
+        foreach ($badgeFragment in @('table', 'placed', 'cols:7', 'Table Projection')) {
             if ([string]$managementConnection.BadgeText -notmatch [regex]::Escape($badgeFragment)) {
                 throw "Expected connection badge text to include '$badgeFragment', got '$($managementConnection.BadgeText)'"
             }
@@ -312,8 +340,34 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         if ([string]$managementConnection.Summary -notmatch 'selector=items') {
             throw "Expected connection summary to include selector=items, got '$($managementConnection.Summary)'"
         }
-        if ([string]$managementConnection.Summary -notmatch 'projection=LNV\.Lenovo\.DE\.System\[ArrayName\]\.Tables\.ManagementInterfaces') {
-            throw "Expected connection summary to include the ManagementInterfaces projection ref, got '$($managementConnection.Summary)'"
+        if ([string]$managementConnection.Summary -notmatch 'columns=7') {
+            throw "Expected connection summary to include a column count, got '$($managementConnection.Summary)'"
+        }
+        if ([string]$managementConnection.Summary -notmatch 'sort=3') {
+            throw "Expected connection summary to include sort count, got '$($managementConnection.Summary)'"
+        }
+    }
+
+    It 'prefills a projection draft for an existing table mapping and keeps target detail destination-focused' {
+        $workbench = Get-LenovoWorkbench
+        $managementConnection = @($workbench.ConnectionRows | Where-Object {
+                [string]$_.DatasetId -eq 'management-interfaces' -and
+                [string]$_.TargetPath -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces'
+            } | Select-Object -First 1)[0]
+        $projectionDraft = New-MappingStudioProjectionDraft -Workbench $workbench -ExistingMapping $managementConnection.MappingView -DatasetNode $managementConnection.DatasetNode -TargetNode $managementConnection.TargetNode -RenderAs 'table'
+        $targetDetail = Format-TargetNodeDetail -TargetNode $managementConnection.TargetNode
+
+        if ([string]$projectionDraft.ProjectionRef -ne 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces') {
+            throw "Expected projection draft to keep the target-owned projection ref, got '$([string]$projectionDraft.ProjectionRef)'"
+        }
+        if (@($projectionDraft.Columns).Count -ne 7) {
+            throw "Expected existing table mapping to prefill 7 projection columns, got $(@($projectionDraft.Columns).Count)"
+        }
+        if ([string]@($projectionDraft.RowOrder)[0].By -ne 'controllerSlot') {
+            throw "Expected existing table mapping to prefill row order by controllerSlot, got '$([string]@($projectionDraft.RowOrder)[0].By)'"
+        }
+        if ($targetDetail -match 'Projection:') {
+            throw "Expected target detail to stay destination-focused without projection metadata, got:`n$targetDetail"
         }
     }
 
@@ -378,6 +432,21 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         }
         if ([string]@($capabilitiesPreview.PreviewRows)[0].Feature -ne 'Storage Partitions') {
             throw "Expected first capabilities preview row to include Storage Partitions, got '$([string]@($capabilitiesPreview.PreviewRows)[0].Feature)'"
+        }
+        if ([int]$managementPreview.SourceRowCount -lt 2) {
+            throw "Expected source-row preview to resolve the underlying table rows, got '$($managementPreview.SourceRowCount)'"
+        }
+        if ((@($managementPreview.SourceFieldCandidates) -join ',') -notmatch 'controllerLabel') {
+            throw "Expected source preview to expose row field candidates, got '$((@($managementPreview.SourceFieldCandidates) -join ', '))'"
+        }
+        if ((@($managementPreview.RenderedGridColumns) -join ',') -notmatch 'Controller,Slot,Port,Interface,LinkStatus,Address,Mask') {
+            throw "Expected rendered grid columns to match the projected headers, got '$((@($managementPreview.RenderedGridColumns) -join ', '))'"
+        }
+        if (@($managementPreview.RenderedGridRows).Count -lt 2) {
+            throw "Expected rendered grid rows to include sample data, got '$(@($managementPreview.RenderedGridRows).Count)'"
+        }
+        if ([string]@($managementPreview.RenderedGridRows)[0].Controller -ne 'B') {
+            throw "Expected rendered grid rows to expose projected values, got '$([string]@($managementPreview.RenderedGridRows)[0].Controller)'"
         }
     }
 
@@ -634,6 +703,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
                 $pending = Add-MappingStudioPendingChange -Workbench $workbench -PendingChanges @() -DatasetId 'transport' -TargetPath 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces' -RenderAs 'table' -Selector 'items' -ProjectionRef 'LNV.Lenovo.DE.System[ArrayName].Tables.Transport'
                 $null = Save-MappingStudioPendingChanges -Workbench $workbench -PendingChanges $pending
                 $savedContract = Get-Content -LiteralPath $tempRepo.ContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $savedProjectionDocument = Get-Content -LiteralPath $tempRepo.ProjectionContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
                 $savedMatches = @($savedContract.mappings | Where-Object {
                         [string]$_.sdtTag -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces'
                     })
@@ -653,6 +723,12 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
                 }
                 if ($runtimeMatches.Count -ne 1) {
                     throw "Expected exactly one runtime mapping for the rebound target, got $($runtimeMatches.Count)"
+                }
+                if ($null -eq $savedProjectionDocument.projections['LNV.Lenovo.DE.System[ArrayName].Tables.Transport']) {
+                    throw 'Expected projection contract JSON to remain present after save'
+                }
+                if (-not (Test-Path -LiteralPath $tempRepo.ProjectionExportMirrorPath -PathType Leaf)) {
+                    throw 'Expected projection export mirror file to be written during save'
                 }
             }
             finally {

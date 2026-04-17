@@ -482,60 +482,217 @@ $xaml = @"
                 </Grid>
 
                 <Expander Name='ConnectorAuthoringExpander' Grid.Row='1' Grid.Column='0' Grid.ColumnSpan='2' Margin='0,8,0,0' Header='Create or Rebind' IsExpanded='False'>
-                  <Grid Margin='8'>
-                    <Grid.ColumnDefinitions>
-                      <ColumnDefinition Width='260'/>
-                      <ColumnDefinition Width='380'/>
-                      <ColumnDefinition Width='*'/>
-                    </Grid.ColumnDefinitions>
-
-                    <GroupBox Grid.Column='0' Header='Datasets' Margin='0,0,8,0'>
-                      <ListBox Name='ConnectorDatasetList' Margin='8'/>
-                    </GroupBox>
-
-                    <GroupBox Grid.Column='1' Header='Targets' Margin='0,0,8,0'>
-                      <ListBox Name='ConnectorTargetList' Margin='8'/>
-                    </GroupBox>
-
-                    <Grid Grid.Column='2'>
+                  <ScrollViewer VerticalScrollBarVisibility='Auto' HorizontalScrollBarVisibility='Disabled'>
+                    <Grid Margin='8'>
                       <Grid.RowDefinitions>
                         <RowDefinition Height='Auto'/>
                         <RowDefinition Height='Auto'/>
                         <RowDefinition Height='Auto'/>
                         <RowDefinition Height='Auto'/>
                         <RowDefinition Height='Auto'/>
-                        <RowDefinition Height='Auto'/>
                       </Grid.RowDefinitions>
-                      <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width='140'/>
-                        <ColumnDefinition Width='*'/>
-                      </Grid.ColumnDefinitions>
 
-                      <TextBlock Grid.Row='0' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Render shape</TextBlock>
-                      <ComboBox Name='ConnectorRenderAsCombo' Grid.Row='0' Grid.Column='1' Margin='0,0,0,8'>
-                        <ComboBoxItem>table</ComboBoxItem>
-                        <ComboBoxItem>scalar</ComboBoxItem>
-                      </ComboBox>
+                      <GroupBox Grid.Row='0' Header='Mapping Setup'>
+                        <Grid Margin='8'>
+                          <Grid.RowDefinitions>
+                            <RowDefinition Height='Auto'/>
+                            <RowDefinition Height='Auto'/>
+                            <RowDefinition Height='Auto'/>
+                            <RowDefinition Height='Auto'/>
+                          </Grid.RowDefinitions>
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width='110'/>
+                            <ColumnDefinition Width='*'/>
+                            <ColumnDefinition Width='110'/>
+                            <ColumnDefinition Width='*'/>
+                          </Grid.ColumnDefinitions>
 
-                      <TextBlock Grid.Row='1' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Selector</TextBlock>
-                      <ComboBox Name='ConnectorSelectorCombo' Grid.Row='1' Grid.Column='1' Margin='0,0,0,8' IsEditable='True'/>
+                          <TextBlock Grid.Row='0' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Dataset</TextBlock>
+                          <ComboBox Name='ConnectorDatasetList' Grid.Row='0' Grid.Column='1' Margin='0,0,12,8' IsEditable='True' IsTextSearchEnabled='True'/>
+                          <TextBlock Grid.Row='0' Grid.Column='2' Margin='0,0,8,8' VerticalAlignment='Center'>Render shape</TextBlock>
+                          <ComboBox Name='ConnectorRenderAsCombo' Grid.Row='0' Grid.Column='3' Margin='0,0,0,8'>
+                            <ComboBoxItem>table</ComboBoxItem>
+                            <ComboBoxItem>scalar</ComboBoxItem>
+                          </ComboBox>
 
-                      <TextBlock Grid.Row='2' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Projection</TextBlock>
-                      <ComboBox Name='ConnectorProjectionCombo' Grid.Row='2' Grid.Column='1' Margin='0,0,0,8' IsEditable='True'/>
+                          <TextBlock Grid.Row='1' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Selector</TextBlock>
+                          <ComboBox Name='ConnectorSelectorCombo' Grid.Row='1' Grid.Column='1' Margin='0,0,12,8' IsEditable='True'/>
+                          <TextBlock Grid.Row='1' Grid.Column='2' Margin='0,0,8,8' VerticalAlignment='Center'>Target</TextBlock>
+                          <ComboBox Name='ConnectorTargetList' Grid.Row='1' Grid.Column='3' Margin='0,0,0,8' IsEditable='True' IsTextSearchEnabled='True'/>
 
-                      <TextBlock Grid.Row='3' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>View</TextBlock>
-                      <TextBox Name='ConnectorViewText' Grid.Row='3' Grid.Column='1' Margin='0,0,0,8'/>
+                          <TextBlock Grid.Row='2' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>View</TextBlock>
+                          <TextBox Name='ConnectorViewText' Grid.Row='2' Grid.Column='1' Margin='0,0,12,8'/>
+                          <TextBlock Grid.Row='2' Grid.Column='2' Margin='0,0,8,8' VerticalAlignment='Center'>Projection ref</TextBlock>
+                          <TextBox Name='ConnectorProjectionRefText' Grid.Row='2' Grid.Column='3' Margin='0,0,0,8' IsReadOnly='True'/>
 
-                      <StackPanel Grid.Row='4' Grid.Column='0' Grid.ColumnSpan='2' Orientation='Horizontal' Margin='0,0,0,8' VerticalAlignment='Top'>
-                        <CheckBox Name='ConnectorRequiredCheckBox' Margin='0,0,16,0' VerticalAlignment='Center'>Required</CheckBox>
+                          <TextBlock Name='ConnectorSourceFieldsText' Grid.Row='3' Grid.Column='0' Grid.ColumnSpan='3' Margin='0,0,12,0' TextWrapping='Wrap'/>
+                          <CheckBox Name='ConnectorRequiredCheckBox' Grid.Row='3' Grid.Column='3' VerticalAlignment='Center' HorizontalAlignment='Left'>Required</CheckBox>
+                        </Grid>
+                      </GroupBox>
+
+                      <Grid Grid.Row='1' Margin='0,8,0,8'>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width='520'/>
+                          <ColumnDefinition Width='*'/>
+                        </Grid.ColumnDefinitions>
+
+                        <GroupBox Grid.Column='0' Header='Columns' Margin='0,0,8,0'>
+                          <Grid Margin='8'>
+                            <Grid.ColumnDefinitions>
+                              <ColumnDefinition Width='230'/>
+                              <ColumnDefinition Width='*'/>
+                              <ColumnDefinition Width='Auto'/>
+                            </Grid.ColumnDefinitions>
+                            <ListBox Name='ConnectorProjectionColumnsList' Grid.Column='0' Margin='0,0,8,0' MinHeight='220'/>
+                            <Grid Grid.Column='1' Margin='0,0,8,0'>
+                              <Grid.RowDefinitions>
+                                <RowDefinition Height='Auto'/>
+                                <RowDefinition Height='Auto'/>
+                                <RowDefinition Height='Auto'/>
+                                <RowDefinition Height='Auto'/>
+                              </Grid.RowDefinitions>
+                              <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width='75'/>
+                                <ColumnDefinition Width='*'/>
+                              </Grid.ColumnDefinitions>
+                              <TextBlock Grid.Row='0' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Header</TextBlock>
+                              <TextBox Name='ConnectorColumnNameText' Grid.Row='0' Grid.Column='1' Margin='0,0,0,8'/>
+                              <TextBlock Grid.Row='1' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Source</TextBlock>
+                              <ComboBox Name='ConnectorColumnSourceCombo' Grid.Row='1' Grid.Column='1' Margin='0,0,0,8' IsEditable='True'/>
+                              <TextBlock Grid.Row='2' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Format</TextBlock>
+                              <TextBox Name='ConnectorColumnFormatText' Grid.Row='2' Grid.Column='1' Margin='0,0,0,8'/>
+                              <TextBlock Grid.Row='3' Grid.Column='0' Margin='0,0,8,0' VerticalAlignment='Center'>Delimiter</TextBlock>
+                              <TextBox Name='ConnectorColumnDelimiterText' Grid.Row='3' Grid.Column='1'/>
+                            </Grid>
+                            <StackPanel Grid.Column='2' VerticalAlignment='Top'>
+                              <Button Name='ConnectorColumnAddButton' Width='90' Height='30' Margin='0,0,0,8'>Add</Button>
+                              <Button Name='ConnectorColumnRemoveButton' Width='90' Height='30' Margin='0,0,0,8'>Remove</Button>
+                              <Button Name='ConnectorColumnUpButton' Width='90' Height='30' Margin='0,0,0,8'>Move up</Button>
+                              <Button Name='ConnectorColumnDownButton' Width='90' Height='30'>Move down</Button>
+                            </StackPanel>
+                          </Grid>
+                        </GroupBox>
+
+                        <GroupBox Grid.Column='1' Header='Rendered Table Preview'>
+                          <Grid Margin='8'>
+                            <Grid.RowDefinitions>
+                              <RowDefinition Height='Auto'/>
+                              <RowDefinition Height='*'/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Name='ConnectorRenderedGridStatusText' Grid.Row='0' Margin='0,0,0,8' TextWrapping='Wrap'/>
+                            <DataGrid Name='ConnectorRenderedPreviewGrid'
+                                      Grid.Row='1'
+                                      MinHeight='260'
+                                      AutoGenerateColumns='False'
+                                      IsReadOnly='True'
+                                      CanUserSortColumns='False'
+                                      CanUserAddRows='False'
+                                      CanUserDeleteRows='False'
+                                      CanUserReorderColumns='False'
+                                      HeadersVisibility='Column'
+                                      GridLinesVisibility='All'
+                                      RowHeaderWidth='0'
+                                      SelectionMode='Single'
+                                      SelectionUnit='FullRow'
+                                      HorizontalScrollBarVisibility='Auto'
+                                      VerticalScrollBarVisibility='Auto'/>
+                          </Grid>
+                        </GroupBox>
+                      </Grid>
+
+                      <StackPanel Grid.Row='2' Orientation='Horizontal' Margin='0,0,0,8' VerticalAlignment='Top'>
                         <Button Name='ConnectorPreviewButton' Width='110' Height='30' Margin='0,0,8,0'>Preview</Button>
                         <Button Name='ConnectorQueueButton' Width='140' Height='30' Margin='0,0,8,0'>Queue change</Button>
                         <Button Name='ConnectorResetButton' Width='100' Height='30'>Reset</Button>
                       </StackPanel>
 
-                      <TextBlock Name='ConnectorAuthoringHintText' Grid.Row='5' Grid.Column='0' Grid.ColumnSpan='2' TextWrapping='Wrap'/>
+                      <TextBlock Name='ConnectorAuthoringHintText' Grid.Row='3' Margin='0,0,0,8' TextWrapping='Wrap'/>
+
+                      <Expander Grid.Row='4' Header='Advanced preview and data tools' IsExpanded='False'>
+                        <Grid Margin='8'>
+                          <Grid.RowDefinitions>
+                            <RowDefinition Height='Auto'/>
+                            <RowDefinition Height='Auto'/>
+                          </Grid.RowDefinitions>
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width='*'/>
+                            <ColumnDefinition Width='*'/>
+                          </Grid.ColumnDefinitions>
+
+                          <GroupBox Grid.Row='0' Grid.Column='0' Header='Source Preview' Margin='0,0,8,8'>
+                            <TextBox Name='ConnectorSourcePreviewText' Margin='8' MinHeight='140' IsReadOnly='True' TextWrapping='Wrap' AcceptsReturn='True' VerticalScrollBarVisibility='Auto'/>
+                          </GroupBox>
+
+                          <GroupBox Grid.Row='0' Grid.Column='1' Header='Rendered Preview Detail' Margin='0,0,0,8'>
+                            <TextBox Name='ConnectorRenderedPreviewText' Margin='8' MinHeight='140' IsReadOnly='True' TextWrapping='Wrap' AcceptsReturn='True' VerticalScrollBarVisibility='Auto'/>
+                          </GroupBox>
+
+                          <GroupBox Grid.Row='1' Grid.Column='0' Header='Filters (secondary)' Margin='0,0,8,0'>
+                            <Grid Margin='8'>
+                              <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width='230'/>
+                                <ColumnDefinition Width='*'/>
+                                <ColumnDefinition Width='Auto'/>
+                              </Grid.ColumnDefinitions>
+                              <ListBox Name='ConnectorProjectionFiltersList' Grid.Column='0' Margin='0,0,8,0' MinHeight='120'/>
+                              <Grid Grid.Column='1' Margin='0,0,8,0'>
+                                <Grid.RowDefinitions>
+                                  <RowDefinition Height='Auto'/>
+                                  <RowDefinition Height='Auto'/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                  <ColumnDefinition Width='75'/>
+                                  <ColumnDefinition Width='*'/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Row='0' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Field</TextBlock>
+                                <ComboBox Name='ConnectorFilterFieldCombo' Grid.Row='0' Grid.Column='1' Margin='0,0,0,8' IsEditable='True'/>
+                                <TextBlock Grid.Row='1' Grid.Column='0' Margin='0,0,8,0' VerticalAlignment='Center'>Equals</TextBlock>
+                                <TextBox Name='ConnectorFilterEqualsText' Grid.Row='1' Grid.Column='1'/>
+                              </Grid>
+                              <StackPanel Grid.Column='2' VerticalAlignment='Top'>
+                                <Button Name='ConnectorFilterAddButton' Width='90' Height='30' Margin='0,0,0,8'>Add</Button>
+                                <Button Name='ConnectorFilterRemoveButton' Width='90' Height='30'>Remove</Button>
+                              </StackPanel>
+                            </Grid>
+                          </GroupBox>
+
+                          <GroupBox Grid.Row='1' Grid.Column='1' Header='Sort (secondary)'>
+                            <Grid Margin='8'>
+                              <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width='230'/>
+                                <ColumnDefinition Width='*'/>
+                                <ColumnDefinition Width='Auto'/>
+                              </Grid.ColumnDefinitions>
+                              <ListBox Name='ConnectorProjectionSortList' Grid.Column='0' Margin='0,0,8,0' MinHeight='120'/>
+                              <Grid Grid.Column='1' Margin='0,0,8,0'>
+                                <Grid.RowDefinitions>
+                                  <RowDefinition Height='Auto'/>
+                                  <RowDefinition Height='Auto'/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                  <ColumnDefinition Width='75'/>
+                                  <ColumnDefinition Width='*'/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Row='0' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Field</TextBlock>
+                                <ComboBox Name='ConnectorSortByCombo' Grid.Row='0' Grid.Column='1' Margin='0,0,0,8' IsEditable='True'/>
+                                <TextBlock Grid.Row='1' Grid.Column='0' Margin='0,0,8,0' VerticalAlignment='Center'>Direction</TextBlock>
+                                <ComboBox Name='ConnectorSortDirectionCombo' Grid.Row='1' Grid.Column='1' SelectedIndex='0'>
+                                  <ComboBoxItem>asc</ComboBoxItem>
+                                  <ComboBoxItem>desc</ComboBoxItem>
+                                </ComboBox>
+                              </Grid>
+                              <StackPanel Grid.Column='2' VerticalAlignment='Top'>
+                                <Button Name='ConnectorSortAddButton' Width='90' Height='30' Margin='0,0,0,8'>Add</Button>
+                                <Button Name='ConnectorSortRemoveButton' Width='90' Height='30' Margin='0,0,0,8'>Remove</Button>
+                                <Button Name='ConnectorSortUpButton' Width='90' Height='30' Margin='0,0,0,8'>Move up</Button>
+                                <Button Name='ConnectorSortDownButton' Width='90' Height='30'>Move down</Button>
+                              </StackPanel>
+                            </Grid>
+                          </GroupBox>
+                        </Grid>
+                      </Expander>
                     </Grid>
-                  </Grid>
+                  </ScrollViewer>
                 </Expander>
               </Grid>
             </TabItem>
@@ -773,13 +930,39 @@ $connectorTargetList = $window.FindName('ConnectorTargetList')
 $connectorActionText = $window.FindName('ConnectorActionText')
 $connectorRenderAsCombo = $window.FindName('ConnectorRenderAsCombo')
 $connectorSelectorCombo = $window.FindName('ConnectorSelectorCombo')
-$connectorProjectionCombo = $window.FindName('ConnectorProjectionCombo')
+$connectorSourceFieldsText = $window.FindName('ConnectorSourceFieldsText')
+$connectorProjectionRefText = $window.FindName('ConnectorProjectionRefText')
+$connectorProjectionColumnsList = $window.FindName('ConnectorProjectionColumnsList')
+$connectorColumnNameText = $window.FindName('ConnectorColumnNameText')
+$connectorColumnSourceCombo = $window.FindName('ConnectorColumnSourceCombo')
+$connectorColumnFormatText = $window.FindName('ConnectorColumnFormatText')
+$connectorColumnDelimiterText = $window.FindName('ConnectorColumnDelimiterText')
+$connectorColumnAddButton = $window.FindName('ConnectorColumnAddButton')
+$connectorColumnRemoveButton = $window.FindName('ConnectorColumnRemoveButton')
+$connectorColumnUpButton = $window.FindName('ConnectorColumnUpButton')
+$connectorColumnDownButton = $window.FindName('ConnectorColumnDownButton')
+$connectorProjectionFiltersList = $window.FindName('ConnectorProjectionFiltersList')
+$connectorFilterFieldCombo = $window.FindName('ConnectorFilterFieldCombo')
+$connectorFilterEqualsText = $window.FindName('ConnectorFilterEqualsText')
+$connectorFilterAddButton = $window.FindName('ConnectorFilterAddButton')
+$connectorFilterRemoveButton = $window.FindName('ConnectorFilterRemoveButton')
+$connectorProjectionSortList = $window.FindName('ConnectorProjectionSortList')
+$connectorSortByCombo = $window.FindName('ConnectorSortByCombo')
+$connectorSortDirectionCombo = $window.FindName('ConnectorSortDirectionCombo')
+$connectorSortAddButton = $window.FindName('ConnectorSortAddButton')
+$connectorSortRemoveButton = $window.FindName('ConnectorSortRemoveButton')
+$connectorSortUpButton = $window.FindName('ConnectorSortUpButton')
+$connectorSortDownButton = $window.FindName('ConnectorSortDownButton')
 $connectorViewText = $window.FindName('ConnectorViewText')
 $connectorRequiredCheckBox = $window.FindName('ConnectorRequiredCheckBox')
 $connectorPreviewButton = $window.FindName('ConnectorPreviewButton')
 $connectorQueueButton = $window.FindName('ConnectorQueueButton')
 $connectorResetButton = $window.FindName('ConnectorResetButton')
 $connectorAuthoringHintText = $window.FindName('ConnectorAuthoringHintText')
+$connectorSourcePreviewText = $window.FindName('ConnectorSourcePreviewText')
+$connectorRenderedGridStatusText = $window.FindName('ConnectorRenderedGridStatusText')
+$connectorRenderedPreviewGrid = $window.FindName('ConnectorRenderedPreviewGrid')
+$connectorRenderedPreviewText = $window.FindName('ConnectorRenderedPreviewText')
 $connectorPreviewText = $window.FindName('ConnectorPreviewText')
 $mappingChangesText = $window.FindName('MappingChangesText')
 
@@ -820,6 +1003,9 @@ $mappingDatasetsList.DisplayMemberPath = 'Label'
 $mappingTargetsList.DisplayMemberPath = 'Label'
 $connectorDatasetList.DisplayMemberPath = 'Label'
 $connectorTargetList.DisplayMemberPath = 'Label'
+$connectorProjectionColumnsList.DisplayMemberPath = 'Label'
+$connectorProjectionFiltersList.DisplayMemberPath = 'Label'
+$connectorProjectionSortList.DisplayMemberPath = 'Label'
 
 $documentPropertyState = [ordered]@{
     LastAutoConfigSnapDate = ''
@@ -951,6 +1137,13 @@ $mappingStudioState = [ordered]@{
     LastConnectorContextKey = ''
     LastConnectorConnectionKey = ''
     SuppressConnectorSelectionEvents = $false
+    SuppressProjectionEditorEvents = $false
+    DraftProjectionRef = ''
+    DraftProjectionColumns = @()
+    DraftProjectionFilter = @()
+    DraftProjectionRowOrder = @()
+    DraftFieldCandidates = @()
+    LastConnectorRenderAs = ''
 }
 
 function Get-SelectedMappingCollection {
@@ -1036,6 +1229,294 @@ function Set-ConnectorDraftSelection {
     }
     finally {
         $mappingStudioState.SuppressConnectorSelectionEvents = $false
+    }
+}
+
+function New-ConnectorColumnDraft {
+    return [pscustomobject]@{
+        Id = ([guid]::NewGuid()).Guid
+        Name = ''
+        Source = ''
+        Format = ''
+        Delimiter = ''
+        Label = 'New column'
+    }
+}
+
+function New-ConnectorFilterDraft {
+    return [pscustomobject]@{
+        Id = ([guid]::NewGuid()).Guid
+        Field = ''
+        Equals = ''
+        Label = 'New filter'
+    }
+}
+
+function New-ConnectorSortDraft {
+    return [pscustomobject]@{
+        Id = ([guid]::NewGuid()).Guid
+        By = ''
+        Direction = 'asc'
+        Label = 'New sort'
+    }
+}
+
+function Update-ConnectorColumnDraftLabel {
+    param([Parameter(Mandatory = $true)]$ColumnDraft)
+
+    $header = if ([string]::IsNullOrWhiteSpace([string]$ColumnDraft.Name)) { '(header)' } else { [string]$ColumnDraft.Name }
+    $source = if ([string]::IsNullOrWhiteSpace([string]$ColumnDraft.Source)) { '(field)' } else { [string]$ColumnDraft.Source }
+    $ColumnDraft.Label = "$header <- $source"
+}
+
+function Update-ConnectorFilterDraftLabel {
+    param([Parameter(Mandatory = $true)]$FilterDraft)
+
+    $field = if ([string]::IsNullOrWhiteSpace([string]$FilterDraft.Field)) { '(field)' } else { [string]$FilterDraft.Field }
+    $FilterDraft.Label = "{0} = {1}" -f $field, [string]$FilterDraft.Equals
+}
+
+function Update-ConnectorSortDraftLabel {
+    param([Parameter(Mandatory = $true)]$SortDraft)
+
+    $field = if ([string]::IsNullOrWhiteSpace([string]$SortDraft.By)) { '(field)' } else { [string]$SortDraft.By }
+    $direction = if ([string]::IsNullOrWhiteSpace([string]$SortDraft.Direction)) { 'asc' } else { [string]$SortDraft.Direction }
+    $SortDraft.Label = "{0} ({1})" -f $field, $direction
+}
+
+function Get-SelectedConnectorProjectionColumn {
+    return $connectorProjectionColumnsList.SelectedItem
+}
+
+function Get-SelectedConnectorProjectionFilter {
+    return $connectorProjectionFiltersList.SelectedItem
+}
+
+function Get-SelectedConnectorProjectionSort {
+    return $connectorProjectionSortList.SelectedItem
+}
+
+function Apply-ConnectorFieldCandidateSources {
+    $fieldCandidates = @($mappingStudioState.DraftFieldCandidates)
+    $connectorColumnSourceCombo.ItemsSource = $fieldCandidates
+    $connectorFilterFieldCombo.ItemsSource = $fieldCandidates
+    $connectorSortByCombo.ItemsSource = $fieldCandidates
+    $connectorSourceFieldsText.Text = if (@($fieldCandidates).Count -gt 0) {
+        "Available row fields: $($fieldCandidates -join ', ')"
+    }
+    else {
+        'Available row fields will appear once a selector resolves example rows.'
+    }
+}
+
+function Refresh-ConnectorProjectionLists {
+    $selectedColumnId = if ($null -ne $connectorProjectionColumnsList.SelectedItem) { [string]$connectorProjectionColumnsList.SelectedItem.Id } else { '' }
+    $selectedFilterId = if ($null -ne $connectorProjectionFiltersList.SelectedItem) { [string]$connectorProjectionFiltersList.SelectedItem.Id } else { '' }
+    $selectedSortId = if ($null -ne $connectorProjectionSortList.SelectedItem) { [string]$connectorProjectionSortList.SelectedItem.Id } else { '' }
+
+    $mappingStudioState.SuppressProjectionEditorEvents = $true
+    try {
+        $connectorProjectionColumnsList.ItemsSource = @($mappingStudioState.DraftProjectionColumns)
+        $connectorProjectionFiltersList.ItemsSource = @($mappingStudioState.DraftProjectionFilter)
+        $connectorProjectionSortList.ItemsSource = @($mappingStudioState.DraftProjectionRowOrder)
+
+        if (-not [string]::IsNullOrWhiteSpace($selectedColumnId)) {
+            $connectorProjectionColumnsList.SelectedItem = $mappingStudioState.DraftProjectionColumns | Where-Object { [string]$_.Id -eq $selectedColumnId } | Select-Object -First 1
+        }
+        if ($null -eq $connectorProjectionColumnsList.SelectedItem -and $connectorProjectionColumnsList.Items.Count -gt 0) {
+            $connectorProjectionColumnsList.SelectedIndex = 0
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($selectedFilterId)) {
+            $connectorProjectionFiltersList.SelectedItem = $mappingStudioState.DraftProjectionFilter | Where-Object { [string]$_.Id -eq $selectedFilterId } | Select-Object -First 1
+        }
+        if ($null -eq $connectorProjectionFiltersList.SelectedItem -and $connectorProjectionFiltersList.Items.Count -gt 0) {
+            $connectorProjectionFiltersList.SelectedIndex = 0
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($selectedSortId)) {
+            $connectorProjectionSortList.SelectedItem = $mappingStudioState.DraftProjectionRowOrder | Where-Object { [string]$_.Id -eq $selectedSortId } | Select-Object -First 1
+        }
+        if ($null -eq $connectorProjectionSortList.SelectedItem -and $connectorProjectionSortList.Items.Count -gt 0) {
+            $connectorProjectionSortList.SelectedIndex = 0
+        }
+    }
+    finally {
+        $mappingStudioState.SuppressProjectionEditorEvents = $false
+    }
+}
+
+function Update-ConnectorProjectionSelectionDetails {
+    $mappingStudioState.SuppressProjectionEditorEvents = $true
+    try {
+        $connectorProjectionRefText.Text = [string]$mappingStudioState.DraftProjectionRef
+
+        $selectedColumn = Get-SelectedConnectorProjectionColumn
+        $connectorColumnNameText.Text = if ($null -ne $selectedColumn) { [string]$selectedColumn.Name } else { '' }
+        $connectorColumnSourceCombo.Text = if ($null -ne $selectedColumn) { [string]$selectedColumn.Source } else { '' }
+        $connectorColumnFormatText.Text = if ($null -ne $selectedColumn) { [string]$selectedColumn.Format } else { '' }
+        $connectorColumnDelimiterText.Text = if ($null -ne $selectedColumn) { [string]$selectedColumn.Delimiter } else { '' }
+
+        $selectedFilter = Get-SelectedConnectorProjectionFilter
+        $connectorFilterFieldCombo.Text = if ($null -ne $selectedFilter) { [string]$selectedFilter.Field } else { '' }
+        $connectorFilterEqualsText.Text = if ($null -ne $selectedFilter) { [string]$selectedFilter.Equals } else { '' }
+
+        $selectedSort = Get-SelectedConnectorProjectionSort
+        $connectorSortByCombo.Text = if ($null -ne $selectedSort) { [string]$selectedSort.By } else { '' }
+        $sortDirection = if ($null -ne $selectedSort -and -not [string]::IsNullOrWhiteSpace([string]$selectedSort.Direction)) { [string]$selectedSort.Direction } else { 'asc' }
+        $connectorSortDirectionCombo.SelectedIndex = if ($sortDirection -eq 'desc') { 1 } else { 0 }
+    }
+    finally {
+        $mappingStudioState.SuppressProjectionEditorEvents = $false
+    }
+
+    $isTableDraft = ([string]$mappingStudioState.ConnectorMode -ne 'inspect') -and ((Get-SelectedConnectorRenderAs) -eq 'table')
+    $connectorProjectionRefText.IsEnabled = $isTableDraft
+    $connectorProjectionColumnsList.IsEnabled = $isTableDraft
+    $connectorColumnNameText.IsEnabled = $isTableDraft -and $null -ne (Get-SelectedConnectorProjectionColumn)
+    $connectorColumnSourceCombo.IsEnabled = $isTableDraft -and $null -ne (Get-SelectedConnectorProjectionColumn)
+    $connectorColumnFormatText.IsEnabled = $isTableDraft -and $null -ne (Get-SelectedConnectorProjectionColumn)
+    $connectorColumnDelimiterText.IsEnabled = $isTableDraft -and $null -ne (Get-SelectedConnectorProjectionColumn)
+    $connectorColumnAddButton.IsEnabled = $isTableDraft
+    $connectorColumnRemoveButton.IsEnabled = $isTableDraft -and $null -ne (Get-SelectedConnectorProjectionColumn)
+    $connectorColumnUpButton.IsEnabled = $isTableDraft -and $null -ne (Get-SelectedConnectorProjectionColumn)
+    $connectorColumnDownButton.IsEnabled = $isTableDraft -and $null -ne (Get-SelectedConnectorProjectionColumn)
+    $connectorProjectionFiltersList.IsEnabled = $isTableDraft
+    $connectorFilterFieldCombo.IsEnabled = $isTableDraft -and $null -ne (Get-SelectedConnectorProjectionFilter)
+    $connectorFilterEqualsText.IsEnabled = $isTableDraft -and $null -ne (Get-SelectedConnectorProjectionFilter)
+    $connectorFilterAddButton.IsEnabled = $isTableDraft
+    $connectorFilterRemoveButton.IsEnabled = $isTableDraft -and $null -ne (Get-SelectedConnectorProjectionFilter)
+    $connectorProjectionSortList.IsEnabled = $isTableDraft
+    $connectorSortByCombo.IsEnabled = $isTableDraft -and $null -ne (Get-SelectedConnectorProjectionSort)
+    $connectorSortDirectionCombo.IsEnabled = $isTableDraft -and $null -ne (Get-SelectedConnectorProjectionSort)
+    $connectorSortAddButton.IsEnabled = $isTableDraft
+    $connectorSortRemoveButton.IsEnabled = $isTableDraft -and $null -ne (Get-SelectedConnectorProjectionSort)
+    $connectorSortUpButton.IsEnabled = $isTableDraft -and $null -ne (Get-SelectedConnectorProjectionSort)
+    $connectorSortDownButton.IsEnabled = $isTableDraft -and $null -ne (Get-SelectedConnectorProjectionSort)
+}
+
+function Clear-ConnectorRenderedPreviewGrid {
+    $connectorRenderedPreviewGrid.ItemsSource = $null
+    $connectorRenderedPreviewGrid.Columns.Clear()
+}
+
+function Set-ConnectorRenderedPreviewGrid {
+    param([Parameter(Mandatory = $false)]$Preview)
+
+    $previewTable = if ($null -eq $Preview) { $null } else { $Preview }
+    if ($null -eq $previewTable) {
+        $connectorRenderedGridStatusText.Text = ''
+        Clear-ConnectorRenderedPreviewGrid
+        return
+    }
+
+    if ([string]$previewTable.Status -ne 'ok') {
+        $connectorRenderedGridStatusText.Text = [string]$previewTable.Message
+        Clear-ConnectorRenderedPreviewGrid
+        return
+    }
+
+    if ([string]$previewTable.RenderAs -eq 'scalar') {
+        $connectorRenderedGridStatusText.Text = 'Scalar mappings use the text preview only.'
+        Clear-ConnectorRenderedPreviewGrid
+        return
+    }
+
+    $columnNames = @($previewTable.RenderedGridColumns)
+    $gridRows = @($previewTable.RenderedGridRows)
+    if (@($columnNames).Count -eq 0 -and @($previewTable.ColumnNames).Count -gt 0) {
+        $columnNames = @($previewTable.ColumnNames)
+    }
+
+    $connectorRenderedPreviewGrid.Columns.Clear()
+
+    $table = New-Object System.Data.DataTable
+    foreach ($columnName in @($columnNames)) {
+        $null = $table.Columns.Add([string]$columnName, [string])
+
+        $binding = New-Object System.Windows.Data.Binding
+        $binding.Path = "[{0}]" -f [string]$columnName
+        $binding.Mode = [System.Windows.Data.BindingMode]::OneWay
+
+        $column = New-Object System.Windows.Controls.DataGridTextColumn
+        $column.Header = [string]$columnName
+        $column.Binding = $binding
+        $column.CanUserSort = $false
+        $connectorRenderedPreviewGrid.Columns.Add($column) | Out-Null
+    }
+
+    foreach ($row in @($gridRows)) {
+        $dataRow = $table.NewRow()
+        $rowTable = if ($row -is [System.Collections.IDictionary]) { $row } else { $null }
+        foreach ($columnName in @($columnNames)) {
+            $value = ''
+            if ($null -ne $rowTable -and $rowTable.Contains([string]$columnName)) {
+                $value = [string]$rowTable[[string]$columnName]
+            }
+            $dataRow[[string]$columnName] = $value
+        }
+        $table.Rows.Add($dataRow)
+    }
+
+    $connectorRenderedPreviewGrid.ItemsSource = $table.DefaultView
+    if (@($columnNames).Count -eq 0) {
+        $connectorRenderedGridStatusText.Text = 'No rendered columns are available for this preview.'
+    }
+    elseif (@($gridRows).Count -eq 0) {
+        $connectorRenderedGridStatusText.Text = 'No sample rows matched the current selector/filter combination.'
+    }
+    else {
+        $connectorRenderedGridStatusText.Text = "Showing $(@($gridRows).Count) rendered sample row(s) across $(@($columnNames).Count) column(s)."
+    }
+}
+
+function Reset-ConnectorProjectionDraft {
+    param(
+        [Parameter(Mandatory = $false)]$ExistingMapping,
+        [Parameter(Mandatory = $false)]$DatasetNode,
+        [Parameter(Mandatory = $false)]$TargetNode
+    )
+
+    if ((Get-SelectedConnectorRenderAs) -ne 'table' -or $null -eq $mappingStudioState.Workbench -or $null -eq $DatasetNode -or $null -eq $TargetNode) {
+        $mappingStudioState.DraftProjectionRef = ''
+        $mappingStudioState.DraftProjectionColumns = @()
+        $mappingStudioState.DraftProjectionFilter = @()
+        $mappingStudioState.DraftProjectionRowOrder = @()
+        Refresh-ConnectorProjectionLists
+        Update-ConnectorProjectionSelectionDetails
+        return
+    }
+
+    $projectionDraft = New-MappingStudioProjectionDraft -Workbench $mappingStudioState.Workbench -ExistingMapping $ExistingMapping -DatasetNode $DatasetNode -TargetNode $TargetNode -RenderAs 'table'
+    $mappingStudioState.DraftProjectionRef = [string]$projectionDraft.ProjectionRef
+    $mappingStudioState.DraftProjectionColumns = @($projectionDraft.Columns)
+    $mappingStudioState.DraftProjectionFilter = @($projectionDraft.Filter)
+    $mappingStudioState.DraftProjectionRowOrder = @($projectionDraft.RowOrder)
+    Refresh-ConnectorProjectionLists
+    Update-ConnectorProjectionSelectionDetails
+}
+
+function Move-ConnectorDraftItem {
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.IList]$Items,
+        [Parameter(Mandatory = $true)][string]$ItemId,
+        [Parameter(Mandatory = $true)][int]$Direction
+    )
+
+    for ($index = 0; $index -lt $Items.Count; $index++) {
+        if ([string]$Items[$index].Id -ne $ItemId) {
+            continue
+        }
+
+        $newIndex = $index + $Direction
+        if ($newIndex -lt 0 -or $newIndex -ge $Items.Count) {
+            return
+        }
+
+        $current = $Items[$index]
+        $Items.RemoveAt($index)
+        $Items.Insert($newIndex, $current)
+        return
     }
 }
 
@@ -1217,8 +1698,17 @@ function Update-ConnectorEditor {
         $connectorActionText.Text = 'Refresh Mapping Studio to load datasets, targets, and current mappings.'
         $connectorDetailText.Text = 'Refresh Mapping Studio to load the current connection inventory.'
         $connectorAuthoringHintText.Text = ''
+        $connectorSourceFieldsText.Text = ''
+        $connectorSourcePreviewText.Text = ''
+        $connectorRenderedGridStatusText.Text = ''
+        Clear-ConnectorRenderedPreviewGrid
+        $connectorRenderedPreviewText.Text = ''
         $connectorPreviewText.Text = ''
         $connectorAuthoringExpander.IsExpanded = $false
+        $mappingStudioState.DraftProjectionRef = ''
+        $mappingStudioState.DraftProjectionColumns = @()
+        $mappingStudioState.DraftProjectionFilter = @()
+        $mappingStudioState.DraftProjectionRowOrder = @()
         Update-MappingStudioInteractionState
         return
     }
@@ -1286,7 +1776,18 @@ function Update-ConnectorEditor {
 
     if ($mode -eq 'inspect') {
         $connectorAuthoringHintText.Text = 'Choose Edit mapping, Replace target, or New connection to activate the authoring tools.'
+        $connectorSourceFieldsText.Text = 'Available row fields appear when authoring a table connection.'
+        $connectorSourcePreviewText.Text = 'Open Edit mapping, Replace target, or New connection to inspect selector rows.'
+        $connectorRenderedGridStatusText.Text = 'Open Edit mapping, Replace target, or New connection to preview the rendered table.'
+        Clear-ConnectorRenderedPreviewGrid
+        $connectorRenderedPreviewText.Text = 'Rendered preview appears while authoring a draft mapping.'
         $connectorQueueButton.Content = 'Queue change'
+        $mappingStudioState.DraftProjectionRef = ''
+        $mappingStudioState.DraftProjectionColumns = @()
+        $mappingStudioState.DraftProjectionFilter = @()
+        $mappingStudioState.DraftProjectionRowOrder = @()
+        Refresh-ConnectorProjectionLists
+        Update-ConnectorProjectionSelectionDetails
         Update-MappingStudioInteractionState
         return
     }
@@ -1358,43 +1859,26 @@ function Update-ConnectorEditor {
         $connectorSelectorCombo.Text = [string]$selectorCandidates[0]
     }
 
-    $projectionCandidates = [System.Collections.Generic.List[string]]::new()
-    foreach ($view in @($datasetNode.PreferredProjectionViews)) {
-        if (-not [string]::IsNullOrWhiteSpace([string]$view.ProjectionRef) -and -not $projectionCandidates.Contains([string]$view.ProjectionRef)) {
-            $projectionCandidates.Add([string]$view.ProjectionRef) | Out-Null
-        }
-    }
-    if ($null -ne $existingMapping -and -not [string]::IsNullOrWhiteSpace([string]$existingMapping.ProjectionRef) -and -not $projectionCandidates.Contains([string]$existingMapping.ProjectionRef)) {
-        $projectionCandidates.Add([string]$existingMapping.ProjectionRef) | Out-Null
-    }
-
-    $currentProjectionText = [string]$connectorProjectionCombo.Text
-    $connectorProjectionCombo.ItemsSource = @($projectionCandidates)
+    $renderAsChanged = [string]$mappingStudioState.LastConnectorRenderAs -ne (Get-SelectedConnectorRenderAs)
     if ($contextChanged) {
-        if ($null -ne $existingMapping -and -not [string]::IsNullOrWhiteSpace([string]$existingMapping.ProjectionRef)) {
-            $connectorProjectionCombo.Text = [string]$existingMapping.ProjectionRef
-        }
-        elseif (@($projectionCandidates).Count -gt 0) {
-            $connectorProjectionCombo.Text = [string]$projectionCandidates[0]
-        }
-        else {
-            $connectorProjectionCombo.Text = ''
-        }
-
         $connectorViewText.Text = if ($null -ne $existingMapping) { [string]$existingMapping.View } else { '' }
         $connectorRequiredCheckBox.IsChecked = if ($null -ne $existingMapping) { [bool]$existingMapping.Required } else { $false }
     }
-    elseif (-not [string]::IsNullOrWhiteSpace($currentProjectionText)) {
-        $connectorProjectionCombo.Text = $currentProjectionText
+
+    if ($contextChanged -or $renderAsChanged) {
+        Reset-ConnectorProjectionDraft -ExistingMapping $existingMapping -DatasetNode $datasetNode -TargetNode $targetNode
     }
+    $mappingStudioState.LastConnectorRenderAs = [string](Get-SelectedConnectorRenderAs)
+    Apply-ConnectorFieldCandidateSources
+    Update-ConnectorProjectionSelectionDetails
 
     switch ($mode) {
         'edit-existing' {
-            $connectorAuthoringHintText.Text = "Editing the current mapping for $($targetNode.TargetPath). Dataset and target are locked while you adjust the mapping fields."
+            $connectorAuthoringHintText.Text = "Editing the current mapping for $($targetNode.TargetPath). Adjust the selector, projection shaping, and preview before queueing the updated mapping."
             $connectorQueueButton.Content = 'Queue edit'
         }
         'replace-target' {
-            $connectorAuthoringHintText.Text = "Replacing the mapping for target $($targetNode.TargetPath). Choose the dataset and mapping details that should feed this target."
+            $connectorAuthoringHintText.Text = "Replacing the mapping for target $($targetNode.TargetPath). Choose the dataset, selector, and projection shaping that should feed this destination."
             $connectorQueueButton.Content = 'Queue replacement'
         }
         'new-connection' {
@@ -1419,18 +1903,31 @@ function Invoke-MappingStudioPreviewUpdate {
     try {
         $workbench = $mappingStudioState.Workbench
         if ($null -eq $workbench) {
+            $connectorSourcePreviewText.Text = ''
+            $connectorRenderedGridStatusText.Text = ''
+            Clear-ConnectorRenderedPreviewGrid
+            $connectorRenderedPreviewText.Text = ''
             $connectorPreviewText.Text = ''
             return
         }
 
         if ([string]$mappingStudioState.ConnectorMode -ne 'inspect' -and $null -ne $connectorDatasetList.SelectedItem -and $null -ne $connectorTargetList.SelectedItem) {
-            $preview = Get-MappingStudioPreview -Workbench $workbench -DatasetId ([string]$connectorDatasetList.SelectedItem.DatasetId) -RenderAs (Get-SelectedConnectorRenderAs) -Selector $connectorSelectorCombo.Text -ProjectionRef $connectorProjectionCombo.Text -View $connectorViewText.Text
+            $preview = Get-MappingStudioPreview -Workbench $workbench -DatasetId ([string]$connectorDatasetList.SelectedItem.DatasetId) -RenderAs (Get-SelectedConnectorRenderAs) -Selector $connectorSelectorCombo.Text -ProjectionRef ([string]$mappingStudioState.DraftProjectionRef) -ProjectionColumns @($mappingStudioState.DraftProjectionColumns) -ProjectionFilter @($mappingStudioState.DraftProjectionFilter) -ProjectionRowOrder @($mappingStudioState.DraftProjectionRowOrder) -View $connectorViewText.Text
+            $mappingStudioState.DraftFieldCandidates = @($preview.SourceFieldCandidates)
+            Apply-ConnectorFieldCandidateSources
+            $connectorSourcePreviewText.Text = Format-MappingStudioSourcePreview -Preview $preview
+            Set-ConnectorRenderedPreviewGrid -Preview $preview
+            $connectorRenderedPreviewText.Text = Format-MappingStudioRenderedPreview -Preview $preview
             $connectorPreviewText.Text = Format-MappingStudioPreview -Preview $preview
             return
         }
 
         $selectedConnection = Get-SelectedConnectorConnection
         if ($null -eq $selectedConnection) {
+            $connectorSourcePreviewText.Text = 'Select a connection and open an authoring action to inspect selector rows.'
+            $connectorRenderedGridStatusText.Text = 'Select a current connection or open an authoring action to view the rendered table.'
+            Clear-ConnectorRenderedPreviewGrid
+            $connectorRenderedPreviewText.Text = 'Select a current connection or open an authoring action to view a rendered preview.'
             if (@($workbench.ConnectionRows).Count -eq 0) {
                 $connectorPreviewText.Text = 'No current connections are available for preview.'
             }
@@ -1441,9 +1938,16 @@ function Invoke-MappingStudioPreviewUpdate {
         }
 
         $preview = Get-MappingStudioPreview -Workbench $workbench -DatasetId ([string]$selectedConnection.DatasetId) -RenderAs ([string]$selectedConnection.RenderAs) -Selector ([string]$selectedConnection.PrimarySelector) -ProjectionRef ([string]$selectedConnection.ProjectionRef) -View ([string]$selectedConnection.View)
+        $connectorSourcePreviewText.Text = Format-MappingStudioSourcePreview -Preview $preview
+        Set-ConnectorRenderedPreviewGrid -Preview $preview
+        $connectorRenderedPreviewText.Text = Format-MappingStudioRenderedPreview -Preview $preview
         $connectorPreviewText.Text = Format-MappingStudioPreview -Preview $preview
     }
     catch {
+        $connectorSourcePreviewText.Text = $_.Exception.Message
+        $connectorRenderedGridStatusText.Text = $_.Exception.Message
+        Clear-ConnectorRenderedPreviewGrid
+        $connectorRenderedPreviewText.Text = $_.Exception.Message
         $connectorPreviewText.Text = $_.Exception.Message
     }
 }
@@ -1469,6 +1973,11 @@ function Refresh-MappingStudioWorkbench {
             $connectorConnectionSummaryText.Text = ''
             $connectorDetailText.Text = 'No current connection inventory is available.'
             $connectorAuthoringHintText.Text = ''
+            $connectorSourceFieldsText.Text = ''
+            $connectorSourcePreviewText.Text = ''
+            $connectorRenderedGridStatusText.Text = ''
+            Clear-ConnectorRenderedPreviewGrid
+            $connectorRenderedPreviewText.Text = ''
             $mappingStudioState.LastConnectorConnectionKey = ''
             $mappingStudioState.LastConnectorContextKey = ''
             $mappingStudioState.ConnectorMode = 'inspect'
@@ -1514,6 +2023,10 @@ function Refresh-MappingStudioWorkbench {
         $mappingDatasetDetailText.Text = $_.Exception.Message
         $mappingTargetDetailText.Text = $_.Exception.Message
         $connectorDetailText.Text = $_.Exception.Message
+        $connectorSourcePreviewText.Text = $_.Exception.Message
+        $connectorRenderedGridStatusText.Text = $_.Exception.Message
+        Clear-ConnectorRenderedPreviewGrid
+        $connectorRenderedPreviewText.Text = $_.Exception.Message
         $connectorPreviewText.Text = $_.Exception.Message
         $statusText.Text = 'Mapping Studio refresh failed.'
         Update-MappingChangesView
@@ -1603,6 +2116,191 @@ $connectorRenderAsCombo.Add_SelectionChanged({
     Update-ConnectorEditor
     Invoke-MappingStudioPreviewUpdate
 })
+$connectorProjectionColumnsList.Add_SelectionChanged({
+    if ([bool]$mappingStudioState.SuppressProjectionEditorEvents) {
+        return
+    }
+    Update-ConnectorProjectionSelectionDetails
+})
+$connectorProjectionFiltersList.Add_SelectionChanged({
+    if ([bool]$mappingStudioState.SuppressProjectionEditorEvents) {
+        return
+    }
+    Update-ConnectorProjectionSelectionDetails
+})
+$connectorProjectionSortList.Add_SelectionChanged({
+    if ([bool]$mappingStudioState.SuppressProjectionEditorEvents) {
+        return
+    }
+    Update-ConnectorProjectionSelectionDetails
+})
+$connectorColumnAddButton.Add_Click({
+    $columnDraft = New-ConnectorColumnDraft
+    $mappingStudioState.DraftProjectionColumns = @($mappingStudioState.DraftProjectionColumns) + @($columnDraft)
+    Refresh-ConnectorProjectionLists
+    $connectorProjectionColumnsList.SelectedItem = $columnDraft
+    Update-ConnectorProjectionSelectionDetails
+})
+$connectorColumnRemoveButton.Add_Click({
+    $selected = Get-SelectedConnectorProjectionColumn
+    if ($null -eq $selected) { return }
+    $mappingStudioState.DraftProjectionColumns = @($mappingStudioState.DraftProjectionColumns | Where-Object { [string]$_.Id -ne [string]$selected.Id })
+    Refresh-ConnectorProjectionLists
+    Update-ConnectorProjectionSelectionDetails
+    Invoke-MappingStudioPreviewUpdate
+})
+$connectorColumnUpButton.Add_Click({
+    $selected = Get-SelectedConnectorProjectionColumn
+    if ($null -eq $selected) { return }
+    $items = New-Object System.Collections.ArrayList
+    foreach ($item in @($mappingStudioState.DraftProjectionColumns)) { [void]$items.Add($item) }
+    Move-ConnectorDraftItem -Items $items -ItemId ([string]$selected.Id) -Direction -1
+    $mappingStudioState.DraftProjectionColumns = @($items)
+    Refresh-ConnectorProjectionLists
+    $connectorProjectionColumnsList.SelectedItem = $mappingStudioState.DraftProjectionColumns | Where-Object { [string]$_.Id -eq [string]$selected.Id } | Select-Object -First 1
+    Update-ConnectorProjectionSelectionDetails
+    Invoke-MappingStudioPreviewUpdate
+})
+$connectorColumnDownButton.Add_Click({
+    $selected = Get-SelectedConnectorProjectionColumn
+    if ($null -eq $selected) { return }
+    $items = New-Object System.Collections.ArrayList
+    foreach ($item in @($mappingStudioState.DraftProjectionColumns)) { [void]$items.Add($item) }
+    Move-ConnectorDraftItem -Items $items -ItemId ([string]$selected.Id) -Direction 1
+    $mappingStudioState.DraftProjectionColumns = @($items)
+    Refresh-ConnectorProjectionLists
+    $connectorProjectionColumnsList.SelectedItem = $mappingStudioState.DraftProjectionColumns | Where-Object { [string]$_.Id -eq [string]$selected.Id } | Select-Object -First 1
+    Update-ConnectorProjectionSelectionDetails
+    Invoke-MappingStudioPreviewUpdate
+})
+$connectorFilterAddButton.Add_Click({
+    $filterDraft = New-ConnectorFilterDraft
+    $mappingStudioState.DraftProjectionFilter = @($mappingStudioState.DraftProjectionFilter) + @($filterDraft)
+    Refresh-ConnectorProjectionLists
+    $connectorProjectionFiltersList.SelectedItem = $filterDraft
+    Update-ConnectorProjectionSelectionDetails
+})
+$connectorFilterRemoveButton.Add_Click({
+    $selected = Get-SelectedConnectorProjectionFilter
+    if ($null -eq $selected) { return }
+    $mappingStudioState.DraftProjectionFilter = @($mappingStudioState.DraftProjectionFilter | Where-Object { [string]$_.Id -ne [string]$selected.Id })
+    Refresh-ConnectorProjectionLists
+    Update-ConnectorProjectionSelectionDetails
+    Invoke-MappingStudioPreviewUpdate
+})
+$connectorSortAddButton.Add_Click({
+    $sortDraft = New-ConnectorSortDraft
+    $mappingStudioState.DraftProjectionRowOrder = @($mappingStudioState.DraftProjectionRowOrder) + @($sortDraft)
+    Refresh-ConnectorProjectionLists
+    $connectorProjectionSortList.SelectedItem = $sortDraft
+    Update-ConnectorProjectionSelectionDetails
+})
+$connectorSortRemoveButton.Add_Click({
+    $selected = Get-SelectedConnectorProjectionSort
+    if ($null -eq $selected) { return }
+    $mappingStudioState.DraftProjectionRowOrder = @($mappingStudioState.DraftProjectionRowOrder | Where-Object { [string]$_.Id -ne [string]$selected.Id })
+    Refresh-ConnectorProjectionLists
+    Update-ConnectorProjectionSelectionDetails
+    Invoke-MappingStudioPreviewUpdate
+})
+$connectorSortUpButton.Add_Click({
+    $selected = Get-SelectedConnectorProjectionSort
+    if ($null -eq $selected) { return }
+    $items = New-Object System.Collections.ArrayList
+    foreach ($item in @($mappingStudioState.DraftProjectionRowOrder)) { [void]$items.Add($item) }
+    Move-ConnectorDraftItem -Items $items -ItemId ([string]$selected.Id) -Direction -1
+    $mappingStudioState.DraftProjectionRowOrder = @($items)
+    Refresh-ConnectorProjectionLists
+    $connectorProjectionSortList.SelectedItem = $mappingStudioState.DraftProjectionRowOrder | Where-Object { [string]$_.Id -eq [string]$selected.Id } | Select-Object -First 1
+    Update-ConnectorProjectionSelectionDetails
+    Invoke-MappingStudioPreviewUpdate
+})
+$connectorSortDownButton.Add_Click({
+    $selected = Get-SelectedConnectorProjectionSort
+    if ($null -eq $selected) { return }
+    $items = New-Object System.Collections.ArrayList
+    foreach ($item in @($mappingStudioState.DraftProjectionRowOrder)) { [void]$items.Add($item) }
+    Move-ConnectorDraftItem -Items $items -ItemId ([string]$selected.Id) -Direction 1
+    $mappingStudioState.DraftProjectionRowOrder = @($items)
+    Refresh-ConnectorProjectionLists
+    $connectorProjectionSortList.SelectedItem = $mappingStudioState.DraftProjectionRowOrder | Where-Object { [string]$_.Id -eq [string]$selected.Id } | Select-Object -First 1
+    Update-ConnectorProjectionSelectionDetails
+    Invoke-MappingStudioPreviewUpdate
+})
+$connectorColumnNameText.Add_TextChanged({
+    if ([bool]$mappingStudioState.SuppressProjectionEditorEvents) { return }
+    $selected = Get-SelectedConnectorProjectionColumn
+    if ($null -eq $selected) { return }
+    $selected.Name = [string]$connectorColumnNameText.Text
+    Update-ConnectorColumnDraftLabel -ColumnDraft $selected
+    Refresh-ConnectorProjectionLists
+    $connectorProjectionColumnsList.SelectedItem = $selected
+    Invoke-MappingStudioPreviewUpdate
+})
+$connectorColumnSourceCombo.Add_LostFocus({
+    if ([bool]$mappingStudioState.SuppressProjectionEditorEvents) { return }
+    $selected = Get-SelectedConnectorProjectionColumn
+    if ($null -eq $selected) { return }
+    $selected.Source = [string]$connectorColumnSourceCombo.Text
+    Update-ConnectorColumnDraftLabel -ColumnDraft $selected
+    Refresh-ConnectorProjectionLists
+    $connectorProjectionColumnsList.SelectedItem = $selected
+    Invoke-MappingStudioPreviewUpdate
+})
+$connectorColumnFormatText.Add_TextChanged({
+    if ([bool]$mappingStudioState.SuppressProjectionEditorEvents) { return }
+    $selected = Get-SelectedConnectorProjectionColumn
+    if ($null -eq $selected) { return }
+    $selected.Format = [string]$connectorColumnFormatText.Text
+    Invoke-MappingStudioPreviewUpdate
+})
+$connectorColumnDelimiterText.Add_TextChanged({
+    if ([bool]$mappingStudioState.SuppressProjectionEditorEvents) { return }
+    $selected = Get-SelectedConnectorProjectionColumn
+    if ($null -eq $selected) { return }
+    $selected.Delimiter = [string]$connectorColumnDelimiterText.Text
+    Invoke-MappingStudioPreviewUpdate
+})
+$connectorFilterFieldCombo.Add_LostFocus({
+    if ([bool]$mappingStudioState.SuppressProjectionEditorEvents) { return }
+    $selected = Get-SelectedConnectorProjectionFilter
+    if ($null -eq $selected) { return }
+    $selected.Field = [string]$connectorFilterFieldCombo.Text
+    Update-ConnectorFilterDraftLabel -FilterDraft $selected
+    Refresh-ConnectorProjectionLists
+    $connectorProjectionFiltersList.SelectedItem = $selected
+    Invoke-MappingStudioPreviewUpdate
+})
+$connectorFilterEqualsText.Add_TextChanged({
+    if ([bool]$mappingStudioState.SuppressProjectionEditorEvents) { return }
+    $selected = Get-SelectedConnectorProjectionFilter
+    if ($null -eq $selected) { return }
+    $selected.Equals = [string]$connectorFilterEqualsText.Text
+    Update-ConnectorFilterDraftLabel -FilterDraft $selected
+    Refresh-ConnectorProjectionLists
+    $connectorProjectionFiltersList.SelectedItem = $selected
+    Invoke-MappingStudioPreviewUpdate
+})
+$connectorSortByCombo.Add_LostFocus({
+    if ([bool]$mappingStudioState.SuppressProjectionEditorEvents) { return }
+    $selected = Get-SelectedConnectorProjectionSort
+    if ($null -eq $selected) { return }
+    $selected.By = [string]$connectorSortByCombo.Text
+    Update-ConnectorSortDraftLabel -SortDraft $selected
+    Refresh-ConnectorProjectionLists
+    $connectorProjectionSortList.SelectedItem = $selected
+    Invoke-MappingStudioPreviewUpdate
+})
+$connectorSortDirectionCombo.Add_SelectionChanged({
+    if ([bool]$mappingStudioState.SuppressProjectionEditorEvents) { return }
+    $selected = Get-SelectedConnectorProjectionSort
+    if ($null -eq $selected) { return }
+    $selected.Direction = if ($null -ne $connectorSortDirectionCombo.SelectedItem) { [string]$connectorSortDirectionCombo.SelectedItem.Content } else { 'asc' }
+    Update-ConnectorSortDraftLabel -SortDraft $selected
+    Refresh-ConnectorProjectionLists
+    $connectorProjectionSortList.SelectedItem = $selected
+    Invoke-MappingStudioPreviewUpdate
+})
 $connectorEditButton.Add_Click({
     Set-ConnectorAuthoringMode -Mode 'edit-existing'
     Update-ConnectorEditor
@@ -1664,7 +2362,7 @@ $connectorQueueButton.Add_Click({
             throw 'Select a dataset and target before queueing a mapping change.'
         }
 
-        $mappingStudioState.PendingChanges = Add-MappingStudioPendingChange -Workbench $workbench -PendingChanges $mappingStudioState.PendingChanges -DatasetId ([string]$datasetNode.DatasetId) -TargetPath ([string]$targetNode.TargetPath) -RenderAs (Get-SelectedConnectorRenderAs) -Selector $connectorSelectorCombo.Text -ProjectionRef $connectorProjectionCombo.Text -View $connectorViewText.Text -Required ([bool]$connectorRequiredCheckBox.IsChecked)
+        $mappingStudioState.PendingChanges = Add-MappingStudioPendingChange -Workbench $workbench -PendingChanges $mappingStudioState.PendingChanges -DatasetId ([string]$datasetNode.DatasetId) -TargetPath ([string]$targetNode.TargetPath) -RenderAs (Get-SelectedConnectorRenderAs) -Selector $connectorSelectorCombo.Text -ProjectionRef ([string]$mappingStudioState.DraftProjectionRef) -View $connectorViewText.Text -Required ([bool]$connectorRequiredCheckBox.IsChecked) -ProjectionColumns @($mappingStudioState.DraftProjectionColumns) -ProjectionFilter @($mappingStudioState.DraftProjectionFilter) -ProjectionRowOrder @($mappingStudioState.DraftProjectionRowOrder)
         $mappingOverviewText.Text = Format-MappingStudioOverview -Workbench $mappingStudioState.Workbench -PendingChanges $mappingStudioState.PendingChanges
         Update-MappingChangesView
         $statusText.Text = 'Mapping change queued.'
