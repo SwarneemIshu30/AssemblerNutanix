@@ -2849,10 +2849,100 @@ function Test-ProjectionCondition {
     throw "Unsupported projection condition for field '$($Condition.field)'."
 }
 
+$script:ProjectionLookupRowsCache = @{}
+
+function Resolve-ProjectionLookupDatasetPath {
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Lookup,
+        [Parameter(Mandatory = $false)][string]$DatasetPath
+    )
+
+    $lookupDataset = [string]$Lookup.dataset
+    if ([string]::IsNullOrWhiteSpace($lookupDataset)) {
+        throw 'Projection lookup is missing required dataset property.'
+    }
+
+    if ([System.IO.Path]::IsPathRooted($lookupDataset)) {
+        return $lookupDataset
+    }
+
+    if ([string]::IsNullOrWhiteSpace($DatasetPath)) {
+        throw "Projection lookup dataset '$lookupDataset' could not be resolved because the current dataset path is unavailable."
+    }
+
+    $datasetDirectory = Split-Path -Parent $DatasetPath
+    if ([string]::IsNullOrWhiteSpace($datasetDirectory)) {
+        throw "Projection lookup dataset '$lookupDataset' could not be resolved relative to '$DatasetPath'."
+    }
+
+    return (Join-Path $datasetDirectory $lookupDataset)
+}
+
+function Get-ProjectionLookupRows {
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Lookup,
+        [Parameter(Mandatory = $false)][string]$DatasetPath
+    )
+
+    $lookupDatasetPath = Resolve-ProjectionLookupDatasetPath -Lookup $Lookup -DatasetPath $DatasetPath
+    $lookupSelector = if ((Test-MapHasKey -Map $Lookup -Key 'selector') -and -not [string]::IsNullOrWhiteSpace([string]$Lookup.selector)) { [string]$Lookup.selector } else { 'items' }
+    $cacheKey = "$lookupDatasetPath|$lookupSelector"
+    if (Test-MapHasKey -Map $script:ProjectionLookupRowsCache -Key $cacheKey) {
+        return @($script:ProjectionLookupRowsCache[$cacheKey])
+    }
+
+    if (-not (Test-Path -LiteralPath $lookupDatasetPath -PathType Leaf)) {
+        throw "Projection lookup dataset '$lookupDatasetPath' was not found."
+    }
+
+    $lookupDataset = Read-JsonFile -Path $lookupDatasetPath
+    $lookupSelection = Resolve-Selector -InputObject $lookupDataset -Selector $lookupSelector
+    if (-not [bool]$lookupSelection.found) {
+        throw "Projection lookup selector '$lookupSelector' did not resolve for dataset '$lookupDatasetPath'."
+    }
+
+    $lookupRows = @(ConvertTo-ObjectArray -InputObject $lookupSelection.value)
+    $script:ProjectionLookupRowsCache[$cacheKey] = @($lookupRows)
+    return @($lookupRows)
+}
+
+function Resolve-ProjectionLookupValue {
+    param(
+        [Parameter(Mandatory = $false)]$Value,
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Lookup,
+        [Parameter(Mandatory = $false)][string]$DatasetPath
+    )
+
+    if ($null -eq $Value) { return $null }
+
+    $lookupKeyField = [string]$Lookup.key
+    $lookupValueField = [string]$Lookup.value
+    if ([string]::IsNullOrWhiteSpace($lookupKeyField) -or [string]::IsNullOrWhiteSpace($lookupValueField)) {
+        throw 'Projection lookup requires non-empty key and value properties.'
+    }
+
+    foreach ($lookupRow in @(Get-ProjectionLookupRows -Lookup $Lookup -DatasetPath $DatasetPath)) {
+        $candidateKey = Get-ProjectionRowFieldValue -Row $lookupRow -Field $lookupKeyField
+        if ($null -eq $candidateKey) { continue }
+
+        if ([string]$candidateKey -eq [string]$Value) {
+            $resolvedValue = Get-ProjectionRowFieldValue -Row $lookupRow -Field $lookupValueField
+            if ($null -ne $resolvedValue -and -not [string]::IsNullOrWhiteSpace([string]$resolvedValue)) {
+                return $resolvedValue
+            }
+
+            return $Value
+        }
+    }
+
+    return $Value
+}
+
 function Resolve-ProjectionColumnValue {
     param(
         [Parameter(Mandatory = $true)]$Row,
-        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Column
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Column,
+        [Parameter(Mandatory = $false)][string]$DatasetPath
     )
 
     $value = $null
@@ -2869,6 +2959,10 @@ function Resolve-ProjectionColumnValue {
                 $value = $property.Value
             }
         }
+    }
+
+    if ((Test-MapHasKey -Map $Column -Key 'lookup') -and $Column.lookup -is [System.Collections.IDictionary]) {
+        $value = Resolve-ProjectionLookupValue -Value $value -Lookup $Column.lookup -DatasetPath $DatasetPath
     }
 
     if (Test-MapHasKey -Map $Column -Key 'format') {
@@ -3037,7 +3131,8 @@ function Sort-ProjectionRows {
 function Invoke-TableProjection {
     param(
         [Parameter(Mandatory = $false)][object[]]$Rows,
-        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Definition
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Definition,
+        [Parameter(Mandatory = $false)][string]$DatasetPath
     )
 
     $normalizedRows = @(ConvertTo-ObjectArray -InputObject $Rows)
@@ -3062,7 +3157,7 @@ function Invoke-TableProjection {
                 if (-not ($column -is [System.Collections.IDictionary]) -or -not (Test-MapHasKey -Map $column -Key 'name')) {
                     throw 'Projection column is missing required name property.'
                 }
-                $projected[[string]$column.name] = Convert-CellValueToString -Value (Resolve-ProjectionColumnValue -Row $row -Column $column)
+                $projected[[string]$column.name] = Convert-CellValueToString -Value (Resolve-ProjectionColumnValue -Row $row -Column $column -DatasetPath $DatasetPath)
             }
             [pscustomobject]$projected
         }
@@ -3075,16 +3170,59 @@ function Convert-TableRowsForTag {
         [Parameter(Mandatory = $false)][object[]]$Rows,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$ProjectionDefinitions,
-        [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases,
+        [Parameter(Mandatory = $false)][string]$DatasetPath
     )
 
     $normalizedRows = @(ConvertTo-ObjectArray -InputObject $Rows)
     $projectionDefinition = Get-ProjectionDefinitionForMapping -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases
     if ($null -ne $projectionDefinition) {
-        return @(ConvertTo-ObjectArray -InputObject (Invoke-TableProjection -Rows $normalizedRows -Definition $projectionDefinition))
+        return @(ConvertTo-ObjectArray -InputObject (Invoke-TableProjection -Rows $normalizedRows -Definition $projectionDefinition -DatasetPath $DatasetPath))
     }
 
     return @($normalizedRows)
+}
+
+function Convert-ValueToTableRow {
+    param([Parameter(Mandatory = $false)]$Value)
+
+    if ($null -eq $Value) { return $null }
+
+    if ($Value -is [System.Collections.IDictionary]) {
+        $row = [ordered]@{}
+        foreach ($key in $Value.Keys) {
+            $row[[string]$key] = $Value[$key]
+        }
+        return [pscustomobject]$row
+    }
+
+    $propertyNames = @($Value.PSObject.Properties | Where-Object { $_.MemberType -eq 'NoteProperty' -or $_.MemberType -eq 'Property' } | ForEach-Object { [string]$_.Name })
+    if (@($propertyNames).Count -gt 0) {
+        $row = [ordered]@{}
+        foreach ($propertyName in @($propertyNames)) {
+            $row[$propertyName] = $Value.PSObject.Properties[$propertyName].Value
+        }
+        return [pscustomobject]$row
+    }
+
+    return [pscustomobject]([ordered]@{ value = $Value })
+}
+
+function Convert-TableRowsToDisplayRows {
+    param([Parameter(Mandatory = $false)][object[]]$Rows)
+
+    $displayRows = @()
+    foreach ($row in @(ConvertTo-ObjectArray -InputObject $Rows)) {
+        if ($null -eq $row) { continue }
+
+        $displayRow = [ordered]@{}
+        foreach ($property in @($row.PSObject.Properties)) {
+            $displayRow[[string]$property.Name] = Convert-CellValueToString -Value $property.Value
+        }
+        $displayRows += [pscustomobject]$displayRow
+    }
+
+    return @($displayRows)
 }
 
 function Get-DisplayColumnsForTable {
@@ -3126,7 +3264,8 @@ function Convert-ValueToTableModel {
         [Parameter(Mandatory = $false)][string]$Tag,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$ProjectionDefinitions,
-        [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases,
+        [Parameter(Mandatory = $false)][string]$DatasetPath
     )
 
     if ($null -eq $Value) { return $null }
@@ -3140,30 +3279,20 @@ function Convert-ValueToTableModel {
     $rows = @()
     if ($Value -is [System.Collections.IList]) {
         foreach ($item in $Value) {
-            if ($item -is [hashtable]) {
-                $row = [ordered]@{}
-                foreach ($key in $item.Keys) {
-                    $row[[string]$key] = Convert-CellValueToString -Value $item[$key]
-                }
-                $rows += [pscustomobject]$row
-            }
-            else {
-                $rows += [pscustomobject]([ordered]@{ value = Convert-CellValueToString -Value $item })
-            }
+            $rows += Convert-ValueToTableRow -Value $item
         }
     }
-    elseif ($Value -is [hashtable]) {
-        $row = [ordered]@{}
-        foreach ($key in $Value.Keys) {
-            $row[[string]$key] = Convert-CellValueToString -Value $Value[$key]
+    elseif ($Value -is [System.Collections.IDictionary] -or @($Value.PSObject.Properties).Count -gt 0) {
+        $row = Convert-ValueToTableRow -Value $Value
+        if ($null -ne $row) {
+            $rows = @($row)
         }
-        $rows = @([pscustomobject]$row)
     }
     else {
         return $null
     }
 
-    $rows = @(ConvertTo-ObjectArray -InputObject (Convert-TableRowsForTag -Tag $Tag -Rows $rows -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases))
+    $rows = @(ConvertTo-ObjectArray -InputObject (Convert-TableRowsForTag -Tag $Tag -Rows $rows -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases -DatasetPath $DatasetPath))
     if (@($rows).Count -eq 0) {
         if ($projectionEmptyBehavior -eq 'placeholder' -and $null -ne $projectionDefinition -and @($projectionDefinition.columns).Count -gt 0) {
             $placeholderRow = [ordered]@{}
@@ -3191,6 +3320,8 @@ function Convert-ValueToTableModel {
 
     if (@($rows).Count -eq 0) { return $null }
 
+    $rows = @(Convert-TableRowsToDisplayRows -Rows $rows)
+
     $allColumns = @($rows[0].PSObject.Properties.Name)
     $displayColumns = @(Get-DisplayColumnsForTable -Columns $allColumns)
     if (@($displayColumns).Count -eq 0) {
@@ -3209,10 +3340,11 @@ function Convert-ValueToTableString {
         [Parameter(Mandatory = $false)][string]$Tag,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$ProjectionDefinitions,
-        [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases,
+        [Parameter(Mandatory = $false)][string]$DatasetPath
     )
 
-    $tableModel = Convert-ValueToTableModel -Value $Value -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases
+    $tableModel = Convert-ValueToTableModel -Value $Value -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases -DatasetPath $DatasetPath
     if ($null -eq $tableModel) {
         if (($Value -is [System.Collections.IList]) -or ($Value -is [hashtable])) {
             return ''
@@ -3231,7 +3363,8 @@ function Convert-ValueToString {
         [Parameter(Mandatory = $false)][string]$Tag,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$ProjectionDefinitions,
-        [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases
+        [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases,
+        [Parameter(Mandatory = $false)][string]$DatasetPath
     )
 
     if ($null -eq $Value) {
@@ -3250,7 +3383,7 @@ function Convert-ValueToString {
             return (Get-StructuredValuePlaceholder -RenderMode $renderMode -Policy $policy)
         }
 
-        return (Convert-ValueToTableString -Value $Value -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases)
+        return (Convert-ValueToTableString -Value $Value -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases -DatasetPath $DatasetPath)
     }
     if ($Value -is [string]) {
         return $Value
@@ -3492,13 +3625,13 @@ try {
             continue
         }
 
-        $resolvedText = [string](Convert-ValueToString -Value $resolved -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases)
+        $resolvedText = [string](Convert-ValueToString -Value $resolved -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases -DatasetPath $datasetPath)
         $replaceByTag[$tag] = $resolvedText
         if ($isDocxTemplate) {
             $projectionDefinition = Get-ProjectionDefinitionForMapping -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases
             $renderMode = Get-EffectiveRenderMode -RenderHint $renderHint -ProjectionDefinition $projectionDefinition -Tag $tag
             if ($renderMode -eq 'table' -or $null -ne $projectionDefinition) {
-                $tableModel = Convert-ValueToTableModel -Value $resolved -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases
+                $tableModel = Convert-ValueToTableModel -Value $resolved -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases -DatasetPath $datasetPath
                 if ($null -ne $tableModel) {
                     $docxTableByTag[$tag] = $tableModel
                 }
