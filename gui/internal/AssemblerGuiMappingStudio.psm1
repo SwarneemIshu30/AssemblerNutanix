@@ -1077,6 +1077,308 @@ function ConvertTo-ObjectArray {
     return @($Value)
 }
 
+function Add-UniqueString {
+    param(
+        [Parameter(Mandatory = $true)]$Collection,
+        [Parameter(Mandatory = $false)][string]$Value
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return
+    }
+
+    if (-not $Collection.Contains($Value)) {
+        $Collection.Add($Value) | Out-Null
+    }
+}
+
+function Get-TargetOwnedProjectionRef {
+    param([Parameter(Mandatory = $false)][string]$TargetPath)
+
+    if ([string]::IsNullOrWhiteSpace($TargetPath)) {
+        return ''
+    }
+
+    $normalized = [string]$TargetPath
+    if ($normalized.EndsWith('>>')) {
+        $normalized = $normalized.Substring(0, $normalized.Length - 2)
+    }
+
+    return $normalized
+}
+
+function New-ProjectionColumnDraft {
+    param([Parameter(Mandatory = $false)]$Column)
+
+    $columnTable = ConvertTo-Dictionary -Value $Column
+    if ($null -eq $columnTable) {
+        $columnTable = [ordered]@{}
+    }
+
+    $name = [string](Get-MapValueOrDefault -Map $columnTable -Key 'name')
+    $source = [string](Get-MapValueOrDefault -Map $columnTable -Key 'source')
+    $format = [string](Get-MapValueOrDefault -Map $columnTable -Key 'format')
+    $delimiter = [string](Get-MapValueOrDefault -Map $columnTable -Key 'delimiter')
+    $label = if (-not [string]::IsNullOrWhiteSpace($name) -or -not [string]::IsNullOrWhiteSpace($source)) {
+        "{0} <- {1}" -f $(if ([string]::IsNullOrWhiteSpace($name)) { '(header)' } else { $name }), $(if ([string]::IsNullOrWhiteSpace($source)) { '(field)' } else { $source })
+    }
+    else {
+        'New column'
+    }
+
+    return [pscustomobject]@{
+        Id = ([guid]::NewGuid()).Guid
+        Name = $name
+        Source = $source
+        Format = $format
+        Delimiter = $delimiter
+        Label = $label
+    }
+}
+
+function New-ProjectionFilterDraft {
+    param([Parameter(Mandatory = $false)]$FilterDefinition)
+
+    $filterTable = ConvertTo-Dictionary -Value $FilterDefinition
+    if ($null -eq $filterTable) {
+        $filterTable = [ordered]@{}
+    }
+
+    $field = [string](Get-MapValueOrDefault -Map $filterTable -Key 'field')
+    $equals = [string](Get-MapValueOrDefault -Map $filterTable -Key 'equals')
+    $label = if (-not [string]::IsNullOrWhiteSpace($field) -or -not [string]::IsNullOrWhiteSpace($equals)) {
+        "{0} = {1}" -f $(if ([string]::IsNullOrWhiteSpace($field)) { '(field)' } else { $field }), $equals
+    }
+    else {
+        'New filter'
+    }
+
+    return [pscustomobject]@{
+        Id = ([guid]::NewGuid()).Guid
+        Field = $field
+        Equals = $equals
+        Label = $label
+    }
+}
+
+function New-ProjectionRowOrderDraft {
+    param([Parameter(Mandatory = $false)]$RowOrderDefinition)
+
+    $rowOrderTable = ConvertTo-Dictionary -Value $RowOrderDefinition
+    if ($null -eq $rowOrderTable) {
+        if ([string]::IsNullOrWhiteSpace([string]$RowOrderDefinition)) {
+            $rowOrderTable = [ordered]@{}
+        }
+        else {
+            $rowOrderTable = [ordered]@{
+                by = [string]$RowOrderDefinition
+                direction = 'asc'
+            }
+        }
+    }
+
+    $by = [string](Get-MapValueOrDefault -Map $rowOrderTable -Key 'by')
+    $direction = [string](Get-MapValueOrDefault -Map $rowOrderTable -Key 'direction' -DefaultValue 'asc')
+    if ([string]::IsNullOrWhiteSpace($direction)) {
+        $direction = 'asc'
+    }
+
+    $label = if (-not [string]::IsNullOrWhiteSpace($by)) {
+        "{0} ({1})" -f $by, $direction
+    }
+    else {
+        'New sort'
+    }
+
+    return [pscustomobject]@{
+        Id = ([guid]::NewGuid()).Guid
+        By = $by
+        Direction = $direction
+        Label = $label
+    }
+}
+
+function ConvertTo-ProjectionColumnContract {
+    param([Parameter(Mandatory = $true)]$ColumnDraft)
+
+    $draftTable = ConvertTo-Dictionary -Value $ColumnDraft
+    $entry = [ordered]@{
+        name = [string](Get-MapValueOrDefault -Map $draftTable -Key 'Name')
+        source = [string](Get-MapValueOrDefault -Map $draftTable -Key 'Source')
+    }
+
+    $format = [string](Get-MapValueOrDefault -Map $draftTable -Key 'Format')
+    if (-not [string]::IsNullOrWhiteSpace($format)) {
+        $entry.format = $format
+    }
+
+    $delimiter = [string](Get-MapValueOrDefault -Map $draftTable -Key 'Delimiter')
+    if (-not [string]::IsNullOrWhiteSpace($delimiter)) {
+        $entry.delimiter = $delimiter
+    }
+
+    return $entry
+}
+
+function ConvertTo-ProjectionFilterContract {
+    param([Parameter(Mandatory = $true)]$FilterDraft)
+
+    $draftTable = ConvertTo-Dictionary -Value $FilterDraft
+    return [ordered]@{
+        field = [string](Get-MapValueOrDefault -Map $draftTable -Key 'Field')
+        equals = [string](Get-MapValueOrDefault -Map $draftTable -Key 'Equals')
+    }
+}
+
+function ConvertTo-ProjectionRowOrderContract {
+    param([Parameter(Mandatory = $true)]$RowOrderDraft)
+
+    $draftTable = ConvertTo-Dictionary -Value $RowOrderDraft
+    return [ordered]@{
+        by = [string](Get-MapValueOrDefault -Map $draftTable -Key 'By')
+        direction = [string](Get-MapValueOrDefault -Map $draftTable -Key 'Direction' -DefaultValue 'asc')
+    }
+}
+
+function Get-ProjectionFieldCandidatesFromRows {
+    param([Parameter(Mandatory = $false)][object[]]$Rows = @())
+
+    $candidates = [System.Collections.Generic.List[string]]::new()
+
+    function Add-ProjectionFieldCandidatesFromValue {
+        param(
+            [Parameter(Mandatory = $false)]$Value,
+            [Parameter(Mandatory = $false)][string]$Prefix = '',
+            [Parameter(Mandatory = $false)][int]$Depth = 0
+        )
+
+        if ($Depth -gt 2 -or $null -eq $Value) {
+            return
+        }
+
+        $table = ConvertTo-Dictionary -Value $Value
+        if ($null -ne $table) {
+            foreach ($key in @($table.Keys | Sort-Object | Select-Object -First 20)) {
+                $path = if ([string]::IsNullOrWhiteSpace($Prefix)) { [string]$key } else { '{0}.{1}' -f $Prefix, [string]$key }
+                Add-UniqueString -Collection $candidates -Value $path
+                Add-ProjectionFieldCandidatesFromValue -Value $table[$key] -Prefix $path -Depth ($Depth + 1)
+            }
+            return
+        }
+
+        if (($Value -is [System.Collections.IEnumerable]) -and -not ($Value -is [string])) {
+            $items = @($Value)
+            if ($items.Count -gt 0) {
+                Add-ProjectionFieldCandidatesFromValue -Value $items[0] -Prefix $Prefix -Depth ($Depth + 1)
+            }
+        }
+    }
+
+    foreach ($row in @($Rows | Select-Object -First 5)) {
+        Add-ProjectionFieldCandidatesFromValue -Value $row
+    }
+
+    return @($candidates | Sort-Object -Unique)
+}
+
+function Get-SeedProjectionDefinition {
+    param(
+        [Parameter(Mandatory = $true)]$Workbench,
+        [Parameter(Mandatory = $false)]$ExistingMapping,
+        [Parameter(Mandatory = $false)]$DatasetNode
+    )
+
+    if ($null -ne $ExistingMapping -and -not [string]::IsNullOrWhiteSpace([string]$ExistingMapping.ProjectionRef)) {
+        $projection = Get-ProjectionDefinitionForRef -ProjectionSurface $Workbench.ProjectionSurface -ProjectionRef ([string]$ExistingMapping.ProjectionRef)
+        if ($null -ne $projection -and $null -ne $projection.Definition) {
+            return [ordered]@{
+                RequestedRef = [string]$ExistingMapping.ProjectionRef
+                ResolvedRef = [string]$projection.ResolvedRef
+                Definition = ConvertTo-Dictionary -Value $projection.Definition
+            }
+        }
+    }
+
+    if ($null -ne $DatasetNode) {
+        foreach ($preferred in @($DatasetNode.PreferredProjectionViews)) {
+            if ([string]::IsNullOrWhiteSpace([string]$preferred.ProjectionRef)) {
+                continue
+            }
+
+            $projection = Get-ProjectionDefinitionForRef -ProjectionSurface $Workbench.ProjectionSurface -ProjectionRef ([string]$preferred.ProjectionRef)
+            if ($null -ne $projection -and $null -ne $projection.Definition) {
+                return [ordered]@{
+                    RequestedRef = [string]$preferred.ProjectionRef
+                    ResolvedRef = [string]$projection.ResolvedRef
+                    Definition = ConvertTo-Dictionary -Value $projection.Definition
+                }
+            }
+        }
+    }
+
+    return $null
+}
+
+function New-MappingStudioProjectionDraft {
+    param(
+        [Parameter(Mandatory = $true)]$Workbench,
+        [Parameter(Mandatory = $false)]$ExistingMapping,
+        [Parameter(Mandatory = $false)]$DatasetNode,
+        [Parameter(Mandatory = $false)]$TargetNode,
+        [Parameter(Mandatory = $false)][string]$RenderAs = 'table'
+    )
+
+    if ([string]$RenderAs -ne 'table') {
+        return [ordered]@{
+            ProjectionRef = ''
+            SeedProjectionRef = ''
+            Columns = @()
+            Filter = @()
+            RowOrder = @()
+        }
+    }
+
+    $seedProjection = Get-SeedProjectionDefinition -Workbench $Workbench -ExistingMapping $ExistingMapping -DatasetNode $DatasetNode
+    $seedDefinition = if ($null -ne $seedProjection) { ConvertTo-Dictionary -Value $seedProjection.Definition } else { $null }
+    $projectionRef = if ($null -ne $ExistingMapping -and -not [string]::IsNullOrWhiteSpace([string]$ExistingMapping.ProjectionRef)) {
+        if ($null -ne $seedProjection -and -not [string]::IsNullOrWhiteSpace([string]$seedProjection.ResolvedRef)) {
+            [string]$seedProjection.ResolvedRef
+        }
+        else {
+            [string]$ExistingMapping.ProjectionRef
+        }
+    }
+    elseif ($null -ne $TargetNode) {
+        Get-TargetOwnedProjectionRef -TargetPath ([string]$TargetNode.TargetPath)
+    }
+    else {
+        ''
+    }
+
+    $columnDrafts = [System.Collections.Generic.List[object]]::new()
+    foreach ($column in @(ConvertTo-ObjectArray -Value (Get-MapValueOrDefault -Map $seedDefinition -Key 'columns'))) {
+        $columnDrafts.Add((New-ProjectionColumnDraft -Column $column)) | Out-Null
+    }
+
+    $filterDrafts = [System.Collections.Generic.List[object]]::new()
+    foreach ($filterDefinition in @(ConvertTo-ObjectArray -Value (Get-MapValueOrDefault -Map $seedDefinition -Key 'filter'))) {
+        $filterDrafts.Add((New-ProjectionFilterDraft -FilterDefinition $filterDefinition)) | Out-Null
+    }
+
+    $rowOrderDrafts = [System.Collections.Generic.List[object]]::new()
+    foreach ($rowOrderDefinition in @(ConvertTo-ObjectArray -Value (Get-MapValueOrDefault -Map $seedDefinition -Key 'rowOrder'))) {
+        $rowOrderDrafts.Add((New-ProjectionRowOrderDraft -RowOrderDefinition $rowOrderDefinition)) | Out-Null
+    }
+
+    return [ordered]@{
+        ProjectionRef = $projectionRef
+        SeedProjectionRef = if ($null -ne $seedProjection) { [string]$seedProjection.ResolvedRef } else { '' }
+        Columns = ConvertTo-ObjectArray -Value $columnDrafts
+        Filter = ConvertTo-ObjectArray -Value $filterDrafts
+        RowOrder = ConvertTo-ObjectArray -Value $rowOrderDrafts
+    }
+}
+
 function Get-DefaultSelectorForRenderAs {
     param(
         [Parameter(Mandatory = $true)][string]$RenderAs,
@@ -1335,6 +1637,16 @@ function New-MappingEntryView {
     $canonicalTargetPath = if ($null -ne $target -and (Test-MapHasKey -Map $target -Key 'path') -and -not [string]::IsNullOrWhiteSpace([string]$target.path)) { [string]$target.path } elseif ((Test-MapHasKey -Map $entryTable -Key 'sdtTag') -and -not [string]::IsNullOrWhiteSpace([string]$entryTable.sdtTag)) { [string]$entryTable.sdtTag } else { $targetPath }
     $renderHint = Get-EffectiveMappingRenderHint -Entry $entryTable -DatasetMetadata $datasetMetadata
     $renderAs = Get-EffectiveRenderMode -Entry $entryTable -DatasetMetadata $datasetMetadata -ProjectionSurface $ProjectionSurface
+    $projectionRef = [string](Get-MapValueOrDefault -Map $renderHint -Key 'projectionRef')
+    $projectionDefinition = $null
+    $projectionResolvedRef = ''
+    if (-not [string]::IsNullOrWhiteSpace($projectionRef)) {
+        $projection = Get-ProjectionDefinitionForRef -ProjectionSurface $ProjectionSurface -ProjectionRef $projectionRef
+        if ($null -ne $projection) {
+            $projectionResolvedRef = [string]$projection.ResolvedRef
+            $projectionDefinition = ConvertTo-Dictionary -Value $projection.Definition
+        }
+    }
     $selectors = @()
     if (Test-MapHasKey -Map $entryTable -Key 'selectors') {
         $selectors = @($entryTable.selectors | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
@@ -1350,7 +1662,11 @@ function New-MappingEntryView {
         CanonicalTargetPath = $canonicalTargetPath
         TargetPath = $targetPath
         RenderAs = $renderAs
-        ProjectionRef = [string](Get-MapValueOrDefault -Map $renderHint -Key 'projectionRef')
+        ProjectionRef = $projectionRef
+        ProjectionResolvedRef = $projectionResolvedRef
+        ProjectionColumns = ConvertTo-ObjectArray -Value (Get-MapValueOrDefault -Map $projectionDefinition -Key 'columns')
+        ProjectionFilter = ConvertTo-ObjectArray -Value (Get-MapValueOrDefault -Map $projectionDefinition -Key 'filter')
+        ProjectionRowOrder = ConvertTo-ObjectArray -Value (Get-MapValueOrDefault -Map $projectionDefinition -Key 'rowOrder')
         View = [string](Get-MapValueOrDefault -Map $renderHint -Key 'view')
         Selectors = @($selectors)
         PrimarySelector = if (@($selectors).Count -gt 0) { [string]$selectors[0] } else { '' }
@@ -1398,12 +1714,12 @@ function New-ConnectionRowView {
         $badges.Add('required') | Out-Null
     }
 
-    if (-not [string]::IsNullOrWhiteSpace([string]$MappingView.ProjectionRef)) {
-        $badges.Add('projection') | Out-Null
-    }
-
     if (-not [string]::IsNullOrWhiteSpace([string]$MappingView.View)) {
         $badges.Add(("view:{0}" -f [string]$MappingView.View)) | Out-Null
+    }
+
+    if (@($MappingView.ProjectionColumns).Count -gt 0) {
+        $badges.Add(("cols:{0}" -f @($MappingView.ProjectionColumns).Count)) | Out-Null
     }
 
     if (-not [string]::IsNullOrWhiteSpace([string]$MappingView.TypeLabel)) {
@@ -1414,8 +1730,14 @@ function New-ConnectionRowView {
     if (-not [string]::IsNullOrWhiteSpace([string]$MappingView.PrimarySelector)) {
         $summarySegments.Add(("selector={0}" -f [string]$MappingView.PrimarySelector)) | Out-Null
     }
-    if (-not [string]::IsNullOrWhiteSpace([string]$MappingView.ProjectionRef)) {
-        $summarySegments.Add(("projection={0}" -f [string]$MappingView.ProjectionRef)) | Out-Null
+    if (@($MappingView.ProjectionColumns).Count -gt 0) {
+        $summarySegments.Add(("columns={0}" -f @($MappingView.ProjectionColumns).Count)) | Out-Null
+    }
+    if (@($MappingView.ProjectionFilter).Count -gt 0) {
+        $summarySegments.Add(("filters={0}" -f @($MappingView.ProjectionFilter).Count)) | Out-Null
+    }
+    if (@($MappingView.ProjectionRowOrder).Count -gt 0) {
+        $summarySegments.Add(("sort={0}" -f @($MappingView.ProjectionRowOrder).Count)) | Out-Null
     }
     if (-not [string]::IsNullOrWhiteSpace([string]$MappingView.View)) {
         $summarySegments.Add(("view={0}" -f [string]$MappingView.View)) | Out-Null
@@ -1518,7 +1840,10 @@ function Get-MappingStudioPreview {
         [Parameter(Mandatory = $true)][string]$RenderAs,
         [Parameter(Mandatory = $false)][string]$Selector,
         [Parameter(Mandatory = $false)][string]$ProjectionRef,
-        [Parameter(Mandatory = $false)][string]$View
+        [Parameter(Mandatory = $false)][string]$View,
+        [Parameter(Mandatory = $false)][object[]]$ProjectionColumns = @(),
+        [Parameter(Mandatory = $false)][object[]]$ProjectionFilter = @(),
+        [Parameter(Mandatory = $false)][object[]]$ProjectionRowOrder = @()
     )
 
     $datasetById = ConvertTo-Dictionary -Value $Workbench.DatasetById
@@ -1526,6 +1851,8 @@ function Get-MappingStudioPreview {
         return [ordered]@{
             Status = 'missing-dataset'
             Message = "Dataset '$DatasetId' is not available in the current Mapping Studio workbench."
+            RenderedGridColumns = @()
+            RenderedGridRows = @()
         }
     }
 
@@ -1535,6 +1862,8 @@ function Get-MappingStudioPreview {
             Status = 'missing-example'
             Message = "No example bundle data was found for dataset '$DatasetId'. Preview is unavailable, but the mapping can still be authored."
             ExamplePath = $datasetNode.ExamplePath
+            RenderedGridColumns = @()
+            RenderedGridRows = @()
         }
     }
 
@@ -1555,6 +1884,8 @@ function Get-MappingStudioPreview {
             View = $View
             ExamplePath = $datasetNode.ExamplePath
             SampleValue = if ($resolvedValue -is [System.Collections.IEnumerable] -and -not ($resolvedValue -is [string])) { (ConvertTo-ObjectArray -Value $resolvedValue | ConvertTo-Json -Depth 20 -Compress) } else { [string]$resolvedValue }
+            RenderedGridColumns = @()
+            RenderedGridRows = @()
         }
     }
 
@@ -1563,37 +1894,108 @@ function Get-MappingStudioPreview {
             Status = 'unsupported'
             RenderAs = $RenderAs
             Message = "Render shape '$RenderAs' is not authoring-capable in Mapping Studio v1."
+            RenderedGridColumns = @()
+            RenderedGridRows = @()
         }
     }
 
-    $rows = @()
+    $sourceRows = @()
     if ($resolvedValue -is [System.Collections.IEnumerable] -and -not ($resolvedValue -is [string])) {
-        $rows = @($resolvedValue)
+        $sourceRows = @($resolvedValue)
     }
     elseif ($null -ne $resolvedValue) {
-        $rows = @($resolvedValue)
+        $sourceRows = @($resolvedValue)
     }
 
+    $sourceFieldCandidates = @(Get-ProjectionFieldCandidatesFromRows -Rows $sourceRows)
     $projection = Get-ProjectionDefinitionForRef -ProjectionSurface $Workbench.ProjectionSurface -ProjectionRef $ProjectionRef
-    $filters = @()
-    $columns = @()
-    $rowOrder = @()
     $projectionSummary = $null
-    $previewRows = [System.Collections.Generic.List[object]]::new()
-
+    $resolvedProjectionRef = ''
+    $definition = $null
     if ($null -ne $projection -and $null -ne $projection.Definition) {
         $definition = ConvertTo-Dictionary -Value $projection.Definition
-        $filters = @(Get-MapValueOrDefault -Map $definition -Key 'filter')
-        $columns = @(Get-MapValueOrDefault -Map $definition -Key 'columns')
-        $rowOrder = @(Get-MapValueOrDefault -Map $definition -Key 'rowOrder')
         $projectionSummary = $projection.ResolvedRef
+        $resolvedProjectionRef = [string]$projection.ResolvedRef
+    }
+
+    $columns = if (@($ProjectionColumns).Count -gt 0) { @($ProjectionColumns) } else { ConvertTo-ObjectArray -Value (Get-MapValueOrDefault -Map $definition -Key 'columns') }
+    $filters = if (@($ProjectionFilter).Count -gt 0) { @($ProjectionFilter) } else { ConvertTo-ObjectArray -Value (Get-MapValueOrDefault -Map $definition -Key 'filter') }
+    $rowOrder = if (@($ProjectionRowOrder).Count -gt 0) { @($ProjectionRowOrder) } else { ConvertTo-ObjectArray -Value (Get-MapValueOrDefault -Map $definition -Key 'rowOrder') }
+
+    $validationErrors = [System.Collections.Generic.List[string]]::new()
+    foreach ($column in @($columns)) {
+        $columnTable = ConvertTo-Dictionary -Value $column
+        $columnName = [string](Get-MapValueOrDefault -Map $columnTable -Key 'name')
+        $columnSource = [string](Get-MapValueOrDefault -Map $columnTable -Key 'source')
+        if ([string]::IsNullOrWhiteSpace($columnName) -or [string]::IsNullOrWhiteSpace($columnSource)) {
+            $validationErrors.Add('Each table column requires both a header and a source field.') | Out-Null
+            continue
+        }
+        if (@($sourceFieldCandidates).Count -gt 0 -and ($sourceFieldCandidates -notcontains $columnSource)) {
+            $validationErrors.Add("Column source '$columnSource' is not available from the current selector rows.") | Out-Null
+        }
+    }
+    foreach ($filterDefinition in @($filters)) {
+        $filterTable = ConvertTo-Dictionary -Value $filterDefinition
+        $field = [string](Get-MapValueOrDefault -Map $filterTable -Key 'field')
+        if ([string]::IsNullOrWhiteSpace($field)) {
+            $validationErrors.Add('Each filter requires a field name.') | Out-Null
+            continue
+        }
+        if (@($sourceFieldCandidates).Count -gt 0 -and ($sourceFieldCandidates -notcontains $field)) {
+            $validationErrors.Add("Filter field '$field' is not available from the current selector rows.") | Out-Null
+        }
+    }
+    foreach ($orderDefinition in @($rowOrder)) {
+        $orderTable = ConvertTo-Dictionary -Value $orderDefinition
+        $field = if ($null -ne $orderTable) { [string](Get-MapValueOrDefault -Map $orderTable -Key 'by') } else { [string]$orderDefinition }
+        if ([string]::IsNullOrWhiteSpace($field)) {
+            $validationErrors.Add('Each sort rule requires a field name.') | Out-Null
+            continue
+        }
+        if (@($sourceFieldCandidates).Count -gt 0 -and ($sourceFieldCandidates -notcontains $field)) {
+            $validationErrors.Add("Sort field '$field' is not available from the current selector rows.") | Out-Null
+        }
+    }
+
+    if (@($validationErrors).Count -gt 0) {
+        return [ordered]@{
+            Status = 'invalid-projection'
+            RenderAs = 'table'
+            Selector = $selectorToUse
+            ProjectionRef = $ProjectionRef
+            ResolvedProjectionRef = $resolvedProjectionRef
+            View = $View
+            ExamplePath = $datasetNode.ExamplePath
+            Message = (@($validationErrors) -join ' ')
+            ValidationErrors = ConvertTo-ObjectArray -Value $validationErrors
+            SourceFieldCandidates = @($sourceFieldCandidates)
+            SourceRowCount = @($sourceRows).Count
+            SourcePreviewRows = @()
+            RenderedGridColumns = @()
+            RenderedGridRows = @()
+        }
+    }
+
+    $sourcePreviewRows = [System.Collections.Generic.List[object]]::new()
+    foreach ($row in @($sourceRows | Select-Object -First 8)) {
+        $rowTable = ConvertTo-Dictionary -Value $row
+        if ($null -ne $rowTable) {
+            $previewRow = [ordered]@{}
+            foreach ($key in @($rowTable.Keys | Select-Object -First 8)) {
+                $previewRow[[string]$key] = [string]$rowTable[$key]
+            }
+            $sourcePreviewRows.Add($previewRow) | Out-Null
+            continue
+        }
+        $sourcePreviewRows.Add([ordered]@{ Value = [string]$row }) | Out-Null
     }
 
     $filteredRows = @()
-    foreach ($row in @($rows)) {
+    foreach ($row in @($sourceRows)) {
         $include = $true
-        foreach ($filter in @($filters)) {
-            if (-not (Test-ProjectionFilterMatch -Row $row -FilterDefinition $filter)) {
+        foreach ($filterDefinition in @($filters)) {
+            if (-not (Test-ProjectionFilterMatch -Row $row -FilterDefinition $filterDefinition)) {
                 $include = $false
                 break
             }
@@ -1604,6 +2006,7 @@ function Get-MappingStudioPreview {
     }
 
     $filteredRows = @(Sort-PreviewRows -Rows @($filteredRows) -RowOrder $rowOrder)
+    $previewRows = [System.Collections.Generic.List[object]]::new()
     foreach ($row in @($filteredRows | Select-Object -First 8)) {
         if (@($columns).Count -gt 0) {
             $previewRow = [ordered]@{}
@@ -1635,9 +2038,13 @@ function Get-MappingStudioPreview {
         RenderAs = 'table'
         Selector = $selectorToUse
         ProjectionRef = $ProjectionRef
+        ResolvedProjectionRef = $resolvedProjectionRef
         View = $View
         ProjectionSummary = $projectionSummary
         ExamplePath = $datasetNode.ExamplePath
+        SourceFieldCandidates = @($sourceFieldCandidates)
+        SourceRowCount = @($sourceRows).Count
+        SourcePreviewRows = ConvertTo-ObjectArray -Value $sourcePreviewRows
         FilterSummary = @($filters | ForEach-Object {
                 $filterTable = ConvertTo-Dictionary -Value $_
                 if ($null -eq $filterTable) { return }
@@ -1659,6 +2066,13 @@ function Get-MappingStudioPreview {
             } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
         RowCount = @($filteredRows).Count
         PreviewRows = ConvertTo-ObjectArray -Value $previewRows
+        RenderedPreviewRows = ConvertTo-ObjectArray -Value $previewRows
+        RenderedGridColumns = @($columns | ForEach-Object {
+                $columnTable = ConvertTo-Dictionary -Value $_
+                if ($null -eq $columnTable) { return }
+                [string](Get-MapValueOrDefault -Map $columnTable -Key 'name')
+            } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        RenderedGridRows = ConvertTo-ObjectArray -Value $previewRows
     }
 }
 
@@ -1895,7 +2309,8 @@ function Format-MappingStudioPreview {
         return ($lines -join [Environment]::NewLine)
     }
 
-    $lines.Add("Rows: $([int]$previewTable.RowCount)")
+    $lines.Add("Source rows: $([int](Get-MapValueOrDefault -Map $previewTable -Key 'SourceRowCount' -DefaultValue 0))")
+    $lines.Add("Rendered rows: $([int]$previewTable.RowCount)")
     if (@($previewTable.FilterSummary).Count -gt 0) {
         $lines.Add("Filters: $((@($previewTable.FilterSummary)) -join '; ')")
     }
@@ -1924,6 +2339,70 @@ function Format-MappingStudioPreview {
     return ($lines -join [Environment]::NewLine)
 }
 
+function Format-MappingStudioSourcePreview {
+    param([Parameter(Mandatory = $true)]$Preview)
+
+    $previewTable = ConvertTo-Dictionary -Value $Preview
+    if ($null -eq $previewTable) {
+        return 'Source preview unavailable.'
+    }
+    if ((Test-MapHasKey -Map $previewTable -Key 'Status') -and [string]$previewTable.Status -ne 'ok') {
+        return [string](Get-MapValueOrDefault -Map $previewTable -Key 'Message' -DefaultValue 'Source preview unavailable.')
+    }
+    if ([string](Get-MapValueOrDefault -Map $previewTable -Key 'RenderAs') -eq 'scalar') {
+        return 'Scalar mappings do not expose a tabular source-row preview.'
+    }
+
+    $lines = [System.Collections.Generic.List[string]]::new()
+    $lines.Add("Selector rows: $([int](Get-MapValueOrDefault -Map $previewTable -Key 'SourceRowCount' -DefaultValue 0))")
+    if (@($previewTable.SourceFieldCandidates).Count -gt 0) {
+        $lines.Add("Available fields: $((@($previewTable.SourceFieldCandidates)) -join ', ')")
+    }
+    if (@($previewTable.SourcePreviewRows).Count -gt 0) {
+        $lines.Add('')
+        $lines.Add('Source rows')
+        foreach ($row in @($previewTable.SourcePreviewRows)) {
+            $rowTable = ConvertTo-Dictionary -Value $row
+            if ($null -eq $rowTable) { continue }
+            $segments = @()
+            foreach ($key in @($rowTable.Keys)) {
+                $segments += ("{0}={1}" -f [string]$key, [string]$rowTable[$key])
+            }
+            $lines.Add("  - $($segments -join ' | ')")
+        }
+    }
+    else {
+        $lines.Add('No source rows matched the current selector.')
+    }
+
+    return ($lines -join [Environment]::NewLine)
+}
+
+function Format-MappingStudioRenderedPreview {
+    param([Parameter(Mandatory = $true)]$Preview)
+
+    return (Format-MappingStudioPreview -Preview $Preview)
+}
+
+function Format-MappingStudioProjectionDraft {
+    param([Parameter(Mandatory = $false)]$ProjectionDraft)
+
+    $draftTable = ConvertTo-Dictionary -Value $ProjectionDraft
+    if ($null -eq $draftTable) {
+        return 'Projection shaping is unavailable.'
+    }
+
+    $lines = [System.Collections.Generic.List[string]]::new()
+    $projectionRef = [string](Get-MapValueOrDefault -Map $draftTable -Key 'ProjectionRef')
+    if (-not [string]::IsNullOrWhiteSpace($projectionRef)) {
+        $lines.Add("Projection ref: $projectionRef")
+    }
+    $lines.Add("Columns: $(@(Get-MapValueOrDefault -Map $draftTable -Key 'Columns').Count)")
+    $lines.Add("Filters: $(@(Get-MapValueOrDefault -Map $draftTable -Key 'Filter').Count)")
+    $lines.Add("Sort rules: $(@(Get-MapValueOrDefault -Map $draftTable -Key 'RowOrder').Count)")
+    return ($lines -join [Environment]::NewLine)
+}
+
 function Format-MappingStudioConnectionDetail {
     param([Parameter(Mandatory = $true)]$ConnectionRow)
 
@@ -1935,9 +2414,13 @@ function Format-MappingStudioConnectionDetail {
     if (-not [string]::IsNullOrWhiteSpace([string]$ConnectionRow.DatasetPresentationKind)) {
         $lines.Add("Presentation: $([string]$ConnectionRow.DatasetPresentationKind)")
     }
+    $lines.Add('')
+    $lines.Add('Destination')
     $lines.Add("Target: $([string]$ConnectionRow.TargetPath)")
     $lines.Add("Placement: $([string]$ConnectionRow.PlacementGroup)")
     $lines.Add("Mapping type: $([string]$ConnectionRow.TypeLabel)")
+    $lines.Add('')
+    $lines.Add('Shaping')
     $lines.Add("Render shape: $([string]$ConnectionRow.RenderAs)")
     $lines.Add("Selector: $([string]$ConnectionRow.PrimarySelector)")
     if (-not [string]::IsNullOrWhiteSpace([string]$ConnectionRow.ProjectionRef)) {
@@ -2030,6 +2513,15 @@ function Format-PendingChangesDetail {
         if (-not [string]::IsNullOrWhiteSpace([string]$change.ProjectionRef)) {
             $lines.Add("    projection=$($change.ProjectionRef)")
         }
+        if (@($change.ProjectionColumns).Count -gt 0) {
+            $lines.Add("    columns=$(@($change.ProjectionColumns).Count)")
+        }
+        if (@($change.ProjectionFilter).Count -gt 0) {
+            $lines.Add("    filters=$(@($change.ProjectionFilter).Count)")
+        }
+        if (@($change.ProjectionRowOrder).Count -gt 0) {
+            $lines.Add("    sort=$(@($change.ProjectionRowOrder).Count)")
+        }
     }
 
     return ($lines -join [Environment]::NewLine)
@@ -2046,6 +2538,9 @@ function Add-MappingStudioPendingChange {
         [Parameter(Mandatory = $false)][string]$ProjectionRef,
         [Parameter(Mandatory = $false)][string]$View,
         [Parameter(Mandatory = $false)][bool]$Required = $false,
+        [Parameter(Mandatory = $false)][object[]]$ProjectionColumns = @(),
+        [Parameter(Mandatory = $false)][object[]]$ProjectionFilter = @(),
+        [Parameter(Mandatory = $false)][object[]]$ProjectionRowOrder = @(),
         [Parameter(Mandatory = $false)][string]$Notes = ''
     )
 
@@ -2061,19 +2556,45 @@ function Add-MappingStudioPendingChange {
         throw "Dataset '$DatasetId' is not available for tech '$($Workbench.Collection.TechId)'."
     }
 
-    if (-not [string]::IsNullOrWhiteSpace($ProjectionRef)) {
-        $projection = Get-ProjectionDefinitionForRef -ProjectionSurface $Workbench.ProjectionSurface -ProjectionRef $ProjectionRef
-        if ($null -eq $projection) {
-            throw "Projection '$ProjectionRef' is not defined in the current projection contract surface."
-        }
-    }
-
     $datasetNode = $datasetById[$DatasetId]
+    $targetByPath = ConvertTo-Dictionary -Value $Workbench.TargetByPath
+    $targetNode = if ($null -ne $targetByPath -and (Test-MapHasKey -Map $targetByPath -Key $TargetPath)) { $targetByPath[$TargetPath] } else { $null }
     $selectorToUse = if ([string]::IsNullOrWhiteSpace($Selector)) {
         Get-DefaultSelectorForRenderAs -RenderAs $RenderAs -DatasetNode $datasetNode -SyncPolicy $Workbench.SyncPolicy
     }
     else {
         $Selector
+    }
+
+    $projectionRefToUse = [string]$ProjectionRef
+    if ($RenderAs -eq 'table' -and [string]::IsNullOrWhiteSpace($projectionRefToUse)) {
+        $existingTargetMapping = if ($null -ne $targetNode -and @($targetNode.Mappings).Count -gt 0) { @($targetNode.Mappings | Select-Object -First 1)[0] } else { $null }
+        $projectionDraft = New-MappingStudioProjectionDraft -Workbench $Workbench -ExistingMapping $existingTargetMapping -DatasetNode $datasetNode -TargetNode $targetNode -RenderAs $RenderAs
+        $projectionRefToUse = [string]$projectionDraft.ProjectionRef
+    }
+
+    if ($RenderAs -eq 'table') {
+        if ([string]::IsNullOrWhiteSpace($projectionRefToUse)) {
+            throw 'Table mappings require a projection reference.'
+        }
+        foreach ($columnDraft in @($ProjectionColumns)) {
+            $columnTable = ConvertTo-Dictionary -Value $columnDraft
+            if ([string]::IsNullOrWhiteSpace([string](Get-MapValueOrDefault -Map $columnTable -Key 'Name')) -or [string]::IsNullOrWhiteSpace([string](Get-MapValueOrDefault -Map $columnTable -Key 'Source'))) {
+                throw 'Each table column requires both a header and a source field before the mapping can be queued.'
+            }
+        }
+        foreach ($filterDraft in @($ProjectionFilter)) {
+            $filterTable = ConvertTo-Dictionary -Value $filterDraft
+            if ([string]::IsNullOrWhiteSpace([string](Get-MapValueOrDefault -Map $filterTable -Key 'Field'))) {
+                throw 'Each filter requires a field before the mapping can be queued.'
+            }
+        }
+        foreach ($rowOrderDraft in @($ProjectionRowOrder)) {
+            $rowOrderTable = ConvertTo-Dictionary -Value $rowOrderDraft
+            if ([string]::IsNullOrWhiteSpace([string](Get-MapValueOrDefault -Map $rowOrderTable -Key 'By'))) {
+                throw 'Each sort rule requires a field before the mapping can be queued.'
+            }
+        }
     }
 
     $nextChanges = [System.Collections.Generic.List[object]]::new()
@@ -2089,9 +2610,12 @@ function Add-MappingStudioPendingChange {
             TargetPath = $TargetPath
             RenderAs = $RenderAs
             Selector = $selectorToUse
-            ProjectionRef = $ProjectionRef
+            ProjectionRef = $projectionRefToUse
             View = $View
             Required = $Required
+            ProjectionColumns = ConvertTo-ObjectArray -Value @($ProjectionColumns)
+            ProjectionFilter = ConvertTo-ObjectArray -Value @($ProjectionFilter)
+            ProjectionRowOrder = ConvertTo-ObjectArray -Value @($ProjectionRowOrder)
             Notes = $Notes
             QueuedAt = (Get-Date).ToString('o')
             Label = ("{0} -> {1} [{2}]" -f $DatasetId, $TargetPath, $RenderAs)
@@ -2146,6 +2670,69 @@ function New-ContractMappingEntryFromDraft {
     $mappingEntry.renderHint = $renderHint
 
     return $mappingEntry
+}
+
+function Apply-PendingProjectionDrafts {
+    param(
+        [Parameter(Mandatory = $true)]$ProjectionDocument,
+        [Parameter(Mandatory = $true)][object[]]$PendingChanges
+    )
+
+    $doc = Copy-PlainValue -Value $ProjectionDocument
+    $definitions = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $doc -Key 'projections')
+    if ($null -eq $definitions) {
+        $definitions = [ordered]@{}
+    }
+    else {
+        $definitions = Copy-PlainValue -Value $definitions
+    }
+
+    foreach ($draft in @($PendingChanges | Where-Object { [string]$_.RenderAs -eq 'table' })) {
+        $draftTable = ConvertTo-Dictionary -Value $draft
+        $projectionRef = [string](Get-MapValueOrDefault -Map $draftTable -Key 'ProjectionRef')
+        if ([string]::IsNullOrWhiteSpace($projectionRef)) {
+            continue
+        }
+
+        $existingDefinition = if (Test-MapHasKey -Map $definitions -Key $projectionRef) { ConvertTo-Dictionary -Value $definitions[$projectionRef] } else { [ordered]@{} }
+        if ($null -eq $existingDefinition) {
+            $existingDefinition = [ordered]@{}
+        }
+
+        $updatedDefinition = [ordered]@{}
+        foreach ($key in @($existingDefinition.Keys)) {
+            $updatedDefinition[$key] = Copy-PlainValue -Value $existingDefinition[$key]
+        }
+        $updatedDefinition.renderMode = 'table'
+        $updatedDefinition.columns = @(@($draftTable.ProjectionColumns) | ForEach-Object { ConvertTo-ProjectionColumnContract -ColumnDraft $_ })
+        if (@($draftTable.ProjectionFilter).Count -gt 0) {
+            $updatedDefinition.filter = @(@($draftTable.ProjectionFilter) | ForEach-Object { ConvertTo-ProjectionFilterContract -FilterDraft $_ })
+        }
+        else {
+            $updatedDefinition.Remove('filter')
+        }
+        if (@($draftTable.ProjectionRowOrder).Count -gt 0) {
+            $updatedDefinition.rowOrder = @(@($draftTable.ProjectionRowOrder) | ForEach-Object { ConvertTo-ProjectionRowOrderContract -RowOrderDraft $_ })
+        }
+        else {
+            $updatedDefinition.Remove('rowOrder')
+        }
+
+        $definitions[$projectionRef] = $updatedDefinition
+    }
+
+    $doc.projections = $definitions
+    return $doc
+}
+
+function Write-ProjectionContractDocument {
+    param(
+        [Parameter(Mandatory = $true)]$ProjectionDocument,
+        [Parameter(Mandatory = $true)][string]$Path
+    )
+
+    Ensure-Directory -Path (Split-Path -Parent $Path)
+    $ProjectionDocument | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath $Path -Encoding UTF8
 }
 
 function Apply-PendingMappingDrafts {
@@ -2317,16 +2904,24 @@ function Save-MappingStudioPendingChanges {
     $repoRoot = [string]$Workbench.RepoRoot
     $techId = [string]$Workbench.Collection.TechId
     $exportMirrorPath = Join-Path $repoRoot ("exports/LNV.AsBuiltDoc.Contracts/tech/{0}/mapping.dataset-to-sdt.v1.yaml" -f $techId)
+    $projectionContractPath = Join-Path $Workbench.ContractsRoot ("tech/{0}/assembler.projections.v1.json" -f $techId)
+    $projectionExportMirrorPath = Join-Path $repoRoot ("exports/LNV.AsBuiltDoc.Contracts/tech/{0}/assembler.projections.v1.json" -f $techId)
 
     $contractDocument = Read-YamlFileSafe -Path $contractPath
     $updatedContract = Apply-PendingMappingDrafts -ContractDocument $contractDocument -PendingChanges $PendingChanges -TagPolicy $Workbench.TagPolicy
+    $projectionDocument = if (Test-Path -LiteralPath $projectionContractPath -PathType Leaf) { Read-JsonFile -Path $projectionContractPath } else { [ordered]@{ projections = [ordered]@{}; aliases = [ordered]@{} } }
+    $updatedProjectionDocument = Apply-PendingProjectionDrafts -ProjectionDocument $projectionDocument -PendingChanges $PendingChanges
     Write-YamlFileSafe -Path $contractPath -Value $updatedContract
     Write-YamlFileSafe -Path $exportMirrorPath -Value $updatedContract
+    Write-ProjectionContractDocument -ProjectionDocument $updatedProjectionDocument -Path $projectionContractPath
+    Write-ProjectionContractDocument -ProjectionDocument $updatedProjectionDocument -Path $projectionExportMirrorPath
     $runtimeDocument = Write-RuntimeMappingFromContract -ContractDocument $updatedContract -TechId $techId -OutputPath $runtimePath -ContractRelativePath $contractRelativePath -DatasetMetadataMap $Workbench.DatasetById -TagPolicy $Workbench.TagPolicy -SyncPolicy $Workbench.SyncPolicy -DisplayName ([string]$Workbench.Collection.DisplayName)
 
     return [ordered]@{
         ContractPath = $contractPath
         ExportMirrorPath = $exportMirrorPath
+        ProjectionContractPath = $projectionContractPath
+        ProjectionExportMirrorPath = $projectionExportMirrorPath
         RuntimePath = $runtimePath
         SavedCount = @($PendingChanges).Count
         RuntimeMappingCount = @($runtimeDocument.mappings).Count
@@ -2340,10 +2935,14 @@ Export-ModuleMember -Function `
     Resolve-MappingStudioTechDatasetContext, `
     Get-MappingStudioWorkbench, `
     Get-MappingStudioPreview, `
+    New-MappingStudioProjectionDraft, `
     Get-SelectorCandidatesForDataset, `
     Select-MappingStudioConnectionRows, `
     Format-MappingStudioOverview, `
     Format-MappingStudioPreview, `
+    Format-MappingStudioSourcePreview, `
+    Format-MappingStudioRenderedPreview, `
+    Format-MappingStudioProjectionDraft, `
     Format-MappingStudioConnectionDetail, `
     Format-DatasetNodeDetail, `
     Format-TargetNodeDetail, `
