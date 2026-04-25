@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/dataset/certificates.schema.json",
+  "title": "Lenovo.DE certificates dataset schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
+    "items"
+  ],
+  "properties": {
+    "schema_version": { "const": "lnv.collector.dataset.v1" },
+    "collector": { "type": "object" },
+    "source": { "type": "object" },
+    "dataset": {
+      "type": "object",
+      "required": ["key", "schema_path"],
+      "properties": {
+        "key": { "const": "certificates" },
+        "schema_path": { "const": "tech/Lenovo.DE/dataset/certificates.schema.json" }
+      },
+      "additionalProperties": true
+    },
+    "item_count": { "type": "integer", "minimum": 0 },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "rowKey",
+          "systemId",
+          "purpose"
+        ],
+        "properties": {
+          "rowKey": { "type": "string", "minLength": 1 },
+          "systemId": { "type": "string", "minLength": 1 },
+          "purpose": { "type": "string", "minLength": 1 },
+          "subject": { "type": ["string", "null"] },
+          "issuer": { "type": ["string", "null"] },
+          "serialNumber": { "type": ["string", "null"] },
+          "thumbprint": { "type": ["string", "null"] },
+          "validFrom": { "type": ["string", "null"] },
+          "validTo": { "type": ["string", "null"] },
+          "status": { "type": ["string", "null"] },
+          "scope": { "type": ["string", "null"] }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,8 @@
+"id","ref","index","name","systemId"
+"0","0","0","Factory Default","1"
+"1","1","1","Windows (clustered or non-clustered)","1"
+"7","7","7","Linux DM-MP (Kernel 3.9 or earlier)","1"
+"8","8","8","Windows Clustered (deprecated)","1"
+"10","10","10","VMware ESXi","1"
+"18","18","18","IBM SVC","1"
+"28","28","28","Linux DM-MP (Kernel 3.10 or later)","1"

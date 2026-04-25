@@ -1,0 +1,3074 @@
+[
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "010000005000C500F53DB2870000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "5000C500F53DB287",
+        "drivePortAddresses": [
+          {
+            "channel": 1,
+            "portIdentifier": "5000C500F53DB285"
+          },
+          {
+            "channel": 2,
+            "portIdentifier": "5000C500F53DB286"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 14,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 14,
+      "label": "13"
+    },
+    "manufacturer": "SEAGATE",
+    "manufacturerDate": "1756339200",
+    "productID": "ST2400MM0129",
+    "serialNumber": "WBMAC9V10000R6041DK2",
+    "softwareVersion": "LE05",
+    "blkSize": 512,
+    "usableCapacity": "2394570973184",
+    "rawCapacity": "2400476553216",
+    "worldWideName": "5000C500F53DB2870000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9F0180000012869894ED2",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 5,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 10500,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 0,
+      "isWearLifeMonitoringSupported": false,
+      "percentEnduranceUsed": -1
+    },
+    "driveMediaType": "hdd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE05",
+    "lockKeyIDValue": null,
+    "id": "010000005000C500F53DB2870000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "010000005000C500F53DB3230000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "5000C500F53DB323",
+        "drivePortAddresses": [
+          {
+            "channel": 1,
+            "portIdentifier": "5000C500F53DB321"
+          },
+          {
+            "channel": 2,
+            "portIdentifier": "5000C500F53DB322"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 12,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 12,
+      "label": "11"
+    },
+    "manufacturer": "SEAGATE",
+    "manufacturerDate": "1756339200",
+    "productID": "ST2400MM0129",
+    "serialNumber": "WBMAC9QH0000R6041DL7",
+    "softwareVersion": "LE05",
+    "blkSize": 512,
+    "usableCapacity": "2394570973184",
+    "rawCapacity": "2400476553216",
+    "worldWideName": "5000C500F53DB3230000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9F0180000012869894ED2",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 3,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 10500,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 0,
+      "isWearLifeMonitoringSupported": false,
+      "percentEnduranceUsed": -1
+    },
+    "driveMediaType": "hdd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE05",
+    "lockKeyIDValue": null,
+    "id": "010000005000C500F53DB3230000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "010000005000C500F53DB3770000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "5000C500F53DB377",
+        "drivePortAddresses": [
+          {
+            "channel": 2,
+            "portIdentifier": "5000C500F53DB376"
+          },
+          {
+            "channel": 1,
+            "portIdentifier": "5000C500F53DB375"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 9,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 9,
+      "label": "8"
+    },
+    "manufacturer": "SEAGATE",
+    "manufacturerDate": "1756339200",
+    "productID": "ST2400MM0129",
+    "serialNumber": "WBMABYVD0000R6041DKR",
+    "softwareVersion": "LE05",
+    "blkSize": 512,
+    "usableCapacity": "2394570973184",
+    "rawCapacity": "2400476553216",
+    "worldWideName": "5000C500F53DB3770000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9F0180000012869894ED2",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 0,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 10500,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 0,
+      "isWearLifeMonitoringSupported": false,
+      "percentEnduranceUsed": -1
+    },
+    "driveMediaType": "hdd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE05",
+    "lockKeyIDValue": null,
+    "id": "010000005000C500F53DB3770000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "010000005000C500F53DB6630000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "5000C500F53DB663",
+        "drivePortAddresses": [
+          {
+            "channel": 2,
+            "portIdentifier": "5000C500F53DB662"
+          },
+          {
+            "channel": 1,
+            "portIdentifier": "5000C500F53DB661"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 15,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 15,
+      "label": "14"
+    },
+    "manufacturer": "SEAGATE",
+    "manufacturerDate": "1756339200",
+    "productID": "ST2400MM0129",
+    "serialNumber": "WBMABMNY0000R604UUM6",
+    "softwareVersion": "LE05",
+    "blkSize": 512,
+    "usableCapacity": "2394570973184",
+    "rawCapacity": "2400476553216",
+    "worldWideName": "5000C500F53DB6630000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9F0180000012869894ED2",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 6,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 10500,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 0,
+      "isWearLifeMonitoringSupported": false,
+      "percentEnduranceUsed": -1
+    },
+    "driveMediaType": "hdd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE05",
+    "lockKeyIDValue": null,
+    "id": "010000005000C500F53DB6630000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "010000005000C500F53DBA6F0000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "5000C500F53DBA6F",
+        "drivePortAddresses": [
+          {
+            "channel": 1,
+            "portIdentifier": "5000C500F53DBA6D"
+          },
+          {
+            "channel": 2,
+            "portIdentifier": "5000C500F53DBA6E"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 10,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 10,
+      "label": "9"
+    },
+    "manufacturer": "SEAGATE",
+    "manufacturerDate": "1756339200",
+    "productID": "ST2400MM0129",
+    "serialNumber": "WBMAC9T30000R6041DVA",
+    "softwareVersion": "LE05",
+    "blkSize": 512,
+    "usableCapacity": "2394570973184",
+    "rawCapacity": "2400476553216",
+    "worldWideName": "5000C500F53DBA6F0000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9F0180000012869894ED2",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 1,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 10500,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 0,
+      "isWearLifeMonitoringSupported": false,
+      "percentEnduranceUsed": -1
+    },
+    "driveMediaType": "hdd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE05",
+    "lockKeyIDValue": null,
+    "id": "010000005000C500F53DBA6F0000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "010000005000C500F53DBCDF0000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "5000C500F53DBCDF",
+        "drivePortAddresses": [
+          {
+            "channel": 1,
+            "portIdentifier": "5000C500F53DBCDD"
+          },
+          {
+            "channel": 2,
+            "portIdentifier": "5000C500F53DBCDE"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 16,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 16,
+      "label": "15"
+    },
+    "manufacturer": "SEAGATE",
+    "manufacturerDate": "1756339200",
+    "productID": "ST2400MM0129",
+    "serialNumber": "WBMAC0Y60000R604PWKR",
+    "softwareVersion": "LE05",
+    "blkSize": 512,
+    "usableCapacity": "2394570973184",
+    "rawCapacity": "2400476553216",
+    "worldWideName": "5000C500F53DBCDF0000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9F0180000012869894ED2",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 7,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 10500,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 0,
+      "isWearLifeMonitoringSupported": false,
+      "percentEnduranceUsed": -1
+    },
+    "driveMediaType": "hdd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE05",
+    "lockKeyIDValue": null,
+    "id": "010000005000C500F53DBCDF0000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "010000005000C500F53DBE130000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "5000C500F53DBE13",
+        "drivePortAddresses": [
+          {
+            "channel": 2,
+            "portIdentifier": "5000C500F53DBE12"
+          },
+          {
+            "channel": 1,
+            "portIdentifier": "5000C500F53DBE11"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 13,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 13,
+      "label": "12"
+    },
+    "manufacturer": "SEAGATE",
+    "manufacturerDate": "1756339200",
+    "productID": "ST2400MM0129",
+    "serialNumber": "WBMAC1DQ0000R604E38A",
+    "softwareVersion": "LE05",
+    "blkSize": 512,
+    "usableCapacity": "2394570973184",
+    "rawCapacity": "2400476553216",
+    "worldWideName": "5000C500F53DBE130000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9F0180000012869894ED2",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 4,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 10500,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 0,
+      "isWearLifeMonitoringSupported": false,
+      "percentEnduranceUsed": -1
+    },
+    "driveMediaType": "hdd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE05",
+    "lockKeyIDValue": null,
+    "id": "010000005000C500F53DBE130000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "010000005000C500F53DBE730000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "5000C500F53DBE73",
+        "drivePortAddresses": [
+          {
+            "channel": 2,
+            "portIdentifier": "5000C500F53DBE72"
+          },
+          {
+            "channel": 1,
+            "portIdentifier": "5000C500F53DBE71"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 11,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 11,
+      "label": "10"
+    },
+    "manufacturer": "SEAGATE",
+    "manufacturerDate": "1756339200",
+    "productID": "ST2400MM0129",
+    "serialNumber": "WBMACDYY0000R604GWTG",
+    "softwareVersion": "LE05",
+    "blkSize": 512,
+    "usableCapacity": "2394570973184",
+    "rawCapacity": "2400476553216",
+    "worldWideName": "5000C500F53DBE730000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9F0180000012869894ED2",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 2,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 10500,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 0,
+      "isWearLifeMonitoringSupported": false,
+      "percentEnduranceUsed": -1
+    },
+    "driveMediaType": "hdd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE05",
+    "lockKeyIDValue": null,
+    "id": "010000005000C500F53DBE730000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "0100000050025380759137B00000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "50025380759137B0",
+        "drivePortAddresses": [
+          {
+            "channel": 2,
+            "portIdentifier": "50025380759137B2"
+          },
+          {
+            "channel": 1,
+            "portIdentifier": "50025380759137B1"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 7,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 7,
+      "label": "6"
+    },
+    "manufacturer": "SAMSUNG",
+    "manufacturerDate": "0",
+    "productID": "MZILG1T9HCJR-0G4",
+    "serialNumber": "S74ENC0Y901046",
+    "softwareVersion": "LE00",
+    "blkSize": 512,
+    "usableCapacity": "1914477830144",
+    "rawCapacity": "1920383410176",
+    "worldWideName": "50025380759137B00000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9EFC20000014069894EDC",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 6,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 0,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 100,
+      "isWearLifeMonitoringSupported": true,
+      "percentEnduranceUsed": 0
+    },
+    "driveMediaType": "ssd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE00",
+    "lockKeyIDValue": null,
+    "id": "0100000050025380759137B00000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "0100000050025380759137D00000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "50025380759137D0",
+        "drivePortAddresses": [
+          {
+            "channel": 1,
+            "portIdentifier": "50025380759137D1"
+          },
+          {
+            "channel": 2,
+            "portIdentifier": "50025380759137D2"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 2,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 2,
+      "label": "1"
+    },
+    "manufacturer": "SAMSUNG",
+    "manufacturerDate": "0",
+    "productID": "MZILG1T9HCJR-0G4",
+    "serialNumber": "S74ENC0Y901048",
+    "softwareVersion": "LE00",
+    "blkSize": 512,
+    "usableCapacity": "1914477830144",
+    "rawCapacity": "1920383410176",
+    "worldWideName": "50025380759137D00000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9EFC20000014069894EDC",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 1,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 0,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 100,
+      "isWearLifeMonitoringSupported": true,
+      "percentEnduranceUsed": 0
+    },
+    "driveMediaType": "ssd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE00",
+    "lockKeyIDValue": null,
+    "id": "0100000050025380759137D00000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "0100000050025380759137E00000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "50025380759137E0",
+        "drivePortAddresses": [
+          {
+            "channel": 1,
+            "portIdentifier": "50025380759137E1"
+          },
+          {
+            "channel": 2,
+            "portIdentifier": "50025380759137E2"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 8,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 8,
+      "label": "7"
+    },
+    "manufacturer": "SAMSUNG",
+    "manufacturerDate": "0",
+    "productID": "MZILG1T9HCJR-0G4",
+    "serialNumber": "S74ENC0Y901049",
+    "softwareVersion": "LE00",
+    "blkSize": 512,
+    "usableCapacity": "1914477830144",
+    "rawCapacity": "1920383410176",
+    "worldWideName": "50025380759137E00000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9EFC20000014069894EDC",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 7,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 0,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 100,
+      "isWearLifeMonitoringSupported": true,
+      "percentEnduranceUsed": 0
+    },
+    "driveMediaType": "ssd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE00",
+    "lockKeyIDValue": null,
+    "id": "0100000050025380759137E00000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "0100000050025380759137F00000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "50025380759137F0",
+        "drivePortAddresses": [
+          {
+            "channel": 1,
+            "portIdentifier": "50025380759137F1"
+          },
+          {
+            "channel": 2,
+            "portIdentifier": "50025380759137F2"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 4,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 4,
+      "label": "3"
+    },
+    "manufacturer": "SAMSUNG",
+    "manufacturerDate": "0",
+    "productID": "MZILG1T9HCJR-0G4",
+    "serialNumber": "S74ENC0Y901050",
+    "softwareVersion": "LE00",
+    "blkSize": 512,
+    "usableCapacity": "1914477830144",
+    "rawCapacity": "1920383410176",
+    "worldWideName": "50025380759137F00000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9EFC20000014069894EDC",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 3,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 0,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 100,
+      "isWearLifeMonitoringSupported": true,
+      "percentEnduranceUsed": 0
+    },
+    "driveMediaType": "ssd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE00",
+    "lockKeyIDValue": null,
+    "id": "0100000050025380759137F00000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "0100000050025380759138000000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "5002538075913800",
+        "drivePortAddresses": [
+          {
+            "channel": 2,
+            "portIdentifier": "5002538075913802"
+          },
+          {
+            "channel": 1,
+            "portIdentifier": "5002538075913801"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 5,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 5,
+      "label": "4"
+    },
+    "manufacturer": "SAMSUNG",
+    "manufacturerDate": "0",
+    "productID": "MZILG1T9HCJR-0G4",
+    "serialNumber": "S74ENC0Y901051",
+    "softwareVersion": "LE00",
+    "blkSize": 512,
+    "usableCapacity": "1914477830144",
+    "rawCapacity": "1920383410176",
+    "worldWideName": "50025380759138000000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9EFC20000014069894EDC",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 4,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 0,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 100,
+      "isWearLifeMonitoringSupported": true,
+      "percentEnduranceUsed": 0
+    },
+    "driveMediaType": "ssd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE00",
+    "lockKeyIDValue": null,
+    "id": "0100000050025380759138000000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "0100000050025380759138100000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "5002538075913810",
+        "drivePortAddresses": [
+          {
+            "channel": 2,
+            "portIdentifier": "5002538075913812"
+          },
+          {
+            "channel": 1,
+            "portIdentifier": "5002538075913811"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 1,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 1,
+      "label": "0"
+    },
+    "manufacturer": "SAMSUNG",
+    "manufacturerDate": "0",
+    "productID": "MZILG1T9HCJR-0G4",
+    "serialNumber": "S74ENC0Y901052",
+    "softwareVersion": "LE00",
+    "blkSize": 512,
+    "usableCapacity": "1914477830144",
+    "rawCapacity": "1920383410176",
+    "worldWideName": "50025380759138100000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9EFC20000014069894EDC",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 0,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 0,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 100,
+      "isWearLifeMonitoringSupported": true,
+      "percentEnduranceUsed": 0
+    },
+    "driveMediaType": "ssd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE00",
+    "lockKeyIDValue": null,
+    "id": "0100000050025380759138100000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "0100000050025380759138200000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "5002538075913820",
+        "drivePortAddresses": [
+          {
+            "channel": 2,
+            "portIdentifier": "5002538075913822"
+          },
+          {
+            "channel": 1,
+            "portIdentifier": "5002538075913821"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 3,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 3,
+      "label": "2"
+    },
+    "manufacturer": "SAMSUNG",
+    "manufacturerDate": "0",
+    "productID": "MZILG1T9HCJR-0G4",
+    "serialNumber": "S74ENC0Y901053",
+    "softwareVersion": "LE00",
+    "blkSize": 512,
+    "usableCapacity": "1914477830144",
+    "rawCapacity": "1920383410176",
+    "worldWideName": "50025380759138200000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9EFC20000014069894EDC",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 2,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 0,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 100,
+      "isWearLifeMonitoringSupported": true,
+      "percentEnduranceUsed": 0
+    },
+    "driveMediaType": "ssd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE00",
+    "lockKeyIDValue": null,
+    "id": "0100000050025380759138200000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "0100000050025380759138400000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "5002538075913840",
+        "drivePortAddresses": [
+          {
+            "channel": 1,
+            "portIdentifier": "5002538075913841"
+          },
+          {
+            "channel": 2,
+            "portIdentifier": "5002538075913842"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 6,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 6,
+      "label": "5"
+    },
+    "manufacturer": "SAMSUNG",
+    "manufacturerDate": "0",
+    "productID": "MZILG1T9HCJR-0G4",
+    "serialNumber": "S74ENC0Y901055",
+    "softwareVersion": "LE00",
+    "blkSize": 512,
+    "usableCapacity": "1914477830144",
+    "rawCapacity": "1920383410176",
+    "worldWideName": "50025380759138400000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9EFC20000014069894EDC",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 5,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 0,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 100,
+      "isWearLifeMonitoringSupported": true,
+      "percentEnduranceUsed": 0
+    },
+    "driveMediaType": "ssd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE00",
+    "lockKeyIDValue": null,
+    "id": "0100000050025380759138400000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "0100000050025380A59113400000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "50025380A5911340",
+        "drivePortAddresses": [
+          {
+            "channel": 2,
+            "portIdentifier": "50025380A5911342"
+          },
+          {
+            "channel": 1,
+            "portIdentifier": "50025380A5911341"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 17,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 17,
+      "label": "16"
+    },
+    "manufacturer": "SAMSUNG",
+    "manufacturerDate": "0",
+    "productID": "MZILG3T8HCLS-0G4",
+    "serialNumber": "S74DNN0Y900571",
+    "softwareVersion": "LE00",
+    "blkSize": 512,
+    "usableCapacity": "3834850402304",
+    "rawCapacity": "3840755982336",
+    "worldWideName": "50025380A59113400000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9F0180000012769894EB2",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 0,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 0,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 100,
+      "isWearLifeMonitoringSupported": true,
+      "percentEnduranceUsed": 0
+    },
+    "driveMediaType": "ssd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE00",
+    "lockKeyIDValue": null,
+    "id": "0100000050025380A59113400000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "0100000050025380A59113800000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "50025380A5911380",
+        "drivePortAddresses": [
+          {
+            "channel": 2,
+            "portIdentifier": "50025380A5911382"
+          },
+          {
+            "channel": 1,
+            "portIdentifier": "50025380A5911381"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 21,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 21,
+      "label": "20"
+    },
+    "manufacturer": "SAMSUNG",
+    "manufacturerDate": "0",
+    "productID": "MZILG3T8HCLS-0G4",
+    "serialNumber": "S74DNN0Y900575",
+    "softwareVersion": "LE00",
+    "blkSize": 512,
+    "usableCapacity": "3834850402304",
+    "rawCapacity": "3840755982336",
+    "worldWideName": "50025380A59113800000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9F0180000012769894EB2",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 4,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 0,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 100,
+      "isWearLifeMonitoringSupported": true,
+      "percentEnduranceUsed": 0
+    },
+    "driveMediaType": "ssd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE00",
+    "lockKeyIDValue": null,
+    "id": "0100000050025380A59113800000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "0100000050025380A59113900000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "50025380A5911390",
+        "drivePortAddresses": [
+          {
+            "channel": 2,
+            "portIdentifier": "50025380A5911392"
+          },
+          {
+            "channel": 1,
+            "portIdentifier": "50025380A5911391"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 19,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 19,
+      "label": "18"
+    },
+    "manufacturer": "SAMSUNG",
+    "manufacturerDate": "0",
+    "productID": "MZILG3T8HCLS-0G4",
+    "serialNumber": "S74DNN0Y900576",
+    "softwareVersion": "LE00",
+    "blkSize": 512,
+    "usableCapacity": "3834850402304",
+    "rawCapacity": "3840755982336",
+    "worldWideName": "50025380A59113900000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9F0180000012769894EB2",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 2,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 0,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 100,
+      "isWearLifeMonitoringSupported": true,
+      "percentEnduranceUsed": 0
+    },
+    "driveMediaType": "ssd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE00",
+    "lockKeyIDValue": null,
+    "id": "0100000050025380A59113900000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "0100000050025380A59113A00000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "50025380A59113A0",
+        "drivePortAddresses": [
+          {
+            "channel": 1,
+            "portIdentifier": "50025380A59113A1"
+          },
+          {
+            "channel": 2,
+            "portIdentifier": "50025380A59113A2"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 20,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 20,
+      "label": "19"
+    },
+    "manufacturer": "SAMSUNG",
+    "manufacturerDate": "0",
+    "productID": "MZILG3T8HCLS-0G4",
+    "serialNumber": "S74DNN0Y900577",
+    "softwareVersion": "LE00",
+    "blkSize": 512,
+    "usableCapacity": "3834850402304",
+    "rawCapacity": "3840755982336",
+    "worldWideName": "50025380A59113A00000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9F0180000012769894EB2",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 3,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 0,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 100,
+      "isWearLifeMonitoringSupported": true,
+      "percentEnduranceUsed": 0
+    },
+    "driveMediaType": "ssd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE00",
+    "lockKeyIDValue": null,
+    "id": "0100000050025380A59113A00000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "0100000050025380A59113B00000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "50025380A59113B0",
+        "drivePortAddresses": [
+          {
+            "channel": 1,
+            "portIdentifier": "50025380A59113B1"
+          },
+          {
+            "channel": 2,
+            "portIdentifier": "50025380A59113B2"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 22,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 22,
+      "label": "21"
+    },
+    "manufacturer": "SAMSUNG",
+    "manufacturerDate": "0",
+    "productID": "MZILG3T8HCLS-0G4",
+    "serialNumber": "S74DNN0Y900578",
+    "softwareVersion": "LE00",
+    "blkSize": 512,
+    "usableCapacity": "3834850402304",
+    "rawCapacity": "3840755982336",
+    "worldWideName": "50025380A59113B00000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9F0180000012769894EB2",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 5,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 0,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 100,
+      "isWearLifeMonitoringSupported": true,
+      "percentEnduranceUsed": 0
+    },
+    "driveMediaType": "ssd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE00",
+    "lockKeyIDValue": null,
+    "id": "0100000050025380A59113B00000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "0100000050025380A59113C00000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "50025380A59113C0",
+        "drivePortAddresses": [
+          {
+            "channel": 2,
+            "portIdentifier": "50025380A59113C2"
+          },
+          {
+            "channel": 1,
+            "portIdentifier": "50025380A59113C1"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 23,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 23,
+      "label": "22"
+    },
+    "manufacturer": "SAMSUNG",
+    "manufacturerDate": "0",
+    "productID": "MZILG3T8HCLS-0G4",
+    "serialNumber": "S74DNN0Y900579",
+    "softwareVersion": "LE00",
+    "blkSize": 512,
+    "usableCapacity": "3834850402304",
+    "rawCapacity": "3840755982336",
+    "worldWideName": "50025380A59113C00000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9F0180000012769894EB2",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 6,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 0,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 100,
+      "isWearLifeMonitoringSupported": true,
+      "percentEnduranceUsed": 0
+    },
+    "driveMediaType": "ssd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE00",
+    "lockKeyIDValue": null,
+    "id": "0100000050025380A59113C00000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "0100000050025380A59113D00000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "50025380A59113D0",
+        "drivePortAddresses": [
+          {
+            "channel": 1,
+            "portIdentifier": "50025380A59113D1"
+          },
+          {
+            "channel": 2,
+            "portIdentifier": "50025380A59113D2"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 24,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 24,
+      "label": "23"
+    },
+    "manufacturer": "SAMSUNG",
+    "manufacturerDate": "0",
+    "productID": "MZILG3T8HCLS-0G4",
+    "serialNumber": "S74DNN0Y900580",
+    "softwareVersion": "LE00",
+    "blkSize": 512,
+    "usableCapacity": "3834850402304",
+    "rawCapacity": "3840755982336",
+    "worldWideName": "50025380A59113D00000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9F0180000012769894EB2",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 7,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 0,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 100,
+      "isWearLifeMonitoringSupported": true,
+      "percentEnduranceUsed": 0
+    },
+    "driveMediaType": "ssd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE00",
+    "lockKeyIDValue": null,
+    "id": "0100000050025380A59113D00000000000000000"
+  },
+  {
+    "offline": false,
+    "hotSpare": false,
+    "invalidDriveData": false,
+    "available": false,
+    "pfa": false,
+    "driveRef": "0100000050025380A59113E00000000000000000",
+    "status": "optimal",
+    "cause": "none",
+    "interfaceType": {
+      "driveType": "sas",
+      "fibre": null,
+      "sas": {
+        "deviceName": "50025380A59113E0",
+        "drivePortAddresses": [
+          {
+            "channel": 1,
+            "portIdentifier": "50025380A59113E1"
+          },
+          {
+            "channel": 2,
+            "portIdentifier": "50025380A59113E2"
+          }
+        ]
+      },
+      "scsi": null,
+      "nvme": null
+    },
+    "physicalLocation": {
+      "trayRef": "0E00000000000000000000000000000000000000",
+      "slot": 18,
+      "locationParent": {
+        "refType": "genericTyped",
+        "controllerRef": null,
+        "symbolRef": null,
+        "typedReference": {
+          "componentType": "tray",
+          "symbolRef": "0E00000000000000000000000000000000000000"
+        }
+      },
+      "locationPosition": 18,
+      "label": "17"
+    },
+    "manufacturer": "SAMSUNG",
+    "manufacturerDate": "0",
+    "productID": "MZILG3T8HCLS-0G4",
+    "serialNumber": "S74DNN0Y900581",
+    "softwareVersion": "LE00",
+    "blkSize": 512,
+    "usableCapacity": "3834850402304",
+    "rawCapacity": "3840755982336",
+    "worldWideName": "50025380A59113E00000000000000000",
+    "currentVolumeGroupRef": "040000006D039EA000D9F0180000012769894EB2",
+    "sparedForDriveRef": "0000000000000000000000000000000000000000",
+    "mirrorDrive": "0000000000000000000000000000000000000000",
+    "nonRedundantAccess": false,
+    "workingChannel": -1,
+    "volumeGroupIndex": 1,
+    "currentSpeed": "speed12gig",
+    "maxSpeed": "speed12gig",
+    "uncertified": false,
+    "hasDegradedChannel": false,
+    "degradedChannels": [],
+    "phyDriveType": "sas",
+    "spindleSpeed": 0,
+    "rtrAttributes": {
+      "cruType": "dedicated",
+      "parentCru": null,
+      "rtrAttributeData": {
+        "hasReadyToRemoveIndicator": false,
+        "readyToRemove": false
+      }
+    },
+    "reserved": "",
+    "phyDriveTypeData": {
+      "phyDriveType": "sas",
+      "sataDriveAttributes": null
+    },
+    "pfaReason": "none",
+    "bypassSource": [],
+    "repairPolicy": {
+      "removalData": {
+        "removalMethod": "self",
+        "rtrAttributes": {
+          "hasReadyToRemoveIndicator": false,
+          "readyToRemove": false
+        }
+      },
+      "replacementMethod": "self"
+    },
+    "fdeCapable": false,
+    "fdeEnabled": false,
+    "fdeLocked": false,
+    "lockKeyID": "0000000000000000000000000000000000000000",
+    "ssdWearLife": {
+      "averageEraseCountPercent": 0,
+      "spareBlocksRemainingPercent": 100,
+      "isWearLifeMonitoringSupported": true,
+      "percentEnduranceUsed": 0
+    },
+    "driveMediaType": "ssd",
+    "fpgaVersion": "",
+    "protectionInformationCapabilities": {
+      "protectionInformationCapable": true,
+      "protectionType": "type2Protection"
+    },
+    "protectionInformationCapable": false,
+    "protectionType": "type0Protection",
+    "interposerPresent": false,
+    "interposerRef": "0000000000000000000000000000000000000000",
+    "currentCommandAgingTimeout": 6,
+    "defaultCommandAgingTimeout": 6,
+    "driveTemperature": {
+      "currentTemp": 0,
+      "refTemp": 0
+    },
+    "blkSizePhysical": 4096,
+    "lowestAlignedLBA": "0",
+    "removed": false,
+    "locateInProgress": false,
+    "fipsCapable": false,
+    "dulbeCapable": false,
+    "sanitizeCapable": true,
+    "driveSecurityType": "notCapable",
+    "firmwareVersion": "LE00",
+    "lockKeyIDValue": null,
+    "id": "0100000050025380A59113E00000000000000000"
+  }
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "name": "Factory Default",
+    "index": 0,
+    "code": "FactoryDefault",
+    "used": false,
+    "default": true,
+    "nvmeSupported": false
+  },
+  {
+    "name": "Windows (clustered or non-clustered)",
+    "index": 1,
+    "code": "W2KNETNCL",
+    "used": true,
+    "default": false,
+    "nvmeSupported": false
+  },
+  {
+    "name": "Linux DM-MP (Kernel 3.9 or earlier)",
+    "index": 7,
+    "code": "LnxALUA",
+    "used": false,
+    "default": false,
+    "nvmeSupported": false
+  },
+  {
+    "name": "Windows Clustered (deprecated)",
+    "index": 8,
+    "code": "W2KNETCL",
+    "used": false,
+    "default": false,
+    "nvmeSupported": false
+  },
+  {
+    "name": "VMware ESXi",
+    "index": 10,
+    "code": "VmwTPGSALUA",
+    "used": false,
+    "default": false,
+    "nvmeSupported": true
+  },
+  {
+    "name": "IBM SVC",
+    "index": 18,
+    "code": "SVC",
+    "used": false,
+    "default": false,
+    "nvmeSupported": false
+  },
+  {
+    "name": "Linux DM-MP (Kernel 3.10 or later)",
+    "index": 28,
+    "code": "LnxDHALUA",
+    "used": false,
+    "default": false,
+    "nvmeSupported": true
+  }
+]

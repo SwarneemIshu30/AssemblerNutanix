@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/dataset/replication.schema.json",
+  "title": "Lenovo.DE replication dataset schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
+    "items"
+  ],
+  "properties": {
+    "schema_version": { "const": "lnv.collector.dataset.v1" },
+    "collector": { "type": "object" },
+    "source": { "type": "object" },
+    "dataset": {
+      "type": "object",
+      "required": ["key", "schema_path"],
+      "properties": {
+        "key": { "const": "replication" },
+        "schema_path": { "const": "tech/Lenovo.DE/dataset/replication.schema.json" }
+      },
+      "additionalProperties": true
+    },
+    "item_count": { "type": "integer", "minimum": 0 },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "rowKey",
+          "systemId",
+          "relationshipName",
+          "mode"
+        ],
+        "properties": {
+          "rowKey": { "type": "string", "minLength": 1 },
+          "systemId": { "type": "string", "minLength": 1 },
+          "relationshipName": { "type": "string", "minLength": 1 },
+          "mode": { "type": "string", "minLength": 1 },
+          "sourceObject": { "type": ["string", "null"] },
+          "targetObject": { "type": ["string", "null"] },
+          "direction": { "type": ["string", "null"] },
+          "state": { "type": ["string", "null"] },
+          "syncPolicy": { "type": ["string", "null"] },
+          "schedule": { "type": ["string", "null"] },
+          "health": { "type": ["string", "null"] },
+          "notes": { "type": ["string", "null"] }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

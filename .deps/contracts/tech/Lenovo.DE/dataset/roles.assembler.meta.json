@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "dataset": "roles",
+  "presentationKind": "table",
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [],
+  "datasetPath": {
+    "template": "datasets/__TECH_ID__/__TARGET__/__SYSTEM__/__DATASET__.json",
+    "scope": "system",
+    "placeholders": [
+      "__TECH_ID__",
+      "__TARGET__",
+      "__DATASET__",
+      "__SYSTEM__"
+    ]
+  }
+}

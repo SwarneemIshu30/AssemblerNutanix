@@ -1,0 +1,69 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.DE",
+    "module": "LNV.AsBuiltDoc.Lenovo.DE",
+    "entry_point": "Invoke-LnvAsBuiltDoc.Lenovo.DE"
+  },
+  "source": {
+    "bundle_id": "target_de-prod-01",
+    "bundle_root": "C:\\Github\\LNV.AsBuiltDoc.Core\\out\\b0c8360d-800e-4cab-a84f-d1bc53c8646f\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01",
+    "file": "system_1_DE4200_Rack4/host-types.json"
+  },
+  "dataset": {
+    "key": "host-types",
+    "schema_path": "tech/Lenovo.DE/dataset/host-types.schema.json"
+  },
+  "item_count": 7,
+  "items": [
+    {
+      "id": "0",
+      "ref": "0",
+      "index": "0",
+      "name": "Factory Default",
+      "systemId": "1"
+    },
+    {
+      "id": "1",
+      "ref": "1",
+      "index": "1",
+      "name": "Windows (clustered or non-clustered)",
+      "systemId": "1"
+    },
+    {
+      "id": "7",
+      "ref": "7",
+      "index": "7",
+      "name": "Linux DM-MP (Kernel 3.9 or earlier)",
+      "systemId": "1"
+    },
+    {
+      "id": "8",
+      "ref": "8",
+      "index": "8",
+      "name": "Windows Clustered (deprecated)",
+      "systemId": "1"
+    },
+    {
+      "id": "10",
+      "ref": "10",
+      "index": "10",
+      "name": "VMware ESXi",
+      "systemId": "1"
+    },
+    {
+      "id": "18",
+      "ref": "18",
+      "index": "18",
+      "name": "IBM SVC",
+      "systemId": "1"
+    },
+    {
+      "id": "28",
+      "ref": "28",
+      "index": "28",
+      "name": "Linux DM-MP (Kernel 3.10 or later)",
+      "systemId": "1"
+    }
+  ]
+}

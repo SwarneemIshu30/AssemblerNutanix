@@ -167,6 +167,48 @@ mappings:
   renderHint:
     renderAs: table
     projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport
+- dataset: identity-sources
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.IdentitySources
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=IdentitySources; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.IdentitySources
+- dataset: roles
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Roles
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=Roles; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Roles
+- dataset: certificates
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Certificates
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=Certificates; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Certificates
+- dataset: alerts
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Alerts
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=Alerts; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Alerts
+- dataset: snapshots
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Snapshots
+  required: false
+  notes: placement=Appendix; minInfoLevel=2; objectKey=Snapshots; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Snapshots
+- dataset: replication
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Replication
+  required: false
+  notes: placement=Appendix; minInfoLevel=2; objectKey=Replication; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Replication
 - dataset: capabilities-normalized
   sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.CapabilitiesSummary
   required: false

@@ -32,4 +32,10 @@ spec:
     - hosts-to-volumes
     - volume-mappings
     - system-asup
+    - identity-sources
+    - roles
+    - certificates
+    - alerts
+    - snapshots
+    - replication
     - capabilities-normalized

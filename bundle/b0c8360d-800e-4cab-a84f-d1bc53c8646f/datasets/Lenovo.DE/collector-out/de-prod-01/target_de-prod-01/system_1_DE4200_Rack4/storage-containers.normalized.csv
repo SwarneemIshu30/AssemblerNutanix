@@ -1,0 +1,4 @@
+"systemId","id","name","containerType","diskPool","raidLevel","driveMediaType","drivePhysicalType","state","status","totalBytes","usedBytes","freeBytes","securityType","protectionType"
+"1","040000006D039EA000D9F0180000012769894EB2","SampleVG_1","VolumeGroup","False","raid6","ssd","sas","complete","optimal","23009099251712","23009099251712","0","none",
+"1","040000006D039EA000D9EFC20000014069894EDC","SampleVG_2","VolumeGroup","False","raid6","ssd","sas","complete","optimal","11486866456576","10737418240000","749448216576","none",
+"1","040000006D039EA000D9F0180000012869894ED2","SampleVG_3","VolumeGroup","False","raid6","hdd","sas","complete","optimal","14367425839104","12884901888000","1482523951104","none",

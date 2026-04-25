@@ -381,16 +381,6 @@
           "source": "systemId"
         },
         {
-          "name": "Controller",
-          "source": "controllerRef",
-          "lookup": {
-            "dataset": "system-controllers.json",
-            "selector": "items",
-            "key": "controllerRef",
-            "value": "controllerLabel"
-          }
-        },
-        {
           "name": "Acquisition",
           "source": "dnsAcquisitionType"
         },
@@ -414,11 +404,10 @@
         "lenovo-de-table-default"
       ],
       "identityKeys": [
-        "systemId",
-        "controllerRef"
+        "systemId"
       ],
       "rowOrder": [
-        "controllerRef"
+        "systemId"
       ]
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.Time": {
@@ -426,16 +415,6 @@
         {
           "name": "SystemId",
           "source": "systemId"
-        },
-        {
-          "name": "Controller",
-          "source": "controllerRef",
-          "lookup": {
-            "dataset": "system-controllers.json",
-            "selector": "items",
-            "key": "controllerRef",
-            "value": "controllerLabel"
-          }
         },
         {
           "name": "Acquisition",
@@ -465,11 +444,10 @@
         "lenovo-de-table-default"
       ],
       "identityKeys": [
-        "systemId",
-        "controllerRef"
+        "systemId"
       ],
       "rowOrder": [
-        "controllerRef"
+        "systemId"
       ]
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts": {
@@ -549,6 +527,10 @@
         {
           "name": "HostType",
           "source": "hostType"
+        },
+        {
+          "name": "KeyType",
+          "source": "hostGroupKeyType"
         }
       ],
       "renderMode": "table",
@@ -1016,14 +998,8 @@
     "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope1": {
       "columns": [
         {
-          "name": "Controller",
-          "source": "controllerRef",
-          "lookup": {
-            "dataset": "system-controllers.json",
-            "selector": "items",
-            "key": "controllerRef",
-            "value": "controllerLabel"
-          }
+          "name": "Scope",
+          "source": "controllerRef"
         },
         {
           "name": "Acquisition",
@@ -1055,14 +1031,8 @@
     "LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope2": {
       "columns": [
         {
-          "name": "Controller",
-          "source": "controllerRef",
-          "lookup": {
-            "dataset": "system-controllers.json",
-            "selector": "items",
-            "key": "controllerRef",
-            "value": "controllerLabel"
-          }
+          "name": "Scope",
+          "source": "controllerRef"
         },
         {
           "name": "Acquisition",
@@ -1097,14 +1067,8 @@
     "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope1": {
       "columns": [
         {
-          "name": "Controller",
-          "source": "controllerRef",
-          "lookup": {
-            "dataset": "system-controllers.json",
-            "selector": "items",
-            "key": "controllerRef",
-            "value": "controllerLabel"
-          }
+          "name": "Scope",
+          "source": "controllerRef"
         },
         {
           "name": "Acquisition",
@@ -1140,14 +1104,8 @@
     "LNV.Lenovo.DE.System[ArrayName].Narrative.Time.Scope2": {
       "columns": [
         {
-          "name": "Controller",
-          "source": "controllerRef",
-          "lookup": {
-            "dataset": "system-controllers.json",
-            "selector": "items",
-            "key": "controllerRef",
-            "value": "controllerLabel"
-          }
+          "name": "Scope",
+          "source": "controllerRef"
         },
         {
           "name": "Acquisition",

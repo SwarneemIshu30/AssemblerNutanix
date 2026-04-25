@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE/dataset/alerts.schema.json",
+  "title": "Lenovo.DE alerts dataset schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
+    "items"
+  ],
+  "properties": {
+    "schema_version": { "const": "lnv.collector.dataset.v1" },
+    "collector": { "type": "object" },
+    "source": { "type": "object" },
+    "dataset": {
+      "type": "object",
+      "required": ["key", "schema_path"],
+      "properties": {
+        "key": { "const": "alerts" },
+        "schema_path": { "const": "tech/Lenovo.DE/dataset/alerts.schema.json" }
+      },
+      "additionalProperties": true
+    },
+    "item_count": { "type": "integer", "minimum": 0 },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "rowKey",
+          "systemId",
+          "mechanism"
+        ],
+        "properties": {
+          "rowKey": { "type": "string", "minLength": 1 },
+          "systemId": { "type": "string", "minLength": 1 },
+          "mechanism": { "type": "string", "minLength": 1 },
+          "enabled": { "type": ["boolean", "null"] },
+          "destination": { "type": ["string", "null"] },
+          "severityProfile": { "type": ["string", "null"] },
+          "routingType": { "type": ["string", "null"] },
+          "authRequired": { "type": ["boolean", "null"] },
+          "notes": { "type": ["string", "null"] }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}
