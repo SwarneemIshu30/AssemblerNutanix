@@ -928,6 +928,7 @@ $webViewState = [ordered]@{
     Control = $null
     Ready = $false
     LastReportPath = ''
+    AssetPath = ''
 }
 
 function ConvertTo-WebViewJson {
@@ -1110,6 +1111,7 @@ function Initialize-RenderProgressTimer {
 
 function Initialize-WebViewHost {
     $webViewPath = Join-Path $PSScriptRoot 'webview/index.html'
+    $webViewState.AssetPath = [string]$webViewPath
     $bootstrap = Get-AssemblerWebView2BootstrapStatus -RepoRoot $repoRoot
     $webViewFallbackText.Text = @(
         [string]$bootstrap.message
@@ -1195,7 +1197,9 @@ function Initialize-WebViewHost {
             Publish-WebViewMappingStudioState
         })
         $null = $window.Dispatcher.BeginInvoke([Action]{
-            $webView.Source = [System.Uri]::new($webViewPath, [System.UriKind]::Absolute)
+            if ($null -ne $webViewState.Control -and -not [string]::IsNullOrWhiteSpace([string]$webViewState.AssetPath)) {
+                $webViewState.Control.Source = [System.Uri]::new([string]$webViewState.AssetPath, [System.UriKind]::Absolute)
+            }
         }, [System.Windows.Threading.DispatcherPriority]::ApplicationIdle)
     }
     catch {

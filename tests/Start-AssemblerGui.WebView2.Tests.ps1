@@ -72,4 +72,19 @@ Describe 'Assembler GUI WebView2 bootstrap module' {
             }
         }
     }
+
+    It 'does not defer references to the local WebView variable past startup' {
+        $wpfScriptPath = Join-Path $script:repoRoot 'gui/Start-AssemblerGui.Wpf.ps1'
+        $wpfScriptText = Get-Content -LiteralPath $wpfScriptPath -Raw -Encoding UTF8
+
+        if ($wpfScriptText -match '\$webView\.Source\s*=') {
+            throw 'Expected deferred WebView navigation to use webViewState.Control instead of the function-local $webView variable.'
+        }
+        if ($wpfScriptText -notmatch '\$webViewState\.Control\.Source\s*=') {
+            throw 'Expected WPF launcher to navigate the WebView through webViewState.Control.'
+        }
+        if ($wpfScriptText -notmatch '\$webViewState\.AssetPath') {
+            throw 'Expected WPF launcher to persist the WebView asset path in webViewState before deferred navigation.'
+        }
+    }
 }
