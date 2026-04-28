@@ -1,0 +1,38 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.DE",
+    "module": "LNV.AsBuiltDoc.Lenovo.DE",
+    "entry_point": "Invoke-LnvAsBuiltDoc.Lenovo.DE"
+  },
+  "source": {
+    "bundle_id": "target_de-prod-01",
+    "bundle_root": "C:\\Github\\LNV.AsBuiltDoc.Core\\out\\e32facfb-29e5-4e8f-ad71-a695aa391920\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01",
+    "file": "system_1_DE4200_Rack4/system-asup.json"
+  },
+  "dataset": {
+    "key": "system-asup",
+    "schema_path": "tech/Lenovo.DE/dataset/system-asup.schema.json"
+  },
+  "item_count": 1,
+  "items": [
+    {
+      "systemId": "1",
+      "asupCapable": true,
+      "onDemandCapable": true,
+      "asupEnabled": true,
+      "onDemandEnabled": true,
+      "remoteDiagsEnabled": true,
+      "deliveryMethod": "https",
+      "routingType": "direct",
+      "proxyHost": null,
+      "proxyPort": null,
+      "proxyScript": null,
+      "mailRelayServer": null,
+      "mailSenderAddress": null,
+      "destinationAddressList": [],
+      "maxSizeLimitHttps": 52428800,
+      "maxSizeLimitSmtp": 5242880
+    }
+  ]
+}

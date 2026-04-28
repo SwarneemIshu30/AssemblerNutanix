@@ -1,0 +1,3 @@
+"rowKey","systemId","mechanism","enabled","destination","severityProfile","routingType","authRequired","notes"
+"1|AutoSupport|https://support.netapp.com/put/AsupPut/","1","AutoSupport","True","https://support.netapp.com/put/AsupPut/",,"direct",,"https"
+"1|Email|test@internal.lab","1","Email","True","test@internal.lab","","",,"mail.internal.lab; none"

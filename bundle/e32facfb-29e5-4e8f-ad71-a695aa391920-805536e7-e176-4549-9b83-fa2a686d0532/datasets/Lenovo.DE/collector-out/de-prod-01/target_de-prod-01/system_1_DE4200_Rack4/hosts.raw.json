@@ -1,0 +1,122 @@
+[
+  {
+    "hostRef": "840000006D039EA000D9EFC20030016B69B099F5",
+    "clusterRef": "850000006D039EA000D9F0180036013769B09A1D",
+    "label": "HostJupiter2",
+    "isSAControlled": false,
+    "confirmLUNMappingCreation": false,
+    "hostTypeIndex": 1,
+    "protectionInformationCapableAccessMethod": true,
+    "isLargeBlockFormatHost": false,
+    "isLun0Restricted": false,
+    "ports": [],
+    "initiators": [
+      {
+        "initiatorRef": "890000006D039EA000D9F0180030013069B099D0",
+        "nodeName": {
+          "ioInterfaceType": "iscsi",
+          "iscsiNodeName": "HostPortIQN2",
+          "remoteNodeWWN": null,
+          "nvmeNodeName": null
+        },
+        "alias": {
+          "ioInterfaceType": "iscsi",
+          "iscsiAlias": ""
+        },
+        "label": "HostJupiter2_P1",
+        "configuredAuthMethods": {
+          "authMethodData": [
+            {
+              "authMethod": "none",
+              "chapSecret": null
+            }
+          ]
+        },
+        "hostRef": "840000006D039EA000D9EFC20030016B69B099F5",
+        "initiatorInactive": false,
+        "initiatorNodeName": {
+          "nodeName": {
+            "ioInterfaceType": "iscsi",
+            "iscsiNodeName": "HostPortIQN2",
+            "remoteNodeWWN": null,
+            "nvmeNodeName": null
+          },
+          "interfaceType": "notImplemented"
+        },
+        "id": "890000006D039EA000D9F0180030013069B099D0"
+      }
+    ],
+    "hostSidePorts": [
+      {
+        "id": "890000006D039EA000D9F0180030013069B099D0",
+        "type": "iscsi",
+        "address": "HostPortIQN2",
+        "label": "HostJupiter2_P1",
+        "mtpIoInterfaceType": "notImplemented",
+        "name": "HostJupiter2_P1"
+      }
+    ],
+    "id": "840000006D039EA000D9EFC20030016B69B099F5",
+    "name": "HostJupiter2"
+  },
+  {
+    "hostRef": "840000006D039EA000D9F0180030013369B099E9",
+    "clusterRef": "850000006D039EA000D9F0180036013769B09A1D",
+    "label": "HostNeptune1",
+    "isSAControlled": false,
+    "confirmLUNMappingCreation": false,
+    "hostTypeIndex": 1,
+    "protectionInformationCapableAccessMethod": true,
+    "isLargeBlockFormatHost": false,
+    "isLun0Restricted": false,
+    "ports": [],
+    "initiators": [
+      {
+        "initiatorRef": "890000006D039EA000D9EFC20030017069B09A0F",
+        "nodeName": {
+          "ioInterfaceType": "iscsi",
+          "iscsiNodeName": "IQNofHost1",
+          "remoteNodeWWN": null,
+          "nvmeNodeName": null
+        },
+        "alias": {
+          "ioInterfaceType": "iscsi",
+          "iscsiAlias": ""
+        },
+        "label": "NameofHost1_1",
+        "configuredAuthMethods": {
+          "authMethodData": [
+            {
+              "authMethod": "none",
+              "chapSecret": null
+            }
+          ]
+        },
+        "hostRef": "840000006D039EA000D9F0180030013369B099E9",
+        "initiatorInactive": false,
+        "initiatorNodeName": {
+          "nodeName": {
+            "ioInterfaceType": "iscsi",
+            "iscsiNodeName": "IQNofHost1",
+            "remoteNodeWWN": null,
+            "nvmeNodeName": null
+          },
+          "interfaceType": "notImplemented"
+        },
+        "id": "890000006D039EA000D9EFC20030017069B09A0F"
+      }
+    ],
+    "hostSidePorts": [
+      {
+        "id": "890000006D039EA000D9EFC20030017069B09A0F",
+        "type": "iscsi",
+        "address": "IQNofHost1",
+        "label": "NameofHost1_1",
+        "mtpIoInterfaceType": "notImplemented",
+        "name": "NameofHost1_1"
+      }
+    ],
+    "id": "840000006D039EA000D9F0180030013369B099E9",
+    "name": "HostNeptune1"
+  }
+]

@@ -1,0 +1,36 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.DE",
+    "module": "LNV.AsBuiltDoc.Lenovo.DE",
+    "entry_point": "Invoke-LnvAsBuiltDoc.Lenovo.DE"
+  },
+  "source": {
+    "bundle_id": "target_de-prod-01",
+    "bundle_root": "C:\\Github\\LNV.AsBuiltDoc.Core\\out\\e32facfb-29e5-4e8f-ad71-a695aa391920\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01",
+    "file": "system_1_DE4200_Rack4/host-groups.json"
+  },
+  "dataset": {
+    "key": "host-groups",
+    "schema_path": "tech/Lenovo.DE/dataset/host-groups.schema.json"
+  },
+  "item_count": 1,
+  "items": [
+    {
+      "id": "850000006D039EA000D9F0180036013769B09A1D",
+      "ref": "850000006D039EA000D9F0180036013769B09A1D",
+      "name": "HostClusterGalaxy",
+      "systemId": "1",
+      "clusterRef": "850000006D039EA000D9F0180036013769B09A1D",
+      "hostGroupRef": "",
+      "memberRefs": [
+        "840000006D039EA000D9EFC20030016B69B099F5",
+        "840000006D039EA000D9F0180030013369B099E9"
+      ],
+      "memberNames": [
+        "HostJupiter2",
+        "HostNeptune1"
+      ]
+    }
+  ]
+}
