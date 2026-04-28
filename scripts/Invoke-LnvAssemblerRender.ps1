@@ -10,7 +10,8 @@ wrapper-level render-report.json, and returns stable process exit codes for CLI
 and WPF callers.
 #>
 param(
-    [Parameter(Mandatory = $true)][string]$BundleRoot,
+    [Parameter(Mandatory = $false)][string]$BundleRoot,
+    [Parameter(Mandatory = $false)][string]$BundleArchivePath,
     [Parameter(Mandatory = $true)][string]$CatalogPath,
     [Parameter(Mandatory = $true)][string]$OutputRoot,
     [Parameter(Mandatory = $false)][string]$ContractsRoot,
@@ -40,6 +41,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 Import-Module (Join-Path $PSScriptRoot 'internal/AssemblerProgress.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'internal/AssemblerBundleArchive.psm1') -Force
 
 function Get-UtcTimestamp { (Get-Date).ToUniversalTime().ToString('o') }
 
@@ -93,8 +95,12 @@ $status = 'ERROR'
 $backendExitCode = $null
 $backendStdout = ''
 $backendStderr = ''
+$backendArguments = @()
 $backendReport = $null
 $backendReportPath = $null
+$archiveImport = $null
+$resolvedBundleRoot = $null
+$wrapperFailureIssueCode = $null
 $issues = [System.Collections.Generic.List[hashtable]]::new()
 $progressEvents = @()
 $resolvedOutputRoot = $OutputRoot
@@ -114,21 +120,57 @@ try {
     }
 
     Set-Content -LiteralPath $ProgressPath -Value $null -Encoding UTF8
-    Write-AssemblerProgressEvent -Path $ProgressPath -Stage LoadPlan -Level Info -Status Running -Percent 3 -Message 'Resolving solution plan path.' -CurrentItem $BundleRoot | Out-Null
 
-    if ([string]::IsNullOrWhiteSpace($BundleRoot) -or -not (Test-Path -LiteralPath $BundleRoot -PathType Container)) {
+    $bundleRootProvided = -not [string]::IsNullOrWhiteSpace($BundleRoot)
+    $archiveProvided = -not [string]::IsNullOrWhiteSpace($BundleArchivePath)
+    if ($bundleRootProvided -and $archiveProvided) {
+        $exitCode = 2
+        throw 'BundleRoot and BundleArchivePath are mutually exclusive.'
+    }
+    if (-not $bundleRootProvided -and -not $archiveProvided) {
+        $exitCode = 2
+        throw 'Either BundleRoot or BundleArchivePath is required.'
+    }
+
+    if ($archiveProvided) {
+        Write-AssemblerProgressEvent -Path $ProgressPath -Stage ImportBundleArchive -Level Info -Status Running -Percent 2 -Message 'Importing bundle archive.' -CurrentItem $BundleArchivePath | Out-Null
+        $archiveResult = Import-AssemblerBundleArchive -ArchivePath $BundleArchivePath -RepoRoot (Split-Path -Parent $PSScriptRoot)
+        $archiveImport = [ordered]@{
+            sourceArchivePath = $archiveResult.SourceArchivePath
+            archiveSha256 = $archiveResult.ArchiveSha256
+            extractedBundleRoot = $archiveResult.ExtractedBundleRoot
+            bundleId = $archiveResult.BundleId
+            bundleHash = $archiveResult.BundleHash
+            status = $archiveResult.Status
+            errors = @($archiveResult.Errors)
+        }
+        if (-not $archiveResult.IsValid) {
+            $exitCode = 2
+            $wrapperFailureIssueCode = 'ASB-ASM-WRAPPER-ARCHIVE-IMPORT-FAILED'
+            Write-AssemblerProgressEvent -Path $ProgressPath -Stage ImportBundleArchive -Level Error -Status Failed -Percent 5 -Message "Bundle archive import failed: $(@($archiveResult.Errors) -join '; ')" -CurrentItem $BundleArchivePath | Out-Null
+            throw "Bundle archive import failed: $(@($archiveResult.Errors) -join '; ')"
+        }
+        $resolvedBundleRoot = [string]$archiveResult.ExtractedBundleRoot
+        Write-AssemblerProgressEvent -Path $ProgressPath -Stage ImportBundleArchive -Level Info -Status Complete -Percent 6 -Message 'Bundle archive imported and verified.' -CurrentItem $resolvedBundleRoot | Out-Null
+    }
+
+    Write-AssemblerProgressEvent -Path $ProgressPath -Stage LoadPlan -Level Info -Status Running -Percent 8 -Message 'Resolving solution plan path.' -CurrentItem $(if ($archiveProvided) { $resolvedBundleRoot } else { $BundleRoot }) | Out-Null
+
+    if (-not $archiveProvided -and ([string]::IsNullOrWhiteSpace($BundleRoot) -or -not (Test-Path -LiteralPath $BundleRoot -PathType Container))) {
         $exitCode = 2
         throw "BundleRoot not found: $BundleRoot"
     }
-    $resolvedBundleRoot = (Resolve-Path -LiteralPath $BundleRoot).Path
+    if (-not $archiveProvided) {
+        $resolvedBundleRoot = (Resolve-Path -LiteralPath $BundleRoot).Path
+    }
     $solutionPlanPath = Join-Path (Join-Path $resolvedBundleRoot 'config') 'solution.plan.json'
     if (-not (Test-Path -LiteralPath $solutionPlanPath -PathType Leaf)) {
         $exitCode = 2
         throw "solution.plan.json not found: $solutionPlanPath"
     }
-    Write-AssemblerProgressEvent -Path $ProgressPath -Stage LoadPlan -Level Info -Status Complete -Percent 8 -Message 'Resolved solution plan.' -CurrentItem $solutionPlanPath | Out-Null
+    Write-AssemblerProgressEvent -Path $ProgressPath -Stage LoadPlan -Level Info -Status Complete -Percent 10 -Message 'Resolved solution plan.' -CurrentItem $solutionPlanPath | Out-Null
 
-    Write-AssemblerProgressEvent -Path $ProgressPath -Stage ValidatePlan -Level Info -Status Running -Percent 10 -Message 'Validating required plan artifact readability.' -CurrentItem $solutionPlanPath | Out-Null
+    Write-AssemblerProgressEvent -Path $ProgressPath -Stage ValidatePlan -Level Info -Status Running -Percent 12 -Message 'Validating required plan artifact readability.' -CurrentItem $solutionPlanPath | Out-Null
     $null = Get-Content -LiteralPath $solutionPlanPath -Raw -Encoding UTF8 | ConvertFrom-Json
     Write-AssemblerProgressEvent -Path $ProgressPath -Stage ValidatePlan -Level Info -Status Complete -Percent 15 -Message 'Plan artifact is readable JSON.' -CurrentItem $solutionPlanPath | Out-Null
 
@@ -201,6 +243,7 @@ try {
     if ($AnnotateResolvedTags) { [void]$arguments.Add('-AnnotateResolvedTags') }
     Add-IfValue -Arguments $arguments -Name '-DocxMatchMode' -Value $DocxMatchMode
     Add-IfValue -Arguments $arguments -Name '-UnresolvedTokenPolicy' -Value $UnresolvedTokenPolicy
+    $backendArguments = @($arguments)
 
     Write-AssemblerProgressEvent -Path $ProgressPath -Stage RenderDocument -Level Info -Status Running -Percent 60 -Message 'Starting backend bundle render.' -CurrentItem $invokeBundleRenderScript | Out-Null
 
@@ -296,7 +339,16 @@ catch {
         if (-not [string]::IsNullOrWhiteSpace($ProgressPath)) {
             Write-AssemblerProgressEvent -Path $ProgressPath -Stage Failed -Level Error -Status Failed -Percent 100 -Message $_.Exception.Message -CurrentItem '' | Out-Null
         }
-        $issues.Add((New-WrapperIssue -Code $(if ($exitCode -eq 2) { 'ASB-ASM-WRAPPER-INPUT-FAILED' } else { 'ASB-ASM-WRAPPER-RENDER-FAILED' }) -Severity 'ERROR' -Message $_.Exception.Message -Path $null))
+        $issueCode = if (-not [string]::IsNullOrWhiteSpace($wrapperFailureIssueCode)) {
+            $wrapperFailureIssueCode
+        }
+        elseif ($exitCode -eq 2) {
+            'ASB-ASM-WRAPPER-INPUT-FAILED'
+        }
+        else {
+            'ASB-ASM-WRAPPER-RENDER-FAILED'
+        }
+        $issues.Add((New-WrapperIssue -Code $issueCode -Severity 'ERROR' -Message $_.Exception.Message -Path $null))
     }
 }
 finally {
@@ -321,6 +373,8 @@ finally {
         startedUtc = $startedUtc
         completedUtc = Get-UtcTimestamp
         bundleRoot = $BundleRoot
+        bundleArchivePath = if ([string]::IsNullOrWhiteSpace($BundleArchivePath)) { $null } else { $BundleArchivePath }
+        effectiveBundleRoot = $resolvedBundleRoot
         catalogPath = $CatalogPath
         outputRoot = $OutputRoot
         progressPath = $ProgressPath
@@ -328,6 +382,7 @@ finally {
         cancelSignalPath = if ([string]::IsNullOrWhiteSpace($CancelSignalPath)) { $null } else { $CancelSignalPath }
         backend = [ordered]@{
             scriptPath = Join-Path $PSScriptRoot 'Invoke-AssemblerBundleRender.ps1'
+            arguments = @($backendArguments)
             exitCode = $backendExitCode
             reportPath = $backendReportPath
             stdout = $backendStdout
@@ -344,6 +399,9 @@ finally {
 
     if ($null -ne $backendReport) {
         $report.backend['report'] = $backendReport
+    }
+    if ($null -ne $archiveImport) {
+        $report['archiveImport'] = $archiveImport
     }
 
     $reportParent = Split-Path -Path $ReportPath -Parent

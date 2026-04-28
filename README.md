@@ -144,6 +144,23 @@ pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
   -OutputRoot ./out/bundle-render
 ```
 
+## Core bundle archive import
+
+The canonical wrapper can render a Core-produced `.lnvbundle.zip` without changing the folder-based bundle render path:
+
+```powershell
+pwsh ./scripts/Invoke-LnvAssemblerRender.ps1 \
+  -BundleArchivePath ./captures/capture-20260428.lnvbundle.zip \
+  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json \
+  -OutputRoot ./out/archive-render \
+  -ContractsRoot ./.deps/contracts \
+  -OutputType docx
+```
+
+`-BundleRoot` and `-BundleArchivePath` are mutually exclusive. Archive input is verified before render, then extracted into `<repo>/bundle/<archive-base-name>-<guid>/` so imported bundles sit beside existing bundle folders and can be reused for rerender/debug work. The repo `bundle/` folder is a working staging area, so imported bundles may appear as untracked files unless cleaned up separately.
+
+Archive import failures stop before backend render with exit code `2` and wrapper issue code `ASB-ASM-WRAPPER-ARCHIVE-IMPORT-FAILED`.
+
 ## Template catalog contract
 
 Template catalog validation uses:

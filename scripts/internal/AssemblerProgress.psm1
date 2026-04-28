@@ -9,6 +9,7 @@ function Write-AssemblerProgressEvent {
         [Parameter(Mandatory = $true)][string]$Path,
         [Parameter(Mandatory = $true)][ValidateSet(
             'LoadPlan',
+            'ImportBundleArchive',
             'ValidatePlan',
             'LoadBundle',
             'ValidateBundle',

@@ -14,9 +14,13 @@ Both GUI launchers initialize with the same canonical defaults:
 - `ContractsRoot`: `<repo>/.deps/contracts`
 
 Mandatory inputs for execution are:
-- `BundleRoot` (existing folder)
+- `BundleRoot` (existing folder) or `BundleArchivePath` (`.lnvbundle.zip` archive)
 - `CatalogPath` (existing file)
 - `OutputRoot` (created if missing)
+
+In the WPF launcher, the bundle input mode selects either a folder picker or an archive file picker. Archive selections are passed to `Invoke-LnvAssemblerRender.ps1` as `-BundleArchivePath`; folder selections remain `-BundleRoot`.
+
+Archive imports are verified before render and extracted into `<repo>/bundle/<archive-base-name>-<guid>/`. The extracted bundle is retained beside existing bundle folders for rerender/debug use. Because `bundle/` is a working staging area, imported bundles may appear as untracked files unless cleaned up separately.
 
 Document-property inputs exposed in the GUI:
 - `Title`
@@ -61,7 +65,7 @@ Current WPF layout:
 
 Current WPF document-property behavior:
 - `Document Version` defaults to `v1.0.0`
-- `Configuration Snapshot Date` is refreshed from the loaded bundle capture date when available
+- `Configuration Snapshot Date` is refreshed from a selected folder bundle capture date when available; archive mode exposes the verified extracted bundle path after render in `archiveImport.extractedBundleRoot`
 - `Reference ID` is available as an operator-entered field
 - `CoverKey.png` and `HeadFootKey.png` are shown beneath the document-property fields as a visual key for the cover page and header/footer regions
 
@@ -76,8 +80,9 @@ See `../docs/mapping-studio-wip.md` for the current detailed status.
 
 Current WPF render execution behavior:
 - render starts through `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Invoke-LnvAssemblerRender.ps1`
+- folder mode passes `-BundleRoot`; archive mode passes `-BundleArchivePath`
 - `progress.jsonl` is polled while the render runs so the UI remains responsive
-- `render-report.json` is read after completion and points back to the unchanged backend bundle report
+- `render-report.json` is read after completion and points back to the unchanged backend bundle report; archive renders also include `archiveImport.extractedBundleRoot`
 - **Cancel** writes the wrapper cancel signal and the wrapper terminates the backend process if it is still running
 
 Current `Rich Views` behavior:
