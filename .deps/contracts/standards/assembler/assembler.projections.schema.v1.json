@@ -170,6 +170,7 @@
           "type": "string",
           "enum": [
             "bytesHuman",
+            "percent",
             "join"
           ]
         },

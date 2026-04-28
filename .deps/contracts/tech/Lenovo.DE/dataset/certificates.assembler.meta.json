@@ -3,7 +3,12 @@
   "dataset": "certificates",
   "presentationKind": "table",
   "defaultItemRoot": "items",
-  "preferredProjectionViews": [],
+  "preferredProjectionViews": [
+    {
+      "name": "Certificates",
+      "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.Certificates"
+    }
+  ],
   "datasetPath": {
     "template": "datasets/__TECH_ID__/__TARGET__/__SYSTEM__/__DATASET__.json",
     "scope": "system",

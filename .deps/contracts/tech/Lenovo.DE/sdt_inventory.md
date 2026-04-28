@@ -41,7 +41,9 @@ Key (`<SystemId>`):
 - `LNV.Lenovo.DE.System[<SystemId>].Tables.Roles`
 - `LNV.Lenovo.DE.System[<SystemId>].Tables.Certificates`
 - `LNV.Lenovo.DE.System[<SystemId>].Tables.Alerts`
-- `LNV.Lenovo.DE.System[<SystemId>].Tables.Snapshots`
+- `LNV.Lenovo.DE.System[<SystemId>].Tables.SnapshotPolicy`
+- `LNV.Lenovo.DE.System[<SystemId>].Tables.SnapshotSchedule`
+- `LNV.Lenovo.DE.System[<SystemId>].Tables.SnapshotImages`
 - `LNV.Lenovo.DE.System[<SystemId>].Tables.Replication`
 - `LNV.Lenovo.DE.System[<SystemId>].Tables.CapabilitiesSummary`
 - `LNV.Lenovo.DE.System[<SystemId>].Tables.CapabilitiesKeyFeatures`
@@ -81,7 +83,9 @@ Recommended per-system order in rendered output:
    - `...Tables.Roles`
    - `...Tables.Certificates`
    - `...Tables.Alerts`
-   - `...Tables.Snapshots`
+   - `...Tables.SnapshotPolicy`
+   - `...Tables.SnapshotSchedule`
+   - `...Tables.SnapshotImages`
    - `...Tables.Replication`
    - `...Tables.VolumeMappings`
    - `LNV.Lenovo.DE.System[<SystemId>].Tables.CapabilitiesSummary`
@@ -129,7 +133,9 @@ Practical placement guidance:
 - [ ] `LNV.Lenovo.DE.System[<SystemId>].Tables.Roles`
 - [ ] `LNV.Lenovo.DE.System[<SystemId>].Tables.Certificates`
 - [ ] `LNV.Lenovo.DE.System[<SystemId>].Tables.Alerts`
-- [ ] `LNV.Lenovo.DE.System[<SystemId>].Tables.Snapshots`
+- [ ] `LNV.Lenovo.DE.System[<SystemId>].Tables.SnapshotPolicy`
+- [ ] `LNV.Lenovo.DE.System[<SystemId>].Tables.SnapshotSchedule`
+- [ ] `LNV.Lenovo.DE.System[<SystemId>].Tables.SnapshotImages`
 - [ ] `LNV.Lenovo.DE.System[<SystemId>].Tables.Replication`
 - [ ] `LNV.Lenovo.DE.System[<SystemId>].Tables.CapabilitiesSummary`
 - [ ] `LNV.Lenovo.DE.System[<SystemId>].Tables.CapabilitiesKeyFeatures`
@@ -142,7 +148,7 @@ Practical placement guidance:
 - `Tables.HostGroups` is now suitable for direct rendering because the collector already materializes membership summaries on each host-group row (for example `memberRefs` and `memberNames`), so renderers do not need to reconstruct group membership before presenting that table.
 - For host-access content, prefer `Tables.HostsToHostGroups`, `Tables.HostGroupsToVolumes`, and `Tables.HostsToVolumes` as the report-facing tables because they present the host/group/volume story in reader-friendly sections.
 - `Tables.VolumeMappings` remains the canonical low-level evidence/fact source for raw mapping rows, while `Tables.HostsToHostGroups`, `Tables.HostGroupsToVolumes`, and `Tables.HostsToVolumes` are now formal collector-emitted relationship datasets with their own Lenovo.DE dataset contracts.
-- `Tables.IdentitySources`, `Tables.Roles`, `Tables.Certificates`, `Tables.Alerts`, `Tables.Snapshots`, and `Tables.Replication` are first-class configuration/state tables and must not be satisfied by capability summary projections.
+- `Tables.IdentitySources`, `Tables.Roles`, `Tables.Certificates`, `Tables.Alerts`, `Tables.SnapshotPolicy`, `Tables.SnapshotSchedule`, `Tables.SnapshotImages`, and `Tables.Replication` are first-class configuration/state tables and must not be satisfied by capability summary projections.
 - Future datasets (events/alerts) may add:
   - `LNV.Lenovo.DE.System[<SystemId>].Tables.Events`
   - `LNV.Lenovo.DE.System[<SystemId>].Tables.Alerts`

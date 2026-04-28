@@ -356,7 +356,7 @@
     },
     {
       "target": {
-        "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.Snapshots"
+        "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy"
       },
       "required": false,
       "selectors": [
@@ -364,9 +364,39 @@
       ],
       "renderHint": {
         "renderAs": "table",
-        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.Snapshots"
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy"
       },
-      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.Snapshots",
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy",
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/snapshots.json"
+    },
+    {
+      "target": {
+        "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotSchedule"
+      },
+      "required": false,
+      "selectors": [
+        "items"
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotSchedule"
+      },
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotSchedule",
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/snapshots.json"
+    },
+    {
+      "target": {
+        "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotImages"
+      },
+      "required": false,
+      "selectors": [
+        "items"
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotImages"
+      },
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotImages",
       "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/snapshots.json"
     },
     {

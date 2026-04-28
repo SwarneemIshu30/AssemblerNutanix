@@ -3,7 +3,20 @@
   "dataset": "snapshots",
   "presentationKind": "table",
   "defaultItemRoot": "items",
-  "preferredProjectionViews": [],
+  "preferredProjectionViews": [
+    {
+      "name": "SnapshotPolicy",
+      "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy"
+    },
+    {
+      "name": "SnapshotSchedule",
+      "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotSchedule"
+    },
+    {
+      "name": "SnapshotImages",
+      "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotImages"
+    }
+  ],
   "datasetPath": {
     "template": "datasets/__TECH_ID__/__TARGET__/__SYSTEM__/__DATASET__.json",
     "scope": "system",

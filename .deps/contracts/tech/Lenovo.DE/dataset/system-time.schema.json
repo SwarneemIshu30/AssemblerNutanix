@@ -59,6 +59,8 @@
         "required": [
           "systemId",
           "controllerRef",
+          "controllerLabel",
+          "controllerSlot",
           "ntpAcquisitionType",
           "ntpServers",
           "dhcpAcquiredServers",
@@ -72,6 +74,14 @@
           "controllerRef": {
             "type": "string",
             "minLength": 1
+          },
+          "controllerLabel": {
+            "type": "string",
+            "minLength": 1
+          },
+          "controllerSlot": {
+            "type": "integer",
+            "minimum": 0
           },
           "ntpAcquisitionType": {
             "type": "string",
