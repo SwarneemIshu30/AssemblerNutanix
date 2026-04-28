@@ -2,3 +2,4 @@
 before-discard.patch
 dist/
 .packaging/staging/
+.deps/nuget/

@@ -36,12 +36,18 @@ if (-not $IsWindows) {
 }
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1'
+$invokeScript = Join-Path $repoRoot 'scripts/Invoke-LnvAssemblerRender.ps1'
 
 $guiHelpersModule = Join-Path $PSScriptRoot 'internal/AssemblerGuiHelpers.psm1'
 Import-Module $guiHelpersModule -Force
 $mappingStudioModule = Join-Path $PSScriptRoot 'internal/AssemblerGuiMappingStudio.psm1'
 Import-Module $mappingStudioModule -Force
+$renderProcessModule = Join-Path $PSScriptRoot 'internal/AssemblerGuiRenderProcess.psm1'
+Import-Module $renderProcessModule -Force
+$webViewBridgeModule = Join-Path $PSScriptRoot 'internal/AssemblerGuiWebViewBridge.psm1'
+Import-Module $webViewBridgeModule -Force
+$webView2Module = Join-Path $PSScriptRoot 'internal/AssemblerGuiWebView2.psm1'
+Import-Module $webView2Module -Force
 
 $defaultBundleRoot = Resolve-DefaultBundleRoot -RepoRoot $repoRoot
 $defaultCatalogPath = Resolve-DefaultCatalogPath -RepoRoot $repoRoot
@@ -344,12 +350,20 @@ $xaml = @"
 
           <StackPanel Grid.Row='6' Grid.Column='0' Grid.ColumnSpan='3' Orientation='Horizontal' HorizontalAlignment='Left' Margin='0,6,0,6'>
             <Button Name='RunButton' Width='140' Margin='0,0,10,0'>Run Render</Button>
+            <Button Name='CancelButton' Width='110' Margin='0,0,10,0' IsEnabled='False'>Cancel</Button>
             <CheckBox Name='VerboseCheckBox' Margin='0,0,10,0' VerticalAlignment='Center'>Verbose (include matched tags)</CheckBox>
             <CheckBox Name='DebugCheckBox' Margin='0,0,10,0' VerticalAlignment='Center'>Debug (include raw render JSON)</CheckBox>
             <TextBlock Name='StatusText' VerticalAlignment='Center'>Ready</TextBlock>
           </StackPanel>
 
-          <TextBox Name='OutputText' Grid.Row='7' Grid.Column='0' Grid.ColumnSpan='3' Margin='0,8,0,0' IsReadOnly='True' TextWrapping='Wrap' AcceptsReturn='True' VerticalScrollBarVisibility='Auto'/>
+          <Grid Grid.Row='7' Grid.Column='0' Grid.ColumnSpan='3' Margin='0,8,0,0'>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width='2*'/>
+              <ColumnDefinition Width='*'/>
+            </Grid.ColumnDefinitions>
+            <TextBox Name='OutputText' Grid.Column='0' Margin='0,0,8,0' IsReadOnly='True' TextWrapping='Wrap' AcceptsReturn='True' VerticalScrollBarVisibility='Auto'/>
+            <TextBox Name='ProgressText' Grid.Column='1' IsReadOnly='True' TextWrapping='Wrap' AcceptsReturn='True' VerticalScrollBarVisibility='Auto'/>
+          </Grid>
         </Grid>
       </TabItem>
 
@@ -703,6 +717,19 @@ $xaml = @"
           </TabControl>
         </Grid>
       </TabItem>
+
+      <TabItem Name='RichViewsTab' Header='Rich Views' Visibility='Collapsed'>
+        <Grid Margin='12'>
+          <Grid.RowDefinitions>
+            <RowDefinition Height='Auto'/>
+            <RowDefinition Height='*'/>
+          </Grid.RowDefinitions>
+          <TextBlock Name='WebViewStatusText' Grid.Row='0' Margin='0,0,0,8' TextWrapping='Wrap'>Preparing WebView2 rich views.</TextBlock>
+          <Grid Name='WebViewHostGrid' Grid.Row='1'>
+            <TextBox Name='WebViewFallbackText' IsReadOnly='True' TextWrapping='Wrap' AcceptsReturn='True' VerticalScrollBarVisibility='Auto'/>
+          </Grid>
+        </Grid>
+      </TabItem>
     </TabControl>
 
     <Border Grid.Row='0'
@@ -894,6 +921,7 @@ $catalogBrowseButton = $window.FindName('CatalogBrowseButton')
 $outputBrowseButton = $window.FindName('OutputBrowseButton')
 $contractsBrowseButton = $window.FindName('ContractsBrowseButton')
 $runButton = $window.FindName('RunButton')
+$cancelButton = $window.FindName('CancelButton')
 $statusText = $window.FindName('StatusText')
 $verboseCheckBox = $window.FindName('VerboseCheckBox')
 $debugCheckBox = $window.FindName('DebugCheckBox')
@@ -903,6 +931,11 @@ $annotateCheckBox = $window.FindName('AnnotateCheckBox')
 $docxMatchModeCombo = $window.FindName('DocxMatchModeCombo')
 $unresolvedTokenPolicyCombo = $window.FindName('UnresolvedTokenPolicyCombo')
 $outputText = $window.FindName('OutputText')
+$progressText = $window.FindName('ProgressText')
+$richViewsTab = $window.FindName('RichViewsTab')
+$webViewHostGrid = $window.FindName('WebViewHostGrid')
+$webViewFallbackText = $window.FindName('WebViewFallbackText')
+$webViewStatusText = $window.FindName('WebViewStatusText')
 $mappingCollectionCombo = $window.FindName('MappingCollectionCombo')
 $mappingRefreshButton = $window.FindName('MappingRefreshButton')
 $mappingSaveButton = $window.FindName('MappingSaveButton')
@@ -1009,6 +1042,294 @@ $connectorProjectionSortList.DisplayMemberPath = 'Label'
 
 $documentPropertyState = [ordered]@{
     LastAutoConfigSnapDate = ''
+}
+
+$renderProcessState = [ordered]@{
+    Current = $null
+    Timer = $null
+    LastProgressCount = 0
+}
+
+$webViewState = [ordered]@{
+    Control = $null
+    Ready = $false
+    LastReportPath = ''
+}
+
+function ConvertTo-WebViewJson {
+    param([Parameter(Mandatory = $true)]$Value)
+    return ($Value | ConvertTo-Json -Depth 40 -Compress)
+}
+
+function Send-WebViewMessage {
+    param(
+        [Parameter(Mandatory = $true)][string]$Type,
+        [Parameter(Mandatory = $false)]$Payload = $null,
+        [Parameter(Mandatory = $false)][string]$Id = ''
+    )
+
+    if (-not [bool]$webViewState.Ready -or $null -eq $webViewState.Control -or $null -eq $webViewState.Control.CoreWebView2) {
+        return
+    }
+
+    $message = [ordered]@{
+        id = if ([string]::IsNullOrWhiteSpace($Id)) { $null } else { $Id }
+        ok = $true
+        type = $Type
+        payload = $Payload
+        error = $null
+    }
+    $webViewState.Control.CoreWebView2.PostWebMessageAsJson((ConvertTo-WebViewJson -Value $message))
+}
+
+function Get-CurrentWebViewAllowedRoots {
+    return @(New-AssemblerWebViewBridgeRoots -RepoRoot $repoRoot -BundleRoot $bundleRootText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text)
+}
+
+function New-CurrentWebViewMappingStudioState {
+    $resolvedMappingsRoot = Join-Path $outputRootText.Text '.resolved-mappings'
+    $reportPath = if (-not [string]::IsNullOrWhiteSpace([string]$webViewState.LastReportPath)) {
+        [string]$webViewState.LastReportPath
+    }
+    else {
+        Join-Path $outputRootText.Text 'render-report.json'
+    }
+
+    return New-AssemblerWebViewMappingStudioState -Workbench $mappingStudioState.Workbench -ResolvedMappingsRoot $resolvedMappingsRoot -RenderReportPath $reportPath -Status ([string]$statusText.Text)
+}
+
+function Publish-WebViewMappingStudioState {
+    if (-not [bool]$webViewState.Ready) { return }
+    Send-WebViewMessage -Type 'MappingStudioState' -Payload (New-CurrentWebViewMappingStudioState)
+}
+
+function Add-ProgressLine {
+    param([Parameter(Mandatory = $true)][string]$Text)
+
+    if ([string]::IsNullOrWhiteSpace($progressText.Text)) {
+        $progressText.Text = $Text
+    }
+    else {
+        $progressText.AppendText([Environment]::NewLine + $Text)
+    }
+    $progressText.ScrollToEnd()
+}
+
+function Start-RenderFromCurrentInputs {
+    if ($null -ne $renderProcessState.Current) {
+        return [ordered]@{ accepted = $false; reason = 'Render already running.' }
+    }
+
+    Update-DocumentPropertyDefaultsFromBundle
+    $statusText.Text = 'Starting render process...'
+    $outputText.Text = ''
+    $progressText.Text = ''
+    $techSelection = @($techIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    $entrySelection = @($entryIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    $docxModeSelection = [string]$docxMatchModeCombo.SelectedItem.Content
+    $unresolvedTokenPolicySelection = [string]$unresolvedTokenPolicyCombo.SelectedItem.Content
+    $outputTypes = @()
+    if ([bool]$docxCheckBox.IsChecked) { $outputTypes += 'docx' }
+    if ([bool]$txtCheckBox.IsChecked) { $outputTypes += 'text' }
+
+    $invocation = New-AssemblerGuiRenderInvocation -RepoRoot $repoRoot -BundleRoot $bundleRootText.Text -CatalogPath $catalogPathText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text -TechId $techSelection -EntryId $entrySelection -OutputType $outputTypes -DocTitle $docTitleText.Text -DocCustomer $docCustomerText.Text -DocCustomerAbbr $docCustomerAbbrText.Text -DocLocation $docLocationText.Text -DocSubsidiary $docSubsidiaryText.Text -DocEnvironment $docEnvironmentText.Text -DocDocumentReference $docDocumentReferenceText.Text -DocVersion $docVersionText.Text -DocConfigSnapDate $docConfigSnapDateText.Text -DocReferenceId $docReferenceIdText.Text -DocClassification $docClassificationText.Text -AnnotateResolvedTags ([bool]$annotateCheckBox.IsChecked) -DocxMatchMode $docxModeSelection -UnresolvedTokenPolicy $unresolvedTokenPolicySelection
+    $renderProcessState.Current = Start-AssemblerGuiRenderProcess -Invocation $invocation
+    $renderProcessState.LastProgressCount = 0
+    $webViewState.LastReportPath = [string]$invocation.ReportPath
+    $runButton.IsEnabled = $false
+    $cancelButton.IsEnabled = $true
+    $statusText.Text = 'Render running out-of-process...'
+    Add-ProgressLine -Text "Started: pwsh $($invocation.Arguments -join ' ')"
+    $renderProcessState.Timer.Start()
+    Publish-WebViewMappingStudioState
+
+    return [ordered]@{
+        accepted = $true
+        outputRoot = [string]$outputRootText.Text
+        progressPath = [string]$invocation.ProgressPath
+        reportPath = [string]$invocation.ReportPath
+    }
+}
+
+function Update-RenderProgressFromFile {
+    if ($null -eq $renderProcessState.Current) { return }
+
+    $events = @(Read-AssemblerGuiProgressEvents -Path ([string]$renderProcessState.Current.Invocation.ProgressPath))
+    if ($events.Count -le [int]$renderProcessState.LastProgressCount) { return }
+
+    foreach ($event in @($events | Select-Object -Skip ([int]$renderProcessState.LastProgressCount))) {
+        $statusText.Text = "$($event.stage): $($event.message)"
+        Add-ProgressLine -Text ("{0,3}% [{1}] {2}" -f [int]$event.percent, [string]$event.stage, [string]$event.message)
+        Send-WebViewMessage -Type 'ProgressEvent' -Payload $event
+    }
+    $renderProcessState.LastProgressCount = $events.Count
+}
+
+function Complete-RenderProcessIfFinished {
+    if ($null -eq $renderProcessState.Current) { return }
+    $process = $renderProcessState.Current.Process
+    if ($null -eq $process -or -not $process.HasExited) { return }
+
+    if ($null -ne $renderProcessState.Timer) {
+        $renderProcessState.Timer.Stop()
+    }
+
+    Update-RenderProgressFromFile
+    $wrapperReport = Get-AssemblerGuiWrapperReport -Path ([string]$renderProcessState.Current.Invocation.ReportPath)
+    $wrapperStdout = [string]$renderProcessState.Current.StdoutTask.GetAwaiter().GetResult()
+    $wrapperStderr = [string]$renderProcessState.Current.StderrTask.GetAwaiter().GetResult()
+    $backendJson = Get-AssemblerGuiBackendReportJson -WrapperReport $wrapperReport -FallbackJson $wrapperStdout
+    if ([string]::IsNullOrWhiteSpace($backendJson) -and $null -ne $wrapperReport) {
+        $backendJson = $wrapperReport | ConvertTo-Json -Depth 20
+    }
+    $webViewState.LastReportPath = [string]$renderProcessState.Current.Invocation.ReportPath
+
+    if ([int]$process.ExitCode -eq 0) {
+        $statusText.Text = 'Render completed successfully.'
+        $outputText.Text = if ($debugCheckBox.IsChecked) {
+            Format-DebugBundleOutput -BundleResultJson $backendJson
+        }
+        elseif ($verboseCheckBox.IsChecked) {
+            Format-VerboseFindingsOutput -BundleResultJson $backendJson
+        }
+        else {
+            Format-RenderFindingsSummary -BundleResultJson $backendJson
+        }
+    }
+    elseif ([int]$process.ExitCode -eq 130) {
+        $statusText.Text = 'Render cancelled.'
+        $outputText.Text = if ($null -ne $wrapperReport) { $wrapperReport | ConvertTo-Json -Depth 20 } else { $wrapperStderr }
+    }
+    else {
+        $statusText.Text = "Render failed (exit code $([int]$process.ExitCode))."
+        $outputText.Text = @(
+            'Wrapper stdout:'
+            $wrapperStdout
+            ''
+            'Wrapper stderr:'
+            $wrapperStderr
+        ) -join [Environment]::NewLine
+    }
+
+    $runButton.IsEnabled = $true
+    $cancelButton.IsEnabled = $false
+    $renderProcessState.Current = $null
+    $renderProcessState.LastProgressCount = 0
+    Send-WebViewMessage -Type 'RenderReport' -Payload $wrapperReport
+    Publish-WebViewMappingStudioState
+}
+
+function Initialize-RenderProgressTimer {
+    $timer = [System.Windows.Threading.DispatcherTimer]::new()
+    $timer.Interval = [TimeSpan]::FromMilliseconds(500)
+    $timer.Add_Tick({
+        try {
+            Update-RenderProgressFromFile
+            Complete-RenderProcessIfFinished
+        }
+        catch {
+            $statusText.Text = "Progress polling failed: $($_.Exception.Message)"
+        }
+    })
+    $renderProcessState.Timer = $timer
+}
+
+function Initialize-WebViewHost {
+    $webViewPath = Join-Path $PSScriptRoot 'webview/index.html'
+    $bootstrap = Get-AssemblerWebView2BootstrapStatus -RepoRoot $repoRoot
+    $webViewFallbackText.Text = @(
+        [string]$bootstrap.message
+        ''
+        "Static asset: $webViewPath"
+        ''
+        'Run scripts/Restore-WebView2Dependency.ps1 to restore the WebView2 SDK assembly.'
+        'Install Microsoft Edge WebView2 Runtime if the runtime is missing.'
+        ''
+        'The existing native Mapping Studio tab remains available.'
+    ) -join [Environment]::NewLine
+
+    $richViewsTab.Visibility = [System.Windows.Visibility]::Collapsed
+    $webViewState.Ready = $false
+    $webViewState.Control = $null
+
+    if (-not (Test-Path -LiteralPath $webViewPath -PathType Leaf)) {
+        $webViewStatusText.Text = 'WebView2 assets are missing.'
+        return
+    }
+    if (-not [bool]$bootstrap.available) {
+        $webViewStatusText.Text = [string]$bootstrap.message
+        return
+    }
+
+    try {
+        $loaderDirectory = Split-Path -Parent ([string]$bootstrap.loaderPath)
+        if (-not ([string]$env:PATH).Split([System.IO.Path]::PathSeparator) -contains $loaderDirectory) {
+            $env:PATH = $loaderDirectory + [System.IO.Path]::PathSeparator + $env:PATH
+        }
+        $coreAssemblyPath = Join-Path (Split-Path -Parent ([string]$bootstrap.assemblyPath)) 'Microsoft.Web.WebView2.Core.dll'
+        if (Test-Path -LiteralPath $coreAssemblyPath -PathType Leaf) {
+            Add-Type -Path $coreAssemblyPath -ErrorAction Stop
+        }
+        Add-Type -Path ([string]$bootstrap.assemblyPath) -ErrorAction Stop
+        $webView = [Microsoft.Web.WebView2.Wpf.WebView2]::new()
+        $webViewHostGrid.Children.Clear()
+        [void]$webViewHostGrid.Children.Add($webView)
+        $webViewState.Control = $webView
+        $richViewsTab.Visibility = [System.Windows.Visibility]::Visible
+        $webViewStatusText.Text = 'Initializing WebView2 rich views...'
+        $webView.add_CoreWebView2InitializationCompleted({
+            param($sender, $eventArgs)
+            if (-not [bool]$eventArgs.IsSuccess) {
+                $webViewState.Ready = $false
+                $webViewStatusText.Text = "WebView2 rich views unavailable: $($eventArgs.InitializationException.Message)"
+                return
+            }
+
+            try {
+                $sender.CoreWebView2.add_WebMessageReceived({
+                    param($messageSender, $messageArgs)
+                    try {
+                        $callbacks = @{
+                            ValidateMapping = {
+                                Refresh-MappingStudioWorkbench
+                                $state = New-CurrentWebViewMappingStudioState
+                                Send-WebViewMessage -Type 'MappingStudioState' -Payload $state
+                                return [ordered]@{ status = 'ok'; refreshed = $true }
+                            }
+                            RunRender = {
+                                return (Start-RenderFromCurrentInputs)
+                            }
+                        }
+                        $response = Invoke-AssemblerWebViewCommand -Message $messageArgs.WebMessageAsJson -RepoRoot $repoRoot -AllowedRoots (Get-CurrentWebViewAllowedRoots) -Callbacks $callbacks
+                        $messageSender.PostWebMessageAsJson((ConvertTo-WebViewJson -Value $response))
+                    }
+                    catch {
+                        $response = New-AssemblerWebViewResponse -Ok $false -Type 'Error' -Error $_.Exception.Message
+                        $messageSender.PostWebMessageAsJson((ConvertTo-WebViewJson -Value $response))
+                    }
+                })
+                $webViewState.Ready = $true
+                $webViewStatusText.Text = 'WebView2 rich views loaded.'
+                Publish-WebViewMappingStudioState
+            }
+            catch {
+                $webViewState.Ready = $false
+                $webViewStatusText.Text = "WebView2 bridge unavailable: $($_.Exception.Message)"
+            }
+        })
+        $webView.add_NavigationCompleted({
+            Publish-WebViewMappingStudioState
+        })
+        $null = $window.Dispatcher.BeginInvoke([Action]{
+            $webView.Source = [System.Uri]::new($webViewPath, [System.UriKind]::Absolute)
+        }, [System.Windows.Threading.DispatcherPriority]::ApplicationIdle)
+    }
+    catch {
+        $richViewsTab.Visibility = [System.Windows.Visibility]::Visible
+        $webViewState.Ready = $false
+        $webViewState.Control = $null
+        $webViewStatusText.Text = "WebView2 rich views unavailable: $($_.Exception.Message)"
+    }
 }
 
 function Resolve-LoadedBundleRoot {
@@ -2033,6 +2354,7 @@ function Refresh-MappingStudioWorkbench {
     }
     finally {
         $mappingStudioState.IsRefreshing = $false
+        Publish-WebViewMappingStudioState
     }
 }
 
@@ -2042,28 +2364,39 @@ $bundleBrowseButton.Add_Click({
     if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
         $bundleRootText.Text = $dialog.SelectedPath
         Update-DocumentPropertyDefaultsFromBundle
+        Publish-WebViewMappingStudioState
     }
 })
 $catalogBrowseButton.Add_Click({
     $dialog = New-Object System.Windows.Forms.OpenFileDialog
     $dialog.Filter = 'Catalog JSON (*.catalog.json)|*.catalog.json|JSON (*.json)|*.json|All files (*.*)|*.*'
     $dialog.InitialDirectory = Resolve-DialogInitialDirectory -Path $catalogPathText.Text -RepoRoot $repoRoot -FallbackPath $defaultCatalogPath -PathKind File
-    if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $catalogPathText.Text = $dialog.FileName }
+    if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+        $catalogPathText.Text = $dialog.FileName
+        Publish-WebViewMappingStudioState
+    }
 })
 $outputBrowseButton.Add_Click({
     $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
     $outputBrowsePath = Resolve-DialogInitialDirectory -Path $outputRootText.Text -RepoRoot $repoRoot -FallbackPath $defaultOutputRoot -PathKind Directory -CreateIfMissing
     $dialog.InitialDirectory = $outputBrowsePath
     $dialog.SelectedPath = $outputBrowsePath
-    if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $outputRootText.Text = $dialog.SelectedPath }
+    if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+        $outputRootText.Text = $dialog.SelectedPath
+        Publish-WebViewMappingStudioState
+    }
 })
 $contractsBrowseButton.Add_Click({
     $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
     $dialog.SelectedPath = Resolve-DialogInitialDirectory -Path $contractsRootText.Text -RepoRoot $repoRoot -FallbackPath $defaultContractsRoot -PathKind Directory
-    if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $contractsRootText.Text = $dialog.SelectedPath }
+    if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+        $contractsRootText.Text = $dialog.SelectedPath
+        Publish-WebViewMappingStudioState
+    }
 })
 $bundleRootText.Add_LostFocus({
     Update-DocumentPropertyDefaultsFromBundle
+    Publish-WebViewMappingStudioState
 })
 $mappingRefreshButton.Add_Click({
     Refresh-MappingStudioWorkbench
@@ -2401,26 +2734,25 @@ $mappingSaveButton.Add_Click({
 
 $runButton.Add_Click({
     try {
-        Update-DocumentPropertyDefaultsFromBundle
-        $statusText.Text = 'Running render...'
-        $techSelection = @($techIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-        $entrySelection = @($entryIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-        $docxModeSelection = [string]$docxMatchModeCombo.SelectedItem.Content
-        $unresolvedTokenPolicySelection = [string]$unresolvedTokenPolicyCombo.SelectedItem.Content
-        $resultJson = Invoke-BundleRender -BundleRoot $bundleRootText.Text -CatalogPath $catalogPathText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text -TechId $techSelection -EntryId $entrySelection -DocTitle $docTitleText.Text -DocCustomer $docCustomerText.Text -DocCustomerAbbr $docCustomerAbbrText.Text -DocLocation $docLocationText.Text -DocSubsidiary $docSubsidiaryText.Text -DocEnvironment $docEnvironmentText.Text -DocDocumentReference $docDocumentReferenceText.Text -DocVersion $docVersionText.Text -DocConfigSnapDate $docConfigSnapDateText.Text -DocReferenceId $docReferenceIdText.Text -DocClassification $docClassificationText.Text -IncludeDocx ([bool]$docxCheckBox.IsChecked) -IncludeTxt ([bool]$txtCheckBox.IsChecked) -AnnotateResolvedTags ([bool]$annotateCheckBox.IsChecked) -DocxMatchMode $docxModeSelection -UnresolvedTokenPolicy $unresolvedTokenPolicySelection
-        $statusText.Text = 'Render completed successfully.'
-        $outputText.Text = if ($debugCheckBox.IsChecked) {
-            Format-DebugBundleOutput -BundleResultJson $resultJson
-        }
-        elseif ($verboseCheckBox.IsChecked) {
-            Format-VerboseFindingsOutput -BundleResultJson $resultJson
-        }
-        else {
-            Format-RenderFindingsSummary -BundleResultJson $resultJson
-        }
+        $null = Start-RenderFromCurrentInputs
     }
     catch {
-        $statusText.Text = 'Render failed.'
+        $runButton.IsEnabled = $true
+        $cancelButton.IsEnabled = $false
+        $renderProcessState.Current = $null
+        $statusText.Text = 'Render failed to start.'
+        $outputText.Text = $_.Exception.ToString()
+    }
+})
+
+$cancelButton.Add_Click({
+    try {
+        if ($null -eq $renderProcessState.Current) { return }
+        $statusText.Text = 'Cancelling render...'
+        Request-AssemblerGuiRenderCancel -RenderState $renderProcessState.Current
+    }
+    catch {
+        $statusText.Text = 'Cancel request failed.'
         $outputText.Text = $_.Exception.ToString()
     }
 })
@@ -2428,5 +2760,7 @@ $runButton.Add_Click({
 Update-DocumentPropertyDefaultsFromBundle
 Refresh-MappingStudioWorkbench
 Update-MappingChangesView
+Initialize-RenderProgressTimer
+Initialize-WebViewHost
 
 [void]$window.ShowDialog()

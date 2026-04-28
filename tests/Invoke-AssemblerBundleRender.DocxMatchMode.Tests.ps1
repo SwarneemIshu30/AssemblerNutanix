@@ -1,11 +1,13 @@
 Describe 'Invoke-AssemblerBundleRender DOCX match mode forwarding' {
+    BeforeAll {
+    $script:repoRoot = Split-Path -Parent $PSScriptRoot
+
     function New-MinimalContractsRoot {
         param(
             [Parameter(Mandatory = $true)][string]$Root
         )
 
-        $repoRoot = Split-Path -Parent $PSScriptRoot
-        $sourceContractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $sourceContractsRoot = Join-Path $script:repoRoot '.deps/contracts'
         $contractsRoot = Join-Path $Root 'contracts'
         $null = New-Item -Path $contractsRoot -ItemType Directory -Force
 
@@ -114,9 +116,9 @@ Describe 'Invoke-AssemblerBundleRender DOCX match mode forwarding' {
             $fs.Dispose()
         }
     }
+    }
 
     It 'forwards DocxMatchMode to nested SDT render diagnostics' {
-        $repoRoot = Split-Path -Parent $PSScriptRoot
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
         if ([string]::IsNullOrWhiteSpace($pwshPath)) {
             throw 'pwsh is required to execute scripts in this test'
@@ -186,7 +188,7 @@ Describe 'Invoke-AssemblerBundleRender DOCX match mode forwarding' {
             } | ConvertTo-Json -Depth 10)
 
             $contractsRoot = New-MinimalContractsRoot -Root $tempRoot
-            $scriptPath = Join-Path $repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1'
+            $scriptPath = Join-Path $script:repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1'
             $json = & $pwshPath -NoLogo -NoProfile -File $scriptPath -BundleRoot $bundleRoot -CatalogPath $catalogPath -OutputRoot $outputRoot -ContractsRoot $contractsRoot -TechId 'Test.Tech' -DocTitle 'My Title' -DocCustomer 'Acme Customer' -DocxMatchMode 'literal-token'
             if ($LASTEXITCODE -ne 0) {
                 throw "Expected successful bundle render exit code, got $LASTEXITCODE. Output: $json"

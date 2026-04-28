@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LNV Assembler Mapping Studio</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>Mapping Studio</h1>
+        <p id="statusText">Waiting for WPF bridge data.</p>
+      </div>
+      <div class="actions">
+        <button id="refreshButton" type="button">Refresh</button>
+        <button id="runRenderButton" type="button">Run Render</button>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <aside class="pane inventory-pane">
+        <div class="pane-header">
+          <h2>SDT Inventory</h2>
+          <input id="sdtSearch" type="search" placeholder="Search tags">
+        </div>
+        <div id="sdtInventory" class="list"></div>
+      </aside>
+
+      <section class="pane editor-pane">
+        <div class="pane-header">
+          <h2>Manifest</h2>
+          <span id="manifestPath" class="muted"></span>
+        </div>
+        <pre id="manifestText" class="code-view"></pre>
+      </section>
+
+      <aside class="pane preview-pane">
+        <div class="tabs">
+          <button class="tab active" data-tab="resolved" type="button">Resolved</button>
+          <button class="tab" data-tab="validation" type="button">Validation</button>
+          <button class="tab" data-tab="report" type="button">Report</button>
+        </div>
+        <pre id="resolvedView" class="code-view tab-panel"></pre>
+        <pre id="validationView" class="code-view tab-panel hidden"></pre>
+        <pre id="reportView" class="code-view tab-panel hidden"></pre>
+      </aside>
+    </section>
+
+    <section class="logs-pane">
+      <div class="pane-header">
+        <h2>Progress</h2>
+        <span id="progressSummary" class="muted"></span>
+      </div>
+      <div id="progressStream" class="progress-stream"></div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>

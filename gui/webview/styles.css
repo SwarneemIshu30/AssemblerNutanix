@@ -1,0 +1,190 @@
+:root {
+  color-scheme: light;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f5f7f8;
+  color: #1b1f23;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 900px;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr 190px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 18px;
+  background: #ffffff;
+  border-bottom: 1px solid #d8dee4;
+}
+
+h1,
+h2 {
+  margin: 0;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 20px;
+}
+
+h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  color: #38434f;
+}
+
+p {
+  margin: 4px 0 0;
+}
+
+button {
+  border: 1px solid #b8c2cc;
+  border-radius: 4px;
+  background: #ffffff;
+  padding: 7px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #eef3f6;
+}
+
+button:disabled {
+  color: #7b8794;
+  cursor: default;
+}
+
+input {
+  width: 100%;
+  border: 1px solid #b8c2cc;
+  border-radius: 4px;
+  padding: 7px 9px;
+  font: inherit;
+}
+
+.workspace {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(250px, 0.8fr) minmax(360px, 1.2fr) minmax(320px, 1fr);
+  gap: 10px;
+  padding: 10px;
+}
+
+.pane,
+.logs-pane {
+  min-height: 0;
+  background: #ffffff;
+  border: 1px solid #d8dee4;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.pane {
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.pane-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-bottom: 1px solid #e5e9ee;
+}
+
+.muted {
+  color: #65727f;
+  font-size: 12px;
+}
+
+.list {
+  overflow: auto;
+  padding: 6px;
+}
+
+.list-item {
+  padding: 8px;
+  border-bottom: 1px solid #eef1f4;
+}
+
+.list-item strong {
+  display: block;
+  margin-bottom: 3px;
+}
+
+.code-view {
+  min-height: 0;
+  margin: 0;
+  padding: 10px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font: 12px/1.45 Consolas, "Cascadia Mono", monospace;
+  background: #fbfcfd;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #e5e9ee;
+  background: #ffffff;
+}
+
+.tab {
+  border: 0;
+  border-right: 1px solid #e5e9ee;
+  border-radius: 0;
+  padding: 10px 12px;
+}
+
+.tab.active {
+  background: #e8f2f7;
+  color: #0f5b7a;
+  font-weight: 600;
+}
+
+.hidden {
+  display: none;
+}
+
+.logs-pane {
+  margin: 0 10px 10px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.progress-stream {
+  overflow: auto;
+  padding: 8px 10px;
+  font: 12px/1.4 Consolas, "Cascadia Mono", monospace;
+}
+
+.progress-event {
+  display: grid;
+  grid-template-columns: 80px 90px 70px 1fr;
+  gap: 8px;
+  padding: 3px 0;
+  border-bottom: 1px solid #f0f2f4;
+}
+
+.progress-event.warn {
+  color: #8a5a00;
+}
+
+.progress-event.error {
+  color: #b42318;
+}

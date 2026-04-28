@@ -1,7 +1,9 @@
 # Assembler GUI launchers
 
-This folder contains side-by-side launcher options for bundle rendering via
-`scripts/Invoke-AssemblerBundleRender.ps1`.
+This folder contains side-by-side launcher options for assembler rendering. The
+WPF launcher uses `scripts/Invoke-LnvAssemblerRender.ps1` as the canonical
+process boundary, while the legacy cross-platform launcher still calls
+`scripts/Invoke-AssemblerBundleRender.ps1` directly.
 
 ## Standard GUI input locations
 
@@ -47,13 +49,15 @@ Supports mode selection with `-Mode Auto|WinForms|Terminal`:
 A dedicated WPF launcher for Windows desktop environments. It loads WPF assemblies
 (`PresentationFramework`, `PresentationCore`, `WindowsBase`), renders a native
 WPF window, provides **Browse** buttons for path fields, and invokes
-`Invoke-AssemblerBundleRender.ps1` with the provided inputs. It also includes
+`Invoke-LnvAssemblerRender.ps1` with the provided inputs in an out-of-process
+`pwsh.exe` child process. It also includes
 **Verbose** and **Debug** checkboxes that provide two-step feedback: concise findings summary by default, matched-tag details in Verbose mode, and full raw render JSON in Debug mode.
 
 Current WPF layout:
 - `Document Properties` tab for operator-entered document metadata
 - `Render Workflow` tab for bundle/catalog/output selection and render execution
 - `Mapping Studio` tab for contract-driven mapping inspection and in-progress authoring
+- `Rich Views` tab appears when `Microsoft.Web.WebView2.Wpf.dll` has been restored and the Microsoft Edge WebView2 Runtime is available
 
 Current WPF document-property behavior:
 - `Document Version` defaults to `v1.0.0`
@@ -69,6 +73,17 @@ Current `Mapping Studio` status:
 - still work in progress for mapping authoring
 
 See `../docs/mapping-studio-wip.md` for the current detailed status.
+
+Current WPF render execution behavior:
+- render starts through `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Invoke-LnvAssemblerRender.ps1`
+- `progress.jsonl` is polled while the render runs so the UI remains responsive
+- `render-report.json` is read after completion and points back to the unchanged backend bundle report
+- **Cancel** writes the wrapper cancel signal and the wrapper terminates the backend process if it is still running
+
+Current `Rich Views` behavior:
+- read-only WebView2 surface for SDT inventory, mapping manifest text, resolved mappings, validation, progress, and render report
+- WebView commands are handled by WPF; file IO and render execution do not move into JavaScript
+- restore the SDK assembly with `pwsh ./scripts/Restore-WebView2Dependency.ps1`; the restored package is kept under `.deps/nuget` and is not committed
 
 ## Quick start
 
@@ -90,9 +105,10 @@ pwsh ./gui/Start-AssemblerGui.Wpf.ps1
 
 Public entrypoint map:
 - **Pipeline path:** `Invoke-AssemblerPipeline.ps1` -> `Invoke-AssemblerBundleRender.ps1` -> `Invoke-AssemblerSdtRender.ps1`
-- **GUI path:** `Start-AssemblerGui.ps1` / `Start-AssemblerGui.Wpf.ps1` -> `Invoke-AssemblerBundleRender.ps1`
+- **WPF GUI path:** `Start-AssemblerGui.Wpf.ps1` -> `Invoke-LnvAssemblerRender.ps1` -> `Invoke-AssemblerBundleRender.ps1` -> `Invoke-AssemblerSdtRender.ps1`
+- **Legacy GUI path:** `Start-AssemblerGui.ps1` -> `Invoke-AssemblerBundleRender.ps1` -> `Invoke-AssemblerSdtRender.ps1`
 
-Bundle render is intentionally the GUI handoff boundary. If mappings contain runtime placeholders such as `__TARGET__` and `__SYSTEM__`, bundle render is required to resolve those values before SDT rendering.
+The WPF process boundary is the wrapper, and the wrapper delegates to bundle render. If mappings contain runtime placeholders such as `__TARGET__` and `__SYSTEM__`, bundle render is still required to resolve those values before SDT rendering.
 
 DOCX behavior exposed through the GUI:
 - `literal-token` populates dataset-driven literal `<<SDT:...>>` tokens in DOCX parts.

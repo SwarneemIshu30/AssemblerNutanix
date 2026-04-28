@@ -1,15 +1,33 @@
 Describe 'Start-AssemblerGui shared helper module' {
-    $repoRoot = Split-Path -Parent $PSScriptRoot
-    $modulePath = Join-Path $repoRoot 'gui/internal/AssemblerGuiHelpers.psm1'
-    Import-Module $modulePath -Force
+    BeforeAll {
+        $script:repoRoot = Split-Path -Parent $PSScriptRoot
+        $script:modulePath = Join-Path $script:repoRoot 'gui/internal/AssemblerGuiHelpers.psm1'
+        Import-Module $script:modulePath -Force
+    }
 
     It 'resolves default roots and catalog paths consistently' {
-        $bundleRoot = Resolve-DefaultBundleRoot -RepoRoot $repoRoot
-        $catalogPath = Resolve-DefaultCatalogPath -RepoRoot $repoRoot
-        $contractsRoot = Resolve-DefaultContractsRoot -RepoRoot $repoRoot
+        $bundleRoot = Resolve-DefaultBundleRoot -RepoRoot $script:repoRoot
+        $catalogPath = Resolve-DefaultCatalogPath -RepoRoot $script:repoRoot
+        $contractsRoot = Resolve-DefaultContractsRoot -RepoRoot $script:repoRoot
 
-        if ([string]::IsNullOrWhiteSpace($bundleRoot) -or -not (Test-Path -LiteralPath $bundleRoot -PathType Container)) {
-            throw 'Expected bundle root to resolve to an existing container path'
+        $stagingRoot = Join-Path $script:repoRoot 'bundle'
+        $validChildBundles = @()
+        if (Test-Path -LiteralPath $stagingRoot -PathType Container) {
+            $validChildBundles = @(Get-ChildItem -LiteralPath $stagingRoot -Directory | Where-Object {
+                    (Test-Path -LiteralPath (Join-Path $_.FullName 'manifest.json') -PathType Leaf) -or
+                    (Test-Path -LiteralPath (Join-Path $_.FullName 'manifest.yaml') -PathType Leaf) -or
+                    (Test-Path -LiteralPath (Join-Path $_.FullName 'objectIndex.json') -PathType Leaf) -or
+                    (Test-Path -LiteralPath (Join-Path $_.FullName 'config/solution.plan.json') -PathType Leaf)
+                })
+        }
+
+        if ($validChildBundles.Count -gt 1) {
+            if (-not [string]::IsNullOrWhiteSpace($bundleRoot)) {
+                throw "Expected ambiguous bundle staging root to require operator selection, got '$bundleRoot'"
+            }
+        }
+        elseif ([string]::IsNullOrWhiteSpace($bundleRoot) -or -not (Test-Path -LiteralPath $bundleRoot -PathType Container)) {
+            throw 'Expected bundle root to resolve to an existing container path when the repo has one valid candidate'
         }
         if ([string]::IsNullOrWhiteSpace($catalogPath) -or -not (Test-Path -LiteralPath $catalogPath -PathType Leaf)) {
             throw 'Expected catalog path to resolve to an existing catalog file'

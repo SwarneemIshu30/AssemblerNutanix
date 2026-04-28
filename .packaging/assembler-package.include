@@ -8,10 +8,12 @@ gui
 scripts/README.md
 scripts/Check-DocxLiteralTokens.ps1
 scripts/Get-LenovoTemplateSha256.ps1
+scripts/Invoke-LnvAssemblerRender.ps1
 scripts/Invoke-AssemblerBundleRender.ps1
 scripts/Invoke-AssemblerPipeline.ps1
 scripts/Invoke-AssemblerSdtRender.ps1
 scripts/New-AssemblerSkeleton.ps1
+scripts/Restore-WebView2Dependency.ps1
 scripts/Sync-AssemblerContractsToRepo.ps1
 scripts/internal
 templates/skeletons

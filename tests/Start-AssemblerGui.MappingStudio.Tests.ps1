@@ -1,9 +1,38 @@
 Describe 'Start-AssemblerGui Mapping Studio module' {
-    $repoRoot = Split-Path -Parent $PSScriptRoot
-    $modulePath = Join-Path $repoRoot 'gui/internal/AssemblerGuiMappingStudio.psm1'
-    $catalogPath = Join-Path $repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json'
-    $contractsRoot = Join-Path $repoRoot '.deps/contracts'
-    $bundleRoot = Join-Path $repoRoot 'bundle'
+    BeforeAll {
+    $script:repoRoot = Split-Path -Parent $PSScriptRoot
+    $script:modulePath = Join-Path $script:repoRoot 'gui/internal/AssemblerGuiMappingStudio.psm1'
+    $script:catalogPath = Join-Path $script:repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json'
+    $script:contractsRoot = Join-Path $script:repoRoot '.deps/contracts'
+
+    function Resolve-TestBundleRoot {
+        param([Parameter(Mandatory = $true)][string]$RepoRoot)
+
+        $stagingRoot = Join-Path $RepoRoot 'bundle'
+        if (-not (Test-Path -LiteralPath $stagingRoot -PathType Container)) {
+            throw "Expected bundle staging root '$stagingRoot'"
+        }
+
+        $preferredBundle = Join-Path $stagingRoot 'b0c8360d-800e-4cab-a84f-d1bc53c8646f'
+        if (Test-Path -LiteralPath (Join-Path $preferredBundle 'datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json') -PathType Leaf) {
+            return $preferredBundle
+        }
+
+        $validBundles = @(Get-ChildItem -LiteralPath $stagingRoot -Directory | Where-Object {
+                (Test-Path -LiteralPath (Join-Path $_.FullName 'datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json') -PathType Leaf) -and
+                ((Test-Path -LiteralPath (Join-Path $_.FullName 'manifest.json') -PathType Leaf) -or
+                    (Test-Path -LiteralPath (Join-Path $_.FullName 'objectIndex.json') -PathType Leaf) -or
+                    (Test-Path -LiteralPath (Join-Path $_.FullName 'config/solution.plan.json') -PathType Leaf))
+            } | Sort-Object Name)
+
+        if ($validBundles.Count -eq 0) {
+            throw "Expected at least one Lenovo.DE bundle fixture under '$stagingRoot'"
+        }
+
+        return [string]$validBundles[0].FullName
+    }
+
+    $script:bundleRoot = Resolve-TestBundleRoot -RepoRoot $script:repoRoot
 
     function New-DeterministicTempRoot {
         param([Parameter(Mandatory = $true)][string]$Name)
@@ -19,10 +48,10 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
 
     function Get-LenovoWorkbench {
         param(
-            [string]$ResolvedRepoRoot = $repoRoot,
-            [string]$ResolvedCatalogPath = $catalogPath,
-            [string]$ResolvedContractsRoot = $contractsRoot,
-            [string]$ResolvedBundleRoot = $bundleRoot
+            [string]$ResolvedRepoRoot = $script:repoRoot,
+            [string]$ResolvedCatalogPath = $script:catalogPath,
+            [string]$ResolvedContractsRoot = $script:contractsRoot,
+            [string]$ResolvedBundleRoot = $script:bundleRoot
         )
 
         $collection = Get-TemplateCollections -CatalogPath $ResolvedCatalogPath | Select-Object -First 1
@@ -131,8 +160,8 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         $contractsDestination = Join-Path $tempRoot '.deps/contracts/tech/Lenovo.DE'
         $exportDestination = Join-Path $tempRoot 'exports/LNV.AsBuiltDoc.Contracts/tech/Lenovo.DE'
 
-        Copy-Item -LiteralPath (Join-Path $repoRoot 'templates/skeletons/Lenovo.DE') -Destination $skeletonDestination -Recurse -Force
-        Copy-Item -LiteralPath (Join-Path $repoRoot '.deps/contracts/tech/Lenovo.DE') -Destination $contractsDestination -Recurse -Force
+        Copy-Item -LiteralPath (Join-Path $script:repoRoot 'templates/skeletons/Lenovo.DE') -Destination $skeletonDestination -Recurse -Force
+        Copy-Item -LiteralPath (Join-Path $script:repoRoot '.deps/contracts/tech/Lenovo.DE') -Destination $contractsDestination -Recurse -Force
         New-Item -ItemType Directory -Path $exportDestination -Force | Out-Null
 
         $tokenAuditPath = Join-Path $skeletonDestination 'DE-SDT-Collector.token-audit.md'
@@ -161,7 +190,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
             RepoRoot = $tempRoot
             CatalogPath = Join-Path $skeletonDestination 'DE-SDT-Collector.catalog.json'
             ContractsRoot = Join-Path $tempRoot '.deps/contracts'
-            BundleRoot = $bundleRoot
+            BundleRoot = $script:bundleRoot
             ContractPath = $contractPath
             ExportMirrorPath = Join-Path $exportDestination 'mapping.dataset-to-sdt.v1.yaml'
             ProjectionContractPath = Join-Path $contractsDestination 'assembler.projections.v1.json'
@@ -172,10 +201,11 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         }
     }
 
-    Import-Module $modulePath -Force
+    Import-Module $script:modulePath -Force
+    }
 
     It 'discovers template collections and prefers the DOCX variant first' {
-        $collections = @(Get-TemplateCollections -CatalogPath $catalogPath)
+        $collections = @(Get-TemplateCollections -CatalogPath $script:catalogPath)
         if ($collections.Count -lt 2) {
             throw "Expected multiple template collections, got $($collections.Count)"
         }
@@ -188,7 +218,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
     }
 
     It 'avoids unsafe first-item indexing in the Mapping Studio connector editor defaults' {
-        $wpfScriptPath = Join-Path $repoRoot 'gui/Start-AssemblerGui.Wpf.ps1'
+        $wpfScriptPath = Join-Path $script:repoRoot 'gui/Start-AssemblerGui.Wpf.ps1'
         $wpfScriptText = Get-Content -LiteralPath $wpfScriptPath -Raw -Encoding UTF8
 
         if ($wpfScriptText -match '@\(\$targetNode\.Mappings \| Select-Object -First 1\)\[0\]') {
@@ -212,7 +242,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
     }
 
     It 'embeds a decodable brand logo payload in the WPF launcher' {
-        $wpfScriptPath = Join-Path $repoRoot 'gui/Start-AssemblerGui.Wpf.ps1'
+        $wpfScriptPath = Join-Path $script:repoRoot 'gui/Start-AssemblerGui.Wpf.ps1'
         $wpfScriptText = Get-Content -LiteralPath $wpfScriptPath -Raw -Encoding UTF8
         $logoMatch = [regex]::Match($wpfScriptText, "(?ms)\$brandLogoBase64 = @'\r?\n(?<payload>.*?)\r?\n'@")
 
@@ -241,7 +271,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
     }
 
     It 'shows the updated document property labels and reference images in the WPF launcher' {
-        $wpfScriptPath = Join-Path $repoRoot 'gui/Start-AssemblerGui.Wpf.ps1'
+        $wpfScriptPath = Join-Path $script:repoRoot 'gui/Start-AssemblerGui.Wpf.ps1'
         $wpfScriptText = Get-Content -LiteralPath $wpfScriptPath -Raw -Encoding UTF8
 
         foreach ($expectedText in @('Document Version', 'Configuration Snapshot Date', 'Reference ID', 'Cover Page Diagram', 'Header/Footer Diagram', 'CoverKeyImage', 'HeadFootKeyImage')) {
@@ -258,7 +288,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
     }
 
     It 'shows the simplified connector editor controls in the WPF launcher' {
-        $wpfScriptPath = Join-Path $repoRoot 'gui/Start-AssemblerGui.Wpf.ps1'
+        $wpfScriptPath = Join-Path $script:repoRoot 'gui/Start-AssemblerGui.Wpf.ps1'
         $wpfScriptText = Get-Content -LiteralPath $wpfScriptPath -Raw -Encoding UTF8
 
         foreach ($expectedText in @('Current Connections', 'ConnectorConnectionList', 'ConnectorSearchTextBox', 'ConnectorQuickFilterCombo', 'ConnectorDetailText', 'ConnectorAuthoringExpander', 'Edit mapping', 'Replace target', 'New connection', 'Open dataset', 'Open target', 'Create or Rebind (choose an action above)', 'Mapping Setup', 'Columns', 'Rendered Table Preview', 'Advanced preview and data tools', 'Source Preview', 'Rendered Preview Detail', 'Filters (secondary)', 'Sort (secondary)', 'ConnectorProjectionColumnsList', 'ConnectorProjectionFiltersList', 'ConnectorProjectionSortList', 'ConnectorProjectionRefText', 'ConnectorRenderedPreviewGrid', 'ConnectorRenderedGridStatusText')) {
@@ -332,7 +362,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         if ([string]$managementConnection.Label -ne 'management-interfaces -> LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces') {
             throw "Unexpected connection label '$($managementConnection.Label)'"
         }
-        foreach ($badgeFragment in @('table', 'placed', 'cols:7', 'Table Projection')) {
+        foreach ($badgeFragment in @('table', 'placed', 'cols:8', 'Table Projection')) {
             if ([string]$managementConnection.BadgeText -notmatch [regex]::Escape($badgeFragment)) {
                 throw "Expected connection badge text to include '$badgeFragment', got '$($managementConnection.BadgeText)'"
             }
@@ -340,7 +370,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         if ([string]$managementConnection.Summary -notmatch 'selector=items') {
             throw "Expected connection summary to include selector=items, got '$($managementConnection.Summary)'"
         }
-        if ([string]$managementConnection.Summary -notmatch 'columns=7') {
+        if ([string]$managementConnection.Summary -notmatch 'columns=8') {
             throw "Expected connection summary to include a column count, got '$($managementConnection.Summary)'"
         }
         if ([string]$managementConnection.Summary -notmatch 'sort=3') {
@@ -360,8 +390,8 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         if ([string]$projectionDraft.ProjectionRef -ne 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces') {
             throw "Expected projection draft to keep the target-owned projection ref, got '$([string]$projectionDraft.ProjectionRef)'"
         }
-        if (@($projectionDraft.Columns).Count -ne 7) {
-            throw "Expected existing table mapping to prefill 7 projection columns, got $(@($projectionDraft.Columns).Count)"
+        if (@($projectionDraft.Columns).Count -ne 8) {
+            throw "Expected existing table mapping to prefill 8 projection columns, got $(@($projectionDraft.Columns).Count)"
         }
         if ([string]@($projectionDraft.RowOrder)[0].By -ne 'controllerSlot') {
             throw "Expected existing table mapping to prefill row order by controllerSlot, got '$([string]@($projectionDraft.RowOrder)[0].By)'"
@@ -555,7 +585,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
                 }
             }
 
-            Import-Module $modulePath -Force
+            Import-Module $script:modulePath -Force
             $workbench = Get-LenovoWorkbench -ResolvedRepoRoot $tempRepo.RepoRoot -ResolvedCatalogPath $tempRepo.CatalogPath -ResolvedContractsRoot $tempRepo.ContractsRoot
             $duplicateRow = @($workbench.ConnectionRows | Where-Object {
                     [string]$_.TargetPath -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces'
@@ -575,7 +605,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         finally {
             Remove-Item Function:\ConvertFrom-Yaml -ErrorAction SilentlyContinue
             Remove-Item Function:\ConvertTo-Yaml -ErrorAction SilentlyContinue
-            Import-Module $modulePath -Force
+            Import-Module $script:modulePath -Force
             if (Test-Path -LiteralPath $tempRepo.RepoRoot -PathType Container) {
                 Remove-Item -LiteralPath $tempRepo.RepoRoot -Recurse -Force
             }
@@ -641,13 +671,13 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
                 }
             }
 
-            Import-Module $modulePath -Force
+            Import-Module $script:modulePath -Force
         }
 
         AfterAll {
             Remove-Item Function:\ConvertFrom-Yaml -ErrorAction SilentlyContinue
             Remove-Item Function:\ConvertTo-Yaml -ErrorAction SilentlyContinue
-            Import-Module $modulePath -Force
+            Import-Module $script:modulePath -Force
         }
 
         It 'saves a staged mapping to contract yaml, export mirror, and regenerated runtime mapping' {
