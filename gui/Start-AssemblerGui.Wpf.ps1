@@ -36,12 +36,18 @@ if (-not $IsWindows) {
 }
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1'
+$invokeScript = Join-Path $repoRoot 'scripts/Invoke-LnvAssemblerRender.ps1'
 
 $guiHelpersModule = Join-Path $PSScriptRoot 'internal/AssemblerGuiHelpers.psm1'
 Import-Module $guiHelpersModule -Force
 $mappingStudioModule = Join-Path $PSScriptRoot 'internal/AssemblerGuiMappingStudio.psm1'
 Import-Module $mappingStudioModule -Force
+$renderProcessModule = Join-Path $PSScriptRoot 'internal/AssemblerGuiRenderProcess.psm1'
+Import-Module $renderProcessModule -Force
+$webViewBridgeModule = Join-Path $PSScriptRoot 'internal/AssemblerGuiWebViewBridge.psm1'
+Import-Module $webViewBridgeModule -Force
+$webView2Module = Join-Path $PSScriptRoot 'internal/AssemblerGuiWebView2.psm1'
+Import-Module $webView2Module -Force
 
 $defaultBundleRoot = Resolve-DefaultBundleRoot -RepoRoot $repoRoot
 $defaultCatalogPath = Resolve-DefaultCatalogPath -RepoRoot $repoRoot
@@ -344,12 +350,20 @@ $xaml = @"
 
           <StackPanel Grid.Row='6' Grid.Column='0' Grid.ColumnSpan='3' Orientation='Horizontal' HorizontalAlignment='Left' Margin='0,6,0,6'>
             <Button Name='RunButton' Width='140' Margin='0,0,10,0'>Run Render</Button>
+            <Button Name='CancelButton' Width='110' Margin='0,0,10,0' IsEnabled='False'>Cancel</Button>
             <CheckBox Name='VerboseCheckBox' Margin='0,0,10,0' VerticalAlignment='Center'>Verbose (include matched tags)</CheckBox>
             <CheckBox Name='DebugCheckBox' Margin='0,0,10,0' VerticalAlignment='Center'>Debug (include raw render JSON)</CheckBox>
             <TextBlock Name='StatusText' VerticalAlignment='Center'>Ready</TextBlock>
           </StackPanel>
 
-          <TextBox Name='OutputText' Grid.Row='7' Grid.Column='0' Grid.ColumnSpan='3' Margin='0,8,0,0' IsReadOnly='True' TextWrapping='Wrap' AcceptsReturn='True' VerticalScrollBarVisibility='Auto'/>
+          <Grid Grid.Row='7' Grid.Column='0' Grid.ColumnSpan='3' Margin='0,8,0,0'>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width='2*'/>
+              <ColumnDefinition Width='*'/>
+            </Grid.ColumnDefinitions>
+            <TextBox Name='OutputText' Grid.Column='0' Margin='0,0,8,0' IsReadOnly='True' TextWrapping='Wrap' AcceptsReturn='True' VerticalScrollBarVisibility='Auto'/>
+            <TextBox Name='ProgressText' Grid.Column='1' IsReadOnly='True' TextWrapping='Wrap' AcceptsReturn='True' VerticalScrollBarVisibility='Auto'/>
+          </Grid>
         </Grid>
       </TabItem>
 
@@ -703,6 +717,19 @@ $xaml = @"
           </TabControl>
         </Grid>
       </TabItem>
+
+      <TabItem Name='RichViewsTab' Header='Rich Views' Visibility='Collapsed'>
+        <Grid Margin='12'>
+          <Grid.RowDefinitions>
+            <RowDefinition Height='Auto'/>
+            <RowDefinition Height='*'/>
+          </Grid.RowDefinitions>
+          <TextBlock Name='WebViewStatusText' Grid.Row='0' Margin='0,0,0,8' TextWrapping='Wrap'>Preparing WebView2 rich views.</TextBlock>
+          <Grid Name='WebViewHostGrid' Grid.Row='1'>
+            <TextBox Name='WebViewFallbackText' IsReadOnly='True' TextWrapping='Wrap' AcceptsReturn='True' VerticalScrollBarVisibility='Auto'/>
+          </Grid>
+        </Grid>
+      </TabItem>
     </TabControl>
 
     <Border Grid.Row='0'
@@ -757,133 +784,7 @@ $coverKeyImage = $window.FindName('CoverKeyImage')
 $headFootKeyImage = $window.FindName('HeadFootKeyImage')
 $brandLogoImage = $window.FindName('BrandLogoImage')
 
-if ($brandLogoImage) {
-    $brandLogoBase64 = @'
-iVBORw0KGgoAAAANSUhEUgAAATQAAABmCAYAAABFsG3XAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAMsAAADLAAShkWtsAAB+9SURB
-VHhe7V0HdFRVGg4phEAqLUgRRQQUBSuiuDZcG6yC7ooNCzYsiyvqLtjF7torIoq9K3bFiq669i22VdRMZpJJmfRJZpKZzPx7vv+9SblTct9kMiFz/v+c73iO
-ZO679717v/vfv9200pFDSSAQCAY6SkYMDaSp/1MgEAgGIoTQBAJBykAITSAQpAyE0AQCQcpACE0gEKQMhNAEAkHKQAhNIBCkDITQBAJBykAITSAQpAyE0AQC
-QcpACE0gEKQMhNAEAkHKQAhNIBCkDITQBAJBykAITSAQpAyE0AQCQcpACE0gEKQMhNAEAkHKQAhNIBCkDITQBAJByqB/CG1EDpUOH6IH/K36e4FAIIiA/iG0
-4UPIlp+phdKi7PDfCwQCQQQkl9CgcY0aRtXHHUmet98kz4Y3yPPWa5GBf9vwOtWefw7Zx+Qbv1XbEwgEgi5ILqFB2xo1jOouvpB0penBNWQfW0ilhYPD2xMI
-BIIu6B9C+9tylbeiStOa+4TQBAKBFvqJ0M5XeSuqNN1/rxCaQCDQghCaQCBIGQihCQSClIEQmkAgSBkIoQkEgpSBEJpAIEgZCKEJBIKUgRBab4A8U6BoMNny
-Msg2NI1sQ9KoJDuNSganUUmW+d8haWTLSSPbsEGd6VyJyFFF9gTeiw5iPa9jDOk8BvS3o//Zxph4bHkZieu7FZi5v7aCLLLldukj3nPoHYf10xyz1b5aeadA
-olPz0J76jFiIJ4OGv3c22fIzyDbMmJtR52zuILIVZA6YvGohtHgQmhAgsdx0ckzdkqoWHkZ1Fy6jhltuIPe6B6jlpefJ8/rL5H76cWq6706qv/ZKqjn7VKo4
-aB+yTxhhklucBGH+vX1SMZXNnEJlO06OjhnbUtkO2/Azuz0nRBLImR02yBjDsQup7oqV1HTfXdTywrPkeXU9uR9dRw2330x1F/2FKo84hBxbjTZIoyArvsWk
-i1D/Cgcb72r4EHLOmkGuk46hustXUuM9t5P7iUfI89pL/K7dD62hhltv5G9QdeQ8ckyZYJCfFRIePoQcU8ZT2c7Twt9jJOw0lRzbjA1vJx5w/3LIMXls+HOi
-Yca25Jg6gddUj+PrOmeHDiLHVsVUOW8u1Z63lBpuuobca1cb3/z1V6j56Seo8d47qP7qy8l1+knk3HcPKh2V2/279/S8foIQmhXgQ2Lnz89kAqg553RqXv88
-tf3nX9Re5qCgu4koEFSHwBL0+ShQX0f+kl+p9esvyf3wWqo+7iiyjxtOpZgkuotu5FCyFWWTfYsCqluxnNq+/5bavvtvDHxLbV99QVWLFlDpcPMZGAc0xdG5
-VLngUCYGHkOFk4Jer9p1lqDbTX6Hndq++ZKa1txLFQfva7SF3XtEgokN78JcOM7f7U4N168i78Z3yfe/H6i9uipqHykY5G+Ab4HxNL/wLNWcewaVYdGjvR40
-mpIhgzh32PfDdxHeYwR8/y01P/Mkle+yPZOn2p4V2IoG86YDQgl7ThSgnzXLlvJ3jKopmkTGc3ar0VR90rHUjO/9zVfkL7VRoKGBqL1dfZMswbY2CtTUkO+X
-n8n76cfUeMctVHHYXINALc7ZZEEITQf4aNAU8jN5V2y4YRW1/fAdBRob1O5akvYaF7V+/k+qXXYm2bcc2TlJ1OcrgNaCd9J0921qk1HFdfZpHWSMZ1Qeuj8v
-nvbKSvVPtaS9vIyan36cnHN2TVxVFD5WZvIcqZp/ILWsf5789lLeDOKVQGMj+X78nhpuvo6/Hc8jvOcICxGaYNWCQ6i9skJtJqa4Tl1MJRlpYe1pw5xfVUce
-RtTWpjYfXYJBqpg3l00FkcbDGllBJhN63cUXUds3X1OgtkZtRV8CAWp3lpP33beo+oSjqbQ4r8dNItkQQusJpjZjH1tENectZS0h6LMw6TQk2Owm74fvU+UR
-B5OtMIsJK6wfXRAitMZbb1SbiijBlhY+OsBeYt9yFNWvuowC1VXqn8Ul/tIS1lR5coMoIvRXC+biK999R3I/9lDvFl4ECfp95Nv0E9VedB7ZJ4w0SFhdiCNw
-BM+i5ueeUn8eU3iOFhf0+N2iwqz9537ofvRUbT6qtKx/jhxbjzGO1WHjyOQqNa4lJ1Dbv7+hoNej/rxXAs2u5dX1VDF3jmEWiHfsCYYQWixgkeWmU/ku06n5
-6cco2BrlqJMgaa+qorpL/8pHCNZU1P6YsExozc3kWryIHNMmkvuxdb3SeCJJ0ONhG6F9XFFcpMbkMjqXXKceT75NP6vNJ1SCba3U8sqL5Jw9o+NY260vOWnk
-Om2xJUL1ff8dVewzi50S6ti0UDSYbX7+XzapTUeXYJCqT1xkkFlX7Wx4Nmua5TOmsF0R36YvBcf72r/+hUrH5BvfUR1bkiGEFg1MZoPYVtT6z0/UbvWd+P3U
-eNetbFsL23lNWCU0HI1rVyyn5mefVP8pcdLup/orLzHsKxaOn6xJTBhJ9ddczppksqTt2/9Q5eEHhTs3irLJseUoav30H+pPYkrtuWewDQ6GfXWMMTEih51D
-NWefRgG3W202qrR+8TmV7TyVte6ufec5O3dvav1oo/qTvhO/n5ruvyeytphkCKFFAmw5wwZR5WEHsPG1P6Tx9puptDjXmCCjuvfPKqEFW1tZi+hrgSYIozPb
-6dTjXCQUZLLtEGMNBgJqc30uvl83UeVR8w1vc6i/IJicNPbwWdFkW559ij2elrUUHA+LBlPLqy+pTcaUukv/RrYR5ppCO+achU3N923/zNnmpx4jx6QtuB9h
-40wShNBUYELnppPzd7tR21dfqt1JmsDDVHfReVRagFin7mO3SmjJFN8P31P5jpN7/l6YC6NzqeHGa4j8kb1syRDfzz9R5aEHUMnQTk0H77d89x3IZ+EICA9x
-5cH7ki3b4rGzMIucs2eSv6REbTKqtDudVHHAXhw7xm1gzualk3OfWezd7U9pemgNmx566/WNF0JoCrDDOrYdT543XlW7oiVBTwuHZmBitX79Bfm+/9ay1ywk
-cKtXHjY3bMfbnAmNAu3UeNtNEe1THYDNJzedas47i4ItzWoLSZe2Lz+n8p23Y82Mj8zDh1BJbjq5H3+Yx6MrdSuXU2lhdvRxh8HUBlddZsnWhbAZ+/jhxnEZ
-7cCTud1E8r73tvqnyZdggOqvuoRKixDSY92e2lsIoXUBe2tG5FD91Zep3ehREBrgXreGas8/m13/5XN2ofLdtqeK/fek6sV/ooa/X0fef36s/qxHaXn5BbIr
-tolEElrb99+RZ8ObHE+FI0PLK+s5lCRQX6/+qbZAsymbvk1UWxofjebO4bi2eMT/2y/keXcDh424H3qAg39b3niVzQPxHl3d69aSvbhznoEsYGNrr6tV/zSq
-eDe+R2XTJ5FtmKZ2AuIbnUueje+pTUUVeMQRv2gbbGhnOK6CGBvvuFn9Uy2B3a71qy+o5eUXyf3IgxwUDlur96MPWOuMR7CBVy48jO15EcNJ+hBCaCFAbS/I
-oor9Z1sKaYAhu2nt/VRx4N78AZE6wukkiMhGFD6i1ZGmk5VG5TtPY2IL1NWpzUQXv5+qT1rUTeNJBKF533+Hai88j/vN0e4g87wMPi4gdMJ1ynHsJWuvsq5d
-4p3ULj/X0CDUCY3g3jH5vICsSusXn7HjARHuiOiH7QvxX0jTsU8cxZsHnut58zXWFKxIoK6WvZsdxzi86+I88n74gfqnUQVaFjsacHxVxx0BmBtVhx9E/nKH
-2lRUweVBZdtvRbZcw7uJuYBnBpoa1T+NKYGGemp+8lGqOeNkcu65Ewdqc/pTZhqTJDIRqhcdwVki/l+se55xCRJOOsk+egqhmeA4muI8cj/6kNqFqALXfu2F
-y6h0hOHu7+mowXlx+ZnkOus0CtTq7/zQoByTx3VMjt4QGiLpQapYFCCDbuksAIgtN50JGORTfcwC3q2tCgiLDeTKwgb5uM44mTUNXcGxFOlj5btu35m32fVI
-ay5szvHMTOP0IVzE4y+zpgF6sQinbdkZClGYRTXLzmSniq403Hw9lY4t1IrLgr0NKVxBv19tJrIEgxxHx97UUAbAFgVMHlYE2R6uJcfzfOcNGPMylPuKvpkp
-cXjXmAtI10PWhSUJBMl15hLDBtzDukgkhNAAM1LbufdunOqhI4hnqr1gmZHQbcVVjQTrvAyO3UGwp45gQUErCS20eAkNJFJ/xUo+Vndz90dDQRZPauceM8nz
-zltqczEFKVec/dDl2MkpW2OLyPPWG+qfRxVoHvVXXUq24QYZqgQZCbxAof0sWmDJsA/7Z80ZJ5ENZG7OCaS4ISBXV3w//UjlM6eE2T1VIIAaGoz3M/2QINhj
-Ee/G7wHtILvgqPkUQMqdprT+YyNVHDDH2BR0PLKwJw7GJjGOGu+9k7MFdAXPKps6MalamhAaYO4gDdddpT4+qjStXW0EE1ohMwALJS+dVfzm559Wm40qSHov
-HWtEo8dDaLAtNT/zOO/KWhM5BOzW2Wl8NEXuoK4ggwB5mF01FVvOID7GtFdq2maCQbYNlRaCgNMNg73av2goymbPZfXioy2ld8ER4NhytKEBYr4OH8I5jNq2
-OQS8Lj46anpVCKypnnYiH3V1pfHOW8iWjz6ZjgeEezz/DD9TR/z/+5EqD9nPIMQo9s1oAEHbtypmu6W2+P2GLU0N/u1DCKGFjnDjijhhV0f8NhtXIOBjZoT2
-IsKcgDwOhAXsNp2j9nWl7V9fU9lU4zgUD6HBwMsEE89uidJCw9It3aeKnL+qBYd2kueIHN7pm+65XXsBej5416iaEfI+qv3qCVwiJ5Mab7lR+9jot5VQxe9/
-16EFQZNizb1B30nifvJRTjHr8EKqMEODmh95UP1pVOH3efThhikAbRQO5txUeNR1BYn3JdgY4lxLnIGwy3bk++kHtemo0njXbUYYR5zPtAohtDiOm4jkLx1T
-0LNb2rRzhOw9GAcWufvJx3jhoIKFrqDCBPrIhFaQZZnQWl57udPuovZTAziiOPffk3w//09tOqIEXNXkQmoOglbNTcMxaax2aEGgqYntVyBBtS9WAEIrmzaR
-j2taEgyyoZydA6YdDcfklpdeUP8yqrS7qqh81+lRNw9sDs69drIUM4YSSfbxRcY64OyCTM7PRfK9jng3vk9lO0w2HBYR+qQFzJ2CLKq94M/am1Lbv77p2IjD
-2usDCKGZi7zmrFM50r1HCQTYNtPhDYuEUJ0xRMKPzuV6ZLXLllLrpx9zCaF4BekxoclshdCQTF9/xcUdR6iw/moAxARtCQtLRwI1LnKdfFwnoQ1N4+MObEw6
-4v3sU/a0hX4fNzjoNIOP7LpFBaDR2XE0N8kDcw+hEtHK7ESS2vPPNZ4f4X3DcQHjvm4mAhLLa5ef00nu5piaLNi0aldcQLahqMoR3h8rgM0Y38X32y/qIyIK
-HDrle8yISu6JhhAaHwWzuTigjrcJGgof3SIlIpu5dHwknDiSKg6cw3YPv+03jvzvjYAIsQjw/ji8wgqhwdh91hJjrHHaMnD0wjPdD6IiRM+iEho2ANfpJ2of
-3VAvrrfaGYOdKFlUecj+rDXqSMuLz7EzoIOM8zJYy9A1SUA877/DTpGwYyfMDrCfPqtf0QPhKuU7Te0kdzMzwPveBvVPIwrGXbXw0M7jai/A82D8cGriyiAa
-EghQ9bFHGms/zrlnBUJoZrhC81N6xk7POxvYdsFBg/i9qTGxKj9qmBG/c+Iiann9FUuhCZEEOziM67DJoFYWwgGMBWrNhsbVNuCm78Wk4mcW53ESso6EERq0
-kpUX6h1V/D6qv/LihCxABqpZTBxN/l/1tArvJ//gEJEOT2Vo3q68QP3TqIIjcwXsrAqhYSOsnHcABwdrSSDAjpFu5G4G5LZqEmzrl59xrFmvjpsdzzbmUO2f
-z1QfE1kQaoLQJjMDI6y9BEMIzSQ03VACxOMY5Z0H8YQvyUnj6gywL9VfvpLa/qtvF4kmCLzFJEQhSdhiOpwJ5oQYkISWkUb111yh/llEwfhhArDkdIkFc95B
-09ERJHc799y5GwGwQXz2TGqv0vOYwivacNO1xvvuEi9Xkp3OZc51xV/yG1UcvF/3IxsqgkyZoF04AWl8nMGAQpDqu7EK87iLMue6gu/O9fLitN9agRBaiNDe
-1VPfEfpg36KQd0xoatXH/5GPR+2ax5lYgnpYKNpXc+bJHPnOCdMhIutCRAOS0NLTOKBXR0AayFRIiEYBmPPO8+br6qMiCrQn1q66ECo7YsaPoMbVd6t/HlXa
-/vNvckwc1TF3+ei63UQjk0FTsIGGZVwgkn/6JG1HBxwaZdiEe2uPBEwPbeX8A9XHRJX661cJoYUkaYSmGTja8tbrVPWnw9kF7tH02MUSFI1s/exTPlZwtYYC
-I+I9FvkMWEK74Wr1zyJKe62LXGecmFgNbeRQ8m7Uy3hAVWLn3rt2fz4HIw/iOxh0E8lhcqg6al6HZxJH6OpFC7SLRyKfFulYYcQOQttuK31Ce+0lJtJEElrV
-EQepj4kq9dddJYQWkmQRWst6Pbd8e0UF+e029X9bFsSFYeesW34uVxcNpZnoEM6AJLSMNL6tSUcQM1Z38QWJcQoAGPeYfPL9qBc/heT88t12CMumwPdxQMPa
-oGeegP3L/fg6Q8MqyCRbUQ41/P169a+iSuvnn7KGhwwLdTy4UEU37KP1k4/IuTvGEzt7QQumDRe3b+kKV2G2WPgzXgihmV7OptV3U1DHYN1LgY2t8c6bWctD
-wCHn0lncOQckoWWl8Q1FUW9sUqRp7b2JcQqYYRcICMXFLjrieeO1yDYnth9lkevc09WfRBWYERzIm81Oo/JZO3ClWR0BqTdceyXbaMO+GfpRkMnOCx3h6hfz
-D0zIBsHkOiZf2x4KpwDmHq4hDBtHH0AIDS+5KJuj4HUXm2Xxerm8Dbw9HPKBKhHQyAp7CMyNgoFIaDi+Vf3xcPLb9RLGkRDv2HZcmJfQMszFX7N0iXbOI+4l
-7QhiVdpDBkH5njtxuSgdCbS0GAHC6WnkOvlYCrbqhe/AGYDr8SL1IXTsQ7knXeHqJzm9L+eD7+nYupi8H2iWPPL5jKwaCaw1JCmEhiTfBYdQEHcUJlBwgUTj
-PXdQ9TEL2ebBt30jfq2X7usBSWh5GbxAcYzSEc4UOPMUDvdQ+2IJrIGbJa41NXDUtLMNjZJ/aFYPhgdTV1B5BLdCoTCjlgTa+a7UqKXMzVAh3oQ17XlwRJSh
-kkivjp053CdU39AtzOn/dRM5tkO5owR4WDUghGYuVlQTQDpSIgSXqmCMFfvO4r5r28c01fKBSGgYmy1vMLktaBWeN18lx+Tx8e/uIQP2UfOpvVrPC91eU02V
-fzgo5vEMxRVx5aBuJWLc51Cz9BTtW52QsI4+xEytQ+2+uXO0izDi9IE+MKFFIkkNsLY8Jp/rqOlK8xMPs8e+15q2JoTQALNfusG1kQQ3K+EIgBQZBNfydWJD
-cKzU6DcfexGekW30pQfj6YAkNNOOhqOPbsAxPMD1V19qEFo8CwLl1CeP4ztPdbWzljdeYW06Foni7k7cQo4qvzoCbZMdEpp9QH9BHDHnAUipOI/T6XQFl2Pz
-xdCR7HI9wcxJdp1yPAV0UgRNcZ10rLEGrD4vTmz+hHbf3ZwPiRr0TGoJBr9s0zGAFA3dqgwswSCX1IHx1rnP7jzJOXmcd8EYk7EruFJsOhcWRN0vLPjSkcMi
-FkcMYaASGsZUPnMq3+CtK3wF3zln8GKK9U66gbXBDE49cj/8gHa+I4QLKOb0nPPITo6zlmjXtNMVpMjhrgWen7HGin8ryOIb0a3MWRQHKN9lmjFHYxFml+cY
-XtosvgXNp5ltAUFYSRlStpJ03AQ2f0Jbez8ThX10Hlc9SCjGGSgdhYt9s8i+dTHHhOkKjMy4Ndw+psAsva2pzpuThL1oo3OpYv6BbGTFZEYiMqp5OLadYPx7
-hEk3UAkNKMkZxIniVgQVJbBw+eiCDQPaU2gjwngAkJj5TtHXsplTyP3kI5bIDLX1cQNTWNxXBKBiBjynup5GXWGv6JQt9Y5oMJUgHk2zAkpIvJ98xHnGXGkZ
-JeJxqTXPDfN9mhs8p/ThXRfnkuuEo8m/Se/IHBIO10A/I8zhvsJmT2iofIrLR9xr7iX32tWJxYOrqfnhtUapF3PHcp26mHMJtSQY5Li0uisv4YoaGBvfJ2CW
-2uYFFoI5ObjkdT6Sy4s4v67x7tvCLyQJBsnz1uvk3G+2sUDVfMABTGispe26PV/0a0n8fj4OVh5xCB8jUSDTIDHjPWNc2JzKtt+aXEtPiav92pUXMOFqvSNs
-SkPSqOH6VdpHSR1BkQRo6FokYMZQ1l1yEQUtVAKBoMgmLgNCXT6k7vHcLTS1YGwWxXnszcTVeO4H7tMuUxQShCeh7d45Iaxjsye0ZAhU6VCdemgB8VzgAfW6
-7rIVbKhFCWaUV7ZPHM23guPo45g0hm0zIM+qP85nYujJqOzf9DO5lhxnLJ4uVT8HMqHxWIYN4gta4gmTgRbr/eRjTqOCkRs2S9yqVXveWdS05h6jPFEcBIN8
-RwfKRcewnamAx5pLIsVxiUgkwfEaBMIak+Z3wpzFJTetH3+kNqclmIOwBeIKPhRVgNnFteQENn/AMxpo1KuO0lUMB8QSKsW31zmxJBBCaF0ILUQcmFSIA4pL
-2tqo7b//5uvncOkqCADuejgMUFKm3eLVbTDANtxwjeFoMI9XA5rQzHlgL84nt5Vyzn0oKO9UOf/3nbX6dYFj2fCh1Py4fuXhWILMEWQAqBp5TOCYCPvWvLk9
-bpDJkqa19xkVe62Uek8QhNC6Ehr6iGMMUjtOPo7aNXPukiHQQJiMsIgGOqEhnqkgi8pmTCHvRx+qP02qQCtC4cy4PH9YQIPTqOa0xRRoiL9wJ0swwIUOenQG
-RAK+6/AhVHP+Ofyt+1O8H7zL9ks+uqv9TAKE0FRCM9V4LDpE9lu5xKKvpOXl9XynZ8j9PfAJDcBlMRlUsd9savvqC/XnSRFc6YcaZyizHe/RiG9v2noLXsi9
-EeRlOqbFf0MSH1NH5VL9tVeyY6k/BDmwzr12iVz8NEkQQotAaEAoRAAudET894fgzgHcR+nYZotuEz01CK0z8LXigD3J+/FGtYk+FZR7qr1oWYdHL6xvFgAP
-d92qy+KyCYaEiRXhOnH3xahkDK95/apLk74Rg9C5hlw/khkghBaF0Njrwx60TKpatFC7OGCipPXrL6nmnNNMz2l39T1lCA0wnQTlu0+n5meeUJvpE4E2BAM4
-b1pxE0gX5GdQ+awdtat5qAJPOQe8aoSLxIRZnp2Pn0uXxN0fK4J7GmArLpu5rXUbZB9ACC0aoTHgPh/MhRbLd9+RGu+5s/e2kh4EpYkabrrOuFiCQzxwlOh+
-hVtKERpgkhq8wnUrLrB0sa8VQd6je90D5Nx3ltZN99ow+49Cn/F4WOE0Qp3+uLIhVPBGnGVovnPnsDMq2N7zXRnxCDaG2mVnGo6MeK8aTDD6h9BWLFffTb9K
-dEILIYd3H/uYfKpceCgvCt3LPnQF5ZQbrr+KKubuxQsk1i3hHYR2201qMxEFC9l16gmJITTNBGsceZAmo0VooWeYt9BX7D+bGm69gfya5X56EmgR8CAixAPE
-Ea8DIBY4Z/TIedolukMS9LZyrmnJUM34N13AuYU5O3EUb2YIS4mHbCOJ/5efea7yEXOYEXO5OZAZ0D+EZuGyiWQIXN6xCc1EYRYTDS7cQMWB+isvIe9HGyng
-aVGb1BLfL5s4NQdxP849Zhi7K/rRwzGog9DuuFltMrK0+bjyaUIIbe1qtfWIEmxs4HFZITQGvLgg8+I8dhgg2BW5jYE47FOoPNt41y1MNGVTxjOR9VkoAWt7
-w8j7vjXngOfdt43cUVwArLaZAIRS8fAMVH3BhuT/zXpIErJiPBve5Ds5cT8sz9VEarkJQnIJzVxMZTtPo6pjFm4eOPZIckwe2yOJdAUWBWtQuHNz+jbk3H82
-uU5fTI233kTNLz7HFUKR44n4Jn+pjfy//so3n3vefpOaHlxNtSvOp8o//J6rojq2KjbST0JltyM8Lwx4j6NzybnHTO5/2JiU8aGYZNn0reMms45njhpGzjm7
-UNVxGs88ah5H7cc94ZHjampSKLboPGAvDq9ovPdOri2HNCWUpsGtWLgDAJkB3g/eIfej66jukgu5GgZSk0IamVa1k14CRz3nXjvz+8Yt5z3jCHLOMjayPu2b
-6XzBHIPGBvMJSB53taJyRuuH75Pvu2859hLv0/fzT2wzRsklXMNYc/picu63B1/YDKcFfxd43NXnbAZILqGFgJfCx4vNAb2IZuZ7ONONBWNqTcgIwJ2OZTtM
-4ktUGDtuy4sbBQuRNYDfcooUbGQWosLDwIntyG1Ux9R9fL0ao4pkPzP0jk3CB0FhA4LGgWDjjvc7fRI5phjZGSFHCr9fhGTE+37jAKe4ob+60E24TwRCOcR4
-L7iGcXQu50njBim8v875OpnfLzIQONcZ3xy/QW5xIr5pH6J/CA3AR9xcoPYtHuBD48PDM4oFrU5c/D8zv7M3R79uUMcRC+pv44Xabiyov+0tzKDnjrzYbu8X
-5JCR2PcbL9T3EAvqb5MFPNssCcTvDe8v0nwNFQFQf7+Zov8ITSAQCBIMITSBQJAyEEITCAQpAyE0gUCQMhBCEwgEKQMhNIFAkDIQQhMIBCkDITSBQJAyEEIT
-CAQpAyE0gUCQMhBCEwgEKQMhNIFAkDIQQhMIBCkDITSBQJAyEEITCAQpAyE0gUCQMhBCEwgEKQMhNIFAkDIQQhMIBCkDITSBQJAyEEITCAQpAyE0gUCQMhBC
-EwgEKQMhNIFAkDIQQhMIBCkDENr/AfAnIG8uGoqEAAAAAElFTkSuQmCC
-'@
-
-    try {
-        $brandLogoBytes = [Convert]::FromBase64String(($brandLogoBase64 -replace '\s+', ''))
-        $brandLogoStream = [System.IO.MemoryStream]::new($brandLogoBytes, $false)
-        try {
-            $brandBitmap = [System.Windows.Media.Imaging.BitmapImage]::new()
-            $brandBitmap.BeginInit()
-            $brandBitmap.StreamSource = $brandLogoStream
-            $brandBitmap.CacheOption = [System.Windows.Media.Imaging.BitmapCacheOption]::OnLoad
-            $brandBitmap.EndInit()
-            $brandBitmap.Freeze()
-            $brandLogoImage.Source = $brandBitmap
-        }
-        finally {
-            $brandLogoStream.Dispose()
-        }
-    }
-    catch {
-        $brandLogoPath = Join-Path $PSScriptRoot 'internal/lenovo-logo.png'
-        if (Test-Path -LiteralPath $brandLogoPath -PathType Leaf) {
-            $brandLogoUri = [System.Uri]::new($brandLogoPath, [System.UriKind]::Absolute)
-            $brandBitmap = [System.Windows.Media.Imaging.BitmapImage]::new()
-            $brandBitmap.BeginInit()
-            $brandBitmap.UriSource = $brandLogoUri
-            $brandBitmap.CacheOption = [System.Windows.Media.Imaging.BitmapCacheOption]::OnLoad
-            $brandBitmap.EndInit()
-            $brandBitmap.Freeze()
-            $brandLogoImage.Source = $brandBitmap
-        }
-    }
-}
-
+Set-WpfImageSourceFromFile -ImageControl $brandLogoImage -Path (Join-Path $PSScriptRoot 'internal/lenovo-logo.png')
 Set-WpfImageSourceFromFile -ImageControl $coverKeyImage -Path (Join-Path $PSScriptRoot 'internal/CoverKey.png')
 Set-WpfImageSourceFromFile -ImageControl $headFootKeyImage -Path (Join-Path $PSScriptRoot 'internal/HeadFootKey.png')
 
@@ -894,6 +795,7 @@ $catalogBrowseButton = $window.FindName('CatalogBrowseButton')
 $outputBrowseButton = $window.FindName('OutputBrowseButton')
 $contractsBrowseButton = $window.FindName('ContractsBrowseButton')
 $runButton = $window.FindName('RunButton')
+$cancelButton = $window.FindName('CancelButton')
 $statusText = $window.FindName('StatusText')
 $verboseCheckBox = $window.FindName('VerboseCheckBox')
 $debugCheckBox = $window.FindName('DebugCheckBox')
@@ -903,6 +805,11 @@ $annotateCheckBox = $window.FindName('AnnotateCheckBox')
 $docxMatchModeCombo = $window.FindName('DocxMatchModeCombo')
 $unresolvedTokenPolicyCombo = $window.FindName('UnresolvedTokenPolicyCombo')
 $outputText = $window.FindName('OutputText')
+$progressText = $window.FindName('ProgressText')
+$richViewsTab = $window.FindName('RichViewsTab')
+$webViewHostGrid = $window.FindName('WebViewHostGrid')
+$webViewFallbackText = $window.FindName('WebViewFallbackText')
+$webViewStatusText = $window.FindName('WebViewStatusText')
 $mappingCollectionCombo = $window.FindName('MappingCollectionCombo')
 $mappingRefreshButton = $window.FindName('MappingRefreshButton')
 $mappingSaveButton = $window.FindName('MappingSaveButton')
@@ -1009,6 +916,298 @@ $connectorProjectionSortList.DisplayMemberPath = 'Label'
 
 $documentPropertyState = [ordered]@{
     LastAutoConfigSnapDate = ''
+}
+
+$renderProcessState = [ordered]@{
+    Current = $null
+    Timer = $null
+    LastProgressCount = 0
+}
+
+$webViewState = [ordered]@{
+    Control = $null
+    Ready = $false
+    LastReportPath = ''
+    AssetPath = ''
+}
+
+function ConvertTo-WebViewJson {
+    param([Parameter(Mandatory = $true)]$Value)
+    return ($Value | ConvertTo-Json -Depth 40 -Compress)
+}
+
+function Send-WebViewMessage {
+    param(
+        [Parameter(Mandatory = $true)][string]$Type,
+        [Parameter(Mandatory = $false)]$Payload = $null,
+        [Parameter(Mandatory = $false)][string]$Id = ''
+    )
+
+    if (-not [bool]$webViewState.Ready -or $null -eq $webViewState.Control -or $null -eq $webViewState.Control.CoreWebView2) {
+        return
+    }
+
+    $message = [ordered]@{
+        id = if ([string]::IsNullOrWhiteSpace($Id)) { $null } else { $Id }
+        ok = $true
+        type = $Type
+        payload = $Payload
+        error = $null
+    }
+    $webViewState.Control.CoreWebView2.PostWebMessageAsJson((ConvertTo-WebViewJson -Value $message))
+}
+
+function Get-CurrentWebViewAllowedRoots {
+    return @(New-AssemblerWebViewBridgeRoots -RepoRoot $repoRoot -BundleRoot $bundleRootText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text)
+}
+
+function New-CurrentWebViewMappingStudioState {
+    $resolvedMappingsRoot = Join-Path $outputRootText.Text '.resolved-mappings'
+    $reportPath = if (-not [string]::IsNullOrWhiteSpace([string]$webViewState.LastReportPath)) {
+        [string]$webViewState.LastReportPath
+    }
+    else {
+        Join-Path $outputRootText.Text 'render-report.json'
+    }
+
+    return New-AssemblerWebViewMappingStudioState -Workbench $mappingStudioState.Workbench -ResolvedMappingsRoot $resolvedMappingsRoot -RenderReportPath $reportPath -Status ([string]$statusText.Text)
+}
+
+function Publish-WebViewMappingStudioState {
+    if (-not [bool]$webViewState.Ready) { return }
+    Send-WebViewMessage -Type 'MappingStudioState' -Payload (New-CurrentWebViewMappingStudioState)
+}
+
+function Add-ProgressLine {
+    param([Parameter(Mandatory = $true)][string]$Text)
+
+    if ([string]::IsNullOrWhiteSpace($progressText.Text)) {
+        $progressText.Text = $Text
+    }
+    else {
+        $progressText.AppendText([Environment]::NewLine + $Text)
+    }
+    $progressText.ScrollToEnd()
+}
+
+function Start-RenderFromCurrentInputs {
+    if ($null -ne $renderProcessState.Current) {
+        return [ordered]@{ accepted = $false; reason = 'Render already running.' }
+    }
+
+    Update-DocumentPropertyDefaultsFromBundle
+    $statusText.Text = 'Starting render process...'
+    $outputText.Text = ''
+    $progressText.Text = ''
+    $techSelection = @($techIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    $entrySelection = @($entryIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    $docxModeSelection = [string]$docxMatchModeCombo.SelectedItem.Content
+    $unresolvedTokenPolicySelection = [string]$unresolvedTokenPolicyCombo.SelectedItem.Content
+    $outputTypes = @()
+    if ([bool]$docxCheckBox.IsChecked) { $outputTypes += 'docx' }
+    if ([bool]$txtCheckBox.IsChecked) { $outputTypes += 'text' }
+
+    $invocation = New-AssemblerGuiRenderInvocation -RepoRoot $repoRoot -BundleRoot $bundleRootText.Text -CatalogPath $catalogPathText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text -TechId $techSelection -EntryId $entrySelection -OutputType $outputTypes -DocTitle $docTitleText.Text -DocCustomer $docCustomerText.Text -DocCustomerAbbr $docCustomerAbbrText.Text -DocLocation $docLocationText.Text -DocSubsidiary $docSubsidiaryText.Text -DocEnvironment $docEnvironmentText.Text -DocDocumentReference $docDocumentReferenceText.Text -DocVersion $docVersionText.Text -DocConfigSnapDate $docConfigSnapDateText.Text -DocReferenceId $docReferenceIdText.Text -DocClassification $docClassificationText.Text -AnnotateResolvedTags ([bool]$annotateCheckBox.IsChecked) -DocxMatchMode $docxModeSelection -UnresolvedTokenPolicy $unresolvedTokenPolicySelection
+    $renderProcessState.Current = Start-AssemblerGuiRenderProcess -Invocation $invocation
+    $renderProcessState.LastProgressCount = 0
+    $webViewState.LastReportPath = [string]$invocation.ReportPath
+    $runButton.IsEnabled = $false
+    $cancelButton.IsEnabled = $true
+    $statusText.Text = 'Render running out-of-process...'
+    Add-ProgressLine -Text "Started: pwsh $($invocation.Arguments -join ' ')"
+    $renderProcessState.Timer.Start()
+    Publish-WebViewMappingStudioState
+
+    return [ordered]@{
+        accepted = $true
+        outputRoot = [string]$outputRootText.Text
+        progressPath = [string]$invocation.ProgressPath
+        reportPath = [string]$invocation.ReportPath
+    }
+}
+
+function Update-RenderProgressFromFile {
+    if ($null -eq $renderProcessState.Current) { return }
+
+    $events = @(Read-AssemblerGuiProgressEvents -Path ([string]$renderProcessState.Current.Invocation.ProgressPath))
+    if ($events.Count -le [int]$renderProcessState.LastProgressCount) { return }
+
+    foreach ($event in @($events | Select-Object -Skip ([int]$renderProcessState.LastProgressCount))) {
+        $statusText.Text = "$($event.stage): $($event.message)"
+        Add-ProgressLine -Text ("{0,3}% [{1}] {2}" -f [int]$event.percent, [string]$event.stage, [string]$event.message)
+        Send-WebViewMessage -Type 'ProgressEvent' -Payload $event
+    }
+    $renderProcessState.LastProgressCount = $events.Count
+}
+
+function Complete-RenderProcessIfFinished {
+    if ($null -eq $renderProcessState.Current) { return }
+    $process = $renderProcessState.Current.Process
+    if ($null -eq $process -or -not $process.HasExited) { return }
+
+    if ($null -ne $renderProcessState.Timer) {
+        $renderProcessState.Timer.Stop()
+    }
+
+    Update-RenderProgressFromFile
+    $wrapperReport = Get-AssemblerGuiWrapperReport -Path ([string]$renderProcessState.Current.Invocation.ReportPath)
+    $wrapperStdout = [string]$renderProcessState.Current.StdoutTask.GetAwaiter().GetResult()
+    $wrapperStderr = [string]$renderProcessState.Current.StderrTask.GetAwaiter().GetResult()
+    $backendJson = Get-AssemblerGuiBackendReportJson -WrapperReport $wrapperReport -FallbackJson $wrapperStdout
+    if ([string]::IsNullOrWhiteSpace($backendJson) -and $null -ne $wrapperReport) {
+        $backendJson = $wrapperReport | ConvertTo-Json -Depth 20
+    }
+    $webViewState.LastReportPath = [string]$renderProcessState.Current.Invocation.ReportPath
+
+    if ([int]$process.ExitCode -eq 0) {
+        $statusText.Text = 'Render completed successfully.'
+        $outputText.Text = if ($debugCheckBox.IsChecked) {
+            Format-DebugBundleOutput -BundleResultJson $backendJson
+        }
+        elseif ($verboseCheckBox.IsChecked) {
+            Format-VerboseFindingsOutput -BundleResultJson $backendJson
+        }
+        else {
+            Format-RenderFindingsSummary -BundleResultJson $backendJson
+        }
+    }
+    elseif ([int]$process.ExitCode -eq 130) {
+        $statusText.Text = 'Render cancelled.'
+        $outputText.Text = if ($null -ne $wrapperReport) { $wrapperReport | ConvertTo-Json -Depth 20 } else { $wrapperStderr }
+    }
+    else {
+        $statusText.Text = "Render failed (exit code $([int]$process.ExitCode))."
+        $outputText.Text = @(
+            'Wrapper stdout:'
+            $wrapperStdout
+            ''
+            'Wrapper stderr:'
+            $wrapperStderr
+        ) -join [Environment]::NewLine
+    }
+
+    $runButton.IsEnabled = $true
+    $cancelButton.IsEnabled = $false
+    $renderProcessState.Current = $null
+    $renderProcessState.LastProgressCount = 0
+    Send-WebViewMessage -Type 'RenderReport' -Payload $wrapperReport
+    Publish-WebViewMappingStudioState
+}
+
+function Initialize-RenderProgressTimer {
+    $timer = [System.Windows.Threading.DispatcherTimer]::new()
+    $timer.Interval = [TimeSpan]::FromMilliseconds(500)
+    $timer.Add_Tick({
+        try {
+            Update-RenderProgressFromFile
+            Complete-RenderProcessIfFinished
+        }
+        catch {
+            $statusText.Text = "Progress polling failed: $($_.Exception.Message)"
+        }
+    })
+    $renderProcessState.Timer = $timer
+}
+
+function Initialize-WebViewHost {
+    $webViewPath = Join-Path $PSScriptRoot 'webview/index.html'
+    $webViewState.AssetPath = [string]$webViewPath
+    $bootstrap = Get-AssemblerWebView2BootstrapStatus -RepoRoot $repoRoot
+    $webViewFallbackText.Text = @(
+        [string]$bootstrap.message
+        ''
+        "Static asset: $webViewPath"
+        ''
+        'Run scripts/Restore-WebView2Dependency.ps1 to restore the WebView2 SDK assembly.'
+        'Install Microsoft Edge WebView2 Runtime if the runtime is missing.'
+        ''
+        'The existing native Mapping Studio tab remains available.'
+    ) -join [Environment]::NewLine
+
+    $richViewsTab.Visibility = [System.Windows.Visibility]::Collapsed
+    $webViewState.Ready = $false
+    $webViewState.Control = $null
+
+    if (-not (Test-Path -LiteralPath $webViewPath -PathType Leaf)) {
+        $webViewStatusText.Text = 'WebView2 assets are missing.'
+        return
+    }
+    if (-not [bool]$bootstrap.available) {
+        $webViewStatusText.Text = [string]$bootstrap.message
+        return
+    }
+
+    try {
+        $loaderDirectory = Split-Path -Parent ([string]$bootstrap.loaderPath)
+        if (-not ([string]$env:PATH).Split([System.IO.Path]::PathSeparator) -contains $loaderDirectory) {
+            $env:PATH = $loaderDirectory + [System.IO.Path]::PathSeparator + $env:PATH
+        }
+        $coreAssemblyPath = Join-Path (Split-Path -Parent ([string]$bootstrap.assemblyPath)) 'Microsoft.Web.WebView2.Core.dll'
+        if (Test-Path -LiteralPath $coreAssemblyPath -PathType Leaf) {
+            Add-Type -Path $coreAssemblyPath -ErrorAction Stop
+        }
+        Add-Type -Path ([string]$bootstrap.assemblyPath) -ErrorAction Stop
+        $webView = [Microsoft.Web.WebView2.Wpf.WebView2]::new()
+        $webViewHostGrid.Children.Clear()
+        [void]$webViewHostGrid.Children.Add($webView)
+        $webViewState.Control = $webView
+        $richViewsTab.Visibility = [System.Windows.Visibility]::Visible
+        $webViewStatusText.Text = 'Initializing WebView2 rich views...'
+        $webView.add_CoreWebView2InitializationCompleted({
+            param($sender, $eventArgs)
+            if (-not [bool]$eventArgs.IsSuccess) {
+                $webViewState.Ready = $false
+                $webViewStatusText.Text = "WebView2 rich views unavailable: $($eventArgs.InitializationException.Message)"
+                return
+            }
+
+            try {
+                $sender.CoreWebView2.add_WebMessageReceived({
+                    param($messageSender, $messageArgs)
+                    try {
+                        $callbacks = @{
+                            ValidateMapping = {
+                                Refresh-MappingStudioWorkbench
+                                $state = New-CurrentWebViewMappingStudioState
+                                Send-WebViewMessage -Type 'MappingStudioState' -Payload $state
+                                return [ordered]@{ status = 'ok'; refreshed = $true }
+                            }
+                            RunRender = {
+                                return (Start-RenderFromCurrentInputs)
+                            }
+                        }
+                        $response = Invoke-AssemblerWebViewCommand -Message $messageArgs.WebMessageAsJson -RepoRoot $repoRoot -AllowedRoots (Get-CurrentWebViewAllowedRoots) -Callbacks $callbacks
+                        $messageSender.PostWebMessageAsJson((ConvertTo-WebViewJson -Value $response))
+                    }
+                    catch {
+                        $response = New-AssemblerWebViewResponse -Ok $false -Type 'Error' -Error $_.Exception.Message
+                        $messageSender.PostWebMessageAsJson((ConvertTo-WebViewJson -Value $response))
+                    }
+                })
+                $webViewState.Ready = $true
+                $webViewStatusText.Text = 'WebView2 rich views loaded.'
+                Publish-WebViewMappingStudioState
+            }
+            catch {
+                $webViewState.Ready = $false
+                $webViewStatusText.Text = "WebView2 bridge unavailable: $($_.Exception.Message)"
+            }
+        })
+        $webView.add_NavigationCompleted({
+            Publish-WebViewMappingStudioState
+        })
+        $null = $window.Dispatcher.BeginInvoke([Action]{
+            if ($null -ne $webViewState.Control -and -not [string]::IsNullOrWhiteSpace([string]$webViewState.AssetPath)) {
+                $webViewState.Control.Source = [System.Uri]::new([string]$webViewState.AssetPath, [System.UriKind]::Absolute)
+            }
+        }, [System.Windows.Threading.DispatcherPriority]::ApplicationIdle)
+    }
+    catch {
+        $richViewsTab.Visibility = [System.Windows.Visibility]::Visible
+        $webViewState.Ready = $false
+        $webViewState.Control = $null
+        $webViewStatusText.Text = "WebView2 rich views unavailable: $($_.Exception.Message)"
+    }
 }
 
 function Resolve-LoadedBundleRoot {
@@ -2033,6 +2232,7 @@ function Refresh-MappingStudioWorkbench {
     }
     finally {
         $mappingStudioState.IsRefreshing = $false
+        Publish-WebViewMappingStudioState
     }
 }
 
@@ -2042,28 +2242,39 @@ $bundleBrowseButton.Add_Click({
     if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
         $bundleRootText.Text = $dialog.SelectedPath
         Update-DocumentPropertyDefaultsFromBundle
+        Publish-WebViewMappingStudioState
     }
 })
 $catalogBrowseButton.Add_Click({
     $dialog = New-Object System.Windows.Forms.OpenFileDialog
     $dialog.Filter = 'Catalog JSON (*.catalog.json)|*.catalog.json|JSON (*.json)|*.json|All files (*.*)|*.*'
     $dialog.InitialDirectory = Resolve-DialogInitialDirectory -Path $catalogPathText.Text -RepoRoot $repoRoot -FallbackPath $defaultCatalogPath -PathKind File
-    if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $catalogPathText.Text = $dialog.FileName }
+    if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+        $catalogPathText.Text = $dialog.FileName
+        Publish-WebViewMappingStudioState
+    }
 })
 $outputBrowseButton.Add_Click({
     $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
     $outputBrowsePath = Resolve-DialogInitialDirectory -Path $outputRootText.Text -RepoRoot $repoRoot -FallbackPath $defaultOutputRoot -PathKind Directory -CreateIfMissing
     $dialog.InitialDirectory = $outputBrowsePath
     $dialog.SelectedPath = $outputBrowsePath
-    if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $outputRootText.Text = $dialog.SelectedPath }
+    if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+        $outputRootText.Text = $dialog.SelectedPath
+        Publish-WebViewMappingStudioState
+    }
 })
 $contractsBrowseButton.Add_Click({
     $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
     $dialog.SelectedPath = Resolve-DialogInitialDirectory -Path $contractsRootText.Text -RepoRoot $repoRoot -FallbackPath $defaultContractsRoot -PathKind Directory
-    if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $contractsRootText.Text = $dialog.SelectedPath }
+    if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+        $contractsRootText.Text = $dialog.SelectedPath
+        Publish-WebViewMappingStudioState
+    }
 })
 $bundleRootText.Add_LostFocus({
     Update-DocumentPropertyDefaultsFromBundle
+    Publish-WebViewMappingStudioState
 })
 $mappingRefreshButton.Add_Click({
     Refresh-MappingStudioWorkbench
@@ -2401,26 +2612,25 @@ $mappingSaveButton.Add_Click({
 
 $runButton.Add_Click({
     try {
-        Update-DocumentPropertyDefaultsFromBundle
-        $statusText.Text = 'Running render...'
-        $techSelection = @($techIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-        $entrySelection = @($entryIdText.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-        $docxModeSelection = [string]$docxMatchModeCombo.SelectedItem.Content
-        $unresolvedTokenPolicySelection = [string]$unresolvedTokenPolicyCombo.SelectedItem.Content
-        $resultJson = Invoke-BundleRender -BundleRoot $bundleRootText.Text -CatalogPath $catalogPathText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text -TechId $techSelection -EntryId $entrySelection -DocTitle $docTitleText.Text -DocCustomer $docCustomerText.Text -DocCustomerAbbr $docCustomerAbbrText.Text -DocLocation $docLocationText.Text -DocSubsidiary $docSubsidiaryText.Text -DocEnvironment $docEnvironmentText.Text -DocDocumentReference $docDocumentReferenceText.Text -DocVersion $docVersionText.Text -DocConfigSnapDate $docConfigSnapDateText.Text -DocReferenceId $docReferenceIdText.Text -DocClassification $docClassificationText.Text -IncludeDocx ([bool]$docxCheckBox.IsChecked) -IncludeTxt ([bool]$txtCheckBox.IsChecked) -AnnotateResolvedTags ([bool]$annotateCheckBox.IsChecked) -DocxMatchMode $docxModeSelection -UnresolvedTokenPolicy $unresolvedTokenPolicySelection
-        $statusText.Text = 'Render completed successfully.'
-        $outputText.Text = if ($debugCheckBox.IsChecked) {
-            Format-DebugBundleOutput -BundleResultJson $resultJson
-        }
-        elseif ($verboseCheckBox.IsChecked) {
-            Format-VerboseFindingsOutput -BundleResultJson $resultJson
-        }
-        else {
-            Format-RenderFindingsSummary -BundleResultJson $resultJson
-        }
+        $null = Start-RenderFromCurrentInputs
     }
     catch {
-        $statusText.Text = 'Render failed.'
+        $runButton.IsEnabled = $true
+        $cancelButton.IsEnabled = $false
+        $renderProcessState.Current = $null
+        $statusText.Text = 'Render failed to start.'
+        $outputText.Text = $_.Exception.ToString()
+    }
+})
+
+$cancelButton.Add_Click({
+    try {
+        if ($null -eq $renderProcessState.Current) { return }
+        $statusText.Text = 'Cancelling render...'
+        Request-AssemblerGuiRenderCancel -RenderState $renderProcessState.Current
+    }
+    catch {
+        $statusText.Text = 'Cancel request failed.'
         $outputText.Text = $_.Exception.ToString()
     }
 })
@@ -2428,5 +2638,8 @@ $runButton.Add_Click({
 Update-DocumentPropertyDefaultsFromBundle
 Refresh-MappingStudioWorkbench
 Update-MappingChangesView
+Initialize-RenderProgressTimer
+Initialize-WebViewHost
 
 [void]$window.ShowDialog()
+

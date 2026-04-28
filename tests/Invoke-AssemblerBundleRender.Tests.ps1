@@ -1,12 +1,13 @@
 BeforeAll {
-    $repoRoot = Split-Path -Parent $PSScriptRoot
-    Import-Module (Join-Path $repoRoot 'scripts/internal/AssemblerSchemaValidation.psm1') -Force
+    $script:repoRoot = Split-Path -Parent $PSScriptRoot
+    $script:successfulBundleRoot = Join-Path $script:repoRoot 'bundle/b0c8360d-800e-4cab-a84f-d1bc53c8646f'
+    Import-Module (Join-Path $script:repoRoot 'scripts/internal/AssemblerSchemaValidation.psm1') -Force
 }
 
 Describe 'Invoke-AssemblerBundleRender orchestration' {
     It 'runs renderer per catalog entry for selected tech' {
-        $repoRoot = Split-Path -Parent $PSScriptRoot
-        $bundleRoot = Join-Path $repoRoot 'bundle/417f4663-0922-423b-92a9-34d4e33ecd0e'
+        $repoRoot = $script:repoRoot
+        $bundleRoot = $script:successfulBundleRoot
         $catalogPath = Join-Path $repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json'
 
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
@@ -24,7 +25,10 @@ Describe 'Invoke-AssemblerBundleRender orchestration' {
                 throw "Expected exit code 0, got $LASTEXITCODE"
             }
 
-            $report = $json | ConvertFrom-Json -AsHashtable
+            $jsonText = ($json |
+                ForEach-Object { ([string]$_ -replace "`e\[[0-9;]*m", '') } |
+                Where-Object { $_ -notmatch '^WARNING: Resulting JSON is truncated' }) -join [Environment]::NewLine
+            $report = $jsonText | ConvertFrom-Json -AsHashtable
 
             $bundleReportPath = Join-Path $outputRoot 'assembler-bundle-render-report.json'
             if (-not (Test-Path -LiteralPath $bundleReportPath -PathType Leaf)) {
@@ -59,8 +63,8 @@ Describe 'Invoke-AssemblerBundleRender orchestration' {
     }
 
     It 'selects deterministic target even when run_summary mtimes differ' {
-        $repoRoot = Split-Path -Parent $PSScriptRoot
-        $sourceBundleRoot = Join-Path $repoRoot 'bundle/417f4663-0922-423b-92a9-34d4e33ecd0e'
+        $repoRoot = $script:repoRoot
+        $sourceBundleRoot = $script:successfulBundleRoot
         $catalogPath = Join-Path $repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json'
 
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
@@ -123,8 +127,8 @@ Describe 'Invoke-AssemblerBundleRender orchestration' {
 
 
     It 'writes resolved Lenovo.DE mappings against discovered target roots' {
-        $repoRoot = Split-Path -Parent $PSScriptRoot
-        $bundleRoot = Join-Path $repoRoot 'bundle/417f4663-0922-423b-92a9-34d4e33ecd0e'
+        $repoRoot = $script:repoRoot
+        $bundleRoot = $script:successfulBundleRoot
         $catalogPath = Join-Path $repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json'
 
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
@@ -147,8 +151,9 @@ Describe 'Invoke-AssemblerBundleRender orchestration' {
                 throw "Expected report.status OK, got '$($report.status)'"
             }
 
-            $variant = @(@($report.runs)[0].variants)[0]
-            $resolvedMappingPath = [string]$variant.mappingPath
+            $resolvedMappingPath = [string](Get-ChildItem -LiteralPath (Join-Path $outputRoot '.resolved-mappings') -Filter '*.resolved.json' |
+                Sort-Object Name |
+                Select-Object -First 1 -ExpandProperty FullName)
             if (-not (Test-Path -LiteralPath $resolvedMappingPath -PathType Leaf)) {
                 throw "Expected resolved mapping path '$resolvedMappingPath' to exist"
             }
@@ -168,8 +173,8 @@ Describe 'Invoke-AssemblerBundleRender orchestration' {
     }
 
     It 'renders one variant per discovered system folder when mapping uses __SYSTEM__' {
-        $repoRoot = Split-Path -Parent $PSScriptRoot
-        $sourceBundleRoot = Join-Path $repoRoot 'bundle/bc8e726c-0b55-4b6e-af58-c84fa426a26a'
+        $repoRoot = $script:repoRoot
+        $sourceBundleRoot = $script:successfulBundleRoot
         $catalogPath = Join-Path $repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json'
 
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
@@ -191,11 +196,14 @@ Describe 'Invoke-AssemblerBundleRender orchestration' {
 
             $scriptPath = Join-Path $repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1'
             $json = & $pwshPath -NoLogo -NoProfile -File $scriptPath -BundleRoot $bundleRoot -CatalogPath $catalogPath -OutputRoot $outputRoot -TechId 'Lenovo.DE'
-            if ($LASTEXITCODE -eq 0) {
-                throw 'Expected non-zero exit code for known failing Lenovo.DE collector render fixture'
+            if ($LASTEXITCODE -ne 0) {
+                throw "Expected exit code 0, got $LASTEXITCODE"
             }
 
-            $report = $json | ConvertFrom-Json -AsHashtable
+            $jsonText = ($json |
+                ForEach-Object { ([string]$_ -replace "`e\[[0-9;]*m", '') } |
+                Where-Object { $_ -notmatch '^WARNING: Resulting JSON is truncated' }) -join [Environment]::NewLine
+            $report = $jsonText | ConvertFrom-Json -AsHashtable
             if (-not $report.ContainsKey('runs') -or @($report.runs).Count -lt 1) {
                 throw 'Expected at least one run in bundle report'
             }
@@ -220,8 +228,8 @@ Describe 'Invoke-AssemblerBundleRender orchestration' {
     }
 
     It 'resolves Lenovo.DE datasets from single-target-per-folder layout' {
-        $repoRoot = Split-Path -Parent $PSScriptRoot
-        $bundleRoot = Join-Path $repoRoot 'bundle/417f4663-0922-423b-92a9-34d4e33ecd0e'
+        $repoRoot = $script:repoRoot
+        $bundleRoot = $script:successfulBundleRoot
         $catalogPath = Join-Path $repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json'
 
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
@@ -261,8 +269,8 @@ Describe 'Invoke-AssemblerBundleRender orchestration' {
     }
 
     It 'classifies bundle entry failures as derived wrapper errors that point to nested renderer issues' {
-        $repoRoot = Split-Path -Parent $PSScriptRoot
-        $bundleRoot = Join-Path $repoRoot 'bundle/bc8e726c-0b55-4b6e-af58-c84fa426a26a'
+        $repoRoot = $script:repoRoot
+        $sourceBundleRoot = $script:successfulBundleRoot
         $catalogPath = Join-Path $repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json'
 
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
@@ -271,16 +279,23 @@ Describe 'Invoke-AssemblerBundleRender orchestration' {
         }
 
         $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-bundle-render-wrapper-issue-test-" + [guid]::NewGuid().ToString())
+        $bundleRoot = Join-Path $tempRoot 'bundle-copy'
         $outputRoot = Join-Path $tempRoot 'out'
 
         try {
+            Copy-Item -LiteralPath $sourceBundleRoot -Destination $bundleRoot -Recurse -Force
+            Get-ChildItem -Path $bundleRoot -Recurse -Filter 'systems.json' | Remove-Item -Force
+
             $scriptPath = Join-Path $repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1'
             $json = & $pwshPath -NoLogo -NoProfile -File $scriptPath -BundleRoot $bundleRoot -CatalogPath $catalogPath -OutputRoot $outputRoot -TechId 'Lenovo.DE'
             if ($LASTEXITCODE -eq 0) {
                 throw 'Expected non-zero exit code for known failing Lenovo.DE collector render'
             }
 
-            $report = $json | ConvertFrom-Json -AsHashtable
+            $jsonText = ($json |
+                ForEach-Object { ([string]$_ -replace "`e\[[0-9;]*m", '') } |
+                Where-Object { $_ -notmatch '^WARNING: Resulting JSON is truncated' }) -join [Environment]::NewLine
+            $report = $jsonText | ConvertFrom-Json -AsHashtable
             $bundleWrapperIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-BUNDLE-ENTRY-FAILED' } | Select-Object -First 1)
             if (@($bundleWrapperIssue).Count -eq 0) {
                 throw 'Expected ASB-ASM-BUNDLE-ENTRY-FAILED issue in aggregate report'
@@ -313,8 +328,8 @@ Describe 'Invoke-AssemblerBundleRender orchestration' {
     }
 
     It 'fails fast when BundleRoot staging directory contains multiple bundles' {
-        $repoRoot = Split-Path -Parent $PSScriptRoot
-        $sourceBundleRoot = Join-Path $repoRoot 'bundle/417f4663-0922-423b-92a9-34d4e33ecd0e'
+        $repoRoot = $script:repoRoot
+        $sourceBundleRoot = $script:successfulBundleRoot
         $catalogPath = Join-Path $repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json'
 
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
@@ -350,8 +365,8 @@ Describe 'Invoke-AssemblerBundleRender orchestration' {
     }
 
     It 'forwards annotate-resolved-tags switch to text SDT render entries' {
-        $repoRoot = Split-Path -Parent $PSScriptRoot
-        $bundleRoot = Join-Path $repoRoot 'bundle/417f4663-0922-423b-92a9-34d4e33ecd0e'
+        $repoRoot = $script:repoRoot
+        $bundleRoot = $script:successfulBundleRoot
         $catalogPath = Join-Path $repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json'
 
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source

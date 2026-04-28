@@ -5,6 +5,8 @@ Runtime direction is **PowerShell 7**.
 ## Implemented scripts
 
 - `Invoke-AssemblerPipeline.ps1` - bootstraps Direct-v1 input ingest and minimum contract checks; by default it validates-only and emits explicit next-step render guidance. Optional render handoff parameters can invoke bundle render directly.
+- `Invoke-LnvAssemblerRender.ps1` - canonical CLI/GUI render wrapper that supervises bundle render out-of-process, emits `progress.jsonl`, writes wrapper-level `render-report.json`, and returns stable process exit codes.
+- `Restore-WebView2Dependency.ps1` - restores the `Microsoft.Web.WebView2` SDK package into `.deps/nuget` so the WPF Rich Views tab can load `Microsoft.Web.WebView2.Wpf.dll` without committing package binaries.
 - `Invoke-AssemblerSdtRender.ps1` - reads a dataset-to-SDT mapping and skeleton template, validates mapping contract shape, resolves dataset selectors, and renders SDT placeholders.
 - `Invoke-AssemblerBundleRender.ps1` - bundle-aware orchestration skeleton that discovers tech in bundle and runs renderer once per TemplateCatalog entry.
 - `New-AssemblerSkeleton.ps1` - copies a built-in skeleton pack (mapping + template) into a local ingest folder.
@@ -23,7 +25,8 @@ Runtime direction is **PowerShell 7**.
 
 | Category | Entrypoints | Notes |
 | --- | --- | --- |
-| Public/operator entrypoints | `Sync-AssemblerContractsToRepo.ps1`; `Invoke-AssemblerPipeline.ps1`; `Invoke-AssemblerBundleRender.ps1`; GUI launchers | Preferred operator-facing path for sync/orchestration. |
+| Public/operator entrypoints | `Sync-AssemblerContractsToRepo.ps1`; `Invoke-AssemblerPipeline.ps1`; `Invoke-LnvAssemblerRender.ps1`; `Restore-WebView2Dependency.ps1`; GUI launchers | Preferred operator-facing path for sync/orchestration, render execution, and optional WPF Rich Views dependency restore. |
+| Backend render entrypoint | `Invoke-AssemblerBundleRender.ps1` | Existing bundle orchestration layer, still callable for compatibility and invoked by the wrapper. |
 | Conditional/manual entrypoint | `Invoke-AssemblerSdtRender.ps1` | Use only with fully resolved mapping paths; no `__TARGET__` / `__SYSTEM__` placeholders. |
 | Internal modules/helpers | `internal/AssemblerSchemaValidation.psm1`; mapping-shape helpers | Shared internals consumed by entrypoint scripts and validation flows. |
 
@@ -49,8 +52,8 @@ pwsh ./scripts/Invoke-AssemblerSdtRender.ps1 \
   -TemplatePath ./templates/skeletons/Lenovo.DE/DE-SDT-Collector.docx \
   -OutputPath ./out/direct.docx
 
-# Right: bundle orchestration resolves mapping paths before SDT render
-pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
+# Preferred: wrapper emits progress/report sidecars and delegates to bundle render
+pwsh ./scripts/Invoke-LnvAssemblerRender.ps1 \
   -BundleRoot ./bundle/<id> \
   -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json \
   -OutputRoot ./out/bundle-render
@@ -58,12 +61,14 @@ pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 \
 
 ### Flow
 
-`Sync -> (optional Pipeline) -> BundleRender -> SdtRender (per resolved variant)`
+`Sync -> (optional Pipeline) -> LnvAssemblerRender -> BundleRender -> SdtRender (per resolved variant)`
 
 ### Public entrypoint map
 
 - **Pipeline path:** `Invoke-AssemblerPipeline.ps1` -> `Invoke-AssemblerBundleRender.ps1` -> `Invoke-AssemblerSdtRender.ps1`
-- **GUI path:** `gui/Start-AssemblerGui.ps1` or `gui/Start-AssemblerGui.Wpf.ps1` -> `Invoke-AssemblerBundleRender.ps1`
+- **CLI wrapper path:** `Invoke-LnvAssemblerRender.ps1` -> `Invoke-AssemblerBundleRender.ps1` -> `Invoke-AssemblerSdtRender.ps1`
+- **WPF GUI path:** `gui/Start-AssemblerGui.Wpf.ps1` -> `Invoke-LnvAssemblerRender.ps1` -> `Invoke-AssemblerBundleRender.ps1`
+- **Legacy GUI path:** `gui/Start-AssemblerGui.ps1` -> `Invoke-AssemblerBundleRender.ps1`
 
 Both paths converge on **bundle render** before SDT render. This is required whenever mappings include runtime placeholders such as `__TARGET__` and `__SYSTEM__`.
 
@@ -95,6 +100,53 @@ Example:
 
 ```powershell
 pwsh ./scripts/New-AssemblerPackage.ps1 -BuildChannel dev
+```
+
+## `Invoke-LnvAssemblerRender.ps1`
+
+Required parameters:
+- `-BundleRoot`
+- `-CatalogPath`
+- `-OutputRoot`
+
+Optional:
+- `-ContractsRoot`
+- `-TechId`, `-EntryId`, `-OutputType docx|text`
+- all document-property inputs supported by `Invoke-AssemblerBundleRender.ps1`
+- `-DocxMatchMode content-control-tag|literal-token|both`
+- `-UnresolvedTokenPolicy retain|remove`
+- `-ProgressPath` (default `<OutputRoot>/progress.jsonl`)
+- `-ReportPath` (default `<OutputRoot>/render-report.json`)
+- `-CancelSignalPath`
+
+Wrapper behavior:
+- validates required bundle/catalog artifacts enough to fail early on missing or unreadable input
+- starts `Invoke-AssemblerBundleRender.ps1` through a child `pwsh` process
+- polls `-CancelSignalPath` and terminates the backend process when cancellation is requested
+- writes JSONL progress events for wrapper stages
+- writes a wrapper report to `render-report.json` that points to the unchanged backend `assembler-bundle-render-report.json`
+
+Exit codes:
+- `0`: wrapper and backend render completed successfully, including backend warnings/partial status
+- `1`: backend render failed or returned an error status
+- `2`: wrapper input/preflight validation failed before backend render
+- `130`: render was cancelled
+
+Wrapper artifact layout:
+- `<OutputRoot>/progress.jsonl`
+- `<OutputRoot>/render-report.json`
+- `<OutputRoot>/assembler-bundle-render-report.json`
+- `<OutputRoot>/.resolved-mappings/`
+
+Example:
+
+```powershell
+pwsh ./scripts/Invoke-LnvAssemblerRender.ps1 \
+  -BundleRoot ./bundle/<id> \
+  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json \
+  -OutputRoot ./out/wrapper-render \
+  -ContractsRoot ./.deps/contracts \
+  -OutputType docx
 ```
 
 ## Projection/view ownership direction
