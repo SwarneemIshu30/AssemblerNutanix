@@ -3,7 +3,12 @@
   "dataset": "host-groups-to-volumes",
   "presentationKind": "table",
   "defaultItemRoot": "items",
-  "preferredProjectionViews": [],
+  "preferredProjectionViews": [
+    {
+      "name": "HostGroupsToVolumes",
+      "projectionRef": "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes"
+    }
+  ],
   "datasetPath": {
     "template": "datasets/__TECH_ID__/__TARGET__/__SYSTEM__/__DATASET__.json",
     "scope": "system",

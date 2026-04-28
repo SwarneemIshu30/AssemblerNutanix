@@ -59,6 +59,8 @@
         "required": [
           "systemId",
           "controllerRef",
+          "controllerLabel",
+          "controllerSlot",
           "dnsAcquisitionType",
           "dnsServers",
           "dhcpAcquiredServers"
@@ -71,6 +73,14 @@
           "controllerRef": {
             "type": "string",
             "minLength": 1
+          },
+          "controllerLabel": {
+            "type": "string",
+            "minLength": 1
+          },
+          "controllerSlot": {
+            "type": "integer",
+            "minimum": 0
           },
           "dnsAcquisitionType": {
             "type": "string",

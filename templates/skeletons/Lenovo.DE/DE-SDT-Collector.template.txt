@@ -206,7 +206,14 @@ Data Protection
 Describe snapshots, remote replication, recovery dependencies, and protection features enabled on the platform.
 
 Snapshot / Copy Services
-[Manual note: describe snapshot/copy-service configuration here if collected evidence is being attached separately.]
+Snapshot Policy
+<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy>>
+
+Snapshot Schedule
+<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotSchedule>>
+
+Snapshot Images
+<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotImages>>
 
 Replication Configuration
 [Manual note: describe replication configuration or state that replication is not configured.]

@@ -24,8 +24,8 @@
       "issuer": "CN=localhost",
       "serialNumber": "",
       "thumbprint": "8b0220c8da1aa3d2e7c6b7dc6572f653626db0944e0f0abb870c5d582214f9d2",
-      "validFrom": null,
-      "validTo": null,
+      "validFrom": "2025-11-20T19:44:48.0000000Z",
+      "validTo": "2030-11-19T19:44:48.0000000Z",
       "status": "trusted",
       "scope": "ManagementServer"
     }

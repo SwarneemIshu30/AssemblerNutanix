@@ -22,7 +22,9 @@
       "ntpAcquisitionType": "disabled",
       "ntpServers": [],
       "dhcpAcquiredServers": [],
-      "ipv4DefaultRouter": "10.240.56.1"
+      "ipv4DefaultRouter": "10.240.56.1",
+      "controllerLabel": "B",
+      "controllerSlot": 2
     },
     {
       "systemId": "1",
@@ -30,7 +32,9 @@
       "ntpAcquisitionType": "disabled",
       "ntpServers": [],
       "dhcpAcquiredServers": [],
-      "ipv4DefaultRouter": "10.240.56.1"
+      "ipv4DefaultRouter": "10.240.56.1",
+      "controllerLabel": "A",
+      "controllerSlot": 1
     }
   ]
 }

@@ -713,6 +713,94 @@ function ConvertTo-WordXmlEscapedText {
     return [System.Security.SecurityElement]::Escape([string]$Text)
 }
 
+function Get-WordTableCellText {
+    param(
+        [Parameter(Mandatory = $false)]$Row,
+        [Parameter(Mandatory = $true)][string]$ColumnName
+    )
+
+    if ($null -eq $Row) { return '' }
+    $property = $Row.PSObject.Properties[$ColumnName]
+    if ($null -eq $property -or $null -eq $property.Value) { return '' }
+    return [string]$property.Value
+}
+
+function Get-WordTableTextSegments {
+    param([Parameter(Mandatory = $false)][string]$Text)
+
+    $segments = [System.Collections.Generic.List[string]]::new()
+    foreach ($line in @(([string]$Text) -split "`r?`n")) {
+        foreach ($segment in @(([string]$line) -split '\s+')) {
+            if (-not [string]::IsNullOrWhiteSpace($segment)) {
+                $segments.Add([string]$segment) | Out-Null
+            }
+        }
+    }
+    if ($segments.Count -eq 0) { $segments.Add('') | Out-Null }
+    return @($segments)
+}
+
+function Get-PercentileInteger {
+    param(
+        [Parameter(Mandatory = $false)][int[]]$Values,
+        [Parameter(Mandatory = $false)][double]$Percentile = 0.9
+    )
+
+    $ordered = @($Values | Sort-Object)
+    if (@($ordered).Count -eq 0) { return 1 }
+    $index = [int][Math]::Ceiling((@($ordered).Count * $Percentile)) - 1
+    $index = [Math]::Max(0, [Math]::Min($index, @($ordered).Count - 1))
+    return [int]$ordered[$index]
+}
+
+function Test-WordTableWideTextColumn {
+    param([Parameter(Mandatory = $true)][string]$ColumnName)
+
+    return ([string]$ColumnName -match '(?i)(^|[^a-z])(name|description|desc|notes?|members?|schedule|iqn|subject|issuer|thumbprint|fingerprint|serial|baseobject|object|ref|id|wwn|dn|certificate|policy|role|feature|entitlement)([^a-z]|$)')
+}
+
+function Test-WordTableNoWrapColumn {
+    param(
+        [Parameter(Mandatory = $true)][string]$ColumnName,
+        [Parameter(Mandatory = $true)][int]$MaxTokenLength,
+        [Parameter(Mandatory = $true)][int]$PercentileLength
+    )
+
+    if (Test-WordTableWideTextColumn -ColumnName $ColumnName) { return $false }
+    if ($MaxTokenLength -gt 24 -or $PercentileLength -gt 32) { return $false }
+
+    return ([string]$ColumnName -match '(?i)^(controller|slot|port|lun|status|state|address|mask|gateway|type|transport|activetransport|protocol|mode|linkstatus|enabled|scope|acquisition|channel|tcpport|firmware|version|raw|usable|used|free|size|media)$')
+}
+
+function Get-WordTableNoWrapLookup {
+    param(
+        [Parameter(Mandatory = $true)][string[]]$DisplayColumns,
+        [Parameter(Mandatory = $true)][object[]]$Rows
+    )
+
+    $lookup = @{}
+    foreach ($columnName in @($DisplayColumns)) {
+        $lineLengths = [System.Collections.Generic.List[int]]::new()
+        $maxTokenLength = [Math]::Max(1, ([string]$columnName).Length)
+        $lineLengths.Add([Math]::Max(1, ([string]$columnName).Length)) | Out-Null
+
+        foreach ($row in @($Rows)) {
+            $cellValue = Get-WordTableCellText -Row $row -ColumnName $columnName
+            foreach ($line in @(([string]$cellValue) -split "`r?`n")) {
+                $lineLengths.Add([Math]::Max(1, ([string]$line).Length)) | Out-Null
+            }
+            foreach ($segment in @(Get-WordTableTextSegments -Text $cellValue)) {
+                $maxTokenLength = [Math]::Max($maxTokenLength, ([string]$segment).Length)
+            }
+        }
+
+        $p90Length = Get-PercentileInteger -Values @($lineLengths) -Percentile 0.9
+        $lookup[[string]$columnName] = [bool](Test-WordTableNoWrapColumn -ColumnName $columnName -MaxTokenLength $maxTokenLength -PercentileLength $p90Length)
+    }
+
+    return $lookup
+}
+
 function Convert-TableModelToWordTableXml {
     param(
         [Parameter(Mandatory = $true)][System.Collections.IDictionary]$TableModel,
@@ -725,15 +813,12 @@ function Convert-TableModelToWordTableXml {
     if (@($displayColumns).Count -eq 0 -or @($rows).Count -eq 0) { return '' }
 
     $tableWidthPct = 4783
+    $noWrapByColumn = Get-WordTableNoWrapLookup -DisplayColumns $displayColumns -Rows $rows
     $columnWeights = [System.Collections.Generic.List[int]]::new()
     foreach ($columnName in @($displayColumns)) {
         $maxLength = [Math]::Max(1, ([string]$columnName).Length)
         foreach ($row in @($rows)) {
-            $cellValue = ''
-            $property = $row.PSObject.Properties[[string]$columnName]
-            if ($null -ne $property -and $null -ne $property.Value) {
-                $cellValue = [string]$property.Value
-            }
+            $cellValue = Get-WordTableCellText -Row $row -ColumnName $columnName
             $cellMaxSegmentLength = 1
             foreach ($segment in @($cellValue -split "`r?`n")) {
                 $cellMaxSegmentLength = [Math]::Max($cellMaxSegmentLength, ([string]$segment).Length)
@@ -778,7 +863,8 @@ function Convert-TableModelToWordTableXml {
     for ($columnIndex = 0; $columnIndex -lt @($displayColumns).Count; $columnIndex++) {
         $columnName = [string]$displayColumns[$columnIndex]
         $columnPct = [int]$columnWidthPctValues[$columnIndex]
-        [void]$sb.Append("<w:tc><w:tcPr><w:tcW w:w=`"$columnPct`" w:type=`"pct`"/></w:tcPr><w:p><w:pPr>")
+        $noWrapXml = if ([bool]$noWrapByColumn[$columnName]) { '<w:noWrap/>' } else { '' }
+        [void]$sb.Append("<w:tc><w:tcPr><w:tcW w:w=`"$columnPct`" w:type=`"pct`"/>$noWrapXml</w:tcPr><w:p><w:pPr>")
         if (-not [string]::IsNullOrWhiteSpace($ParagraphStyleId)) {
             [void]$sb.Append("<w:pStyle w:val=`"$(ConvertTo-WordXmlEscapedText -Text $ParagraphStyleId)`"/>")
         }
@@ -793,12 +879,9 @@ function Convert-TableModelToWordTableXml {
         for ($columnIndex = 0; $columnIndex -lt @($displayColumns).Count; $columnIndex++) {
             $columnName = [string]$displayColumns[$columnIndex]
             $columnPct = [int]$columnWidthPctValues[$columnIndex]
-            $cellValue = ''
-            $property = $row.PSObject.Properties[$columnName]
-            if ($null -ne $property -and $null -ne $property.Value) {
-                $cellValue = [string]$property.Value
-            }
-            [void]$sb.Append("<w:tc><w:tcPr><w:tcW w:w=`"$columnPct`" w:type=`"pct`"/></w:tcPr><w:p><w:pPr>")
+            $noWrapXml = if ([bool]$noWrapByColumn[$columnName]) { '<w:noWrap/>' } else { '' }
+            $cellValue = Get-WordTableCellText -Row $row -ColumnName $columnName
+            [void]$sb.Append("<w:tc><w:tcPr><w:tcW w:w=`"$columnPct`" w:type=`"pct`"/>$noWrapXml</w:tcPr><w:p><w:pPr>")
             if (-not [string]::IsNullOrWhiteSpace($ParagraphStyleId)) {
                 [void]$sb.Append("<w:pStyle w:val=`"$(ConvertTo-WordXmlEscapedText -Text $ParagraphStyleId)`"/>")
             }
@@ -862,7 +945,7 @@ function Replace-LiteralSdtTokenText {
     param(
         [Parameter(Mandatory = $true)][string]$Text,
         [Parameter(Mandatory = $true)][string]$Tag,
-        [Parameter(Mandatory = $true)][string]$Replacement
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string]$Replacement
     )
 
     $escapedTag = [regex]::Escape([string]$Tag)
@@ -874,7 +957,7 @@ function Replace-LiteralSdtTokenXmlText {
     param(
         [Parameter(Mandatory = $true)][string]$XmlText,
         [Parameter(Mandatory = $true)][string]$Tag,
-        [Parameter(Mandatory = $true)][string]$Replacement
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string]$Replacement
     )
 
     $updated = Replace-LiteralSdtTokenText -Text $XmlText -Tag $Tag -Replacement $Replacement
@@ -1874,14 +1957,6 @@ function Render-DocxTemplate {
             }
         }
 
-        $tableXmlByTag = @{}
-        if ($null -ne $TableByTag) {
-            foreach ($tag in @($TableByTag.Keys)) {
-                $tagText = [string]$tag
-                $tableXmlByTag[$tagText] = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId -ParagraphStyleId $tableParagraphStyleId
-            }
-        }
-
         $partEntries = @(Get-WordXmlPartEntries -Archive $archive)
         $updatedPartXmlByName = [ordered]@{}
         $partXmlByName = [ordered]@{}
@@ -1892,6 +1967,14 @@ function Render-DocxTemplate {
             }
             finally {
                 $reader.Dispose()
+            }
+        }
+
+        $tableXmlByTag = @{}
+        if ($null -ne $TableByTag) {
+            foreach ($tag in @($TableByTag.Keys)) {
+                $tagText = [string]$tag
+                $tableXmlByTag[$tagText] = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId -ParagraphStyleId $tableParagraphStyleId
             }
         }
 
@@ -2526,6 +2609,9 @@ function Add-RenderIssue {
     if ($null -ne $script:issues) {
         $script:issues.Add((New-RenderIssueRecord -Code $Code -Severity $Severity -Message $Message -PathValue $PathValue))
     }
+    if ($Severity -eq 'ERROR') {
+        $script:status = 'ERROR'
+    }
 }
 
 function Get-StructuredValuePlaceholder {
@@ -2968,6 +3054,13 @@ function Resolve-ProjectionColumnValue {
     if (Test-MapHasKey -Map $Column -Key 'format') {
         switch ([string]$Column.format) {
             'bytesHuman' { return (Format-SizeHuman -Bytes $value) }
+            'percent' {
+                if ($null -eq $value) { return '' }
+                $text = [string]$value
+                if ([string]::IsNullOrWhiteSpace($text)) { return '' }
+                if ($text.Trim().EndsWith('%')) { return $text.Trim() }
+                return ("$($text.Trim())%")
+            }
             'join' {
                 if ($null -eq $value) { return '' }
                 $delimiter = if (Test-MapHasKey -Map $Column -Key 'delimiter') { [string]$Column.delimiter } else { ', ' }
@@ -3630,7 +3723,7 @@ try {
         if ($isDocxTemplate) {
             $projectionDefinition = Get-ProjectionDefinitionForMapping -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases
             $renderMode = Get-EffectiveRenderMode -RenderHint $renderHint -ProjectionDefinition $projectionDefinition -Tag $tag
-            if ($renderMode -eq 'table' -or $null -ne $projectionDefinition) {
+            if ($null -ne $projectionDefinition) {
                 $tableModel = Convert-ValueToTableModel -Value $resolved -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases -DatasetPath $datasetPath
                 if ($null -ne $tableModel) {
                     $docxTableByTag[$tag] = $tableModel

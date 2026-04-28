@@ -665,13 +665,209 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                 throw "Expected rendered DOCX document.xml to be well-formed XML, got '$($_.Exception.Message)'"
             }
 
+            [xml]$document = $documentXml
+            $nsMgr = [System.Xml.XmlNamespaceManager]::new($document.NameTable)
+            $nsMgr.AddNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main')
+
             if ($documentXml -notmatch '<w:tbl') { throw "Expected rendered DOCX to include a Word table node, got '$documentXml'" }
             if ($documentXml -notmatch 'w:tblStyle w:val=\"LNVTable1-9ptHeadBandedGrid\"') { throw "Expected rendered DOCX table to apply template styleId, got '$documentXml'" }
             if ($documentXml -notmatch 'w:tblW w:w=\"4783\" w:type=\"pct\"') { throw "Expected rendered DOCX table to use template-style percentage width, got '$documentXml'" }
+            if ($documentXml -match '<w:tblLayout w:type=\"fixed\"/>') { throw "Expected rendered DOCX table to remain style/autofit driven without fixed layout, got '$documentXml'" }
+            if ($documentXml -match '<w:sz w:val=\"16\"/>') { throw "Expected rendered DOCX table to avoid direct compact 8pt run sizing, got '$documentXml'" }
             if ($documentXml -notmatch 'w:pStyle w:val=\"LNVTableText1-9Pt-Indented\"') { throw "Expected rendered DOCX table paragraphs to use the indented table text style, got '$documentXml'" }
             if ($documentXml -notmatch '<w:t>Controller</w:t>') { throw "Expected table header cells from projection columns, got '$documentXml'" }
             if ($documentXml -notmatch '<w:t xml:space=\"preserve\">10.0.0.1</w:t>') { throw "Expected projected body cell values, got '$documentXml'" }
             if ($documentXml -match '&lt;&lt;SDT:LNV\.Test\.Tech\.System\[ArrayName\]\.Tables\.Sample&gt;&gt;') { throw "Expected SDT placeholder token to be replaced, got '$documentXml'" }
+
+            $gridWidths = @($document.SelectNodes('//w:tblGrid/w:gridCol', $nsMgr) | ForEach-Object {
+                [int]$_.Attributes.GetNamedItem('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main').Value
+            })
+            if (($gridWidths | Measure-Object -Sum).Sum -ne 4783) {
+                throw "Expected gridCol widths to remain percentage weights for style-driven layout, got '$($gridWidths -join ',')'"
+            }
+
+            $tokenNoWrapCells = @($document.SelectNodes('//w:tc[w:tcPr/w:noWrap]', $nsMgr) | Where-Object { $_.InnerText -match '^(Controller|Address|A|B|10\.0\.0\.[12])$' })
+            if ($tokenNoWrapCells.Count -lt 6) {
+                throw "Expected short token columns to be marked no-wrap, got '$documentXml'"
+            }
+            $iqnNoWrapCells = @($document.SelectNodes('//w:tc[w:tcPr/w:noWrap]', $nsMgr) | Where-Object { $_.InnerText -match '^IQN$|^iqn\.' })
+            if ($iqnNoWrapCells.Count -ne 0) {
+                throw "Expected IQN column to remain wrappable, got '$documentXml'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'keeps dense DOCX tables style-driven without direct compact font sizing' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-docx-compact-table-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $contractsRoot = New-MinimalContractsRoot -Root $tempRoot -DatasetName 'dense'
+            $projectionPath = Join-Path $contractsRoot 'tech/Test.Tech/assembler.projections.v1.json'
+            $projection = Get-Content -LiteralPath $projectionPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            $projection.projections['LNV.Test.Tech.System[ArrayName].Tables.Sample'].columns = @(
+                @{ name = 'Controller'; source = 'controllerLabel' },
+                @{ name = 'Slot'; source = 'slot' },
+                @{ name = 'Port'; source = 'port' },
+                @{ name = 'Status'; source = 'status' },
+                @{ name = 'Address'; source = 'address' },
+                @{ name = 'Mask'; source = 'mask' },
+                @{ name = 'Gateway'; source = 'gateway' },
+                @{ name = 'Lun'; source = 'lun' },
+                @{ name = 'State'; source = 'state' },
+                @{ name = 'Mode'; source = 'mode' }
+            )
+            Set-Content -LiteralPath $projectionPath -Encoding UTF8 -Value ($projection | ConvertTo-Json -Depth 20)
+
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'unused' -TechId 'Test.Tech' -DatasetRelativePath 'datasets/dense.json' -Mappings @(
+                @{
+                    dataset = 'datasets/dense.json'
+                    required = $true
+                    selectors = @('items')
+                    target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Tables.Sample' }
+                }
+            ) -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'dense'
+                item_count = 1
+                items = @(
+                    @{ controllerLabel = 'A'; slot = 1; port = 'P1'; status = 'optimal'; address = '10.0.0.1'; mask = '255.255.255.0'; gateway = '10.0.0.254'; lun = 1; state = 'mapped'; mode = 'active' }
+                )
+            }
+
+            $templatePath = Join-Path $tempRoot 'template.docx'
+            New-TestDocxTemplate -Path $templatePath -Tag 'LNV.Test.Tech.System[ArrayName].Tables.Sample'
+            $outputPath = Join-Path $tempRoot 'rendered.docx'
+            $reportPath = Join-Path $tempRoot 'report.json'
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot
+            if ($LASTEXITCODE -ne 0) { throw "Expected successful render exit code, got $LASTEXITCODE. Output: $output" }
+
+            $zip = [System.IO.Compression.ZipFile]::OpenRead($outputPath)
+            try {
+                $entry = $zip.GetEntry('word/document.xml')
+                if ($null -eq $entry) { throw 'Expected rendered DOCX to contain word/document.xml.' }
+                $reader = [System.IO.StreamReader]::new($entry.Open())
+                try {
+                    $documentXml = $reader.ReadToEnd()
+                }
+                finally {
+                    $reader.Dispose()
+                }
+            }
+            finally {
+                $zip.Dispose()
+            }
+
+            if ($documentXml -match '<w:tblLayout w:type=\"fixed\"/>') {
+                throw "Expected dense DOCX table to avoid fixed layout, got '$documentXml'"
+            }
+            if ($documentXml -match '<w:sz w:val=\"16\"/>') {
+                throw "Expected dense DOCX table to avoid direct 8pt run sizing, got '$documentXml'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'marks short cell values that include spaces as no-wrap without fixed geometry' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-docx-nowrap-width-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $contractsRoot = New-MinimalContractsRoot -Root $tempRoot -DatasetName 'drives'
+            $projectionPath = Join-Path $contractsRoot 'tech/Test.Tech/assembler.projections.v1.json'
+            $projection = Get-Content -LiteralPath $projectionPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            $projection.projections['LNV.Test.Tech.System[ArrayName].Tables.Sample'].columns = @(
+                @{ name = 'Slot'; source = 'slot' },
+                @{ name = 'Raw'; source = 'rawCapacity' },
+                @{ name = 'Usable'; source = 'usableCapacity' },
+                @{ name = 'SerialNumber'; source = 'serialNumber' }
+            )
+            Set-Content -LiteralPath $projectionPath -Encoding UTF8 -Value ($projection | ConvertTo-Json -Depth 20)
+
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'unused' -TechId 'Test.Tech' -DatasetRelativePath 'datasets/drives.json' -Mappings @(
+                @{
+                    dataset = 'datasets/drives.json'
+                    required = $true
+                    selectors = @('items')
+                    target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Tables.Sample' }
+                }
+            ) -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'drives'
+                item_count = 1
+                items = @(
+                    @{ slot = 1; rawCapacity = '1.75 TB'; usableCapacity = '1.74 TB'; serialNumber = 'S74ENC0Y901052' }
+                )
+            }
+
+            $templatePath = Join-Path $tempRoot 'template.docx'
+            New-TestDocxTemplate -Path $templatePath -Tag 'LNV.Test.Tech.System[ArrayName].Tables.Sample'
+            $outputPath = Join-Path $tempRoot 'rendered.docx'
+            $reportPath = Join-Path $tempRoot 'report.json'
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot
+            if ($LASTEXITCODE -ne 0) { throw "Expected successful render exit code, got $LASTEXITCODE. Output: $output" }
+
+            $zip = [System.IO.Compression.ZipFile]::OpenRead($outputPath)
+            try {
+                $entry = $zip.GetEntry('word/document.xml')
+                if ($null -eq $entry) { throw 'Expected rendered DOCX to contain word/document.xml.' }
+                $reader = [System.IO.StreamReader]::new($entry.Open())
+                try {
+                    [xml]$document = $reader.ReadToEnd()
+                }
+                finally {
+                    $reader.Dispose()
+                }
+            }
+            finally {
+                $zip.Dispose()
+            }
+
+            $nsMgr = [System.Xml.XmlNamespaceManager]::new($document.NameTable)
+            $nsMgr.AddNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main')
+            if ($document.SelectSingleNode('//w:tblLayout[@w:type="fixed"]', $nsMgr)) {
+                throw 'Expected no fixed table layout for capacity table.'
+            }
+            if ($document.SelectSingleNode('//w:rPr/w:sz[@w:val="16"]', $nsMgr)) {
+                throw 'Expected no direct 8pt run sizing for capacity table.'
+            }
+
+            $noWrapTexts = @($document.SelectNodes('//w:tc[w:tcPr/w:noWrap]', $nsMgr) | ForEach-Object { $_.InnerText })
+            if ($noWrapTexts -notcontains '1.75 TB' -or $noWrapTexts -notcontains '1.74 TB') {
+                throw "Expected short capacity values to be marked no-wrap, got '$($noWrapTexts -join ',')'"
+            }
+            if ($noWrapTexts -contains 'SerialNumber' -or $noWrapTexts -contains 'S74ENC0Y901052') {
+                throw "Expected serial number field to remain wrappable, got '$($noWrapTexts -join ',')'"
+            }
         }
         finally {
             if (Test-Path -LiteralPath $tempRoot -PathType Container) {
@@ -2267,6 +2463,7 @@ Opt=<<SDT:OPT_NAME>>
                 @{
                     dataset = 'datasets/host-ports.json'
                     sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC'
+                    target = @{ sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC' }
                     required = $true
                     selectors = @('items')
                 }
@@ -2294,6 +2491,84 @@ Opt=<<SDT:OPT_NAME>>
         finally {
             if (Test-Path -LiteralPath $tempRoot -PathType Container) {
                 Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    foreach ($emptyProjectionCase in @(
+        @{
+            Name = 'Identity Sources'
+            Tag = 'LNV.Lenovo.DE.System[ArrayName].Tables.IdentitySources'
+            DatasetRelativePath = 'datasets/identity-sources.json'
+            DatasetKey = 'identity-sources'
+            OutputPrefix = 'IdentitySources='
+        },
+        @{
+            Name = 'Replication'
+            Tag = 'LNV.Lenovo.DE.System[ArrayName].Tables.Replication'
+            DatasetRelativePath = 'datasets/replication.json'
+            DatasetKey = 'replication'
+            OutputPrefix = 'Replication='
+        }
+    )) {
+        It "renders $($emptyProjectionCase.Name) placeholder row when dataset is present with zero rows" {
+            $repoRoot = Split-Path -Parent $PSScriptRoot
+            $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+            $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+            if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+                throw 'pwsh is required to execute scripts in this test'
+            }
+
+            $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-empty-lenovo-de-projection-test-" + [guid]::NewGuid().ToString())
+            $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+            try {
+                $fixture = New-TestRenderFixture -Root $tempRoot -Template "$($emptyProjectionCase.OutputPrefix)<<SDT:$($emptyProjectionCase.Tag)>>" -DatasetRelativePath $emptyProjectionCase.DatasetRelativePath -Dataset @{
+                    schema_version = 'lnv.collector.dataset.v1'
+                    collector = @{ module = 'test.module'; version = '1.0.0' }
+                    source = @{ kind = 'integration-test'; endpoint = 'local' }
+                    dataset = @{
+                        key = $emptyProjectionCase.DatasetKey
+                        schema_path = "tech/Lenovo.DE/dataset/$($emptyProjectionCase.DatasetKey).schema.json"
+                    }
+                    item_count = 0
+                    items = @()
+                } -Mappings @(
+                    @{
+                        dataset = $emptyProjectionCase.DatasetRelativePath
+                        sdtTag = $emptyProjectionCase.Tag
+                        target = @{ sdtTag = $emptyProjectionCase.Tag }
+                        required = $true
+                        selectors = @('items')
+                    }
+                )
+
+                $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+                $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+                $exitCode = $LASTEXITCODE
+
+                if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode. Output: $output" }
+
+                $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
+                if (-not $rendered.StartsWith($emptyProjectionCase.OutputPrefix)) {
+                    throw "Expected output prefix '$($emptyProjectionCase.OutputPrefix)' to remain intact, got '$rendered'"
+                }
+                if ($rendered -match '<<SDT:') {
+                    throw "Expected mapped SDT token to be replaced, got '$rendered'"
+                }
+                if ($rendered -notmatch 'Not configured') {
+                    throw "Expected empty $($emptyProjectionCase.Name) table placeholder row with 'Not configured', got '$rendered'"
+                }
+
+                $report = $output | ConvertFrom-Json -AsHashtable
+                if ($report.status -ne 'OK') {
+                    throw "Expected report.status OK, got '$($report.status)'"
+                }
+            }
+            finally {
+                if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                    Remove-Item -LiteralPath $tempRoot -Recurse -Force
+                }
             }
         }
     }
@@ -2367,6 +2642,68 @@ Opt=<<SDT:OPT_NAME>>
             $report = $output | ConvertFrom-Json -AsHashtable
             if ($report.status -ne 'OK') {
                 throw "Expected report.status OK, got '$($report.status)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'formats generic projection percentage columns with a percent sign' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-percent-format-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $contractsRoot = New-MinimalContractsRoot -Root $tempRoot -DatasetName 'sample'
+            $projectionPath = Join-Path $contractsRoot 'tech/Test.Tech/assembler.projections.v1.json'
+            $projection = Get-Content -LiteralPath $projectionPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            $projection.projections['LNV.Test.Tech.System[ArrayName].Tables.Sample'].columns = @(
+                @{ name = 'Name'; source = 'name' },
+                @{ name = 'Warn'; source = 'warnThreshold'; format = 'percent' },
+                @{ name = 'ExistingPercent'; source = 'existingPercent'; format = 'percent' }
+            )
+            Set-Content -LiteralPath $projectionPath -Encoding UTF8 -Value ($projection | ConvertTo-Json -Depth 20)
+
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'Sample=<<SDT:LNV.Test.Tech.System[ArrayName].Tables.Sample>>' -TechId 'Test.Tech' -DatasetRelativePath 'datasets/sample.json' -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'sample'
+                item_count = 1
+                items = @(
+                    @{
+                        name = 'PolicyA'
+                        warnThreshold = 75
+                        existingPercent = '90%'
+                    }
+                )
+            } -Mappings @(
+                @{
+                    dataset = 'datasets/sample.json'
+                    sdtTag = 'LNV.Test.Tech.System[ArrayName].Tables.Sample'
+                    target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Tables.Sample' }
+                    required = $true
+                    selectors = @('items')
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode. Output: $output" }
+
+            $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
+            if ($rendered -notmatch 'PolicyA\s+75%\s+90%') {
+                throw "Expected percent format to append a percent sign and preserve existing percent values, got '$rendered'"
             }
         }
         finally {
@@ -2752,6 +3089,144 @@ Opt=<<SDT:OPT_NAME>>
         }
     }
 
+    It 'renders Lenovo.DE snapshots as policy, schedule, and image projection tables' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $mappingContract = Get-Content -LiteralPath (Join-Path $contractsRoot 'tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml') -Raw -Encoding UTF8
+        if ($mappingContract -match 'Tables\.Snapshots') {
+            throw 'Expected Lenovo.DE contract mapping to stop mapping the old mixed Tables.Snapshots tag.'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-snapshot-projection-split-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $template = @"
+Policy=<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy>>
+Schedule=<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotSchedule>>
+Images=<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotImages>>
+"@
+            $snapshotRows = @(
+                @{
+                    rowKey = 'sys-1|SnapshotGroup|NightlySnaps'
+                    systemId = 'sys-1'
+                    snapshotNameOrGroup = 'NightlySnaps'
+                    baseObject = '020000006D039EA000D9F0180000012969894FD3'
+                    schedule = $null
+                    retention = 'purgepit'
+                    state = 'optimal'
+                    createdAt = $null
+                    policyType = 'SnapshotGroup'
+                    snapshotCount = 5
+                    repositoryCapacity = '1534262771712'
+                    fullWarnThreshold = 75
+                    autoDeleteLimit = 32
+                    notes = 'raw repository/object refs must not render'
+                },
+                @{
+                    rowKey = 'sys-1|SnapshotSchedule|sched-01'
+                    systemId = 'sys-1'
+                    snapshotNameOrGroup = 'NightlySnaps'
+                    baseObject = '020000006D039EA000D9F0180000012969894FD3'
+                    schedule = 'daily'
+                    retention = ''
+                    state = 'active'
+                    createdAt = '2026-04-20T12:46:42.0000000Z'
+                    policyType = 'SnapshotSchedule'
+                    action = 'newpit'
+                    lastRunTime = '2026-04-25T00:00:00.0000000Z'
+                    nextRunTime = '2026-04-26T00:00:00.0000000Z'
+                    timezone = 'Australia/Sydney'
+                    notes = 'schedule raw refs must not render'
+                },
+                @{
+                    rowKey = 'sys-1|SnapshotImage|pit-01'
+                    systemId = 'sys-1'
+                    snapshotNameOrGroup = 'NightlySnaps'
+                    baseObject = '020000006D039EA000D9F0180000012969894FD3'
+                    schedule = $null
+                    retention = ''
+                    state = 'optimal'
+                    createdAt = '2026-04-20T14:00:00.0000000Z'
+                    policyType = 'SnapshotImage'
+                    pitSequenceNumber = '0'
+                    creationMethod = 'schedule'
+                    activeCOW = $false
+                    repositoryCapacityUtilization = '2818048'
+                    isRollbackSource = $false
+                    notes = '2818048; 0'
+                }
+            )
+
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template $template -DatasetRelativePath 'datasets/snapshots.json' -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'snapshots'
+                item_count = $snapshotRows.Count
+                items = $snapshotRows
+            } -Mappings @(
+                @{
+                    dataset = 'datasets/snapshots.json'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy'
+                    required = $true
+                    selectors = @('items')
+                },
+                @{
+                    dataset = 'datasets/snapshots.json'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotSchedule'
+                    required = $true
+                    selectors = @('items')
+                },
+                @{
+                    dataset = 'datasets/snapshots.json'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotImages'
+                    required = $true
+                    selectors = @('items')
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode. Output: $output" }
+
+            $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
+            if ($rendered -notmatch 'Policy\s+State\s+RetentionPolicy\s+SnapshotCount\s+RepositoryCapacity\s+RepositoryWarningThreshold\s+AutoDeleteLimit') {
+                throw "Expected snapshot policy projection header, got '$rendered'"
+            }
+            if ($rendered -notmatch 'Policy\s+Schedule\s+State\s+Action\s+LastRun\s+NextRun\s+Timezone\s+CreatedAt') {
+                throw "Expected snapshot schedule projection header, got '$rendered'"
+            }
+            if ($rendered -notmatch 'Policy\s+CreatedAt\s+Sequence\s+CreationMethod\s+State\s+Active\s+RepositoryUsed\s+RollbackSource') {
+                throw "Expected snapshot image projection header, got '$rendered'"
+            }
+            if ($rendered -notmatch 'NightlySnaps\s+optimal\s+purgepit\s+5\s+1\.40 TB\s+75%\s+32') {
+                throw "Expected snapshot policy row only in policy projection, got '$rendered'"
+            }
+            if ($rendered -notmatch 'NightlySnaps\s+daily\s+active\s+newpit\s+04/25/2026 00:00:00\s+04/26/2026 00:00:00\s+Australia/Sydney\s+04/20/2026 12:46:42') {
+                throw "Expected snapshot schedule row only in schedule projection, got '$rendered'"
+            }
+            if ($rendered -notmatch 'NightlySnaps\s+04/20/2026 14:00:00\s+0\s+schedule\s+optimal\s+False\s+2\.69 MB\s+False') {
+                throw "Expected snapshot image row only in image projection, got '$rendered'"
+            }
+            if ($rendered -match 'BaseObject|Notes|020000006D039EA000D9F0180000012969894FD3|raw repository/object refs|2818048; 0') {
+                throw "Expected snapshot projections to hide base object refs and notes, got '$rendered'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'fails drift check when Lenovo.DE runtime mapping diverges from generated mapping tag shape' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $syncScriptPath = Join-Path $repoRoot 'scripts/Sync-AssemblerContractsToRepo.ps1'
@@ -2798,7 +3273,7 @@ Opt=<<SDT:OPT_NAME>>
         }
     }
 
-    It 'emits a render issue and placeholder when table render mode has no projection definition' {
+    It 'emits a render warning and omits output when table render mode has no projection definition' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot '.deps/contracts'
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
@@ -2824,23 +3299,100 @@ Opt=<<SDT:OPT_NAME>>
                     dataset = 'datasets/systems.json'
                     sdtTag = 'MISSING_TABLE'
                     required = $true
-                    renderHint = @{ renderMode = 'table'; missingProjectionPolicy = 'placeholder' }
+                    renderHint = @{ renderMode = 'table' }
                 }
             )
 
             $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
             $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
-            if ($LASTEXITCODE -ne 0) { throw "Expected exit code 0, got $LASTEXITCODE" }
+            if ($LASTEXITCODE -ne 0) { throw "Expected exit code 0 for missing table projection warning, got $LASTEXITCODE" }
 
             $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
-            if ($rendered -notmatch [regex]::Escape('Table=[table data omitted: projection required]')) {
-                throw "Expected placeholder output for missing table projection, got '$rendered'"
+            if ($rendered -notmatch '^Table=\s*$') {
+                throw "Expected missing table projection output to be omitted, got '$rendered'"
             }
 
             $report = $output | ConvertFrom-Json -AsHashtable
             $issue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-TABLE-PROJECTION-MISSING' }) | Select-Object -First 1
             if ($null -eq $issue) {
                 throw 'Expected missing table projection issue in report'
+            }
+            if ([string]$issue.severity -ne 'WARN') {
+                throw "Expected missing table projection issue severity WARN, got '$($issue.severity)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'does not render DOCX table rows when table render mode has no projection definition' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-docx-table-missing-projection-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'unused' -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'systems'
+                item_count = 1
+                items = @(
+                    @{ name = 'raw-row-should-not-render'; status = 'online' }
+                )
+            } -Mappings @(
+                @{
+                    dataset = 'datasets/systems.json'
+                    sdtTag = 'MISSING_TABLE'
+                    required = $true
+                    renderHint = @{ renderMode = 'table' }
+                }
+            )
+
+            $templatePath = Join-Path $tempRoot 'template.docx'
+            $outputPath = Join-Path $tempRoot 'rendered.docx'
+            New-TestDocxTemplate -Path $templatePath -Tag 'MISSING_TABLE'
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot -DocxMatchMode both
+            if ($LASTEXITCODE -ne 0) { throw "Expected exit code 0 for missing table projection warning, got $LASTEXITCODE. Output: $output" }
+
+            $zip = [System.IO.Compression.ZipFile]::OpenRead($outputPath)
+            try {
+                $entry = $zip.GetEntry('word/document.xml')
+                if ($null -eq $entry) { throw 'Expected rendered DOCX to contain word/document.xml.' }
+                $reader = [System.IO.StreamReader]::new($entry.Open())
+                try {
+                    $documentXml = $reader.ReadToEnd()
+                }
+                finally {
+                    $reader.Dispose()
+                }
+            }
+            finally {
+                $zip.Dispose()
+            }
+
+            if ($documentXml -match 'raw-row-should-not-render|online|\[table data omitted: projection required\]') {
+                throw "Expected missing table projection to omit DOCX table output, got '$documentXml'"
+            }
+
+            $report = $output | ConvertFrom-Json -AsHashtable
+            $issue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-TABLE-PROJECTION-MISSING' }) | Select-Object -First 1
+            if ($null -eq $issue) {
+                throw 'Expected missing table projection issue in report'
+            }
+            if ([string]$issue.severity -ne 'WARN') {
+                throw "Expected missing table projection issue severity WARN, got '$($issue.severity)'"
             }
         }
         finally {

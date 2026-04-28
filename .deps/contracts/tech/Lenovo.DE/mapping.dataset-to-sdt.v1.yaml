@@ -196,12 +196,26 @@ mappings:
     renderAs: table
     projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Alerts
 - dataset: snapshots
-  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Snapshots
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.SnapshotPolicy
   required: false
-  notes: placement=Appendix; minInfoLevel=2; objectKey=Snapshots; scope=PerSystem
+  notes: placement=Appendix; minInfoLevel=2; objectKey=SnapshotPolicy; scope=PerSystem
   renderHint:
     renderAs: table
-    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Snapshots
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy
+- dataset: snapshots
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.SnapshotSchedule
+  required: false
+  notes: placement=Appendix; minInfoLevel=2; objectKey=SnapshotSchedule; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotSchedule
+- dataset: snapshots
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.SnapshotImages
+  required: false
+  notes: placement=Appendix; minInfoLevel=2; objectKey=SnapshotImages; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotImages
 - dataset: replication
   sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Replication
   required: false

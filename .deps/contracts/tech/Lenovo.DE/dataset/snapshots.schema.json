@@ -46,6 +46,19 @@
           "state": { "type": ["string", "null"] },
           "createdAt": { "type": ["string", "null"] },
           "policyType": { "type": "string", "minLength": 1 },
+          "snapshotCount": { "type": ["integer", "number", "string", "null"] },
+          "repositoryCapacity": { "type": ["integer", "number", "string", "null"] },
+          "fullWarnThreshold": { "type": ["integer", "number", "string", "null"] },
+          "autoDeleteLimit": { "type": ["integer", "number", "string", "null"] },
+          "action": { "type": ["string", "null"] },
+          "lastRunTime": { "type": ["string", "null"] },
+          "nextRunTime": { "type": ["string", "null"] },
+          "timezone": { "type": ["string", "null"] },
+          "pitSequenceNumber": { "type": ["integer", "number", "string", "null"] },
+          "creationMethod": { "type": ["string", "null"] },
+          "activeCOW": { "type": ["boolean", "string", "null"] },
+          "repositoryCapacityUtilization": { "type": ["integer", "number", "string", "null"] },
+          "isRollbackSource": { "type": ["boolean", "string", "null"] },
           "notes": { "type": ["string", "null"] }
         }
       }

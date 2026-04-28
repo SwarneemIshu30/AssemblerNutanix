@@ -214,6 +214,10 @@
         {
           "name": "Mask",
           "source": "ipv4SubnetMask"
+        },
+        {
+          "name": "Gateway",
+          "source": "ipv4GatewayAddress"
         }
       ],
       "renderMode": "table",
@@ -231,10 +235,6 @@
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.Transport": {
       "columns": [
-        {
-          "name": "SystemId",
-          "source": "systemId"
-        },
         {
           "name": "ActiveTransport",
           "source": "activeTransport"
@@ -297,10 +297,6 @@
         {
           "name": "TcpPort",
           "source": "tcpPort"
-        },
-        {
-          "name": "IQN",
-          "source": "iqn"
         }
       ],
       "renderMode": "table",
@@ -377,8 +373,8 @@
     "LNV.Lenovo.DE.System[ArrayName].Tables.DNS": {
       "columns": [
         {
-          "name": "SystemId",
-          "source": "systemId"
+          "name": "Controller",
+          "source": "controllerLabel"
         },
         {
           "name": "Acquisition",
@@ -404,17 +400,18 @@
         "lenovo-de-table-default"
       ],
       "identityKeys": [
-        "systemId"
+        "controllerRef"
       ],
       "rowOrder": [
-        "systemId"
+        "controllerSlot",
+        "controllerLabel"
       ]
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.Time": {
       "columns": [
         {
-          "name": "SystemId",
-          "source": "systemId"
+          "name": "Controller",
+          "source": "controllerLabel"
         },
         {
           "name": "Acquisition",
@@ -444,10 +441,11 @@
         "lenovo-de-table-default"
       ],
       "identityKeys": [
-        "systemId"
+        "controllerRef"
       ],
       "rowOrder": [
-        "systemId"
+        "controllerSlot",
+        "controllerLabel"
       ]
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts": {
@@ -527,10 +525,6 @@
         {
           "name": "HostType",
           "source": "hostType"
-        },
-        {
-          "name": "KeyType",
-          "source": "hostGroupKeyType"
         }
       ],
       "renderMode": "table",
@@ -543,8 +537,7 @@
       "rowOrder": [
         "hostName",
         "hostGroupName",
-        "hostType",
-        "hostGroupKeyType"
+        "hostType"
       ]
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes": {
@@ -919,6 +912,433 @@
       ],
       "rowOrder": [
         "trayId"
+      ]
+    },
+    "LNV.Lenovo.DE.System[ArrayName].Tables.IdentitySources": {
+      "columns": [
+        {
+          "name": "Type",
+          "source": "sourceType"
+        },
+        {
+          "name": "Name",
+          "source": "displayName"
+        },
+        {
+          "name": "Enabled",
+          "source": "enabled"
+        },
+        {
+          "name": "Endpoint",
+          "source": "endpoint"
+        },
+        {
+          "name": "Protocol",
+          "source": "protocol"
+        },
+        {
+          "name": "AuthMode",
+          "source": "authMode"
+        },
+        {
+          "name": "Scope",
+          "source": "scope"
+        },
+        {
+          "name": "BaseDn",
+          "source": "baseDn"
+        },
+        {
+          "name": "SearchBase",
+          "source": "searchBase"
+        }
+      ],
+      "renderMode": "table",
+      "renderAs": "table",
+      "emptyBehavior": "placeholder",
+      "formatProfiles": [
+        "lenovo-de-table-default"
+      ],
+      "identityKeys": [
+        "sourceType",
+        "displayName"
+      ],
+      "rowOrder": [
+        "sourceType",
+        "displayName"
+      ]
+    },
+    "LNV.Lenovo.DE.System[ArrayName].Tables.Roles": {
+      "columns": [
+        {
+          "name": "Principal",
+          "source": "principalName"
+        },
+        {
+          "name": "Type",
+          "source": "principalType"
+        },
+        {
+          "name": "AuthSource",
+          "source": "authSource"
+        },
+        {
+          "name": "Role",
+          "source": "roleName"
+        },
+        {
+          "name": "Group",
+          "source": "groupName"
+        },
+        {
+          "name": "Enabled",
+          "source": "enabled"
+        },
+        {
+          "name": "Locked",
+          "source": "locked"
+        }
+      ],
+      "renderMode": "table",
+      "renderAs": "table",
+      "emptyBehavior": "render-empty",
+      "formatProfiles": [
+        "lenovo-de-table-default"
+      ],
+      "identityKeys": [
+        "principalName",
+        "principalType",
+        "authSource"
+      ],
+      "rowOrder": [
+        "principalName",
+        "principalType",
+        "roleName"
+      ]
+    },
+    "LNV.Lenovo.DE.System[ArrayName].Tables.Certificates": {
+      "columns": [
+        {
+          "name": "Purpose",
+          "source": "purpose"
+        },
+        {
+          "name": "Subject",
+          "source": "subject"
+        },
+        {
+          "name": "Issuer",
+          "source": "issuer"
+        },
+        {
+          "name": "SerialNumber",
+          "source": "serialNumber"
+        },
+        {
+          "name": "Thumbprint",
+          "source": "thumbprint"
+        },
+        {
+          "name": "ValidFrom",
+          "source": "validFrom"
+        },
+        {
+          "name": "ValidTo",
+          "source": "validTo"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "Scope",
+          "source": "scope"
+        }
+      ],
+      "renderMode": "table",
+      "renderAs": "table",
+      "emptyBehavior": "render-empty",
+      "formatProfiles": [
+        "lenovo-de-table-default"
+      ],
+      "identityKeys": [
+        "purpose",
+        "thumbprint"
+      ],
+      "rowOrder": [
+        "purpose",
+        "subject"
+      ]
+    },
+    "LNV.Lenovo.DE.System[ArrayName].Tables.Alerts": {
+      "columns": [
+        {
+          "name": "Mechanism",
+          "source": "mechanism"
+        },
+        {
+          "name": "Enabled",
+          "source": "enabled"
+        },
+        {
+          "name": "Destination",
+          "source": "destination"
+        },
+        {
+          "name": "SeverityProfile",
+          "source": "severityProfile"
+        },
+        {
+          "name": "RoutingType",
+          "source": "routingType"
+        },
+        {
+          "name": "AuthRequired",
+          "source": "authRequired"
+        },
+        {
+          "name": "Notes",
+          "source": "notes"
+        }
+      ],
+      "renderMode": "table",
+      "renderAs": "table",
+      "emptyBehavior": "render-empty",
+      "formatProfiles": [
+        "lenovo-de-table-default"
+      ],
+      "identityKeys": [
+        "mechanism",
+        "destination"
+      ],
+      "rowOrder": [
+        "mechanism",
+        "destination"
+      ]
+    },
+    "LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy": {
+      "filter": [
+        {
+          "field": "policyType",
+          "equals": "SnapshotGroup"
+        }
+      ],
+      "columns": [
+        {
+          "name": "Policy",
+          "source": "snapshotNameOrGroup"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "RetentionPolicy",
+          "source": "retention"
+        },
+        {
+          "name": "SnapshotCount",
+          "source": "snapshotCount"
+        },
+        {
+          "name": "RepositoryCapacity",
+          "source": "repositoryCapacity",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "RepositoryWarningThreshold",
+          "source": "fullWarnThreshold",
+          "format": "percent"
+        },
+        {
+          "name": "AutoDeleteLimit",
+          "source": "autoDeleteLimit"
+        }
+      ],
+      "renderMode": "table",
+      "renderAs": "table",
+      "emptyBehavior": "render-empty",
+      "formatProfiles": [
+        "lenovo-de-table-default"
+      ],
+      "identityKeys": [
+        "snapshotNameOrGroup"
+      ],
+      "rowOrder": [
+        "snapshotNameOrGroup"
+      ]
+    },
+    "LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotSchedule": {
+      "filter": [
+        {
+          "field": "policyType",
+          "equals": "SnapshotSchedule"
+        }
+      ],
+      "columns": [
+        {
+          "name": "Policy",
+          "source": "snapshotNameOrGroup"
+        },
+        {
+          "name": "Schedule",
+          "source": "schedule"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Action",
+          "source": "action"
+        },
+        {
+          "name": "LastRun",
+          "source": "lastRunTime"
+        },
+        {
+          "name": "NextRun",
+          "source": "nextRunTime"
+        },
+        {
+          "name": "Timezone",
+          "source": "timezone"
+        },
+        {
+          "name": "CreatedAt",
+          "source": "createdAt"
+        }
+      ],
+      "renderMode": "table",
+      "renderAs": "table",
+      "emptyBehavior": "render-empty",
+      "formatProfiles": [
+        "lenovo-de-table-default"
+      ],
+      "identityKeys": [
+        "snapshotNameOrGroup",
+        "createdAt"
+      ],
+      "rowOrder": [
+        "snapshotNameOrGroup",
+        "createdAt"
+      ]
+    },
+    "LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotImages": {
+      "filter": [
+        {
+          "field": "policyType",
+          "equals": "SnapshotImage"
+        }
+      ],
+      "columns": [
+        {
+          "name": "Policy",
+          "source": "snapshotNameOrGroup"
+        },
+        {
+          "name": "CreatedAt",
+          "source": "createdAt"
+        },
+        {
+          "name": "Sequence",
+          "source": "pitSequenceNumber"
+        },
+        {
+          "name": "CreationMethod",
+          "source": "creationMethod"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Active",
+          "source": "activeCOW"
+        },
+        {
+          "name": "RepositoryUsed",
+          "source": "repositoryCapacityUtilization",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "RollbackSource",
+          "source": "isRollbackSource"
+        }
+      ],
+      "renderMode": "table",
+      "renderAs": "table",
+      "emptyBehavior": "render-empty",
+      "formatProfiles": [
+        "lenovo-de-table-default"
+      ],
+      "identityKeys": [
+        "snapshotNameOrGroup",
+        "createdAt",
+        "pitSequenceNumber"
+      ],
+      "rowOrder": [
+        "snapshotNameOrGroup",
+        "createdAt",
+        "pitSequenceNumber"
+      ]
+    },
+    "LNV.Lenovo.DE.System[ArrayName].Tables.Replication": {
+      "columns": [
+        {
+          "name": "Relationship",
+          "source": "relationshipName"
+        },
+        {
+          "name": "Mode",
+          "source": "mode"
+        },
+        {
+          "name": "SourceObject",
+          "source": "sourceObject"
+        },
+        {
+          "name": "TargetObject",
+          "source": "targetObject"
+        },
+        {
+          "name": "Direction",
+          "source": "direction"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "SyncPolicy",
+          "source": "syncPolicy"
+        },
+        {
+          "name": "Schedule",
+          "source": "schedule"
+        },
+        {
+          "name": "Health",
+          "source": "health"
+        },
+        {
+          "name": "Notes",
+          "source": "notes"
+        }
+      ],
+      "renderMode": "table",
+      "renderAs": "table",
+      "emptyBehavior": "placeholder",
+      "formatProfiles": [
+        "lenovo-de-table-default"
+      ],
+      "identityKeys": [
+        "relationshipName",
+        "mode"
+      ],
+      "rowOrder": [
+        "relationshipName",
+        "mode"
       ]
     },
     "LNV.Lenovo.DE.System[ArrayName].Narrative.ManagementInterfaces.ControllerA": {
