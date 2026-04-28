@@ -241,32 +241,27 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         }
     }
 
-    It 'embeds a decodable brand logo payload in the WPF launcher' {
+    It 'loads the brand logo from a PNG asset instead of embedded base64' {
         $wpfScriptPath = Join-Path $script:repoRoot 'gui/Start-AssemblerGui.Wpf.ps1'
         $wpfScriptText = Get-Content -LiteralPath $wpfScriptPath -Raw -Encoding UTF8
-        $logoMatch = [regex]::Match($wpfScriptText, "(?ms)\$brandLogoBase64 = @'\r?\n(?<payload>.*?)\r?\n'@")
+        $logoPath = Join-Path $script:repoRoot 'gui/internal/lenovo-logo.png'
 
-        if (-not $logoMatch.Success) {
-            throw 'Expected the WPF launcher to embed a brand logo payload'
-        }
-
-        $brandLogoPayload = ($logoMatch.Groups['payload'].Value -replace '\s+', '')
-        if ([string]::IsNullOrWhiteSpace($brandLogoPayload)) {
-            throw 'Expected the embedded brand logo payload to contain base64 content'
-        }
-        if ($brandLogoPayload -match '\.\.\.') {
-            throw 'Expected the embedded brand logo payload to be complete rather than truncated with ellipsis'
+        if ($wpfScriptText -notmatch [regex]::Escape('internal/lenovo-logo.png')) {
+            throw 'Expected the WPF launcher to load the brand logo from gui/internal/lenovo-logo.png'
         }
 
-        try {
-            $brandLogoBytes = [Convert]::FromBase64String($brandLogoPayload)
+        foreach ($unexpectedText in @('$brandLogoBase64', 'FromBase64String')) {
+            if ($wpfScriptText -match [regex]::Escape($unexpectedText)) {
+                throw "Expected the WPF launcher not to contain '$unexpectedText'"
+            }
         }
-        catch {
-            throw "Expected the embedded brand logo payload to decode cleanly: $($_.Exception.Message)"
+        if (-not (Test-Path -LiteralPath $logoPath -PathType Leaf)) {
+            throw 'Expected gui/internal/lenovo-logo.png to exist'
         }
 
-        if (@($brandLogoBytes).Count -lt 1024) {
-            throw "Expected the embedded brand logo payload to decode into a substantial image, got $(@($brandLogoBytes).Count) bytes"
+        $logoFile = Get-Item -LiteralPath $logoPath
+        if ($logoFile.Length -lt 1024) {
+            throw "Expected gui/internal/lenovo-logo.png to be a substantial image, got $($logoFile.Length) bytes"
         }
     }
 
