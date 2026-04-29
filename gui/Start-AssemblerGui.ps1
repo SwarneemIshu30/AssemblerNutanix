@@ -479,7 +479,11 @@ function Invoke-WinFormsMode {
 
     $bundleBrowse = New-BrowseButton -top 38 -text 'Browse' -onClick {
         $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
-        $dialog.SelectedPath = Resolve-DialogInitialDirectory -Path $bundleTextBox.Text -RepoRoot $repoRoot -FallbackPath $defaultBundleRoot -PathKind Directory
+        $bundleBrowseRoot = Join-Path $repoRoot 'bundle'
+        if (-not (Test-Path -LiteralPath $bundleBrowseRoot -PathType Container)) {
+            $bundleBrowseRoot = $repoRoot
+        }
+        $dialog.SelectedPath = $bundleBrowseRoot
         if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $bundleTextBox.Text = $dialog.SelectedPath }
     }
     $catalogBrowse = New-BrowseButton -top 88 -text 'Browse' -onClick {

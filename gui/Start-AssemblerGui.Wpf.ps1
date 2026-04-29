@@ -1075,6 +1075,33 @@ function Get-SelectedBundleInputMode {
     return 'Folder'
 }
 
+function Get-BundleStagingRoot {
+    $bundleStagingRoot = Join-Path $repoRoot 'bundle'
+    if (Test-Path -LiteralPath $bundleStagingRoot -PathType Container) {
+        return (Resolve-Path -LiteralPath $bundleStagingRoot).Path
+    }
+
+    return $repoRoot
+}
+
+function Update-BundleInputForSelectedMode {
+    param([Parameter(Mandatory = $false)][bool]$ClearArchivePath = $true)
+
+    if ((Get-SelectedBundleInputMode) -eq 'Archive') {
+        if ($ClearArchivePath) {
+            $bundleRootText.Text = ''
+        }
+        return
+    }
+
+    if ([string]::IsNullOrWhiteSpace($bundleRootText.Text) -or -not (Test-Path -LiteralPath $bundleRootText.Text -PathType Container)) {
+        $latestBundleRoot = Resolve-DefaultBundleRoot -RepoRoot $repoRoot
+        if (-not [string]::IsNullOrWhiteSpace($latestBundleRoot)) {
+            $bundleRootText.Text = $latestBundleRoot
+        }
+    }
+}
+
 function Start-RenderFromCurrentInputs {
     if ($null -ne $renderProcessState.Current) {
         return [ordered]@{ accepted = $false; reason = 'Render already running.' }
@@ -2364,7 +2391,7 @@ $bundleBrowseButton.Add_Click({
     if ((Get-SelectedBundleInputMode) -eq 'Archive') {
         $dialog = New-Object System.Windows.Forms.OpenFileDialog
         $dialog.Filter = 'Bundle archives (*.lnvbundle.zip;*.zip)|*.lnvbundle.zip;*.zip|All files (*.*)|*.*'
-        $dialog.InitialDirectory = Resolve-DialogInitialDirectory -Path $bundleRootText.Text -RepoRoot $repoRoot -FallbackPath (Join-Path $repoRoot 'bundle') -PathKind File
+        $dialog.InitialDirectory = Get-BundleStagingRoot
         if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
             $bundleRootText.Text = $dialog.FileName
             Publish-WebViewMappingStudioState
@@ -2373,7 +2400,7 @@ $bundleBrowseButton.Add_Click({
     }
 
     $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
-    $dialog.SelectedPath = Resolve-DialogInitialDirectory -Path $bundleRootText.Text -RepoRoot $repoRoot -FallbackPath $defaultBundleRoot -PathKind Directory
+    $dialog.SelectedPath = Get-BundleStagingRoot
     if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
         $bundleRootText.Text = $dialog.SelectedPath
         Update-DocumentPropertyDefaultsFromBundle
@@ -2413,6 +2440,7 @@ $bundleRootText.Add_LostFocus({
     Publish-WebViewMappingStudioState
 })
 $bundleInputModeCombo.Add_SelectionChanged({
+    Update-BundleInputForSelectedMode -ClearArchivePath $true
     Update-DocumentPropertyDefaultsFromBundle
     Publish-WebViewMappingStudioState
 })

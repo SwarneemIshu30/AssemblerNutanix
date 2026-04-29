@@ -14,16 +14,16 @@ Describe 'Start-AssemblerGui shared helper module' {
         $validChildBundles = @()
         if (Test-Path -LiteralPath $stagingRoot -PathType Container) {
             $validChildBundles = @(Get-ChildItem -LiteralPath $stagingRoot -Directory | Where-Object {
-                    (Test-Path -LiteralPath (Join-Path $_.FullName 'manifest.json') -PathType Leaf) -or
-                    (Test-Path -LiteralPath (Join-Path $_.FullName 'manifest.yaml') -PathType Leaf) -or
-                    (Test-Path -LiteralPath (Join-Path $_.FullName 'objectIndex.json') -PathType Leaf) -or
+                    (Test-Path -LiteralPath (Join-Path $_.FullName 'manifest.json') -PathType Leaf) -and
+                    (Test-Path -LiteralPath (Join-Path $_.FullName 'objectIndex.json') -PathType Leaf) -and
                     (Test-Path -LiteralPath (Join-Path $_.FullName 'config/solution.plan.json') -PathType Leaf)
                 })
         }
 
-        if ($validChildBundles.Count -gt 1) {
-            if (-not [string]::IsNullOrWhiteSpace($bundleRoot)) {
-                throw "Expected ambiguous bundle staging root to require operator selection, got '$bundleRoot'"
+        if ($validChildBundles.Count -gt 0) {
+            $expectedBundleRoot = @($validChildBundles | Sort-Object -Property LastWriteTimeUtc, Name -Descending | Select-Object -First 1)[0].FullName
+            if ($bundleRoot -ne $expectedBundleRoot) {
+                throw "Expected newest valid bundle '$expectedBundleRoot', got '$bundleRoot'"
             }
         }
         elseif ([string]::IsNullOrWhiteSpace($bundleRoot) -or -not (Test-Path -LiteralPath $bundleRoot -PathType Container)) {
@@ -34,6 +34,25 @@ Describe 'Start-AssemblerGui shared helper module' {
         }
         if ([string]::IsNullOrWhiteSpace($contractsRoot)) {
             throw 'Expected contracts root to resolve to a non-empty path'
+        }
+    }
+
+    It 'selects the newest valid child bundle when multiple staged bundles exist' {
+        $tempRepo = Join-Path $TestDrive 'repo'
+        $olderBundle = Join-Path $tempRepo 'bundle/20260427-older'
+        $newerBundle = Join-Path $tempRepo 'bundle/20260428-newer'
+        foreach ($bundle in @($olderBundle, $newerBundle)) {
+            New-Item -Path (Join-Path $bundle 'config') -ItemType Directory -Force | Out-Null
+            Set-Content -LiteralPath (Join-Path $bundle 'manifest.json') -Value '{}' -Encoding UTF8
+            Set-Content -LiteralPath (Join-Path $bundle 'objectIndex.json') -Value '{}' -Encoding UTF8
+            Set-Content -LiteralPath (Join-Path $bundle 'config/solution.plan.json') -Value '{}' -Encoding UTF8
+        }
+        (Get-Item -LiteralPath $olderBundle).LastWriteTimeUtc = [datetime]'2026-04-27T00:00:00Z'
+        (Get-Item -LiteralPath $newerBundle).LastWriteTimeUtc = [datetime]'2026-04-28T00:00:00Z'
+
+        $resolved = Resolve-DefaultBundleRoot -RepoRoot $tempRepo
+        if ($resolved -ne $newerBundle) {
+            throw "Expected newest valid bundle '$newerBundle', got '$resolved'"
         }
     }
 

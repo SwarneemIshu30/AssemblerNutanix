@@ -22,10 +22,10 @@ function Resolve-DefaultBundleRoot {
                 (Test-Path -LiteralPath (Join-Path $_.FullName 'objectIndex.json') -PathType Leaf) -and
                 (Test-Path -LiteralPath (Join-Path $_.FullName 'config/solution.plan.json') -PathType Leaf)
             } |
-            Sort-Object -Property Name
+            Sort-Object -Property LastWriteTimeUtc, Name -Descending
     )
 
-    if (@($bundleCandidates).Count -eq 1) {
+    if (@($bundleCandidates).Count -gt 0) {
         return [string]$bundleCandidates[0].FullName
     }
 

@@ -282,6 +282,17 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         }
     }
 
+    It 'keeps bundle input mode defaults and browse roots explicit in the WPF launcher' {
+        $wpfScriptPath = Join-Path $script:repoRoot 'gui/Start-AssemblerGui.Wpf.ps1'
+        $wpfScriptText = Get-Content -LiteralPath $wpfScriptPath -Raw -Encoding UTF8
+
+        foreach ($expectedText in @('function Get-BundleStagingRoot', 'function Update-BundleInputForSelectedMode', 'Resolve-DefaultBundleRoot -RepoRoot $repoRoot', '$bundleRootText.Text = ''''', '$dialog.InitialDirectory = Get-BundleStagingRoot', '$dialog.SelectedPath = Get-BundleStagingRoot', 'Update-BundleInputForSelectedMode -ClearArchivePath $true')) {
+            if ($wpfScriptText -notmatch [regex]::Escape($expectedText)) {
+                throw "Expected the WPF launcher to contain '$expectedText'"
+            }
+        }
+    }
+
     It 'shows the simplified connector editor controls in the WPF launcher' {
         $wpfScriptPath = Join-Path $script:repoRoot 'gui/Start-AssemblerGui.Wpf.ps1'
         $wpfScriptText = Get-Content -LiteralPath $wpfScriptPath -Raw -Encoding UTF8
