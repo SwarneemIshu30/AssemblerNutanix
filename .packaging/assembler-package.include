@@ -15,6 +15,7 @@ scripts/Invoke-AssemblerSdtRender.ps1
 scripts/New-AssemblerSkeleton.ps1
 scripts/Restore-WebView2Dependency.ps1
 scripts/Sync-AssemblerContractsToRepo.ps1
+scripts/Test-AssemblerMappingShapeMode.ps1
 scripts/internal
 templates/skeletons
 .deps/contracts

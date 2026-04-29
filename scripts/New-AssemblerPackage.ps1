@@ -68,6 +68,21 @@ function Get-GitValue {
     }
 }
 
+function New-ZipArchiveFromDirectory {
+    param(
+        [Parameter(Mandatory = $true)][string]$SourceDirectory,
+        [Parameter(Mandatory = $true)][string]$DestinationPath
+    )
+
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    [System.IO.Compression.ZipFile]::CreateFromDirectory(
+        $SourceDirectory,
+        $DestinationPath,
+        [System.IO.Compression.CompressionLevel]::Optimal,
+        $false
+    )
+}
+
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $outputRoot = Resolve-RepoRelativePath -RepoRoot $repoRoot -RelativePath $OutputDir -AllowMissing
 $stagingRoot = Resolve-RepoRelativePath -RepoRoot $repoRoot -RelativePath '.packaging/staging' -AllowMissing
@@ -127,7 +142,7 @@ try {
         Remove-Item -LiteralPath $zipPath -Force
     }
 
-    Compress-Archive -Path (Join-Path $stageDir '*') -DestinationPath $zipPath -CompressionLevel Optimal -Force
+    New-ZipArchiveFromDirectory -SourceDirectory $stageDir -DestinationPath $zipPath
 
     $repoUrl = Get-GitValue -RepoRoot $repoRoot -Arguments @('remote', 'get-url', 'origin')
     $sourceCommit = Get-GitValue -RepoRoot $repoRoot -Arguments @('rev-parse', 'HEAD')
