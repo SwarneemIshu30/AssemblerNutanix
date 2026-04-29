@@ -1,2 +1,0 @@
-"systemId","endpointResults","deviceAsup"
-"1","System.Object[]","@{asupCapable=True; onDemandCapable=True; asupEnabled=True; onDemandEnabled=True; remoteDiagsEnabled=True; delivery=; destinationAddress=https://support.netapp.com/put/AsupPut/; schedule=}"
