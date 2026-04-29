@@ -269,7 +269,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         $wpfScriptPath = Join-Path $script:repoRoot 'gui/Start-AssemblerGui.Wpf.ps1'
         $wpfScriptText = Get-Content -LiteralPath $wpfScriptPath -Raw -Encoding UTF8
 
-        foreach ($expectedText in @('Document Version', 'Configuration Snapshot Date', 'Reference ID', 'Cover Page Diagram', 'Header/Footer Diagram', 'CoverKeyImage', 'HeadFootKeyImage')) {
+        foreach ($expectedText in @('Document Version', 'Configuration Snapshot Date', 'Reference ID', 'Support Region', 'SupportRegionCombo', 'Cover Page Diagram', 'Header/Footer Diagram', 'CoverKeyImage', 'HeadFootKeyImage')) {
             if ($wpfScriptText -notmatch [regex]::Escape($expectedText)) {
                 throw "Expected the WPF launcher to contain '$expectedText'"
             }
@@ -278,6 +278,17 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         foreach ($unexpectedText in @('(core property)', '(custom property)')) {
             if ($wpfScriptText -match [regex]::Escape($unexpectedText)) {
                 throw "Expected the WPF launcher to remove legacy label helper text '$unexpectedText'"
+            }
+        }
+    }
+
+    It 'keeps bundle input mode defaults and browse roots explicit in the WPF launcher' {
+        $wpfScriptPath = Join-Path $script:repoRoot 'gui/Start-AssemblerGui.Wpf.ps1'
+        $wpfScriptText = Get-Content -LiteralPath $wpfScriptPath -Raw -Encoding UTF8
+
+        foreach ($expectedText in @('function Get-BundleStagingRoot', 'function Update-BundleInputForSelectedMode', 'Resolve-DefaultBundleRoot -RepoRoot $repoRoot', '$bundleRootText.Text = ''''', '$dialog.InitialDirectory = Get-BundleStagingRoot', '$dialog.SelectedPath = Get-BundleStagingRoot', 'Update-BundleInputForSelectedMode -ClearArchivePath $true')) {
+            if ($wpfScriptText -notmatch [regex]::Escape($expectedText)) {
+                throw "Expected the WPF launcher to contain '$expectedText'"
             }
         }
     }

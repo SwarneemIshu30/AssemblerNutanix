@@ -33,7 +33,8 @@ function Test-DictionaryHasKey {
 function New-AssemblerGuiRenderInvocation {
     param(
         [Parameter(Mandatory = $true)][string]$RepoRoot,
-        [Parameter(Mandatory = $true)][string]$BundleRoot,
+        [Parameter(Mandatory = $false)][string]$BundleRoot,
+        [Parameter(Mandatory = $false)][string]$BundleArchivePath,
         [Parameter(Mandatory = $true)][string]$CatalogPath,
         [Parameter(Mandatory = $true)][string]$OutputRoot,
         [Parameter(Mandatory = $false)][string]$ContractsRoot,
@@ -51,6 +52,7 @@ function New-AssemblerGuiRenderInvocation {
         [Parameter(Mandatory = $false)][string]$DocConfigSnapDate,
         [Parameter(Mandatory = $false)][string]$DocReferenceId,
         [Parameter(Mandatory = $false)][string]$DocClassification,
+        [Parameter(Mandatory = $false)][string]$DocSupportRegion,
         [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
         [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
         [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
@@ -61,12 +63,26 @@ function New-AssemblerGuiRenderInvocation {
     $reportPath = Join-Path $OutputRoot 'render-report.json'
     $cancelSignalPath = Join-Path $OutputRoot '.assembler-render.cancel'
 
+    $bundleRootProvided = -not [string]::IsNullOrWhiteSpace($BundleRoot)
+    $archiveProvided = -not [string]::IsNullOrWhiteSpace($BundleArchivePath)
+    if ($bundleRootProvided -and $archiveProvided) {
+        throw 'BundleRoot and BundleArchivePath are mutually exclusive.'
+    }
+    if (-not $bundleRootProvided -and -not $archiveProvided) {
+        throw 'Either BundleRoot or BundleArchivePath is required.'
+    }
+
     $arguments = [System.Collections.Generic.List[string]]::new()
     foreach ($argument in @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $wrapperScript)) {
         [void]$arguments.Add($argument)
     }
 
-    Add-ArgumentValue -Arguments $arguments -Name '-BundleRoot' -Value $BundleRoot
+    if ($archiveProvided) {
+        Add-ArgumentValue -Arguments $arguments -Name '-BundleArchivePath' -Value $BundleArchivePath
+    }
+    else {
+        Add-ArgumentValue -Arguments $arguments -Name '-BundleRoot' -Value $BundleRoot
+    }
     Add-ArgumentValue -Arguments $arguments -Name '-CatalogPath' -Value $CatalogPath
     Add-ArgumentValue -Arguments $arguments -Name '-OutputRoot' -Value $OutputRoot
     Add-ArgumentValue -Arguments $arguments -Name '-ContractsRoot' -Value $ContractsRoot
@@ -84,6 +100,7 @@ function New-AssemblerGuiRenderInvocation {
     Add-ArgumentValue -Arguments $arguments -Name '-DocConfigSnapDate' -Value $DocConfigSnapDate
     Add-ArgumentValue -Arguments $arguments -Name '-DocReferenceId' -Value $DocReferenceId
     Add-ArgumentValue -Arguments $arguments -Name '-DocClassification' -Value $DocClassification
+    Add-ArgumentValue -Arguments $arguments -Name '-DocSupportRegion' -Value $DocSupportRegion
     if ($AnnotateResolvedTags) { [void]$arguments.Add('-AnnotateResolvedTags') }
     Add-ArgumentValue -Arguments $arguments -Name '-DocxMatchMode' -Value $DocxMatchMode
     Add-ArgumentValue -Arguments $arguments -Name '-UnresolvedTokenPolicy' -Value $UnresolvedTokenPolicy

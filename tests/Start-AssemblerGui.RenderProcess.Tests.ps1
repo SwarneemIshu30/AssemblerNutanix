@@ -16,6 +16,7 @@ Describe 'Assembler GUI render process module' {
             -EntryId @('collector') `
             -OutputType @('docx') `
             -DocTitle 'Title With Spaces' `
+            -DocSupportRegion 'AU' `
             -DocxMatchMode both `
             -UnresolvedTokenPolicy retain
 
@@ -33,6 +34,47 @@ Describe 'Assembler GUI render process module' {
         }
         if ([string]$invocation.ReportPath -ne 'C:\out root\render-report.json') {
             throw "Unexpected report path: $($invocation.ReportPath)"
+        }
+        if (@($invocation.Arguments) -notcontains '-DocSupportRegion' -or @($invocation.Arguments) -notcontains 'AU') {
+            throw 'Expected invocation to pass DocSupportRegion.'
+        }
+    }
+
+    It 'passes archive selections as BundleArchivePath without BundleRoot' {
+        $invocation = New-AssemblerGuiRenderInvocation `
+            -RepoRoot $script:repoRoot `
+            -BundleArchivePath 'C:\captures\capture.lnvbundle.zip' `
+            -CatalogPath 'C:\catalogs\collector.catalog.json' `
+            -OutputRoot 'C:\out root' `
+            -ContractsRoot 'C:\contracts'
+
+        if (@($invocation.Arguments) -notcontains '-BundleArchivePath') {
+            throw 'Expected invocation to pass -BundleArchivePath.'
+        }
+        if (@($invocation.Arguments) -contains '-BundleRoot') {
+            throw 'Archive invocation should not pass -BundleRoot.'
+        }
+        if (@($invocation.Arguments) -notcontains 'C:\captures\capture.lnvbundle.zip') {
+            throw 'Expected invocation to include archive path.'
+        }
+    }
+
+    It 'keeps folder selections passed as BundleRoot without BundleArchivePath' {
+        $invocation = New-AssemblerGuiRenderInvocation `
+            -RepoRoot $script:repoRoot `
+            -BundleRoot 'C:\bundle root' `
+            -CatalogPath 'C:\catalogs\collector.catalog.json' `
+            -OutputRoot 'C:\out root' `
+            -ContractsRoot 'C:\contracts'
+
+        if (@($invocation.Arguments) -notcontains '-BundleRoot') {
+            throw 'Expected invocation to pass -BundleRoot.'
+        }
+        if (@($invocation.Arguments) -contains '-BundleArchivePath') {
+            throw 'Folder invocation should not pass -BundleArchivePath.'
+        }
+        if (@($invocation.Arguments) -notcontains 'C:\bundle root') {
+            throw 'Expected invocation to include folder bundle path.'
         }
     }
 

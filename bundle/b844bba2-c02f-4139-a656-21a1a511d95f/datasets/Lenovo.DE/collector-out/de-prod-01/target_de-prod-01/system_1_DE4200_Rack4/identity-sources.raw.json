@@ -1,0 +1,30 @@
+{
+  "systemId": "1",
+  "endpointResults": [
+    {
+      "relativePath": "/v2/storage-systems/1/ldap",
+      "absoluteUri": "https://192.0.2.10:8443/devmgr/v2/storage-systems/1/ldap",
+      "collectedAtUtc": "2026-04-29T02:46:06.9606797Z",
+      "success": true,
+      "unsupported": false,
+      "statusCode": 200,
+      "error": null,
+      "payload": {
+        "ldapDomains": [],
+        "version": "3"
+      }
+    },
+    {
+      "relativePath": "/v2/storage-systems/1/settings/authentication",
+      "absoluteUri": "https://192.0.2.10:8443/devmgr/v2/storage-systems/1/settings/authentication",
+      "collectedAtUtc": "2026-04-29T02:46:07.2876412Z",
+      "success": true,
+      "unsupported": false,
+      "statusCode": 200,
+      "error": null,
+      "payload": {
+        "disableBasicAuthentication": false
+      }
+    }
+  ]
+}

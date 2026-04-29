@@ -1,8 +1,0 @@
-"name","index","code","used","default","nvmeSupported"
-"Factory Default","0","FactoryDefault","False","True","False"
-"Windows (clustered or non-clustered)","1","W2KNETNCL","True","False","False"
-"Linux DM-MP (Kernel 3.9 or earlier)","7","LnxALUA","False","False","False"
-"Windows Clustered (deprecated)","8","W2KNETCL","False","False","False"
-"VMware ESXi","10","VmwTPGSALUA","False","False","True"
-"IBM SVC","18","SVC","False","False","False"
-"Linux DM-MP (Kernel 3.10 or later)","28","LnxDHALUA","False","False","True"

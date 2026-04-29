@@ -374,7 +374,12 @@
       "columns": [
         {
           "name": "Controller",
-          "source": "controllerLabel"
+          "source": "controllerRef",
+          "lookup": {
+            "dataset": "system-controllers.json",
+            "key": "controllerRef",
+            "value": "controllerLabel"
+          }
         },
         {
           "name": "Acquisition",
@@ -403,15 +408,19 @@
         "controllerRef"
       ],
       "rowOrder": [
-        "controllerSlot",
-        "controllerLabel"
+        "controllerRef"
       ]
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.Time": {
       "columns": [
         {
           "name": "Controller",
-          "source": "controllerLabel"
+          "source": "controllerRef",
+          "lookup": {
+            "dataset": "system-controllers.json",
+            "key": "controllerRef",
+            "value": "controllerLabel"
+          }
         },
         {
           "name": "Acquisition",
@@ -444,8 +453,7 @@
         "controllerRef"
       ],
       "rowOrder": [
-        "controllerSlot",
-        "controllerLabel"
+        "controllerRef"
       ]
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts": {
@@ -1419,7 +1427,12 @@
       "columns": [
         {
           "name": "Scope",
-          "source": "controllerRef"
+          "source": "controllerRef",
+          "lookup": {
+            "dataset": "system-controllers.json",
+            "key": "controllerRef",
+            "value": "controllerLabel"
+          }
         },
         {
           "name": "Acquisition",
@@ -1452,7 +1465,12 @@
       "columns": [
         {
           "name": "Scope",
-          "source": "controllerRef"
+          "source": "controllerRef",
+          "lookup": {
+            "dataset": "system-controllers.json",
+            "key": "controllerRef",
+            "value": "controllerLabel"
+          }
         },
         {
           "name": "Acquisition",
@@ -1488,7 +1506,12 @@
       "columns": [
         {
           "name": "Scope",
-          "source": "controllerRef"
+          "source": "controllerRef",
+          "lookup": {
+            "dataset": "system-controllers.json",
+            "key": "controllerRef",
+            "value": "controllerLabel"
+          }
         },
         {
           "name": "Acquisition",
@@ -1525,7 +1548,12 @@
       "columns": [
         {
           "name": "Scope",
-          "source": "controllerRef"
+          "source": "controllerRef",
+          "lookup": {
+            "dataset": "system-controllers.json",
+            "key": "controllerRef",
+            "value": "controllerLabel"
+          }
         },
         {
           "name": "Acquisition",

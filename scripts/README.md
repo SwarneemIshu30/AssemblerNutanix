@@ -105,7 +105,7 @@ pwsh ./scripts/New-AssemblerPackage.ps1 -BuildChannel dev
 ## `Invoke-LnvAssemblerRender.ps1`
 
 Required parameters:
-- `-BundleRoot`
+- `-BundleRoot` or `-BundleArchivePath`
 - `-CatalogPath`
 - `-OutputRoot`
 
@@ -121,6 +121,8 @@ Optional:
 
 Wrapper behavior:
 - validates required bundle/catalog artifacts enough to fail early on missing or unreadable input
+- imports `-BundleArchivePath` archives before render by verifying `manifest.json`, `manifest.files[]` byte counts and SHA-256 hashes, strict file membership, and `manifest.integrity.bundleHash`
+- extracts verified archives into `<repo>/bundle/<archive-base-name>-<guid>/` and passes that extracted folder to the backend as `-BundleRoot`
 - starts `Invoke-AssemblerBundleRender.ps1` through a child `pwsh` process
 - polls `-CancelSignalPath` and terminates the backend process when cancellation is requested
 - writes JSONL progress events for wrapper stages
@@ -131,6 +133,8 @@ Exit codes:
 - `1`: backend render failed or returned an error status
 - `2`: wrapper input/preflight validation failed before backend render
 - `130`: render was cancelled
+
+Archive import failures return exit code `2` with wrapper issue code `ASB-ASM-WRAPPER-ARCHIVE-IMPORT-FAILED`.
 
 Wrapper artifact layout:
 - `<OutputRoot>/progress.jsonl`
@@ -148,6 +152,19 @@ pwsh ./scripts/Invoke-LnvAssemblerRender.ps1 \
   -ContractsRoot ./.deps/contracts \
   -OutputType docx
 ```
+
+Archive example:
+
+```powershell
+pwsh ./scripts/Invoke-LnvAssemblerRender.ps1 \
+  -BundleArchivePath ./captures/capture-20260428.lnvbundle.zip \
+  -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json \
+  -OutputRoot ./out/wrapper-render \
+  -ContractsRoot ./.deps/contracts \
+  -OutputType docx
+```
+
+`-BundleRoot` and `-BundleArchivePath` are mutually exclusive. Imported archives are retained under the repo `bundle/` staging folder beside existing bundles for rerender/debug use; because `bundle/` is a working staging area, those extracted folders may show as untracked files until removed.
 
 ## Projection/view ownership direction
 
@@ -229,7 +246,7 @@ Current default behavior is **DOCX-only**. TXT output remains available through 
 ## `Invoke-AssemblerPipeline.ps1`
 
 Required parameters:
-- `-BundleRoot`
+- `-BundleRoot` or `-BundleArchivePath`
 - `-ContractsRoot`
 
 Optional:
@@ -242,6 +259,7 @@ Optional:
 
 Behavior:
 - always performs bootstrap load + schema validation for `manifest.json`, `objectIndex.json`, and `config/solution.plan.json`
+- when `-BundleArchivePath` is supplied, verifies and extracts the archive under `<repo>/bundle/<archive-base-name>-<guid>/` before validation
 - when `-MappingShapeMode` is supplied, runs `Test-AssemblerMappingShapeMode.ps1` to enforce the selected mode in both contract and runtime mapping files
 - emits migration dashboard diagnostics with counts of `sdtTag`-only, dual, and target-only entries for contract/runtime mappings
 - when render handoff options are **not** supplied, marks render as skipped and emits an explicit diagnostic with the next command (`Invoke-AssemblerBundleRender.ps1`)

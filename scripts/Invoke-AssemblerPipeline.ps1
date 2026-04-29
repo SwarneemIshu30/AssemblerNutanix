@@ -8,10 +8,14 @@ Loads required bundle artifacts (`manifest.json`, `objectIndex.json`, `config/so
 a machine-readable JSON report with staged diagnostics.
 
 .PARAMETER BundleRoot
-Path to the Direct-v1 bundle root. Required files under this root are:
+Path to the Direct-v1 bundle root. Mutually exclusive with `-BundleArchivePath`. Required files under this root are:
 - `manifest.json`
 - `objectIndex.json`
 - `config/solution.plan.json`
+
+.PARAMETER BundleArchivePath
+Path to a Core-produced `.lnvbundle.zip` archive. The archive is verified and extracted under this
+repo's `bundle/` staging folder before validation or render handoff.
 
 .PARAMETER ContractsRoot
 Path to the contracts root containing `standards/solution.plan.schema.v1.json`.
@@ -43,7 +47,8 @@ Exit code is `0` when `status=ok` and `1` when `status=error`.
 #>
 #!/usr/bin/env pwsh
 param(
-    [Parameter(Mandatory = $true)][string]$BundleRoot,
+    [Parameter(Mandatory = $false)][string]$BundleRoot,
+    [Parameter(Mandatory = $false)][string]$BundleArchivePath,
     [Parameter(Mandatory = $true)][string]$ContractsRoot,
     [Parameter(Mandatory = $false)][string]$OutputPath,
     [Parameter(Mandatory = $false)][string]$RenderCatalogPath,
@@ -59,6 +64,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 Import-Module (Join-Path $PSScriptRoot 'internal/AssemblerSchemaValidation.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'internal/AssemblerBundleArchive.psm1') -Force
 
 function Get-UtcTimestamp { (Get-Date).ToUniversalTime().ToString('o') }
 
@@ -114,7 +120,8 @@ function Read-JsonFile {
 
 function Invoke-AssemblerPipeline {
     param(
-        [Parameter(Mandatory = $true)][string]$BundleRoot,
+        [Parameter(Mandatory = $false)][string]$BundleRoot,
+        [Parameter(Mandatory = $false)][string]$BundleArchivePath,
         [Parameter(Mandatory = $true)][string]$ContractsRoot,
         [Parameter(Mandatory = $false)][string]$OutputPath,
         [Parameter(Mandatory = $false)][string]$RenderCatalogPath,
@@ -139,7 +146,18 @@ function Invoke-AssemblerPipeline {
     $manifest = $null
     $objectIndex = $null
     $solutionPlan = $null
+    $archiveImport = $null
+    $effectiveBundleRoot = $BundleRoot
     try {
+        $bundleRootProvided = -not [string]::IsNullOrWhiteSpace($BundleRoot)
+        $archiveProvided = -not [string]::IsNullOrWhiteSpace($BundleArchivePath)
+        if ($bundleRootProvided -and $archiveProvided) {
+            throw 'ASB-ASM-INPUT-BUNDLE-MODE-CONFLICT: -BundleRoot and -BundleArchivePath are mutually exclusive.'
+        }
+        if (-not $bundleRootProvided -and -not $archiveProvided) {
+            throw 'ASB-ASM-INPUT-BUNDLE-MODE-MISSING: supply either -BundleRoot or -BundleArchivePath.'
+        }
+
         $renderCatalogProvided = -not [string]::IsNullOrWhiteSpace($RenderCatalogPath)
         $renderOutputProvided = -not [string]::IsNullOrWhiteSpace($RenderOutputRoot)
         if ($renderCatalogProvided -xor $renderOutputProvided) {
@@ -152,9 +170,28 @@ function Invoke-AssemblerPipeline {
         Start-Stage -Stage $stages.Load
         $diagnostics.Add((New-Diagnostic -Stage 'Load' -Level 'INFO' -Code 'ASB-ASM-INPUT-LOAD' -Message 'Resolving required Direct-v1 input paths'))
 
-        $manifestPath = Join-Path $BundleRoot 'manifest.json'
-        $objectIndexPath = Join-Path $BundleRoot 'objectIndex.json'
-        $solutionPlanPath = Join-Path (Join-Path $BundleRoot 'config') 'solution.plan.json'
+        if ($archiveProvided) {
+            $diagnostics.Add((New-Diagnostic -Stage 'Load' -Level 'INFO' -Code 'ASB-ASM-ARCHIVE-IMPORT' -Message "Importing bundle archive $BundleArchivePath"))
+            $archiveResult = Import-AssemblerBundleArchive -ArchivePath $BundleArchivePath -RepoRoot (Split-Path -Parent $PSScriptRoot)
+            $archiveImport = [ordered]@{
+                sourceArchivePath = $archiveResult.SourceArchivePath
+                archiveSha256 = $archiveResult.ArchiveSha256
+                extractedBundleRoot = $archiveResult.ExtractedBundleRoot
+                bundleId = $archiveResult.BundleId
+                bundleHash = $archiveResult.BundleHash
+                status = $archiveResult.Status
+                errors = @($archiveResult.Errors)
+            }
+            if (-not $archiveResult.IsValid) {
+                throw "ASB-ASM-ARCHIVE-IMPORT-FAILED: $(@($archiveResult.Errors) -join '; ')"
+            }
+            $effectiveBundleRoot = [string]$archiveResult.ExtractedBundleRoot
+            $diagnostics.Add((New-Diagnostic -Stage 'Load' -Level 'INFO' -Code 'ASB-ASM-ARCHIVE-IMPORT' -Message "Bundle archive imported to $effectiveBundleRoot"))
+        }
+
+        $manifestPath = Join-Path $effectiveBundleRoot 'manifest.json'
+        $objectIndexPath = Join-Path $effectiveBundleRoot 'objectIndex.json'
+        $solutionPlanPath = Join-Path (Join-Path $effectiveBundleRoot 'config') 'solution.plan.json'
         $manifestSchemaPath = Join-Path (Join-Path $ContractsRoot 'standards') 'bundle.manifest.schema.v1.json'
         $objectIndexSchemaPath = Join-Path (Join-Path $ContractsRoot 'standards') 'objectIndex.schema.v1.json'
         $solutionPlanSchemaPath = Join-Path (Join-Path $ContractsRoot 'standards') 'solution.plan.schema.v1.json'
@@ -243,7 +280,7 @@ function Invoke-AssemblerPipeline {
             $renderArguments = @(
                 '-NoLogo', '-NoProfile',
                 '-File', $invokeBundleRenderScript,
-                '-BundleRoot', $BundleRoot,
+                '-BundleRoot', $effectiveBundleRoot,
                 '-CatalogPath', $RenderCatalogPath,
                 '-OutputRoot', $RenderOutputRoot,
                 '-ContractsRoot', $ContractsRoot,
@@ -284,7 +321,7 @@ function Invoke-AssemblerPipeline {
             })
         }
         else {
-            $guidanceCommand = "pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 -BundleRoot '$BundleRoot' -CatalogPath <catalog.json> -OutputRoot <out>"
+            $guidanceCommand = "pwsh ./scripts/Invoke-AssemblerBundleRender.ps1 -BundleRoot '$effectiveBundleRoot' -CatalogPath <catalog.json> -OutputRoot <out>"
             $diagnostics.Add((New-Diagnostic -Stage 'Render' -Level 'INFO' -Code 'ASB-ASM-RENDER-NEXT-COMMAND' -Message "Render step skipped. Next command: $guidanceCommand"))
             Complete-Stage -Stage $stages.Render -Status 'SKIPPED' -Details ([ordered]@{
                 reason = 'Render handoff not requested.'
@@ -297,7 +334,9 @@ function Invoke-AssemblerPipeline {
             schemaVersion = 1
             status = 'ok'
             bundle = [ordered]@{
-                root = $BundleRoot
+                root = $effectiveBundleRoot
+                sourceRoot = if ([string]::IsNullOrWhiteSpace($BundleRoot)) { $null } else { $BundleRoot }
+                sourceArchivePath = if ([string]::IsNullOrWhiteSpace($BundleArchivePath)) { $null } else { $BundleArchivePath }
                 manifestSchemaVersion = $manifest.schemaVersion
                 objectCount = if ($objectIndex.ContainsKey('objectCount')) { $objectIndex.objectCount } else { @($objectIndex.objects).Count }
                 solutionId = $solutionPlan.solutionId
@@ -305,6 +344,7 @@ function Invoke-AssemblerPipeline {
                 collectorCount = @($solutionPlan.collectors).Count
             }
             render = if ($null -ne $renderReport) { $renderReport } else { $null }
+            archiveImport = if ($null -ne $archiveImport) { $archiveImport } else { $null }
             stages = @($stages.Load, $stages.Validate, $stages.Transform, $stages.Render, $stages.Finalize)
             diagnostics = $diagnostics
         }
@@ -317,6 +357,7 @@ function Invoke-AssemblerPipeline {
         $report = [ordered]@{
             schemaVersion = 1
             status = 'error'
+            archiveImport = if ($null -ne $archiveImport) { $archiveImport } else { $null }
             stages = @($stages.Load, $stages.Validate, $stages.Transform, $stages.Render, $stages.Finalize)
             diagnostics = $diagnostics
         }
@@ -335,5 +376,18 @@ function Invoke-AssemblerPipeline {
     if ($report.status -eq 'error') { exit 1 }
 }
 
-Invoke-AssemblerPipeline -BundleRoot $BundleRoot -ContractsRoot $ContractsRoot -OutputPath $OutputPath -RenderCatalogPath $RenderCatalogPath -RenderOutputRoot $RenderOutputRoot -RenderTechId $RenderTechId -MappingShapeMode $MappingShapeMode -ContractMappingPath $ContractMappingPath -RuntimeMappingPath $RuntimeMappingPath
+$pipelineParams = @{
+    ContractsRoot = $ContractsRoot
+}
+if (-not [string]::IsNullOrWhiteSpace($BundleRoot)) { $pipelineParams.BundleRoot = $BundleRoot }
+if (-not [string]::IsNullOrWhiteSpace($BundleArchivePath)) { $pipelineParams.BundleArchivePath = $BundleArchivePath }
+if (-not [string]::IsNullOrWhiteSpace($OutputPath)) { $pipelineParams.OutputPath = $OutputPath }
+if (-not [string]::IsNullOrWhiteSpace($RenderCatalogPath)) { $pipelineParams.RenderCatalogPath = $RenderCatalogPath }
+if (-not [string]::IsNullOrWhiteSpace($RenderOutputRoot)) { $pipelineParams.RenderOutputRoot = $RenderOutputRoot }
+if ($RenderTechId -and @($RenderTechId).Count -gt 0) { $pipelineParams.RenderTechId = $RenderTechId }
+if (-not [string]::IsNullOrWhiteSpace($MappingShapeMode)) { $pipelineParams.MappingShapeMode = $MappingShapeMode }
+if (-not [string]::IsNullOrWhiteSpace($ContractMappingPath)) { $pipelineParams.ContractMappingPath = $ContractMappingPath }
+if (-not [string]::IsNullOrWhiteSpace($RuntimeMappingPath)) { $pipelineParams.RuntimeMappingPath = $RuntimeMappingPath }
+
+Invoke-AssemblerPipeline @pipelineParams
 

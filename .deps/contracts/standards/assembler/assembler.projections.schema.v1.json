@@ -176,6 +176,33 @@
         },
         "delimiter": {
           "type": "string"
+        },
+        "lookup": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "dataset",
+            "key",
+            "value"
+          ],
+          "properties": {
+            "dataset": {
+              "type": "string",
+              "minLength": 1
+            },
+            "selector": {
+              "type": "string",
+              "minLength": 1
+            },
+            "key": {
+              "type": "string",
+              "minLength": 1
+            },
+            "value": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
         }
       }
     },

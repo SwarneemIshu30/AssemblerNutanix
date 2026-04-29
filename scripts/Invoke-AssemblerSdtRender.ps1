@@ -21,6 +21,8 @@ param(
     [Parameter(Mandatory = $false)][string]$DocConfigSnapDate,
     [Parameter(Mandatory = $false)][string]$DocReferenceId,
     [Parameter(Mandatory = $false)][string]$DocClassification,
+    [Parameter(Mandatory = $false)][string]$DocSupportRegion,
+    [Parameter(Mandatory = $false)][string]$SupportRegionSidecarPath,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
     [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
     [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
@@ -69,6 +71,204 @@ function Read-JsonFile {
     }
 
     Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+}
+
+function Get-SupportMapValue {
+    param(
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$Map,
+        [Parameter(Mandatory = $true)][string]$Key,
+        [Parameter(Mandatory = $false)]$Default = $null
+    )
+
+    if ($null -eq $Map) { return $Default }
+    if ($null -ne $Map.PSObject.Methods['ContainsKey'] -and $Map.ContainsKey($Key)) { return $Map[$Key] }
+    if ($null -ne $Map.PSObject.Methods['Contains'] -and $Map.Contains($Key)) { return $Map[$Key] }
+    foreach ($candidateKey in @($Map.Keys)) {
+        if ([string]$candidateKey -eq $Key) { return $Map[$candidateKey] }
+    }
+
+    return $Default
+}
+
+function Format-SupportPhoneNumbers {
+    param(
+        [Parameter(Mandatory = $false)]$PhoneNumbers,
+        [Parameter(Mandatory = $false)][switch]$Inline
+    )
+
+    $formatted = [System.Collections.Generic.List[string]]::new()
+    foreach ($phoneNumber in @($PhoneNumbers)) {
+        if ($null -eq $phoneNumber) { continue }
+        if ($phoneNumber -is [System.Collections.IDictionary]) {
+            $label = [string](Get-SupportMapValue -Map $phoneNumber -Key 'label' -Default '')
+            $number = [string](Get-SupportMapValue -Map $phoneNumber -Key 'number' -Default '')
+            if ([string]::IsNullOrWhiteSpace($label) -and [string]::IsNullOrWhiteSpace($number)) { continue }
+            if ([string]::IsNullOrWhiteSpace($label)) {
+                $formatted.Add($number)
+            }
+            elseif ([string]::IsNullOrWhiteSpace($number)) {
+                $formatted.Add($label)
+            }
+            else {
+                $formatted.Add(('{0}: {1}' -f $label, $number))
+            }
+        }
+        else {
+            $value = [string]$phoneNumber
+            if (-not [string]::IsNullOrWhiteSpace($value)) { $formatted.Add($value) }
+        }
+    }
+
+    if ($Inline.IsPresent) { return ($formatted.ToArray() -join '; ') }
+    return ($formatted.ToArray() -join [Environment]::NewLine)
+}
+
+function Format-SupportGuidance {
+    param([Parameter(Mandatory = $false)]$Guidance)
+
+    $lines = [System.Collections.Generic.List[string]]::new()
+    foreach ($line in @($Guidance)) {
+        $value = [string]$line
+        if (-not [string]::IsNullOrWhiteSpace($value)) { $lines.Add($value) }
+    }
+
+    return ($lines.ToArray() -join [Environment]::NewLine)
+}
+
+function New-SupportProcessText {
+    param([Parameter(Mandatory = $true)][System.Collections.IDictionary]$SupportRegionModel)
+
+    $paragraphs = [System.Collections.Generic.List[string]]::new()
+    $regionLabel = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportRegionLabel' -Default '')
+    $supportTier = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportTier' -Default '')
+    $phoneNumbersInline = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPhoneNumbersInline' -Default '')
+    $serviceRequestUrl = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportServiceRequestUrl' -Default '')
+    $supportPortalUrl = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPortalUrl' -Default '')
+    $supportPlanUrl = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPlanUrl' -Default '')
+    $guidance = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportGuidance' -Default '')
+
+    if (-not [string]::IsNullOrWhiteSpace($regionLabel) -and -not [string]::IsNullOrWhiteSpace($supportTier)) {
+        $paragraphs.Add(("For {0}, raise entitled Lenovo storage hardware or software incidents through {1}." -f $regionLabel, $supportTier))
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace($supportTier)) {
+        $paragraphs.Add(("Raise entitled Lenovo storage hardware or software incidents through {0}." -f $supportTier))
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace($regionLabel)) {
+        $paragraphs.Add(("Use the Lenovo Data Center Support process for {0}." -f $regionLabel))
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($phoneNumbersInline)) {
+        $paragraphs.Add(("Phone support: {0}." -f $phoneNumbersInline))
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($serviceRequestUrl)) {
+        $paragraphs.Add(("Web support: open {0}. Sign in as required, confirm the registered serial number and product entitlement, choose the relevant hardware or software problem type, describe the fault and business impact, and upload controller/support logs where available." -f $serviceRequestUrl))
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace($supportPortalUrl)) {
+        $paragraphs.Add(("Web support: open {0}. Sign in as required, confirm the registered serial number and product entitlement, describe the fault and business impact, and upload controller/support logs where available." -f $supportPortalUrl))
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($guidance)) {
+        foreach ($line in @($guidance -split "`r?`n")) {
+            if (-not [string]::IsNullOrWhiteSpace($line)) { $paragraphs.Add([string]$line) }
+        }
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($supportPlanUrl)) {
+        $paragraphs.Add(("For current entitlement and case-handling guidance, refer to {0}." -f $supportPlanUrl))
+    }
+
+    return ($paragraphs.ToArray() -join [Environment]::NewLine)
+}
+
+function Resolve-SupportRegionDocumentModel {
+    param(
+        [Parameter(Mandatory = $false)][string]$SupportRegion,
+        [Parameter(Mandatory = $false)][string]$SidecarPath
+    )
+
+    $requestedRegion = ([string]$SupportRegion).Trim()
+    $selectedRegion = $null
+    $resolvedSidecarPath = ''
+
+    if (-not [string]::IsNullOrWhiteSpace($SidecarPath) -and (Test-Path -LiteralPath $SidecarPath -PathType Leaf)) {
+        $resolvedSidecarPath = (Resolve-Path -LiteralPath $SidecarPath).Path
+        $sidecar = Read-JsonFile -Path $resolvedSidecarPath
+        $regions = @(Get-SupportMapValue -Map $sidecar -Key 'regions' -Default @())
+        if (-not [string]::IsNullOrWhiteSpace($requestedRegion)) {
+            foreach ($region in $regions) {
+                if ($region -isnot [System.Collections.IDictionary]) { continue }
+                $id = [string](Get-SupportMapValue -Map $region -Key 'id' -Default '')
+                $label = [string](Get-SupportMapValue -Map $region -Key 'label' -Default '')
+                $display = if ([string]::IsNullOrWhiteSpace($label)) { $id } else { ('{0} - {1}' -f $id, $label) }
+                if ($requestedRegion -ieq $id -or $requestedRegion -ieq $label -or $requestedRegion -ieq $display) {
+                    $selectedRegion = $region
+                    break
+                }
+            }
+        }
+
+        if ($null -eq $selectedRegion) {
+            $defaultRegion = [string](Get-SupportMapValue -Map $sidecar -Key 'defaultRegion' -Default '')
+            if (-not [string]::IsNullOrWhiteSpace($defaultRegion)) {
+                foreach ($region in $regions) {
+                    if ($region -isnot [System.Collections.IDictionary]) { continue }
+                    if ($defaultRegion -ieq [string](Get-SupportMapValue -Map $region -Key 'id' -Default '')) {
+                        $selectedRegion = $region
+                        break
+                    }
+                }
+            }
+        }
+
+        if ($null -eq $selectedRegion -and @($regions).Count -gt 0 -and $regions[0] -is [System.Collections.IDictionary]) {
+            $selectedRegion = $regions[0]
+        }
+    }
+
+    $model = [ordered]@{
+        SupportRegion = $requestedRegion
+        DocSupportRegion = $requestedRegion
+        SupportRegionLabel = ''
+        SupportRegionDisplayName = $requestedRegion
+        SupportLanguage = ''
+        SupportCountryCode = ''
+        SupportTier = ''
+        SupportPhoneNumbers = ''
+        SupportPhoneNumbersInline = ''
+        SupportServiceRequestUrl = ''
+        SupportPortalUrl = ''
+        SupportPhoneListUrl = ''
+        SupportPlanUrl = ''
+        SupportGuidance = ''
+        SupportProcessText = ''
+        SupportRegionSidecarPath = $resolvedSidecarPath
+    }
+
+    if ($selectedRegion -is [System.Collections.IDictionary]) {
+        $id = [string](Get-SupportMapValue -Map $selectedRegion -Key 'id' -Default $requestedRegion)
+        $label = [string](Get-SupportMapValue -Map $selectedRegion -Key 'label' -Default '')
+        $display = if ([string]::IsNullOrWhiteSpace($label)) { $id } else { ('{0} - {1}' -f $id, $label) }
+        $phoneNumbers = Get-SupportMapValue -Map $selectedRegion -Key 'phoneNumbers' -Default @()
+
+        $model.SupportRegion = $id
+        $model.DocSupportRegion = $id
+        $model.SupportRegionLabel = $label
+        $model.SupportRegionDisplayName = $display
+        $model.SupportLanguage = [string](Get-SupportMapValue -Map $selectedRegion -Key 'language' -Default '')
+        $model.SupportCountryCode = [string](Get-SupportMapValue -Map $selectedRegion -Key 'countryCode' -Default '')
+        $model.SupportTier = [string](Get-SupportMapValue -Map $selectedRegion -Key 'supportTier' -Default '')
+        $model.SupportPhoneNumbers = Format-SupportPhoneNumbers -PhoneNumbers $phoneNumbers
+        $model.SupportPhoneNumbersInline = Format-SupportPhoneNumbers -PhoneNumbers $phoneNumbers -Inline
+        $model.SupportServiceRequestUrl = [string](Get-SupportMapValue -Map $selectedRegion -Key 'serviceRequestUrl' -Default '')
+        $model.SupportPortalUrl = [string](Get-SupportMapValue -Map $selectedRegion -Key 'supportPortalUrl' -Default '')
+        $model.SupportPhoneListUrl = [string](Get-SupportMapValue -Map $selectedRegion -Key 'supportPhoneListUrl' -Default '')
+        $model.SupportPlanUrl = [string](Get-SupportMapValue -Map $selectedRegion -Key 'supportPlanUrl' -Default '')
+        $model.SupportGuidance = Format-SupportGuidance -Guidance (Get-SupportMapValue -Map $selectedRegion -Key 'guidance' -Default @())
+    }
+
+    $model.SupportProcessText = New-SupportProcessText -SupportRegionModel $model
+    return $model
 }
 
 function Get-FileSha256Hex {
@@ -444,7 +644,9 @@ function Update-DocxMetadataProperties {
         [Parameter(Mandatory = $false)][string]$Version,
         [Parameter(Mandatory = $false)][string]$ConfigSnapDate,
         [Parameter(Mandatory = $false)][string]$ReferenceId,
-        [Parameter(Mandatory = $false)][string]$Classification
+        [Parameter(Mandatory = $false)][string]$Classification,
+        [Parameter(Mandatory = $false)][string]$SupportRegion,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$SupportRegionModel
     )
 
     $coreEntry = $Archive.GetEntry('docProps/core.xml')
@@ -500,6 +702,26 @@ function Update-DocxMetadataProperties {
         'LNV.ConfigSnapDate' = $ConfigSnapDate
         'LNV.ReferenceID' = $ReferenceId
         'ClassificationContentMarkingHeaderText' = $Classification
+        'SupportRegion' = $SupportRegion
+    }
+    if ($null -ne $SupportRegionModel) {
+        foreach ($propertyName in @(
+            'SupportRegionLabel',
+            'SupportRegionDisplayName',
+            'SupportLanguage',
+            'SupportCountryCode',
+            'SupportTier',
+            'SupportPhoneNumbers',
+            'SupportPhoneNumbersInline',
+            'SupportServiceRequestUrl',
+            'SupportPortalUrl',
+            'SupportPhoneListUrl',
+            'SupportPlanUrl',
+            'SupportGuidance',
+            'SupportProcessText'
+        )) {
+            $propertyUpdates[$propertyName] = [string](Get-SupportMapValue -Map $SupportRegionModel -Key $propertyName -Default '')
+        }
     }
 
     foreach ($propertyName in @($propertyUpdates.Keys)) {
@@ -966,6 +1188,20 @@ function Replace-LiteralSdtTokenXmlText {
     return [regex]::Replace($updated, $escapedPattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $Replacement })
 }
 
+function Measure-LiteralSdtTokenXmlText {
+    param(
+        [Parameter(Mandatory = $true)][string]$XmlText,
+        [Parameter(Mandatory = $true)][string]$Tag
+    )
+
+    $escapedTag = [regex]::Escape([string]$Tag)
+    $rawPattern = "<<SDT:\s*$escapedTag\s*>>"
+    $escapedPattern = "&lt;&lt;SDT:\s*$escapedTag\s*&gt;&gt;"
+    $rawMatches = [regex]::Matches($XmlText, $rawPattern).Count
+    $escapedMatches = [regex]::Matches($XmlText, $escapedPattern).Count
+    return ([int]$rawMatches + [int]$escapedMatches)
+}
+
 function Remove-UnresolvedSdtTokensFromText {
     param([Parameter(Mandatory = $true)][string]$Text)
 
@@ -1211,7 +1447,9 @@ function Get-DocxContentControlReplacementMap {
         [Parameter(Mandatory = $false)][string]$DocVersion,
         [Parameter(Mandatory = $false)][string]$DocConfigSnapDate,
         [Parameter(Mandatory = $false)][string]$DocReferenceId,
-        [Parameter(Mandatory = $false)][string]$DocClassification
+        [Parameter(Mandatory = $false)][string]$DocClassification,
+        [Parameter(Mandatory = $false)][string]$DocSupportRegion,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$SupportRegionModel
     )
 
     $map = [ordered]@{}
@@ -1227,6 +1465,20 @@ function Get-DocxContentControlReplacementMap {
         ConfigSnapDate = @('LNV.ConfigSnapDate', 'DocConfigSnapDate')
         ReferenceId = @('LNV.ReferenceID', 'DocReferenceId')
         Classification = @('ClassificationContentMarkingHeaderText', 'Classification', 'DocClassification')
+        SupportRegion = @('SupportRegion', 'DocSupportRegion')
+        SupportRegionLabel = @('SupportRegionLabel', 'DocSupportRegionLabel')
+        SupportRegionDisplayName = @('SupportRegionDisplayName', 'DocSupportRegionDisplayName')
+        SupportLanguage = @('SupportLanguage', 'DocSupportLanguage')
+        SupportCountryCode = @('SupportCountryCode', 'DocSupportCountryCode')
+        SupportTier = @('SupportTier', 'DocSupportTier')
+        SupportPhoneNumbers = @('SupportPhoneNumbers', 'DocSupportPhoneNumbers')
+        SupportPhoneNumbersInline = @('SupportPhoneNumbersInline', 'DocSupportPhoneNumbersInline')
+        SupportServiceRequestUrl = @('SupportServiceRequestUrl', 'DocSupportServiceRequestUrl')
+        SupportPortalUrl = @('SupportPortalUrl', 'DocSupportPortalUrl')
+        SupportPhoneListUrl = @('SupportPhoneListUrl', 'DocSupportPhoneListUrl')
+        SupportPlanUrl = @('SupportPlanUrl', 'DocSupportPlanUrl')
+        SupportGuidance = @('SupportGuidance', 'DocSupportGuidance')
+        SupportProcessText = @('SupportProcessText', 'DocSupportProcessText')
     }
     $propertyValues = [ordered]@{
         Title = $DocTitle
@@ -1240,6 +1492,27 @@ function Get-DocxContentControlReplacementMap {
         ConfigSnapDate = $DocConfigSnapDate
         ReferenceId = $DocReferenceId
         Classification = $DocClassification
+        SupportRegion = $DocSupportRegion
+    }
+    if ($null -ne $SupportRegionModel) {
+        foreach ($propertyName in @(
+            'SupportRegion',
+            'SupportRegionLabel',
+            'SupportRegionDisplayName',
+            'SupportLanguage',
+            'SupportCountryCode',
+            'SupportTier',
+            'SupportPhoneNumbers',
+            'SupportPhoneNumbersInline',
+            'SupportServiceRequestUrl',
+            'SupportPortalUrl',
+            'SupportPhoneListUrl',
+            'SupportPlanUrl',
+            'SupportGuidance',
+            'SupportProcessText'
+        )) {
+            $propertyValues[$propertyName] = [string](Get-SupportMapValue -Map $SupportRegionModel -Key $propertyName -Default '')
+        }
     }
 
     foreach ($propertyName in @($propertyValues.Keys)) {
@@ -1266,7 +1539,9 @@ function Get-DocxDocPropertyFieldReplacementMap {
         [Parameter(Mandatory = $false)][string]$DocVersion,
         [Parameter(Mandatory = $false)][string]$DocConfigSnapDate,
         [Parameter(Mandatory = $false)][string]$DocReferenceId,
-        [Parameter(Mandatory = $false)][string]$DocClassification
+        [Parameter(Mandatory = $false)][string]$DocClassification,
+        [Parameter(Mandatory = $false)][string]$DocSupportRegion,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$SupportRegionModel
     )
 
     $map = [ordered]@{}
@@ -1281,7 +1556,22 @@ function Get-DocxDocPropertyFieldReplacementMap {
         @{ name = 'LNV.Version'; value = $DocVersion },
         @{ name = 'LNV.ConfigSnapDate'; value = $DocConfigSnapDate },
         @{ name = 'LNV.ReferenceID'; value = $DocReferenceId },
-        @{ name = 'ClassificationContentMarkingHeaderText'; value = $DocClassification }
+        @{ name = 'ClassificationContentMarkingHeaderText'; value = $DocClassification },
+        @{ name = 'SupportRegion'; value = $DocSupportRegion },
+        @{ name = 'DocSupportRegion'; value = $DocSupportRegion },
+        @{ name = 'SupportRegionLabel'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportRegionLabel' -Default '') },
+        @{ name = 'SupportRegionDisplayName'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportRegionDisplayName' -Default '') },
+        @{ name = 'SupportLanguage'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportLanguage' -Default '') },
+        @{ name = 'SupportCountryCode'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportCountryCode' -Default '') },
+        @{ name = 'SupportTier'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportTier' -Default '') },
+        @{ name = 'SupportPhoneNumbers'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPhoneNumbers' -Default '') },
+        @{ name = 'SupportPhoneNumbersInline'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPhoneNumbersInline' -Default '') },
+        @{ name = 'SupportServiceRequestUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportServiceRequestUrl' -Default '') },
+        @{ name = 'SupportPortalUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPortalUrl' -Default '') },
+        @{ name = 'SupportPhoneListUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPhoneListUrl' -Default '') },
+        @{ name = 'SupportPlanUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPlanUrl' -Default '') },
+        @{ name = 'SupportGuidance'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportGuidance' -Default '') },
+        @{ name = 'SupportProcessText'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportProcessText' -Default '') }
     )) {
         $name = [string]$entry.name
         $value = [string]$entry.value
@@ -1888,6 +2178,8 @@ function Render-DocxTemplate {
         [Parameter(Mandatory = $false)][string]$DocConfigSnapDate,
         [Parameter(Mandatory = $false)][string]$DocReferenceId,
         [Parameter(Mandatory = $false)][string]$DocClassification,
+        [Parameter(Mandatory = $false)][string]$DocSupportRegion,
+        [Parameter(Mandatory = $false)][string]$SupportRegionSidecarPath,
         [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
         [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
     )
@@ -1923,6 +2215,7 @@ function Render-DocxTemplate {
         $literalTokensMatched = 0
         $literalTokensMatchedScalar = 0
         $literalTokensMatchedTable = 0
+        $docPropertyLiteralTokensMatched = 0
         $controlsDiscovered = 0
         $taggedControlsMatched = 0
         $controlsPopulated = 0
@@ -1938,8 +2231,9 @@ function Render-DocxTemplate {
         $literalDatasetTagStatus = @()
         $literalTagHitSummary = @()
         $literalPartHitSummary = @()
-        $contentControlReplaceByTag = Get-DocxContentControlReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification
-        $docPropertyFieldReplaceByName = Get-DocxDocPropertyFieldReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification
+        $supportRegionDocumentModel = Resolve-SupportRegionDocumentModel -SupportRegion $DocSupportRegion -SidecarPath $SupportRegionSidecarPath
+        $contentControlReplaceByTag = Get-DocxContentControlReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification -DocSupportRegion ([string]$supportRegionDocumentModel.SupportRegion) -SupportRegionModel $supportRegionDocumentModel
+        $docPropertyFieldReplaceByName = Get-DocxDocPropertyFieldReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification -DocSupportRegion ([string]$supportRegionDocumentModel.SupportRegion) -SupportRegionModel $supportRegionDocumentModel
         $tableStyleId = ''
         $tableParagraphStyleId = ''
         if ($null -ne $TableByTag -and @($TableByTag.Keys).Count -gt 0) {
@@ -2067,6 +2361,17 @@ function Render-DocxTemplate {
                     $literalTokensMatchedScalar += [int]$scalarTokenCount
                     $xmlText = Replace-LiteralSdtTokenXmlText -XmlText $xmlText -Tag $tagText -Replacement ([string]$ReplaceByTag[$tag])
                 }
+
+                foreach ($tag in @($contentControlReplaceByTag.Keys)) {
+                    $tagText = [string]$tag
+                    if (Test-MapHasKey -Map $ReplaceByTag -Key $tagText) { continue }
+
+                    $scalarTokenCount = Measure-LiteralSdtTokenXmlText -XmlText $xmlText -Tag $tagText
+                    $literalTokensMatched += [int]$scalarTokenCount
+                    $literalTokensMatchedScalar += [int]$scalarTokenCount
+                    $docPropertyLiteralTokensMatched += [int]$scalarTokenCount
+                    $xmlText = Replace-LiteralSdtTokenXmlText -XmlText $xmlText -Tag $tagText -Replacement ([string]$contentControlReplaceByTag[$tagText])
+                }
             }
 
             try {
@@ -2168,7 +2473,7 @@ function Render-DocxTemplate {
             }
         }
 
-        Update-DocxMetadataProperties -Archive $archive -Title $DocTitle -Customer $DocCustomer -CustomerAbbr $DocCustomerAbbr -Location $DocLocation -Subsidiary $DocSubsidiary -Environment $DocEnvironment -DocumentReference $DocDocumentReference -Version $DocVersion -ConfigSnapDate $DocConfigSnapDate -ReferenceId $DocReferenceId -Classification $DocClassification
+        Update-DocxMetadataProperties -Archive $archive -Title $DocTitle -Customer $DocCustomer -CustomerAbbr $DocCustomerAbbr -Location $DocLocation -Subsidiary $DocSubsidiary -Environment $DocEnvironment -DocumentReference $DocDocumentReference -Version $DocVersion -ConfigSnapDate $DocConfigSnapDate -ReferenceId $DocReferenceId -Classification $DocClassification -SupportRegion ([string]$supportRegionDocumentModel.SupportRegion) -SupportRegionModel $supportRegionDocumentModel
         $updateFieldsOnOpenResult = Enable-DocxUpdateFieldsOnOpen -Archive $archive
 
         $renderResult = [ordered]@{
@@ -2184,6 +2489,7 @@ function Render-DocxTemplate {
             literalTokensMatched = $literalTokensMatched
             literalTokensMatchedScalar = $literalTokensMatchedScalar
             literalTokensMatchedTable = $literalTokensMatchedTable
+            docPropertyLiteralTokensMatched = [int]$docPropertyLiteralTokensMatched
             docPropControlsExpected = @($contentControlReplaceByTag.Keys).Count
             docPropControlsMatched = $taggedControlsMatched
             docPropControlsPopulated = $controlsPopulated
@@ -2199,6 +2505,13 @@ function Render-DocxTemplate {
             unmatchedTaggedControls = @($mappedTagsNotDiscovered | Sort-Object -Unique)
             docPropMappedTags = @($contentControlReplaceByTag.Keys | Sort-Object -Unique)
             contentControlMappedTags = @($contentControlReplaceByTag.Keys | Sort-Object -Unique)
+            supportRegion = [ordered]@{
+                id = [string]$supportRegionDocumentModel.SupportRegion
+                label = [string]$supportRegionDocumentModel.SupportRegionLabel
+                displayName = [string]$supportRegionDocumentModel.SupportRegionDisplayName
+                tier = [string]$supportRegionDocumentModel.SupportTier
+                sidecarPath = [string]$supportRegionDocumentModel.SupportRegionSidecarPath
+            }
             partErrors = @($partErrors)
             literalTagDiagnostics = $literalTagDiagnostics.ToArray()
             literalTagHitSummary = @($literalTagHitSummary)
@@ -3769,7 +4082,7 @@ try {
         if ($outputDir -and -not (Test-Path -LiteralPath $outputDir -PathType Container)) {
             New-Item -Path $outputDir -ItemType Directory -Force | Out-Null
         }
-        $docxRender = Render-DocxTemplate -TemplatePath $resolvedTemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy
+        $docxRender = Render-DocxTemplate -TemplatePath $resolvedTemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification -DocSupportRegion $DocSupportRegion -SupportRegionSidecarPath $SupportRegionSidecarPath -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy
         $docxUnresolvedLiteralByTag = $docxRender.unresolvedLiteralByTag
         $unresolvedByTag = $docxUnresolvedLiteralByTag
         $renderDetails.templatePathResolved = [string]$templateMetadata.path
@@ -3788,6 +4101,7 @@ try {
         $renderDetails.literalTokensMatched = [int]$docxRender.literalTokensMatched
         $renderDetails.literalTokensMatchedScalar = [int]$docxRender.literalTokensMatchedScalar
         $renderDetails.literalTokensMatchedTable = [int]$docxRender.literalTokensMatchedTable
+        $renderDetails.docPropertyLiteralTokensMatched = [int]$docxRender.docPropertyLiteralTokensMatched
         $renderDetails.docPropControlsExpected = [int]$docxRender.docPropControlsExpected
         $renderDetails.docPropControlsMatched = [int]$docxRender.docPropControlsMatched
         $renderDetails.docPropControlsPopulated = [int]$docxRender.docPropControlsPopulated
@@ -3802,6 +4116,7 @@ try {
         $renderDetails.unmatchedTaggedControls = @($docxRender.unmatchedTaggedControls)
         $renderDetails.docPropMappedTags = @($docxRender.docPropMappedTags)
         $renderDetails.contentControlMappedTags = @($docxRender.contentControlMappedTags)
+        $renderDetails.supportRegion = $docxRender.supportRegion
         $renderDetails.partErrors = @($docxRender.partErrors)
         $renderDetails.literalTagDiagnostics = $docxRender.literalTagDiagnostics
         $renderDetails.literalTagDiagnosticsSummary = Get-LiteralTagDiagnosticsSummary -Diagnostics $docxRender.literalTagDiagnostics -TopEntries 25 -TopZeroHitTags 8 -TopInspectedPartsPerTag 4
@@ -3817,7 +4132,8 @@ try {
         $expectedDocPropertyControlCount = [int]$renderDetails.docPropControlsExpected
         $controlsPopulatedCount = [int]$renderDetails.docPropControlsPopulated
         $docPropertyFieldPopulatedCount = [int]$renderDetails.docPropertyFieldsPopulated
-        $docPropertyPopulationCount = $controlsPopulatedCount + $docPropertyFieldPopulatedCount
+        $docPropertyLiteralTokenPopulatedCount = [int]$renderDetails.docPropertyLiteralTokensMatched
+        $docPropertyPopulationCount = $controlsPopulatedCount + $docPropertyFieldPopulatedCount + $docPropertyLiteralTokenPopulatedCount
         $docPropValuesSupplied = $expectedDocPropertyControlCount -gt 0
         $docPropNoPopulationSeverity = Resolve-DocPropNoPopulationSeverity
         if ((-not (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token')) -and [int]$renderDetails.literalDatasetTokensExpected -gt 0 -and [int]$renderDetails.literalDatasetTokensDiscovered -gt 0) {
@@ -3866,7 +4182,7 @@ try {
             $issues.Add([ordered]@{
                 code = 'ASB-ASM-DOCPROP-DOCX-NO-POPULATION'
                 severity = $docPropNoPopulationSeverity
-                message = "DOCX document-property render expected document placeholders but none were populated. docxMatchMode='$DocxMatchMode'; discoveredControls=$($renderDetails.controlsDiscovered); discoveredMappedControls=$($renderDetails.controlsDiscoveredMapped); discoveredUnmappedControls=$($renderDetails.controlsDiscoveredUnmapped); discoveredDocPropertyFields=$($renderDetails.docPropertyFieldsDiscovered); partErrorCount=$(@($renderDetails.partErrors).Count); taggedControlsMatched=$($renderDetails.taggedControlsMatched); controlsPopulated=$controlsPopulatedCount; docPropertyFieldsPopulated=$docPropertyFieldPopulatedCount; docPropertyPopulated=$docPropertyPopulationCount; docPropertyControlTags=$expectedDocPropertyControlCount; docPropValuesSupplied=$docPropValuesSupplied; sampleDocPropertyTags=$sampleMatchedTagsText; policySeverity=$docPropNoPopulationSeverity"
+                message = "DOCX document-property render expected document placeholders but none were populated. docxMatchMode='$DocxMatchMode'; discoveredControls=$($renderDetails.controlsDiscovered); discoveredMappedControls=$($renderDetails.controlsDiscoveredMapped); discoveredUnmappedControls=$($renderDetails.controlsDiscoveredUnmapped); discoveredDocPropertyFields=$($renderDetails.docPropertyFieldsDiscovered); partErrorCount=$(@($renderDetails.partErrors).Count); taggedControlsMatched=$($renderDetails.taggedControlsMatched); controlsPopulated=$controlsPopulatedCount; docPropertyFieldsPopulated=$docPropertyFieldPopulatedCount; docPropertyLiteralTokensPopulated=$docPropertyLiteralTokenPopulatedCount; docPropertyPopulated=$docPropertyPopulationCount; docPropertyControlTags=$expectedDocPropertyControlCount; docPropValuesSupplied=$docPropValuesSupplied; sampleDocPropertyTags=$sampleMatchedTagsText; policySeverity=$docPropNoPopulationSeverity"
                 path = $TemplatePath
             })
         }
@@ -3985,6 +4301,7 @@ try {
         docxLiteralTokensMatched = $(if ($isDocxTemplate) { [int]$renderDetails.literalTokensMatched } else { 0 })
         docxLiteralTokensMatchedScalar = $(if ($isDocxTemplate) { [int]$renderDetails.literalTokensMatchedScalar } else { 0 })
         docxLiteralTokensMatchedTable = $(if ($isDocxTemplate) { [int]$renderDetails.literalTokensMatchedTable } else { 0 })
+        docxDocPropertyLiteralTokensMatched = $(if ($isDocxTemplate) { [int]$renderDetails.docPropertyLiteralTokensMatched } else { 0 })
         docxDocPropControlsExpected = $(if ($isDocxTemplate) { [int]$renderDetails.docPropControlsExpected } else { 0 })
         docxDocPropControlsMatched = $(if ($isDocxTemplate) { [int]$renderDetails.docPropControlsMatched } else { 0 })
         docxDocPropControlsPopulated = $(if ($isDocxTemplate) { [int]$renderDetails.docPropControlsPopulated } else { 0 })
@@ -3999,6 +4316,7 @@ try {
         docxDiscoveredUnmappedTaggedControls = $(if ($isDocxTemplate) { @($renderDetails.discoveredUnmappedTaggedControls) } else { @() })
         docxUnmatchedTaggedControls = $(if ($isDocxTemplate) { @($renderDetails.unmatchedTaggedControls) } else { @() })
         docxDocPropMappedTags = $(if ($isDocxTemplate) { @($renderDetails.docPropMappedTags) } else { @() })
+        docxSupportRegion = $(if ($isDocxTemplate -and $null -ne $renderDetails.supportRegion) { $renderDetails.supportRegion } else { [ordered]@{ id = ''; label = ''; displayName = ''; tier = ''; sidecarPath = '' } })
         docxPartErrors = $(if ($isDocxTemplate) { @($renderDetails.partErrors) } else { @() })
         docxUnresolvedLiteralTokens = $(if ($isDocxTemplate) { @($renderDetails.unresolvedLiteralTokens) } else { @() })
         docxLiteralTagDiagnosticsSummary = $(if ($isDocxTemplate) { $renderDetails.literalTagDiagnosticsSummary } else { [ordered]@{ totalEntries = 0; hitEntries = 0; zeroHitEntries = 0; distinctTagCount = 0; distinctPartCount = 0; topEntryLimit = 0; topEntries = @(); zeroHitTagSampleLimit = 0; zeroHitTagSamples = @() } })

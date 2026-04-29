@@ -22,10 +22,10 @@ function Resolve-DefaultBundleRoot {
                 (Test-Path -LiteralPath (Join-Path $_.FullName 'objectIndex.json') -PathType Leaf) -and
                 (Test-Path -LiteralPath (Join-Path $_.FullName 'config/solution.plan.json') -PathType Leaf)
             } |
-            Sort-Object -Property Name
+            Sort-Object -Property LastWriteTimeUtc, Name -Descending
     )
 
-    if (@($bundleCandidates).Count -eq 1) {
+    if (@($bundleCandidates).Count -gt 0) {
         return [string]$bundleCandidates[0].FullName
     }
 
@@ -56,6 +56,107 @@ function Resolve-DefaultContractsRoot {
     $candidate = Join-Path $RepoRoot '.deps/contracts'
     if (Test-Path -LiteralPath $candidate -PathType Container) {
         return $candidate
+    }
+
+    return $candidate
+}
+
+function Resolve-SupportRegionSidecarPath {
+    param(
+        [Parameter(Mandatory = $true)][string]$RepoRoot,
+        [Parameter(Mandatory = $false)][string]$CatalogPath
+    )
+
+    $candidates = [System.Collections.Generic.List[string]]::new()
+    if (-not [string]::IsNullOrWhiteSpace($CatalogPath)) {
+        $catalogDirectory = Split-Path -Path $CatalogPath -Parent
+        $catalogBaseName = [System.IO.Path]::GetFileNameWithoutExtension([string]$CatalogPath)
+        if (-not [string]::IsNullOrWhiteSpace($catalogDirectory)) {
+            if (-not [string]::IsNullOrWhiteSpace($catalogBaseName)) {
+                [void]$candidates.Add((Join-Path $catalogDirectory "$catalogBaseName.support-regions.json"))
+            }
+            [void]$candidates.Add((Join-Path $catalogDirectory 'DE-SDT-SupportRegions.sidecar.json'))
+            [void]$candidates.Add((Join-Path $catalogDirectory 'support-regions.json'))
+        }
+    }
+
+    [void]$candidates.Add((Join-Path $RepoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-SupportRegions.sidecar.json'))
+
+    foreach ($candidate in @($candidates)) {
+        if ([string]::IsNullOrWhiteSpace($candidate)) { continue }
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+            return (Resolve-Path -LiteralPath $candidate).Path
+        }
+    }
+
+    return $null
+}
+
+function Get-SupportRegionOptions {
+    param(
+        [Parameter(Mandatory = $true)][string]$RepoRoot,
+        [Parameter(Mandatory = $false)][string]$CatalogPath
+    )
+
+    $fallback = @([pscustomobject]@{
+        Id = 'AU'
+        Label = 'Australia'
+        DisplayName = 'AU - Australia'
+        IsDefault = $true
+    })
+
+    $sidecarPath = Resolve-SupportRegionSidecarPath -RepoRoot $RepoRoot -CatalogPath $CatalogPath
+    if ([string]::IsNullOrWhiteSpace($sidecarPath)) { return $fallback }
+
+    try {
+        $sidecar = Get-Content -LiteralPath $sidecarPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+    }
+    catch {
+        return $fallback
+    }
+
+    $defaultRegion = [string]$sidecar.defaultRegion
+    $options = [System.Collections.Generic.List[object]]::new()
+    foreach ($region in @($sidecar.regions)) {
+        if ($region -isnot [System.Collections.IDictionary]) { continue }
+        $id = [string]$region.id
+        if ([string]::IsNullOrWhiteSpace($id)) { continue }
+        $label = [string]$region.label
+        if ([string]::IsNullOrWhiteSpace($label)) { $label = $id }
+        [void]$options.Add([pscustomobject]@{
+            Id = $id
+            Label = $label
+            DisplayName = "$id - $label"
+            IsDefault = ($id -eq $defaultRegion)
+        })
+    }
+
+    if ($options.Count -eq 0) { return $fallback }
+    return @($options.ToArray())
+}
+
+function Resolve-SupportRegionId {
+    param(
+        [Parameter(Mandatory = $false)][string]$SupportRegion,
+        [Parameter(Mandatory = $false)]$Options
+    )
+
+    $optionList = @($Options)
+    if ($optionList.Count -eq 0) { return [string]$SupportRegion }
+
+    if ([string]::IsNullOrWhiteSpace($SupportRegion)) {
+        $defaultOption = $optionList | Where-Object { [bool]$_.IsDefault } | Select-Object -First 1
+        if ($null -ne $defaultOption) { return [string]$defaultOption.Id }
+        return [string]$optionList[0].Id
+    }
+
+    $candidate = $SupportRegion.Trim()
+    foreach ($option in $optionList) {
+        foreach ($value in @([string]$option.Id, [string]$option.Label, [string]$option.DisplayName)) {
+            if (-not [string]::IsNullOrWhiteSpace($value) -and $candidate -ieq $value) {
+                return [string]$option.Id
+            }
+        }
     }
 
     return $candidate
@@ -359,6 +460,9 @@ Export-ModuleMember -Function @(
     'Resolve-DefaultBundleRoot',
     'Resolve-DefaultCatalogPath',
     'Resolve-DefaultContractsRoot',
+    'Resolve-SupportRegionSidecarPath',
+    'Get-SupportRegionOptions',
+    'Resolve-SupportRegionId',
     'Resolve-DialogInitialDirectory',
     'Format-MatchedTagsSummary',
     'Test-IsDerivedBundleWrapperIssue',

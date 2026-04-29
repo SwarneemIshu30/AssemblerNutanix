@@ -5,6 +5,7 @@ Windows-only WPF launcher for bundle-aware Assembler rendering.
 #>
 param(
     [Parameter(Mandatory = $false)][string]$BundleRoot,
+    [Parameter(Mandatory = $false)][string]$BundleArchivePath,
     [Parameter(Mandatory = $false)][string]$CatalogPath,
     [Parameter(Mandatory = $false)][string]$OutputRoot,
     [Parameter(Mandatory = $false)][string]$ContractsRoot,
@@ -21,6 +22,7 @@ param(
     [Parameter(Mandatory = $false)][string]$DocConfigSnapDate,
     [Parameter(Mandatory = $false)][string]$DocReferenceId,
     [Parameter(Mandatory = $false)][string]$DocClassification = 'PROTECTED',
+    [Parameter(Mandatory = $false)][string]$SupportRegion = 'AU',
     [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
     [Parameter(Mandatory = $false)][bool]$IncludeTxt = $false,
     [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
@@ -54,10 +56,12 @@ $defaultCatalogPath = Resolve-DefaultCatalogPath -RepoRoot $repoRoot
 $defaultOutputRoot = Join-Path $repoRoot 'out'
 $defaultContractsRoot = Resolve-DefaultContractsRoot -RepoRoot $repoRoot
 
-if ([string]::IsNullOrWhiteSpace($BundleRoot)) { $BundleRoot = $defaultBundleRoot }
+if ([string]::IsNullOrWhiteSpace($BundleRoot) -and [string]::IsNullOrWhiteSpace($BundleArchivePath)) { $BundleRoot = $defaultBundleRoot }
 if ([string]::IsNullOrWhiteSpace($CatalogPath)) { $CatalogPath = $defaultCatalogPath }
 if ([string]::IsNullOrWhiteSpace($OutputRoot)) { $OutputRoot = $defaultOutputRoot }
 if ([string]::IsNullOrWhiteSpace($ContractsRoot)) { $ContractsRoot = $defaultContractsRoot }
+$supportRegionOptions = @(Get-SupportRegionOptions -RepoRoot $repoRoot -CatalogPath $CatalogPath)
+$SupportRegion = Resolve-SupportRegionId -SupportRegion $SupportRegion -Options $supportRegionOptions
 
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName PresentationCore
@@ -87,7 +91,8 @@ function Set-WpfImageSourceFromFile {
 
 function Invoke-BundleRender {
     param(
-        [Parameter(Mandatory = $true)][string]$BundleRoot,
+        [Parameter(Mandatory = $false)][string]$BundleRoot,
+        [Parameter(Mandatory = $false)][string]$BundleArchivePath,
         [Parameter(Mandatory = $true)][string]$CatalogPath,
         [Parameter(Mandatory = $true)][string]$OutputRoot,
         [Parameter(Mandatory = $false)][string]$ContractsRoot,
@@ -104,6 +109,7 @@ function Invoke-BundleRender {
         [Parameter(Mandatory = $false)][string]$DocConfigSnapDate,
         [Parameter(Mandatory = $false)][string]$DocReferenceId,
         [Parameter(Mandatory = $false)][string]$DocClassification,
+        [Parameter(Mandatory = $false)][string]$DocSupportRegion,
         [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
         [Parameter(Mandatory = $false)][bool]$IncludeTxt = $false,
         [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
@@ -111,8 +117,19 @@ function Invoke-BundleRender {
         [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
     )
 
-    if ([string]::IsNullOrWhiteSpace($BundleRoot) -or -not (Test-Path -LiteralPath $BundleRoot -PathType Container)) {
+    $bundleRootProvided = -not [string]::IsNullOrWhiteSpace($BundleRoot)
+    $archiveProvided = -not [string]::IsNullOrWhiteSpace($BundleArchivePath)
+    if ($bundleRootProvided -and $archiveProvided) {
+        throw 'BundleRoot and BundleArchivePath are mutually exclusive.'
+    }
+    if (-not $bundleRootProvided -and -not $archiveProvided) {
+        throw 'Either BundleRoot or BundleArchivePath is required.'
+    }
+    if ($bundleRootProvided -and -not (Test-Path -LiteralPath $BundleRoot -PathType Container)) {
         throw "BundleRoot not found: $BundleRoot"
+    }
+    if ($archiveProvided -and -not (Test-Path -LiteralPath $BundleArchivePath -PathType Leaf)) {
+        throw "BundleArchivePath not found: $BundleArchivePath"
     }
     if ([string]::IsNullOrWhiteSpace($CatalogPath) -or -not (Test-Path -LiteralPath $CatalogPath -PathType Leaf)) {
         throw "CatalogPath not found: $CatalogPath"
@@ -121,7 +138,8 @@ function Invoke-BundleRender {
         New-Item -Path $OutputRoot -ItemType Directory -Force | Out-Null
     }
 
-    $params = @{ BundleRoot = $BundleRoot; CatalogPath = $CatalogPath; OutputRoot = $OutputRoot }
+    $params = @{ CatalogPath = $CatalogPath; OutputRoot = $OutputRoot }
+    if ($archiveProvided) { $params.BundleArchivePath = $BundleArchivePath } else { $params.BundleRoot = $BundleRoot }
     if (-not [string]::IsNullOrWhiteSpace($ContractsRoot)) { $params.ContractsRoot = $ContractsRoot }
     if ($TechId -and $TechId.Count -gt 0) { $params.TechId = $TechId }
     if ($EntryId -and $EntryId.Count -gt 0) { $params.EntryId = $EntryId }
@@ -136,6 +154,7 @@ function Invoke-BundleRender {
     if (-not [string]::IsNullOrWhiteSpace($DocConfigSnapDate)) { $params.DocConfigSnapDate = $DocConfigSnapDate }
     if (-not [string]::IsNullOrWhiteSpace($DocReferenceId)) { $params.DocReferenceId = $DocReferenceId }
     if (-not [string]::IsNullOrWhiteSpace($DocClassification)) { $params.DocClassification = $DocClassification }
+    if (-not [string]::IsNullOrWhiteSpace($DocSupportRegion)) { $params.DocSupportRegion = $DocSupportRegion }
 
     $outputType = @()
     if ($IncludeDocx) { $outputType += 'docx' }
@@ -167,6 +186,7 @@ $xaml = @"
       <TabItem Header='Document Properties'>
         <Grid Margin='12'>
           <Grid.RowDefinitions>
+            <RowDefinition Height='Auto'/>
             <RowDefinition Height='Auto'/>
             <RowDefinition Height='Auto'/>
             <RowDefinition Height='Auto'/>
@@ -218,7 +238,10 @@ $xaml = @"
           <TextBlock Grid.Row='10' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Classification (8)</TextBlock>
           <TextBox Name='DocClassificationText' Grid.Row='10' Grid.Column='1' Margin='0,0,0,8'/>
 
-          <Border Grid.Row='11'
+          <TextBlock Grid.Row='11' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Support Region</TextBlock>
+          <ComboBox Name='SupportRegionCombo' Grid.Row='11' Grid.Column='1' Margin='0,0,0,8'/>
+
+          <Border Grid.Row='12'
                   Grid.Column='0'
                   Grid.ColumnSpan='2'
                   Margin='0,28,0,0'
@@ -280,8 +303,18 @@ $xaml = @"
             <ColumnDefinition Width='100'/>
           </Grid.ColumnDefinitions>
 
-          <TextBlock Grid.Row='0' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Bundle Root</TextBlock>
-          <TextBox Name='BundleRootText' Grid.Row='0' Grid.Column='1' Margin='0,0,8,8'/>
+          <TextBlock Grid.Row='0' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Bundle Input</TextBlock>
+          <Grid Grid.Row='0' Grid.Column='1' Margin='0,0,8,8'>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width='130'/>
+              <ColumnDefinition Width='*'/>
+            </Grid.ColumnDefinitions>
+            <ComboBox Name='BundleInputModeCombo' Grid.Column='0' Margin='0,0,8,0' SelectedIndex='0'>
+              <ComboBoxItem>Folder</ComboBoxItem>
+              <ComboBoxItem>Archive</ComboBoxItem>
+            </ComboBox>
+            <TextBox Name='BundleRootText' Grid.Column='1'/>
+          </Grid>
           <Button Name='BundleBrowseButton' Grid.Row='0' Grid.Column='2' Margin='0,0,0,8'>Browse</Button>
 
           <TextBlock Grid.Row='1' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Catalog Path</TextBlock>
@@ -358,8 +391,8 @@ $xaml = @"
 
           <Grid Grid.Row='7' Grid.Column='0' Grid.ColumnSpan='3' Margin='0,8,0,0'>
             <Grid.ColumnDefinitions>
+              <ColumnDefinition Width='3*'/>
               <ColumnDefinition Width='2*'/>
-              <ColumnDefinition Width='*'/>
             </Grid.ColumnDefinitions>
             <TextBox Name='OutputText' Grid.Column='0' Margin='0,0,8,0' IsReadOnly='True' TextWrapping='Wrap' AcceptsReturn='True' VerticalScrollBarVisibility='Auto'/>
             <TextBox Name='ProgressText' Grid.Column='1' IsReadOnly='True' TextWrapping='Wrap' AcceptsReturn='True' VerticalScrollBarVisibility='Auto'/>
@@ -765,6 +798,7 @@ $xaml = @"
 $reader = New-Object System.Xml.XmlNodeReader ([xml]$xaml)
 $window = [Windows.Markup.XamlReader]::Load($reader)
 
+$bundleInputModeCombo = $window.FindName('BundleInputModeCombo')
 $bundleRootText = $window.FindName('BundleRootText')
 $catalogPathText = $window.FindName('CatalogPathText')
 $outputRootText = $window.FindName('OutputRootText')
@@ -780,6 +814,7 @@ $docVersionText = $window.FindName('DocVersionText')
 $docConfigSnapDateText = $window.FindName('DocConfigSnapDateText')
 $docReferenceIdText = $window.FindName('DocReferenceIdText')
 $docClassificationText = $window.FindName('DocClassificationText')
+$supportRegionCombo = $window.FindName('SupportRegionCombo')
 $coverKeyImage = $window.FindName('CoverKeyImage')
 $headFootKeyImage = $window.FindName('HeadFootKeyImage')
 $brandLogoImage = $window.FindName('BrandLogoImage')
@@ -873,7 +908,42 @@ $connectorRenderedPreviewText = $window.FindName('ConnectorRenderedPreviewText')
 $connectorPreviewText = $window.FindName('ConnectorPreviewText')
 $mappingChangesText = $window.FindName('MappingChangesText')
 
-$bundleRootText.Text = $BundleRoot
+function Get-SelectedSupportRegionId {
+    if ($null -ne $supportRegionCombo -and $null -ne $supportRegionCombo.SelectedItem) {
+        return [string]$supportRegionCombo.SelectedItem.Id
+    }
+
+    return Resolve-SupportRegionId -SupportRegion $SupportRegion -Options $supportRegionOptions
+}
+
+function Update-SupportRegionOptions {
+    $currentRegion = Get-SelectedSupportRegionId
+    if ([string]::IsNullOrWhiteSpace($currentRegion)) { $currentRegion = $SupportRegion }
+
+    $options = @(Get-SupportRegionOptions -RepoRoot $repoRoot -CatalogPath $catalogPathText.Text)
+    $resolvedRegion = Resolve-SupportRegionId -SupportRegion $currentRegion -Options $options
+
+    $supportRegionCombo.Items.Clear()
+    $supportRegionCombo.DisplayMemberPath = 'DisplayName'
+    foreach ($option in $options) {
+        [void]$supportRegionCombo.Items.Add($option)
+        if ([string]$option.Id -eq $resolvedRegion) {
+            $supportRegionCombo.SelectedItem = $option
+        }
+    }
+    if ($null -eq $supportRegionCombo.SelectedItem -and $supportRegionCombo.Items.Count -gt 0) {
+        $supportRegionCombo.SelectedIndex = 0
+    }
+}
+
+if (-not [string]::IsNullOrWhiteSpace($BundleArchivePath)) {
+    $bundleInputModeCombo.SelectedIndex = 1
+    $bundleRootText.Text = $BundleArchivePath
+}
+else {
+    $bundleInputModeCombo.SelectedIndex = 0
+    $bundleRootText.Text = $BundleRoot
+}
 $catalogPathText.Text = $CatalogPath
 $outputRootText.Text = $OutputRoot
 $contractsRootText.Text = $ContractsRoot
@@ -888,6 +958,7 @@ $docVersionText.Text = $DocVersion
 $docConfigSnapDateText.Text = $DocConfigSnapDate
 $docReferenceIdText.Text = $DocReferenceId
 $docClassificationText.Text = $DocClassification
+Update-SupportRegionOptions
 $techIdText.Text = (($TechId ?? @()) -join ',')
 $entryIdText.Text = (($EntryId ?? @()) -join ',')
 $docxCheckBox.IsChecked = $true
@@ -958,7 +1029,8 @@ function Send-WebViewMessage {
 }
 
 function Get-CurrentWebViewAllowedRoots {
-    return @(New-AssemblerWebViewBridgeRoots -RepoRoot $repoRoot -BundleRoot $bundleRootText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text)
+    $webViewBundleRoot = if ((Get-SelectedBundleInputMode) -eq 'Archive') { Join-Path $repoRoot 'bundle' } else { $bundleRootText.Text }
+    return @(New-AssemblerWebViewBridgeRoots -RepoRoot $repoRoot -BundleRoot $webViewBundleRoot -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text)
 }
 
 function New-CurrentWebViewMappingStudioState {
@@ -990,6 +1062,46 @@ function Add-ProgressLine {
     $progressText.ScrollToEnd()
 }
 
+function Get-SelectedBundleInputMode {
+    if ($null -eq $bundleInputModeCombo -or $null -eq $bundleInputModeCombo.SelectedItem) {
+        return 'Folder'
+    }
+
+    $mode = [string]$bundleInputModeCombo.SelectedItem.Content
+    if ([string]::Equals($mode, 'Archive', [System.StringComparison]::OrdinalIgnoreCase)) {
+        return 'Archive'
+    }
+
+    return 'Folder'
+}
+
+function Get-BundleStagingRoot {
+    $bundleStagingRoot = Join-Path $repoRoot 'bundle'
+    if (Test-Path -LiteralPath $bundleStagingRoot -PathType Container) {
+        return (Resolve-Path -LiteralPath $bundleStagingRoot).Path
+    }
+
+    return $repoRoot
+}
+
+function Update-BundleInputForSelectedMode {
+    param([Parameter(Mandatory = $false)][bool]$ClearArchivePath = $true)
+
+    if ((Get-SelectedBundleInputMode) -eq 'Archive') {
+        if ($ClearArchivePath) {
+            $bundleRootText.Text = ''
+        }
+        return
+    }
+
+    if ([string]::IsNullOrWhiteSpace($bundleRootText.Text) -or -not (Test-Path -LiteralPath $bundleRootText.Text -PathType Container)) {
+        $latestBundleRoot = Resolve-DefaultBundleRoot -RepoRoot $repoRoot
+        if (-not [string]::IsNullOrWhiteSpace($latestBundleRoot)) {
+            $bundleRootText.Text = $latestBundleRoot
+        }
+    }
+}
+
 function Start-RenderFromCurrentInputs {
     if ($null -ne $renderProcessState.Current) {
         return [ordered]@{ accepted = $false; reason = 'Render already running.' }
@@ -1007,7 +1119,38 @@ function Start-RenderFromCurrentInputs {
     if ([bool]$docxCheckBox.IsChecked) { $outputTypes += 'docx' }
     if ([bool]$txtCheckBox.IsChecked) { $outputTypes += 'text' }
 
-    $invocation = New-AssemblerGuiRenderInvocation -RepoRoot $repoRoot -BundleRoot $bundleRootText.Text -CatalogPath $catalogPathText.Text -OutputRoot $outputRootText.Text -ContractsRoot $contractsRootText.Text -TechId $techSelection -EntryId $entrySelection -OutputType $outputTypes -DocTitle $docTitleText.Text -DocCustomer $docCustomerText.Text -DocCustomerAbbr $docCustomerAbbrText.Text -DocLocation $docLocationText.Text -DocSubsidiary $docSubsidiaryText.Text -DocEnvironment $docEnvironmentText.Text -DocDocumentReference $docDocumentReferenceText.Text -DocVersion $docVersionText.Text -DocConfigSnapDate $docConfigSnapDateText.Text -DocReferenceId $docReferenceIdText.Text -DocClassification $docClassificationText.Text -AnnotateResolvedTags ([bool]$annotateCheckBox.IsChecked) -DocxMatchMode $docxModeSelection -UnresolvedTokenPolicy $unresolvedTokenPolicySelection
+    $bundleInvocationParams = @{
+        RepoRoot = $repoRoot
+        CatalogPath = $catalogPathText.Text
+        OutputRoot = $outputRootText.Text
+        ContractsRoot = $contractsRootText.Text
+        TechId = $techSelection
+        EntryId = $entrySelection
+        OutputType = $outputTypes
+        DocTitle = $docTitleText.Text
+        DocCustomer = $docCustomerText.Text
+        DocCustomerAbbr = $docCustomerAbbrText.Text
+        DocLocation = $docLocationText.Text
+        DocSubsidiary = $docSubsidiaryText.Text
+        DocEnvironment = $docEnvironmentText.Text
+        DocDocumentReference = $docDocumentReferenceText.Text
+        DocVersion = $docVersionText.Text
+        DocConfigSnapDate = $docConfigSnapDateText.Text
+        DocReferenceId = $docReferenceIdText.Text
+        DocClassification = $docClassificationText.Text
+        DocSupportRegion = (Get-SelectedSupportRegionId)
+        AnnotateResolvedTags = ([bool]$annotateCheckBox.IsChecked)
+        DocxMatchMode = $docxModeSelection
+        UnresolvedTokenPolicy = $unresolvedTokenPolicySelection
+    }
+    if ((Get-SelectedBundleInputMode) -eq 'Archive') {
+        $bundleInvocationParams.BundleArchivePath = $bundleRootText.Text
+    }
+    else {
+        $bundleInvocationParams.BundleRoot = $bundleRootText.Text
+    }
+
+    $invocation = New-AssemblerGuiRenderInvocation @bundleInvocationParams
     $renderProcessState.Current = Start-AssemblerGuiRenderProcess -Invocation $invocation
     $renderProcessState.LastProgressCount = 0
     $webViewState.LastReportPath = [string]$invocation.ReportPath
@@ -1322,6 +1465,10 @@ function Get-BundleSnapshotDateDefault {
 }
 
 function Update-DocumentPropertyDefaultsFromBundle {
+    if ((Get-SelectedBundleInputMode) -eq 'Archive') {
+        return
+    }
+
     $autoConfigSnapDate = Get-BundleSnapshotDateDefault -BundleRoot $bundleRootText.Text
     $docConfigSnapDateText.Text = $autoConfigSnapDate
     $documentPropertyState.LastAutoConfigSnapDate = [string]$autoConfigSnapDate
@@ -2158,6 +2305,10 @@ function Refresh-MappingStudioWorkbench {
 
     $mappingStudioState.IsRefreshing = $true
     try {
+        if ((Get-SelectedBundleInputMode) -eq 'Archive') {
+            throw 'Mapping Studio requires a folder bundle. Run archive render first, then select the extracted bundle under the repo bundle folder.'
+        }
+
         Update-MappingCollectionChoices
         $collection = Get-SelectedMappingCollection
         if ($null -eq $collection) {
@@ -2237,8 +2388,19 @@ function Refresh-MappingStudioWorkbench {
 }
 
 $bundleBrowseButton.Add_Click({
+    if ((Get-SelectedBundleInputMode) -eq 'Archive') {
+        $dialog = New-Object System.Windows.Forms.OpenFileDialog
+        $dialog.Filter = 'Bundle archives (*.lnvbundle.zip;*.zip)|*.lnvbundle.zip;*.zip|All files (*.*)|*.*'
+        $dialog.InitialDirectory = Get-BundleStagingRoot
+        if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+            $bundleRootText.Text = $dialog.FileName
+            Publish-WebViewMappingStudioState
+        }
+        return
+    }
+
     $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
-    $dialog.SelectedPath = Resolve-DialogInitialDirectory -Path $bundleRootText.Text -RepoRoot $repoRoot -FallbackPath $defaultBundleRoot -PathKind Directory
+    $dialog.SelectedPath = Get-BundleStagingRoot
     if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
         $bundleRootText.Text = $dialog.SelectedPath
         Update-DocumentPropertyDefaultsFromBundle
@@ -2251,6 +2413,7 @@ $catalogBrowseButton.Add_Click({
     $dialog.InitialDirectory = Resolve-DialogInitialDirectory -Path $catalogPathText.Text -RepoRoot $repoRoot -FallbackPath $defaultCatalogPath -PathKind File
     if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
         $catalogPathText.Text = $dialog.FileName
+        Update-SupportRegionOptions
         Publish-WebViewMappingStudioState
     }
 })
@@ -2273,6 +2436,11 @@ $contractsBrowseButton.Add_Click({
     }
 })
 $bundleRootText.Add_LostFocus({
+    Update-DocumentPropertyDefaultsFromBundle
+    Publish-WebViewMappingStudioState
+})
+$bundleInputModeCombo.Add_SelectionChanged({
+    Update-BundleInputForSelectedMode -ClearArchivePath $true
     Update-DocumentPropertyDefaultsFromBundle
     Publish-WebViewMappingStudioState
 })

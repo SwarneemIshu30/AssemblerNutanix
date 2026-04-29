@@ -1,3 +1,0 @@
-"systemId","controllerRef","controllerLabel","controllerSlot","portLabel","portSlot","interfaceName","interfaceRef","linkStatus","macAddress","currentSpeed","ipv4Address","ipv4SubnetMask","ipv4GatewayAddress"
-"1","070000000000000000000002","B","2","P1","0","wan0","2800070000000000000000000002000000000000","up","D039EAD9F018","speed1gig","10.240.59.179","255.255.252.0","10.240.56.1"
-"1","070000000000000000000001","A","1","P1","0","wan0","2800070000000000000000000001000000000000","up","D039EAD9EFC2","speed1gig","10.240.59.30","255.255.252.0","10.240.56.1"
