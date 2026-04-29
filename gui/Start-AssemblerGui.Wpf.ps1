@@ -391,8 +391,8 @@ $xaml = @"
 
           <Grid Grid.Row='7' Grid.Column='0' Grid.ColumnSpan='3' Margin='0,8,0,0'>
             <Grid.ColumnDefinitions>
+              <ColumnDefinition Width='3*'/>
               <ColumnDefinition Width='2*'/>
-              <ColumnDefinition Width='*'/>
             </Grid.ColumnDefinitions>
             <TextBox Name='OutputText' Grid.Column='0' Margin='0,0,8,0' IsReadOnly='True' TextWrapping='Wrap' AcceptsReturn='True' VerticalScrollBarVisibility='Auto'/>
             <TextBox Name='ProgressText' Grid.Column='1' IsReadOnly='True' TextWrapping='Wrap' AcceptsReturn='True' VerticalScrollBarVisibility='Auto'/>
