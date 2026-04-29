@@ -1,0 +1,35 @@
+{
+  "systemId": "1",
+  "endpointResults": [
+    {
+      "relativePath": "/v2/storage-systems/1/async-mirrors",
+      "absoluteUri": "https://192.0.2.10:8443/devmgr/v2/storage-systems/1/async-mirrors",
+      "collectedAtUtc": "2026-04-29T02:46:20.9386970Z",
+      "success": true,
+      "unsupported": false,
+      "statusCode": 200,
+      "error": null,
+      "payload": []
+    },
+    {
+      "relativePath": "/v2/storage-systems/1/async-mirrors/pairs",
+      "absoluteUri": "https://192.0.2.10:8443/devmgr/v2/storage-systems/1/async-mirrors/pairs",
+      "collectedAtUtc": "2026-04-29T02:46:21.2663753Z",
+      "success": true,
+      "unsupported": false,
+      "statusCode": 200,
+      "error": null,
+      "payload": []
+    },
+    {
+      "relativePath": "/v2/storage-systems/1/remote-mirror-pairs",
+      "absoluteUri": "https://192.0.2.10:8443/devmgr/v2/storage-systems/1/remote-mirror-pairs",
+      "collectedAtUtc": "2026-04-29T02:46:21.5951247Z",
+      "success": true,
+      "unsupported": false,
+      "statusCode": 200,
+      "error": null,
+      "payload": []
+    }
+  ]
+}

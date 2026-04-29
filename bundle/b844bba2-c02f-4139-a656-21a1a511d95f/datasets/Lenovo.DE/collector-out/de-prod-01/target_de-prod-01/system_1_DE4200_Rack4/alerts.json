@@ -1,0 +1,53 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.DE",
+    "module": "LNV.AsBuiltDoc.Lenovo.DE",
+    "entry_point": "Invoke-LnvAsBuiltDoc.Lenovo.DE"
+  },
+  "source": {
+    "bundle_id": "target_de-prod-01",
+    "bundle_root": "C:\\Github\\LNV.AsBuiltDoc.Core\\out\\b844bba2-c02f-4139-a656-21a1a511d95f\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01",
+    "file": "system_1_DE4200_Rack4/alerts.json"
+  },
+  "dataset": {
+    "key": "alerts",
+    "schema_path": "tech/Lenovo.DE/dataset/alerts.schema.json"
+  },
+  "item_count": 3,
+  "items": [
+    {
+      "rowKey": "1|AutoSupport|https://support.netapp.com/put/AsupPut/",
+      "systemId": "1",
+      "mechanism": "AutoSupport",
+      "enabled": true,
+      "destination": "https://support.netapp.com/put/AsupPut/",
+      "severityProfile": null,
+      "routingType": "direct",
+      "authRequired": false,
+      "notes": "https"
+    },
+    {
+      "rowKey": "1|Email|test@internal.lab",
+      "systemId": "1",
+      "mechanism": "Email",
+      "enabled": true,
+      "destination": "test@internal.lab",
+      "severityProfile": "",
+      "routingType": "",
+      "authRequired": false,
+      "notes": "mail.internal.lab; none"
+    },
+    {
+      "rowKey": "1|Syslog|test.local.lab:514",
+      "systemId": "1",
+      "mechanism": "Syslog",
+      "enabled": true,
+      "destination": "test.local.lab:514",
+      "severityProfile": "",
+      "routingType": "rfc5424",
+      "authRequired": false,
+      "notes": "3"
+    }
+  ]
+}

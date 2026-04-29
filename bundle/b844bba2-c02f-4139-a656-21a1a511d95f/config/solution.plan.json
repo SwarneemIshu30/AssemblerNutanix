@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "solutionId": "lenovo-de-real-target",
+  "contracts": {
+    "version": "2.0.10"
+  },
+  "targets": [
+    {
+      "kind": "Lenovo.DE",
+      "key": "de-prod-01",
+      "displayName": "Lenovo DE Production Array",
+      "endpoints": {
+        "mgmt": "192.0.2.10"
+      },
+      "authRef": "de-prod-admin",
+      "params": {
+        "port": 8443,
+        "apiBasePath": "/devmgr",
+        "skipTlsVerify": true,
+        "timeoutSec": 60
+      },
+      "tags": {
+        "env": "prod",
+        "site": "dc1"
+      }
+    }
+  ],
+  "collectors": [
+    {
+      "techId": "Lenovo.DE",
+      "module": "LNV.AsBuiltDoc.Lenovo.DE",
+      "entryPoint": "Invoke-LnvAsBuiltDoc.Lenovo.DE",
+      "targetKeys": [
+        "de-prod-01"
+      ]
+    }
+  ],
+  "auth": {
+    "de-prod-admin": {
+      "username": "admin",
+      "password": "replace-with-secret"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+"rowKey","systemId","principalName","principalType","authSource","roleName","groupName","enabled","locked","notes"
+"1|admin|security.admin, storage.admin, storage.monitor, support.admin, root.admin|Local","1","admin","User","Local","security.admin, storage.admin, storage.monitor, support.admin, root.admin","",,,""
+"1|monitor|storage.monitor|Local","1","monitor","User","Local","storage.monitor","",,,""
+"1|security|security.admin, storage.monitor|Local","1","security","User","Local","security.admin, storage.monitor","",,,""
+"1|storage|storage.admin, support.admin, storage.monitor|Local","1","storage","User","Local","storage.admin, support.admin, storage.monitor","",,,""
+"1|support|support.admin, storage.monitor|Local","1","support","User","Local","support.admin, storage.monitor","",,,""
