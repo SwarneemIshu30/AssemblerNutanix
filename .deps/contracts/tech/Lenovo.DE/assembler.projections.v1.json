@@ -1137,28 +1137,30 @@
           "source": "snapshotNameOrGroup"
         },
         {
-          "name": "BaseObject",
-          "source": "baseObject"
-        },
-        {
-          "name": "Schedule",
-          "source": "schedule"
-        },
-        {
-          "name": "Retention",
-          "source": "retention"
-        },
-        {
           "name": "State",
           "source": "state"
         },
         {
-          "name": "CreatedAt",
-          "source": "createdAt"
+          "name": "RetentionPolicy",
+          "source": "retention"
         },
         {
-          "name": "Notes",
-          "source": "notes"
+          "name": "SnapshotCount",
+          "source": "snapshotCount"
+        },
+        {
+          "name": "RepositoryCapacity",
+          "source": "repositoryCapacity",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "RepositoryWarningThreshold",
+          "source": "fullWarnThreshold",
+          "format": "percent"
+        },
+        {
+          "name": "AutoDeleteLimit",
+          "source": "autoDeleteLimit"
         }
       ],
       "renderMode": "table",
@@ -1183,32 +1185,36 @@
       ],
       "columns": [
         {
-          "name": "Schedule",
+          "name": "Policy",
           "source": "snapshotNameOrGroup"
         },
         {
-          "name": "BaseObject",
-          "source": "baseObject"
-        },
-        {
-          "name": "PolicySchedule",
+          "name": "Schedule",
           "source": "schedule"
-        },
-        {
-          "name": "Retention",
-          "source": "retention"
         },
         {
           "name": "State",
           "source": "state"
         },
         {
-          "name": "CreatedAt",
-          "source": "createdAt"
+          "name": "Action",
+          "source": "action"
         },
         {
-          "name": "Notes",
-          "source": "notes"
+          "name": "LastRun",
+          "source": "lastRunTime"
+        },
+        {
+          "name": "NextRun",
+          "source": "nextRunTime"
+        },
+        {
+          "name": "Timezone",
+          "source": "timezone"
+        },
+        {
+          "name": "CreatedAt",
+          "source": "createdAt"
         }
       ],
       "renderMode": "table",
@@ -1235,32 +1241,37 @@
       ],
       "columns": [
         {
-          "name": "Image",
+          "name": "Policy",
           "source": "snapshotNameOrGroup"
-        },
-        {
-          "name": "BaseObject",
-          "source": "baseObject"
-        },
-        {
-          "name": "Schedule",
-          "source": "schedule"
-        },
-        {
-          "name": "Retention",
-          "source": "retention"
-        },
-        {
-          "name": "State",
-          "source": "state"
         },
         {
           "name": "CreatedAt",
           "source": "createdAt"
         },
         {
-          "name": "Notes",
-          "source": "notes"
+          "name": "Sequence",
+          "source": "pitSequenceNumber"
+        },
+        {
+          "name": "CreationMethod",
+          "source": "creationMethod"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Active",
+          "source": "activeCOW"
+        },
+        {
+          "name": "RepositoryUsed",
+          "source": "repositoryCapacityUtilization",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "RollbackSource",
+          "source": "isRollbackSource"
         }
       ],
       "renderMode": "table",
@@ -1270,10 +1281,14 @@
         "lenovo-de-table-default"
       ],
       "identityKeys": [
-        "snapshotNameOrGroup"
+        "snapshotNameOrGroup",
+        "createdAt",
+        "pitSequenceNumber"
       ],
       "rowOrder": [
-        "snapshotNameOrGroup"
+        "snapshotNameOrGroup",
+        "createdAt",
+        "pitSequenceNumber"
       ]
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.Replication": {

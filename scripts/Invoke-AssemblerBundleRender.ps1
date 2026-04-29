@@ -91,6 +91,47 @@ function Read-JsonFile {
     Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
 }
 
+function Resolve-SupportRegionSidecarPath {
+    param(
+        [Parameter(Mandatory = $true)][string]$CatalogPath,
+        [Parameter(Mandatory = $true)][string]$CatalogBase
+    )
+
+    $catalogName = [System.IO.Path]::GetFileNameWithoutExtension($CatalogPath)
+    $catalogStem = $catalogName -replace '\.catalog$', ''
+    $techStem = $catalogStem -replace '-Collector$', ''
+    $candidates = [System.Collections.Generic.List[string]]::new()
+    foreach ($candidateName in @(
+        "$catalogName.support-regions.json",
+        "$catalogName.SupportRegions.sidecar.json",
+        "$catalogStem.support-regions.json",
+        "$catalogStem-SupportRegions.sidecar.json",
+        "$techStem-SupportRegions.sidecar.json",
+        'support-regions.json'
+    )) {
+        if ([string]::IsNullOrWhiteSpace($candidateName)) { continue }
+        $candidates.Add((Join-Path $CatalogBase $candidateName))
+    }
+
+    foreach ($candidatePath in @($candidates.ToArray())) {
+        if (Test-Path -LiteralPath $candidatePath -PathType Leaf) {
+            return (Resolve-Path -LiteralPath $candidatePath).Path
+        }
+    }
+
+    $globMatches = @(Get-ChildItem -LiteralPath $CatalogBase -Filter '*SupportRegions.sidecar.json' -File -ErrorAction SilentlyContinue | Sort-Object -Property Name)
+    if (@($globMatches).Count -eq 1) { return [string]$globMatches[0].FullName }
+
+    $preferredGlobMatch = @(
+        $globMatches |
+            Where-Object { $_.Name.StartsWith($techStem, [System.StringComparison]::OrdinalIgnoreCase) -or $_.Name.StartsWith($catalogStem, [System.StringComparison]::OrdinalIgnoreCase) } |
+            Select-Object -First 1
+    ) | Select-Object -First 1
+    if ($null -ne $preferredGlobMatch) { return [string]$preferredGlobMatch.FullName }
+
+    return ''
+}
+
 function Resolve-BundleRoot {
     param([Parameter(Mandatory = $true)][string]$BundleRoot)
 
@@ -537,6 +578,7 @@ try {
     Ensure-Directory -Path $OutputRoot
 
     $catalogBase = Split-Path -Parent (Resolve-Path -LiteralPath $CatalogPath).Path
+    $supportRegionSidecarPath = Resolve-SupportRegionSidecarPath -CatalogPath $CatalogPath -CatalogBase $catalogBase
     $entries = @($catalog.entries | Where-Object { ($_.enabled -ne $false) -and ($requestedTechIds -contains [string]$_.techId) })
     $requestedEntryIds = @($EntryId | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
     if ($requestedEntryIds.Count -gt 0) {
@@ -649,6 +691,7 @@ try {
                     if (-not [string]::IsNullOrWhiteSpace($DocReferenceId)) { $renderParams.DocReferenceId = [string]$DocReferenceId }
                     if (-not [string]::IsNullOrWhiteSpace($DocClassification)) { $renderParams.DocClassification = [string]$DocClassification }
                     if (-not [string]::IsNullOrWhiteSpace($DocSupportRegion)) { $renderParams.DocSupportRegion = [string]$DocSupportRegion }
+                    if (-not [string]::IsNullOrWhiteSpace($supportRegionSidecarPath)) { $renderParams.SupportRegionSidecarPath = [string]$supportRegionSidecarPath }
                 }
                 $json = & $invokeRenderScript @renderParams
 

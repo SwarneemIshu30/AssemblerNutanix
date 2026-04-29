@@ -69,6 +69,7 @@ Current WPF document-property behavior:
 - `Configuration Snapshot Date` is refreshed from a selected folder bundle capture date when available; archive mode exposes the verified extracted bundle path after render in `archiveImport.extractedBundleRoot`
 - `Reference ID` is available as an operator-entered field
 - `Support Region` defaults from `templates/skeletons/Lenovo.DE/DE-SDT-SupportRegions.sidecar.json` and is passed to the renderer as `DocSupportRegion`
+- DOCX rendering now resolves the same sidecar into support-process fields for literal `<<SDT:...>>` tokens, content controls, or `DOCPROPERTY` fields such as `SupportRegionLabel`, `SupportTier`, `SupportPhoneNumbers`, `SupportServiceRequestUrl`, `SupportPortalUrl`, `SupportPlanUrl`, and `SupportProcessText`
 - `CoverKey.png` and `HeadFootKey.png` are shown beneath the document-property fields as a visual key for the cover page and header/footer regions
 
 Current `Mapping Studio` status:
