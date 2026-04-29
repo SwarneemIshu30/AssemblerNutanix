@@ -908,6 +908,34 @@ $connectorRenderedPreviewText = $window.FindName('ConnectorRenderedPreviewText')
 $connectorPreviewText = $window.FindName('ConnectorPreviewText')
 $mappingChangesText = $window.FindName('MappingChangesText')
 
+function Get-SelectedSupportRegionId {
+    if ($null -ne $supportRegionCombo -and $null -ne $supportRegionCombo.SelectedItem) {
+        return [string]$supportRegionCombo.SelectedItem.Id
+    }
+
+    return Resolve-SupportRegionId -SupportRegion $SupportRegion -Options $supportRegionOptions
+}
+
+function Update-SupportRegionOptions {
+    $currentRegion = Get-SelectedSupportRegionId
+    if ([string]::IsNullOrWhiteSpace($currentRegion)) { $currentRegion = $SupportRegion }
+
+    $options = @(Get-SupportRegionOptions -RepoRoot $repoRoot -CatalogPath $catalogPathText.Text)
+    $resolvedRegion = Resolve-SupportRegionId -SupportRegion $currentRegion -Options $options
+
+    $supportRegionCombo.Items.Clear()
+    $supportRegionCombo.DisplayMemberPath = 'DisplayName'
+    foreach ($option in $options) {
+        [void]$supportRegionCombo.Items.Add($option)
+        if ([string]$option.Id -eq $resolvedRegion) {
+            $supportRegionCombo.SelectedItem = $option
+        }
+    }
+    if ($null -eq $supportRegionCombo.SelectedItem -and $supportRegionCombo.Items.Count -gt 0) {
+        $supportRegionCombo.SelectedIndex = 0
+    }
+}
+
 if (-not [string]::IsNullOrWhiteSpace($BundleArchivePath)) {
     $bundleInputModeCombo.SelectedIndex = 1
     $bundleRootText.Text = $BundleArchivePath
@@ -959,34 +987,6 @@ $connectorProjectionSortList.DisplayMemberPath = 'Label'
 
 $documentPropertyState = [ordered]@{
     LastAutoConfigSnapDate = ''
-}
-
-function Update-SupportRegionOptions {
-    $currentRegion = Get-SelectedSupportRegionId
-    if ([string]::IsNullOrWhiteSpace($currentRegion)) { $currentRegion = $SupportRegion }
-
-    $options = @(Get-SupportRegionOptions -RepoRoot $repoRoot -CatalogPath $catalogPathText.Text)
-    $resolvedRegion = Resolve-SupportRegionId -SupportRegion $currentRegion -Options $options
-
-    $supportRegionCombo.Items.Clear()
-    $supportRegionCombo.DisplayMemberPath = 'DisplayName'
-    foreach ($option in $options) {
-        [void]$supportRegionCombo.Items.Add($option)
-        if ([string]$option.Id -eq $resolvedRegion) {
-            $supportRegionCombo.SelectedItem = $option
-        }
-    }
-    if ($null -eq $supportRegionCombo.SelectedItem -and $supportRegionCombo.Items.Count -gt 0) {
-        $supportRegionCombo.SelectedIndex = 0
-    }
-}
-
-function Get-SelectedSupportRegionId {
-    if ($null -ne $supportRegionCombo -and $null -ne $supportRegionCombo.SelectedItem) {
-        return [string]$supportRegionCombo.SelectedItem.Id
-    }
-
-    return Resolve-SupportRegionId -SupportRegion $SupportRegion -Options $supportRegionOptions
 }
 
 $renderProcessState = [ordered]@{
