@@ -1,0 +1,33 @@
+{
+  "schema": "assembler.support-regions",
+  "schemaVersion": 1,
+  "defaultRegion": "AU",
+  "regions": [
+    {
+      "id": "AU",
+      "label": "Australia",
+      "language": "English",
+      "countryCode": "au",
+      "supportTier": "Lenovo Premier Support for Data Centers",
+      "phoneNumbers": [
+        {
+          "label": "Sydney",
+          "number": "02 8278 1101"
+        },
+        {
+          "label": "Toll-free",
+          "number": "1800 402 989"
+        }
+      ],
+      "serviceRequestUrl": "https://datacentersupport.lenovo.com/au/en/servicerequest?ProblemType=/hardware,/software/tools,/software/operating-system",
+      "supportPortalUrl": "https://datacentersupport.lenovo.com/au/en",
+      "supportPhoneListUrl": "https://support.lenovo.com/au/en/supportphonelist",
+      "supportPlanUrl": "https://support.lenovo.com/au/en/solutions/ht505332-lenovo-data-center-support-plan-lenovo-premier-support-lps",
+      "guidance": [
+        "Use the Lenovo Data Center Support portal or the Premier Support phone numbers for entitled storage hardware or software incidents.",
+        "Have the machine type, serial number, customer contact details, site address, service entitlement, fault summary, business impact, and available support logs ready before logging the case.",
+        "For web cases, enter the registered serial number, confirm the product, choose Contact Us or Submit a Service Request, describe the hardware or software issue, and upload logs before submission where available."
+      ]
+    }
+  ]
+}

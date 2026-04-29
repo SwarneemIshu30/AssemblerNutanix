@@ -29,6 +29,7 @@ param(
     [Parameter(Mandatory = $false)][string]$DocConfigSnapDate,
     [Parameter(Mandatory = $false)][string]$DocReferenceId,
     [Parameter(Mandatory = $false)][string]$DocClassification,
+    [Parameter(Mandatory = $false)][string]$DocSupportRegion,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
     [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
     [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain',
@@ -240,6 +241,7 @@ try {
     Add-IfValue -Arguments $arguments -Name '-DocConfigSnapDate' -Value $DocConfigSnapDate
     Add-IfValue -Arguments $arguments -Name '-DocReferenceId' -Value $DocReferenceId
     Add-IfValue -Arguments $arguments -Name '-DocClassification' -Value $DocClassification
+    Add-IfValue -Arguments $arguments -Name '-DocSupportRegion' -Value $DocSupportRegion
     if ($AnnotateResolvedTags) { [void]$arguments.Add('-AnnotateResolvedTags') }
     Add-IfValue -Arguments $arguments -Name '-DocxMatchMode' -Value $DocxMatchMode
     Add-IfValue -Arguments $arguments -Name '-UnresolvedTokenPolicy' -Value $UnresolvedTokenPolicy

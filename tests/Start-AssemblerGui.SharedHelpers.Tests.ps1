@@ -92,4 +92,22 @@ Describe 'Start-AssemblerGui shared helper module' {
             throw "Expected raw JSON marker in debug output, got: $debug"
         }
     }
+
+    It 'loads SupportRegion options from the Lenovo DE sidecar' {
+        $catalogPath = Join-Path $script:repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Collector.catalog.json'
+        $sidecarPath = Resolve-SupportRegionSidecarPath -RepoRoot $script:repoRoot -CatalogPath $catalogPath
+        if ([string]::IsNullOrWhiteSpace($sidecarPath) -or -not (Test-Path -LiteralPath $sidecarPath -PathType Leaf)) {
+            throw 'Expected support-region sidecar to resolve for Lenovo.DE catalog.'
+        }
+
+        $options = @(Get-SupportRegionOptions -RepoRoot $script:repoRoot -CatalogPath $catalogPath)
+        if (@($options | Where-Object { [string]$_.Id -eq 'AU' }).Count -ne 1) {
+            throw 'Expected AU support region option.'
+        }
+
+        $resolved = Resolve-SupportRegionId -SupportRegion 'Australia' -Options $options
+        if ($resolved -ne 'AU') {
+            throw "Expected Australia label to resolve to AU, got '$resolved'."
+        }
+    }
 }

@@ -21,6 +21,7 @@ param(
     [Parameter(Mandatory = $false)][string]$DocConfigSnapDate,
     [Parameter(Mandatory = $false)][string]$DocReferenceId,
     [Parameter(Mandatory = $false)][string]$DocClassification,
+    [Parameter(Mandatory = $false)][string]$DocSupportRegion,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
     [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
     [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
@@ -444,7 +445,8 @@ function Update-DocxMetadataProperties {
         [Parameter(Mandatory = $false)][string]$Version,
         [Parameter(Mandatory = $false)][string]$ConfigSnapDate,
         [Parameter(Mandatory = $false)][string]$ReferenceId,
-        [Parameter(Mandatory = $false)][string]$Classification
+        [Parameter(Mandatory = $false)][string]$Classification,
+        [Parameter(Mandatory = $false)][string]$SupportRegion
     )
 
     $coreEntry = $Archive.GetEntry('docProps/core.xml')
@@ -500,6 +502,7 @@ function Update-DocxMetadataProperties {
         'LNV.ConfigSnapDate' = $ConfigSnapDate
         'LNV.ReferenceID' = $ReferenceId
         'ClassificationContentMarkingHeaderText' = $Classification
+        'SupportRegion' = $SupportRegion
     }
 
     foreach ($propertyName in @($propertyUpdates.Keys)) {
@@ -1211,7 +1214,8 @@ function Get-DocxContentControlReplacementMap {
         [Parameter(Mandatory = $false)][string]$DocVersion,
         [Parameter(Mandatory = $false)][string]$DocConfigSnapDate,
         [Parameter(Mandatory = $false)][string]$DocReferenceId,
-        [Parameter(Mandatory = $false)][string]$DocClassification
+        [Parameter(Mandatory = $false)][string]$DocClassification,
+        [Parameter(Mandatory = $false)][string]$DocSupportRegion
     )
 
     $map = [ordered]@{}
@@ -1227,6 +1231,7 @@ function Get-DocxContentControlReplacementMap {
         ConfigSnapDate = @('LNV.ConfigSnapDate', 'DocConfigSnapDate')
         ReferenceId = @('LNV.ReferenceID', 'DocReferenceId')
         Classification = @('ClassificationContentMarkingHeaderText', 'Classification', 'DocClassification')
+        SupportRegion = @('SupportRegion', 'DocSupportRegion')
     }
     $propertyValues = [ordered]@{
         Title = $DocTitle
@@ -1240,6 +1245,7 @@ function Get-DocxContentControlReplacementMap {
         ConfigSnapDate = $DocConfigSnapDate
         ReferenceId = $DocReferenceId
         Classification = $DocClassification
+        SupportRegion = $DocSupportRegion
     }
 
     foreach ($propertyName in @($propertyValues.Keys)) {
@@ -1266,7 +1272,8 @@ function Get-DocxDocPropertyFieldReplacementMap {
         [Parameter(Mandatory = $false)][string]$DocVersion,
         [Parameter(Mandatory = $false)][string]$DocConfigSnapDate,
         [Parameter(Mandatory = $false)][string]$DocReferenceId,
-        [Parameter(Mandatory = $false)][string]$DocClassification
+        [Parameter(Mandatory = $false)][string]$DocClassification,
+        [Parameter(Mandatory = $false)][string]$DocSupportRegion
     )
 
     $map = [ordered]@{}
@@ -1281,7 +1288,8 @@ function Get-DocxDocPropertyFieldReplacementMap {
         @{ name = 'LNV.Version'; value = $DocVersion },
         @{ name = 'LNV.ConfigSnapDate'; value = $DocConfigSnapDate },
         @{ name = 'LNV.ReferenceID'; value = $DocReferenceId },
-        @{ name = 'ClassificationContentMarkingHeaderText'; value = $DocClassification }
+        @{ name = 'ClassificationContentMarkingHeaderText'; value = $DocClassification },
+        @{ name = 'SupportRegion'; value = $DocSupportRegion }
     )) {
         $name = [string]$entry.name
         $value = [string]$entry.value
@@ -1888,6 +1896,7 @@ function Render-DocxTemplate {
         [Parameter(Mandatory = $false)][string]$DocConfigSnapDate,
         [Parameter(Mandatory = $false)][string]$DocReferenceId,
         [Parameter(Mandatory = $false)][string]$DocClassification,
+        [Parameter(Mandatory = $false)][string]$DocSupportRegion,
         [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
         [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
     )
@@ -1938,8 +1947,8 @@ function Render-DocxTemplate {
         $literalDatasetTagStatus = @()
         $literalTagHitSummary = @()
         $literalPartHitSummary = @()
-        $contentControlReplaceByTag = Get-DocxContentControlReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification
-        $docPropertyFieldReplaceByName = Get-DocxDocPropertyFieldReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification
+        $contentControlReplaceByTag = Get-DocxContentControlReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification -DocSupportRegion $DocSupportRegion
+        $docPropertyFieldReplaceByName = Get-DocxDocPropertyFieldReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification -DocSupportRegion $DocSupportRegion
         $tableStyleId = ''
         $tableParagraphStyleId = ''
         if ($null -ne $TableByTag -and @($TableByTag.Keys).Count -gt 0) {
@@ -2168,7 +2177,7 @@ function Render-DocxTemplate {
             }
         }
 
-        Update-DocxMetadataProperties -Archive $archive -Title $DocTitle -Customer $DocCustomer -CustomerAbbr $DocCustomerAbbr -Location $DocLocation -Subsidiary $DocSubsidiary -Environment $DocEnvironment -DocumentReference $DocDocumentReference -Version $DocVersion -ConfigSnapDate $DocConfigSnapDate -ReferenceId $DocReferenceId -Classification $DocClassification
+        Update-DocxMetadataProperties -Archive $archive -Title $DocTitle -Customer $DocCustomer -CustomerAbbr $DocCustomerAbbr -Location $DocLocation -Subsidiary $DocSubsidiary -Environment $DocEnvironment -DocumentReference $DocDocumentReference -Version $DocVersion -ConfigSnapDate $DocConfigSnapDate -ReferenceId $DocReferenceId -Classification $DocClassification -SupportRegion $DocSupportRegion
         $updateFieldsOnOpenResult = Enable-DocxUpdateFieldsOnOpen -Archive $archive
 
         $renderResult = [ordered]@{
@@ -3769,7 +3778,7 @@ try {
         if ($outputDir -and -not (Test-Path -LiteralPath $outputDir -PathType Container)) {
             New-Item -Path $outputDir -ItemType Directory -Force | Out-Null
         }
-        $docxRender = Render-DocxTemplate -TemplatePath $resolvedTemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy
+        $docxRender = Render-DocxTemplate -TemplatePath $resolvedTemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification -DocSupportRegion $DocSupportRegion -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy
         $docxUnresolvedLiteralByTag = $docxRender.unresolvedLiteralByTag
         $unresolvedByTag = $docxUnresolvedLiteralByTag
         $renderDetails.templatePathResolved = [string]$templateMetadata.path

@@ -16,6 +16,7 @@ Describe 'Assembler GUI render process module' {
             -EntryId @('collector') `
             -OutputType @('docx') `
             -DocTitle 'Title With Spaces' `
+            -DocSupportRegion 'AU' `
             -DocxMatchMode both `
             -UnresolvedTokenPolicy retain
 
@@ -33,6 +34,9 @@ Describe 'Assembler GUI render process module' {
         }
         if ([string]$invocation.ReportPath -ne 'C:\out root\render-report.json') {
             throw "Unexpected report path: $($invocation.ReportPath)"
+        }
+        if (@($invocation.Arguments) -notcontains '-DocSupportRegion' -or @($invocation.Arguments) -notcontains 'AU') {
+            throw 'Expected invocation to pass DocSupportRegion.'
         }
     }
 

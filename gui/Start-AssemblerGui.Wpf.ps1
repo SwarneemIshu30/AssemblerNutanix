@@ -22,6 +22,7 @@ param(
     [Parameter(Mandatory = $false)][string]$DocConfigSnapDate,
     [Parameter(Mandatory = $false)][string]$DocReferenceId,
     [Parameter(Mandatory = $false)][string]$DocClassification = 'PROTECTED',
+    [Parameter(Mandatory = $false)][string]$SupportRegion = 'AU',
     [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
     [Parameter(Mandatory = $false)][bool]$IncludeTxt = $false,
     [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
@@ -59,6 +60,8 @@ if ([string]::IsNullOrWhiteSpace($BundleRoot) -and [string]::IsNullOrWhiteSpace(
 if ([string]::IsNullOrWhiteSpace($CatalogPath)) { $CatalogPath = $defaultCatalogPath }
 if ([string]::IsNullOrWhiteSpace($OutputRoot)) { $OutputRoot = $defaultOutputRoot }
 if ([string]::IsNullOrWhiteSpace($ContractsRoot)) { $ContractsRoot = $defaultContractsRoot }
+$supportRegionOptions = @(Get-SupportRegionOptions -RepoRoot $repoRoot -CatalogPath $CatalogPath)
+$SupportRegion = Resolve-SupportRegionId -SupportRegion $SupportRegion -Options $supportRegionOptions
 
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName PresentationCore
@@ -106,6 +109,7 @@ function Invoke-BundleRender {
         [Parameter(Mandatory = $false)][string]$DocConfigSnapDate,
         [Parameter(Mandatory = $false)][string]$DocReferenceId,
         [Parameter(Mandatory = $false)][string]$DocClassification,
+        [Parameter(Mandatory = $false)][string]$DocSupportRegion,
         [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
         [Parameter(Mandatory = $false)][bool]$IncludeTxt = $false,
         [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
@@ -150,6 +154,7 @@ function Invoke-BundleRender {
     if (-not [string]::IsNullOrWhiteSpace($DocConfigSnapDate)) { $params.DocConfigSnapDate = $DocConfigSnapDate }
     if (-not [string]::IsNullOrWhiteSpace($DocReferenceId)) { $params.DocReferenceId = $DocReferenceId }
     if (-not [string]::IsNullOrWhiteSpace($DocClassification)) { $params.DocClassification = $DocClassification }
+    if (-not [string]::IsNullOrWhiteSpace($DocSupportRegion)) { $params.DocSupportRegion = $DocSupportRegion }
 
     $outputType = @()
     if ($IncludeDocx) { $outputType += 'docx' }
@@ -181,6 +186,7 @@ $xaml = @"
       <TabItem Header='Document Properties'>
         <Grid Margin='12'>
           <Grid.RowDefinitions>
+            <RowDefinition Height='Auto'/>
             <RowDefinition Height='Auto'/>
             <RowDefinition Height='Auto'/>
             <RowDefinition Height='Auto'/>
@@ -232,7 +238,10 @@ $xaml = @"
           <TextBlock Grid.Row='10' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Classification (8)</TextBlock>
           <TextBox Name='DocClassificationText' Grid.Row='10' Grid.Column='1' Margin='0,0,0,8'/>
 
-          <Border Grid.Row='11'
+          <TextBlock Grid.Row='11' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Support Region</TextBlock>
+          <ComboBox Name='SupportRegionCombo' Grid.Row='11' Grid.Column='1' Margin='0,0,0,8'/>
+
+          <Border Grid.Row='12'
                   Grid.Column='0'
                   Grid.ColumnSpan='2'
                   Margin='0,28,0,0'
@@ -805,6 +814,7 @@ $docVersionText = $window.FindName('DocVersionText')
 $docConfigSnapDateText = $window.FindName('DocConfigSnapDateText')
 $docReferenceIdText = $window.FindName('DocReferenceIdText')
 $docClassificationText = $window.FindName('DocClassificationText')
+$supportRegionCombo = $window.FindName('SupportRegionCombo')
 $coverKeyImage = $window.FindName('CoverKeyImage')
 $headFootKeyImage = $window.FindName('HeadFootKeyImage')
 $brandLogoImage = $window.FindName('BrandLogoImage')
@@ -920,6 +930,7 @@ $docVersionText.Text = $DocVersion
 $docConfigSnapDateText.Text = $DocConfigSnapDate
 $docReferenceIdText.Text = $DocReferenceId
 $docClassificationText.Text = $DocClassification
+Update-SupportRegionOptions
 $techIdText.Text = (($TechId ?? @()) -join ',')
 $entryIdText.Text = (($EntryId ?? @()) -join ',')
 $docxCheckBox.IsChecked = $true
@@ -948,6 +959,34 @@ $connectorProjectionSortList.DisplayMemberPath = 'Label'
 
 $documentPropertyState = [ordered]@{
     LastAutoConfigSnapDate = ''
+}
+
+function Update-SupportRegionOptions {
+    $currentRegion = Get-SelectedSupportRegionId
+    if ([string]::IsNullOrWhiteSpace($currentRegion)) { $currentRegion = $SupportRegion }
+
+    $options = @(Get-SupportRegionOptions -RepoRoot $repoRoot -CatalogPath $catalogPathText.Text)
+    $resolvedRegion = Resolve-SupportRegionId -SupportRegion $currentRegion -Options $options
+
+    $supportRegionCombo.Items.Clear()
+    $supportRegionCombo.DisplayMemberPath = 'DisplayName'
+    foreach ($option in $options) {
+        [void]$supportRegionCombo.Items.Add($option)
+        if ([string]$option.Id -eq $resolvedRegion) {
+            $supportRegionCombo.SelectedItem = $option
+        }
+    }
+    if ($null -eq $supportRegionCombo.SelectedItem -and $supportRegionCombo.Items.Count -gt 0) {
+        $supportRegionCombo.SelectedIndex = 0
+    }
+}
+
+function Get-SelectedSupportRegionId {
+    if ($null -ne $supportRegionCombo -and $null -ne $supportRegionCombo.SelectedItem) {
+        return [string]$supportRegionCombo.SelectedItem.Id
+    }
+
+    return Resolve-SupportRegionId -SupportRegion $SupportRegion -Options $supportRegionOptions
 }
 
 $renderProcessState = [ordered]@{
@@ -1072,6 +1111,7 @@ function Start-RenderFromCurrentInputs {
         DocConfigSnapDate = $docConfigSnapDateText.Text
         DocReferenceId = $docReferenceIdText.Text
         DocClassification = $docClassificationText.Text
+        DocSupportRegion = (Get-SelectedSupportRegionId)
         AnnotateResolvedTags = ([bool]$annotateCheckBox.IsChecked)
         DocxMatchMode = $docxModeSelection
         UnresolvedTokenPolicy = $unresolvedTokenPolicySelection
@@ -2346,6 +2386,7 @@ $catalogBrowseButton.Add_Click({
     $dialog.InitialDirectory = Resolve-DialogInitialDirectory -Path $catalogPathText.Text -RepoRoot $repoRoot -FallbackPath $defaultCatalogPath -PathKind File
     if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
         $catalogPathText.Text = $dialog.FileName
+        Update-SupportRegionOptions
         Publish-WebViewMappingStudioState
     }
 })

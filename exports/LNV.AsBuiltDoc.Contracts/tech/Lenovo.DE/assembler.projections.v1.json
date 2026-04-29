@@ -374,7 +374,12 @@
       "columns": [
         {
           "name": "Controller",
-          "source": "controllerLabel"
+          "source": "controllerRef",
+          "lookup": {
+            "dataset": "system-controllers.json",
+            "key": "controllerRef",
+            "value": "controllerLabel"
+          }
         },
         {
           "name": "Acquisition",
@@ -403,15 +408,19 @@
         "controllerRef"
       ],
       "rowOrder": [
-        "controllerSlot",
-        "controllerLabel"
+        "controllerRef"
       ]
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.Time": {
       "columns": [
         {
           "name": "Controller",
-          "source": "controllerLabel"
+          "source": "controllerRef",
+          "lookup": {
+            "dataset": "system-controllers.json",
+            "key": "controllerRef",
+            "value": "controllerLabel"
+          }
         },
         {
           "name": "Acquisition",
@@ -444,8 +453,7 @@
         "controllerRef"
       ],
       "rowOrder": [
-        "controllerSlot",
-        "controllerLabel"
+        "controllerRef"
       ]
     },
     "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts": {
@@ -1133,8 +1141,24 @@
           "source": "baseObject"
         },
         {
+          "name": "Schedule",
+          "source": "schedule"
+        },
+        {
+          "name": "Retention",
+          "source": "retention"
+        },
+        {
           "name": "State",
           "source": "state"
+        },
+        {
+          "name": "CreatedAt",
+          "source": "createdAt"
+        },
+        {
+          "name": "Notes",
+          "source": "notes"
         }
       ],
       "renderMode": "table",
@@ -1163,8 +1187,28 @@
           "source": "snapshotNameOrGroup"
         },
         {
+          "name": "BaseObject",
+          "source": "baseObject"
+        },
+        {
+          "name": "PolicySchedule",
+          "source": "schedule"
+        },
+        {
+          "name": "Retention",
+          "source": "retention"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
           "name": "CreatedAt",
           "source": "createdAt"
+        },
+        {
+          "name": "Notes",
+          "source": "notes"
         }
       ],
       "renderMode": "table",
@@ -1195,8 +1239,28 @@
           "source": "snapshotNameOrGroup"
         },
         {
+          "name": "BaseObject",
+          "source": "baseObject"
+        },
+        {
+          "name": "Schedule",
+          "source": "schedule"
+        },
+        {
+          "name": "Retention",
+          "source": "retention"
+        },
+        {
           "name": "State",
           "source": "state"
+        },
+        {
+          "name": "CreatedAt",
+          "source": "createdAt"
+        },
+        {
+          "name": "Notes",
+          "source": "notes"
         }
       ],
       "renderMode": "table",
@@ -1348,7 +1412,12 @@
       "columns": [
         {
           "name": "Scope",
-          "source": "controllerRef"
+          "source": "controllerRef",
+          "lookup": {
+            "dataset": "system-controllers.json",
+            "key": "controllerRef",
+            "value": "controllerLabel"
+          }
         },
         {
           "name": "Acquisition",
@@ -1381,7 +1450,12 @@
       "columns": [
         {
           "name": "Scope",
-          "source": "controllerRef"
+          "source": "controllerRef",
+          "lookup": {
+            "dataset": "system-controllers.json",
+            "key": "controllerRef",
+            "value": "controllerLabel"
+          }
         },
         {
           "name": "Acquisition",
@@ -1417,7 +1491,12 @@
       "columns": [
         {
           "name": "Scope",
-          "source": "controllerRef"
+          "source": "controllerRef",
+          "lookup": {
+            "dataset": "system-controllers.json",
+            "key": "controllerRef",
+            "value": "controllerLabel"
+          }
         },
         {
           "name": "Acquisition",
@@ -1454,7 +1533,12 @@
       "columns": [
         {
           "name": "Scope",
-          "source": "controllerRef"
+          "source": "controllerRef",
+          "lookup": {
+            "dataset": "system-controllers.json",
+            "key": "controllerRef",
+            "value": "controllerLabel"
+          }
         },
         {
           "name": "Acquisition",

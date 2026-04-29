@@ -22,6 +22,7 @@ param(
     [Parameter(Mandatory = $false)][string]$DocEnvironment = 'Production',
     [Parameter(Mandatory = $false)][string]$DocDocumentReference = 'Lenovo ThinkSystem DE As Built',
     [Parameter(Mandatory = $false)][string]$DocClassification = 'PROTECTED',
+    [Parameter(Mandatory = $false)][string]$SupportRegion = 'AU',
     [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
     [Parameter(Mandatory = $false)][bool]$IncludeTxt = $false,
     [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
@@ -47,6 +48,8 @@ if ([string]::IsNullOrWhiteSpace($BundleRoot)) { $BundleRoot = $defaultBundleRoo
 if ([string]::IsNullOrWhiteSpace($CatalogPath)) { $CatalogPath = $defaultCatalogPath }
 if ([string]::IsNullOrWhiteSpace($OutputRoot)) { $OutputRoot = $defaultOutputRoot }
 if ([string]::IsNullOrWhiteSpace($ContractsRoot)) { $ContractsRoot = $defaultContractsRoot }
+$supportRegionOptions = @(Get-SupportRegionOptions -RepoRoot $repoRoot -CatalogPath $CatalogPath)
+$SupportRegion = Resolve-SupportRegionId -SupportRegion $SupportRegion -Options $supportRegionOptions
 
 $includeDocxSpecified = $PSBoundParameters.ContainsKey('IncludeDocx')
 $includeTxtSpecified = $PSBoundParameters.ContainsKey('IncludeTxt')
@@ -67,6 +70,7 @@ function Invoke-BundleRender {
         [Parameter(Mandatory = $false)][string]$DocEnvironment,
         [Parameter(Mandatory = $false)][string]$DocDocumentReference,
         [Parameter(Mandatory = $false)][string]$DocClassification,
+        [Parameter(Mandatory = $false)][string]$DocSupportRegion,
         [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
         [Parameter(Mandatory = $false)][bool]$IncludeTxt = $false,
         [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
@@ -109,6 +113,7 @@ function Invoke-BundleRender {
     if (-not [string]::IsNullOrWhiteSpace($DocEnvironment)) { $params.DocEnvironment = $DocEnvironment }
     if (-not [string]::IsNullOrWhiteSpace($DocDocumentReference)) { $params.DocDocumentReference = $DocDocumentReference }
     if (-not [string]::IsNullOrWhiteSpace($DocClassification)) { $params.DocClassification = $DocClassification }
+    if (-not [string]::IsNullOrWhiteSpace($DocSupportRegion)) { $params.DocSupportRegion = $DocSupportRegion }
 
     $outputType = @()
     if ($IncludeDocx) { $outputType += 'docx' }
@@ -142,6 +147,7 @@ function Invoke-TerminalMode {
         [string]$DocEnvironment,
         [string]$DocDocumentReference,
         [string]$DocClassification,
+        [string]$SupportRegion,
         [bool]$IncludeDocx = $true,
         [bool]$IncludeTxt = $false,
         [bool]$AnnotateResolvedTags = $false,
@@ -178,6 +184,10 @@ function Invoke-TerminalMode {
         if (-not [string]::IsNullOrWhiteSpace($entryIdInput)) {
             $EntryId = @($entryIdInput.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
         }
+    }
+    $supportRegionInput = Read-Host "SupportRegion [$SupportRegion]"
+    if (-not [string]::IsNullOrWhiteSpace($supportRegionInput)) {
+        $SupportRegion = Resolve-SupportRegionId -SupportRegion $supportRegionInput -Options (Get-SupportRegionOptions -RepoRoot $repoRoot -CatalogPath $CatalogPath)
     }
     if ($PromptIncludeDocx) {
         $docxInput = Read-Host "Debug/Advanced - Include DOCX variant? (Y/n) [$((if ($IncludeDocx) { 'Y' } else { 'N' }))]"
@@ -218,7 +228,7 @@ function Invoke-TerminalMode {
         $AnnotateResolvedTags = ($annotateInput.Trim() -match '^(y|yes|1|true)$')
     }
 
-    Invoke-BundleRender -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocClassification $DocClassification -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy
+    Invoke-BundleRender -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocClassification $DocClassification -DocSupportRegion $SupportRegion -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy
 }
 
 function Invoke-WinFormsMode {
@@ -237,6 +247,7 @@ function Invoke-WinFormsMode {
         [string]$DocEnvironment,
         [string]$DocDocumentReference,
         [string]$DocClassification,
+        [string]$SupportRegion,
         [bool]$IncludeDocx = $true,
         [bool]$IncludeTxt = $false,
         [bool]$AnnotateResolvedTags = $false,
@@ -338,6 +349,32 @@ function Invoke-WinFormsMode {
         $propertiesTab.Controls.Add($propertyTextBox)
         $docPropertyTextBoxes[[string]$propertyDef.Text] = $propertyTextBox
     }
+
+    $supportRegionLabel = New-Object System.Windows.Forms.Label
+    $supportRegionLabel.Left = 20
+    $supportRegionLabel.Top = 504
+    $supportRegionLabel.Width = 280
+    $supportRegionLabel.Text = 'Support Region'
+    $propertiesTab.Controls.Add($supportRegionLabel)
+
+    $supportRegionComboBox = New-Object System.Windows.Forms.ComboBox
+    $supportRegionComboBox.Left = 20
+    $supportRegionComboBox.Top = 524
+    $supportRegionComboBox.Width = 800
+    $supportRegionComboBox.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
+    $regionOptions = @(Get-SupportRegionOptions -RepoRoot $repoRoot -CatalogPath $CatalogPath)
+    $resolvedSupportRegion = Resolve-SupportRegionId -SupportRegion $SupportRegion -Options $regionOptions
+    foreach ($option in $regionOptions) {
+        [void]$supportRegionComboBox.Items.Add($option)
+        if ([string]$option.Id -eq $resolvedSupportRegion) {
+            $supportRegionComboBox.SelectedItem = $option
+        }
+    }
+    $supportRegionComboBox.DisplayMember = 'DisplayName'
+    if ($null -eq $supportRegionComboBox.SelectedItem -and $supportRegionComboBox.Items.Count -gt 0) {
+        $supportRegionComboBox.SelectedIndex = 0
+    }
+    $propertiesTab.Controls.Add($supportRegionComboBox)
     $advancedGroup = New-Object System.Windows.Forms.GroupBox
     $advancedGroup.Text = 'Debug/Advanced'
     $advancedGroup.Left = 20
@@ -494,7 +531,8 @@ function Invoke-WinFormsMode {
         try {
             $techSelection = @($techTextBox.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
             $entrySelection = @($entryOverrideTextBox.Text.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-            $resultJson = Invoke-BundleRender -BundleRoot $bundleTextBox.Text -CatalogPath $catalogTextBox.Text -OutputRoot $outputTextBox.Text -ContractsRoot $contractsTextBox.Text -TechId $techSelection -EntryId $entrySelection -DocTitle $docPropertyTextBoxes['Title (core property)'].Text -DocCustomer $docPropertyTextBoxes['Customer (custom property)'].Text -DocCustomerAbbr $docPropertyTextBoxes['CustomerAbbr (custom property)'].Text -DocLocation $docPropertyTextBoxes['Location (custom property)'].Text -DocSubsidiary $docPropertyTextBoxes['Subsidiary (custom property)'].Text -DocEnvironment $docPropertyTextBoxes['Environment (custom property)'].Text -DocDocumentReference $docPropertyTextBoxes['DocumentReference (custom property)'].Text -DocClassification $docPropertyTextBoxes['Classification (custom property)'].Text -IncludeDocx $docxCheckBox.Checked -IncludeTxt $txtCheckBox.Checked -AnnotateResolvedTags $annotateCheckBox.Checked -DocxMatchMode ([string]$docxMatchCombo.SelectedItem) -UnresolvedTokenPolicy ([string]$unresolvedPolicyCombo.SelectedItem)
+            $selectedSupportRegion = if ($null -ne $supportRegionComboBox.SelectedItem) { [string]$supportRegionComboBox.SelectedItem.Id } else { [string]$SupportRegion }
+            $resultJson = Invoke-BundleRender -BundleRoot $bundleTextBox.Text -CatalogPath $catalogTextBox.Text -OutputRoot $outputTextBox.Text -ContractsRoot $contractsTextBox.Text -TechId $techSelection -EntryId $entrySelection -DocTitle $docPropertyTextBoxes['Title (core property)'].Text -DocCustomer $docPropertyTextBoxes['Customer (custom property)'].Text -DocCustomerAbbr $docPropertyTextBoxes['CustomerAbbr (custom property)'].Text -DocLocation $docPropertyTextBoxes['Location (custom property)'].Text -DocSubsidiary $docPropertyTextBoxes['Subsidiary (custom property)'].Text -DocEnvironment $docPropertyTextBoxes['Environment (custom property)'].Text -DocDocumentReference $docPropertyTextBoxes['DocumentReference (custom property)'].Text -DocClassification $docPropertyTextBoxes['Classification (custom property)'].Text -DocSupportRegion $selectedSupportRegion -IncludeDocx $docxCheckBox.Checked -IncludeTxt $txtCheckBox.Checked -AnnotateResolvedTags $annotateCheckBox.Checked -DocxMatchMode ([string]$docxMatchCombo.SelectedItem) -UnresolvedTokenPolicy ([string]$unresolvedPolicyCombo.SelectedItem)
             $statusLabel.Text = 'Render completed successfully.'
             $dialogText = if ($debugCheckBox.Checked) {
                 Format-DebugBundleOutput -BundleResultJson $resultJson
@@ -530,7 +568,7 @@ if ($Mode -eq 'Auto') {
 }
 
 switch ($effectiveMode) {
-    'WinForms' { Invoke-WinFormsMode -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocClassification $DocClassification -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy }
-    'Terminal' { Invoke-TerminalMode -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocClassification $DocClassification -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy -PromptIncludeDocx (-not $includeDocxSpecified) -PromptIncludeTxt (-not $includeTxtSpecified) }
+    'WinForms' { Invoke-WinFormsMode -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocClassification $DocClassification -SupportRegion $SupportRegion -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy }
+    'Terminal' { Invoke-TerminalMode -BundleRoot $BundleRoot -CatalogPath $CatalogPath -OutputRoot $OutputRoot -ContractsRoot $ContractsRoot -TechId $TechId -EntryId $EntryId -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocClassification $DocClassification -SupportRegion $SupportRegion -IncludeDocx $IncludeDocx -IncludeTxt $IncludeTxt -AnnotateResolvedTags $AnnotateResolvedTags -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy -PromptIncludeDocx (-not $includeDocxSpecified) -PromptIncludeTxt (-not $includeTxtSpecified) }
     default { throw "Unsupported mode: $effectiveMode" }
 }
