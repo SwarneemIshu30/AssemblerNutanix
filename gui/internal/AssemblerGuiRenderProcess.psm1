@@ -139,6 +139,9 @@ function Start-AssemblerGuiRenderProcess {
     if (-not [string]::IsNullOrWhiteSpace($outputParent) -and -not (Test-Path -LiteralPath $outputParent -PathType Container)) {
         New-Item -Path $outputParent -ItemType Directory -Force | Out-Null
     }
+    if (Test-Path -LiteralPath ([string]$Invocation.ProgressPath) -PathType Leaf) {
+        Remove-Item -LiteralPath ([string]$Invocation.ProgressPath) -Force
+    }
     if (Test-Path -LiteralPath ([string]$Invocation.CancelSignalPath) -PathType Leaf) {
         Remove-Item -LiteralPath ([string]$Invocation.CancelSignalPath) -Force
     }
