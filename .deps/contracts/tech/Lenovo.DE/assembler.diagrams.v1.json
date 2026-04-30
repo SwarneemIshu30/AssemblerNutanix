@@ -27,7 +27,7 @@
       "layout": {
         "direction": "left-to-right",
         "title": "Host Port Topology",
-        "style": "group-summary"
+        "style": "dense-controller-rows"
       },
       "assets": {
         "theme": {
