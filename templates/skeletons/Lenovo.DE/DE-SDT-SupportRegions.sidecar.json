@@ -1,33 +1,470 @@
 {
   "schema": "assembler.support-regions",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "defaultRegion": "AU",
+  "defaultSupportTier": "Premier",
   "regions": [
     {
       "id": "AU",
       "label": "Australia",
-      "language": "English",
       "countryCode": "au",
-      "supportTier": "Lenovo Premier Support for Data Centers",
-      "phoneNumbers": [
-        {
-          "label": "Sydney",
-          "number": "02 8278 1101"
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [
+            { "label": "Toll Free", "number": "1800-572-138" },
+            { "label": "Local", "number": "+61-2-82281912" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English" ]
         },
-        {
-          "label": "Toll-free",
-          "number": "1800 402 989"
+        "Premier": {
+          "id": "Premier",
+          "label": "Lenovo Premier Support for Data Centers",
+          "phoneNumbers": [
+            { "label": "Toll Free", "number": "1800-402-989" },
+            { "label": "Local", "number": "+61-28278 1101" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English" ]
         }
-      ],
+      },
       "serviceRequestUrl": "https://datacentersupport.lenovo.com/au/en/servicerequest?ProblemType=/hardware,/software/tools,/software/operating-system",
       "supportPortalUrl": "https://datacentersupport.lenovo.com/au/en",
       "supportPhoneListUrl": "https://support.lenovo.com/au/en/supportphonelist",
       "supportPlanUrl": "https://support.lenovo.com/au/en/solutions/ht505332-lenovo-data-center-support-plan-lenovo-premier-support-lps",
       "guidance": [
-        "Use the Lenovo Data Center Support portal or the Premier Support phone numbers for entitled storage hardware or software incidents.",
+        "Use the Lenovo Data Center Support portal or the selected support phone numbers for entitled storage hardware or software incidents.",
         "Have the machine type, serial number, customer contact details, site address, service entitlement, fault summary, business impact, and available support logs ready before logging the case.",
         "For web cases, enter the registered serial number, confirm the product, choose Contact Us or Submit a Service Request, describe the hardware or software issue, and upload logs before submission where available."
       ]
+    },
+    {
+      "id": "BN",
+      "label": "Brunei",
+      "countryCode": "bn",
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [ { "label": "Toll Free", "number": "801 4444" } ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English" ]
+        },
+        "Premier": {
+          "id": "Premier",
+          "label": "Premier Support",
+          "phoneNumbers": [ { "label": "Toll Free", "number": "801 4219" } ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English" ]
+        }
+      }
+    },
+    {
+      "id": "KH",
+      "label": "Cambodia",
+      "countryCode": "kh",
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [ { "label": "Toll Free", "number": "1800-209654" } ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English", "Vietnamese" ]
+        },
+        "Premier": {
+          "id": "Premier",
+          "label": "Premier Support",
+          "phoneNumbers": [ { "label": "Toll Free", "number": "1800-209856" } ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English", "Vietnamese" ]
+        }
+      }
+    },
+    {
+      "id": "HK",
+      "label": "Hong Kong Market",
+      "countryCode": "hk",
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [
+            { "label": "Toll Free", "number": "3016 3813" },
+            { "label": "Local", "number": "+852-3017 4788" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English", "Chinese" ]
+        },
+        "Premier": {
+          "id": "Premier",
+          "label": "Premier Support",
+          "phoneNumbers": [
+            { "label": "Toll Free", "number": "800 964 173" },
+            { "label": "Local", "number": "+852-3071 3561" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English", "Chinese" ]
+        }
+      }
+    },
+    {
+      "id": "IN",
+      "label": "India",
+      "countryCode": "in",
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [
+            { "label": "Toll Free", "number": "000-800-050-1197" },
+            { "label": "Local", "number": "+91 80 6884 6800" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English" ]
+        },
+        "Premier": {
+          "id": "Premier",
+          "label": "Premier Support",
+          "phoneNumbers": [
+            { "label": "Toll Free", "number": "000-800-440-2006" },
+            { "label": "Local", "number": "+91 80 6884 6700" },
+            { "label": "Premier Onshore", "number": "000-800-440-2347" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English" ]
+        }
+      }
+    },
+    {
+      "id": "ID",
+      "label": "Indonesia",
+      "countryCode": "id",
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [ { "label": "Toll Free", "number": "001803 852 9263" } ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English", "Bahasa Indonesia" ]
+        },
+        "Premier": {
+          "id": "Premier",
+          "label": "Premier Support",
+          "phoneNumbers": [ { "label": "Toll Free", "number": "007 803 0114 475" } ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English" ]
+        }
+      }
+    },
+    {
+      "id": "JP",
+      "label": "Japan",
+      "countryCode": "jp",
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [
+            { "label": "Toll Free", "number": "0120 99 4596" },
+            { "label": "Local", "number": "+81-03 6362 8188" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "Japanese" ]
+        },
+        "Premier": {
+          "id": "Premier",
+          "label": "Premier Support",
+          "phoneNumbers": [
+            { "label": "Toll Free", "number": "0120 66 8600" },
+            { "label": "Local", "number": "+81-03 6743 9803" }
+          ],
+          "workingHours": "English: 24 hours/day, 7 days/week; Japanese: 9:00-17:00, Monday - Friday",
+          "languages": [ "English", "Japanese" ]
+        }
+      }
+    },
+    {
+      "id": "KR",
+      "label": "Korea",
+      "countryCode": "kr",
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [
+            { "label": "Toll Free", "number": "080 500 5769" },
+            { "label": "Local", "number": "+82-022 023 6270" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "Korean" ]
+        },
+        "Premier": {
+          "id": "Premier",
+          "label": "Premier Support",
+          "phoneNumbers": [
+            { "label": "Toll Free", "number": "080 908 0903" },
+            { "label": "Local", "number": "+82-023 483 4818" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "Korean" ]
+        }
+      }
+    },
+    {
+      "id": "LA",
+      "label": "Laos",
+      "countryCode": "la",
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [
+            { "label": "IDD - English", "number": "+603-7711 7930" },
+            { "label": "IDD - Thai", "number": "+603-7711 7928" }
+          ],
+          "workingHours": "9:00am - 6:00pm, Monday - Friday",
+          "languages": [ "English", "Thai" ]
+        },
+        "Premier": {
+          "id": "Premier",
+          "label": "Premier Support",
+          "phoneNumbers": [
+            { "label": "IDD", "number": "+603-8686 6905" },
+            { "label": "Backup IDD", "number": "+603-8315 6905" }
+          ],
+          "workingHours": "9:00am - 6:00pm, Monday - Friday",
+          "languages": [ "English", "Thai" ]
+        }
+      }
+    },
+    {
+      "id": "MO",
+      "label": "Macao",
+      "countryCode": "mo",
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [
+            { "label": "Toll Free", "number": "1800-572-138" },
+            { "label": "Local", "number": "+61-2-82281912" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English", "Chinese" ]
+        },
+        "Premier": {
+          "id": "Premier",
+          "label": "Premier Support",
+          "phoneNumbers": [ { "label": "Toll Free", "number": "0800877" } ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English", "Chinese" ]
+        }
+      }
+    },
+    {
+      "id": "MY",
+      "label": "Malaysia",
+      "countryCode": "my",
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [
+            { "label": "Toll Free", "number": "1800889987" },
+            { "label": "Local", "number": "+60-377240246" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English" ]
+        },
+        "Premier": {
+          "id": "Premier",
+          "label": "Premier Support",
+          "phoneNumbers": [
+            { "label": "Local", "number": "+603-7724 0245" },
+            { "label": "Toll Free", "number": "1800 881 690" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English" ]
+        }
+      }
+    },
+    {
+      "id": "NZ",
+      "label": "New Zealand",
+      "countryCode": "nz",
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [
+            { "label": "Toll Free", "number": "0800 442059" },
+            { "label": "Local", "number": "+64-09 913 6227" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English" ]
+        },
+        "Premier": {
+          "id": "Premier",
+          "label": "Premier Support",
+          "phoneNumbers": [
+            { "label": "Local", "number": "+64-09 916 3177" },
+            { "label": "Toll Free", "number": "0508 412 627" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English" ]
+        }
+      }
+    },
+    {
+      "id": "PH",
+      "label": "Philippines",
+      "countryCode": "ph",
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [
+            { "label": "Toll Free", "number": "180087989941" },
+            { "label": "Toll Free", "number": "180018880962" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English" ]
+        },
+        "Premier": {
+          "id": "Premier",
+          "label": "Premier Support",
+          "phoneNumbers": [ { "label": "Toll Free", "number": "1800 1441 0928" } ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English" ]
+        }
+      }
+    },
+    {
+      "id": "SG",
+      "label": "Singapore",
+      "countryCode": "sg",
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [
+            { "label": "Toll Free", "number": "1800 622 3690" },
+            { "label": "Local", "number": "+65-6622 0814" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English" ]
+        },
+        "Premier": {
+          "id": "Premier",
+          "label": "Premier Support",
+          "phoneNumbers": [
+            { "label": "Local", "number": "+65-6622 0824" },
+            { "label": "Toll Free", "number": "1800 622 7215" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English" ]
+        }
+      }
+    },
+    {
+      "id": "LK",
+      "label": "Sri Lanka",
+      "countryCode": "lk",
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [ { "label": "Local", "number": "+9411-2493 544" } ],
+          "workingHours": "9:00am - 6:00pm, Monday - Friday",
+          "languages": [ "English" ]
+        }
+      }
+    },
+    {
+      "id": "TW",
+      "label": "Taiwan Market",
+      "countryCode": "tw",
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [
+            { "label": "Local", "number": "+886-02 2656 3260" },
+            { "label": "Toll Free", "number": "0800 868 982" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English", "Chinese" ]
+        },
+        "Premier": {
+          "id": "Premier",
+          "label": "Premier Support",
+          "phoneNumbers": [
+            { "label": "Local", "number": "+886-02 2650 7235" },
+            { "label": "Toll Free", "number": "0800 666 428" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English", "Chinese" ]
+        }
+      }
+    },
+    {
+      "id": "TH",
+      "label": "Thailand",
+      "countryCode": "th",
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [
+            { "label": "Local", "number": "+66-02 7873 668" },
+            { "label": "Toll Free", "number": "1800 011 468" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English", "Thai" ]
+        },
+        "Premier": {
+          "id": "Premier",
+          "label": "Premier Support",
+          "phoneNumbers": [
+            { "label": "Local", "number": "+66-02 7873 667" },
+            { "label": "Toll Free", "number": "00 1800 441 3632" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English", "Thai" ]
+        }
+      }
+    },
+    {
+      "id": "VN",
+      "label": "Vietnam",
+      "countryCode": "vn",
+      "supportTiers": {
+        "ESS": {
+          "id": "ESS",
+          "label": "Normal Hardware and ESS Support",
+          "phoneNumbers": [
+            { "label": "Local", "number": "+84-120 32359" },
+            { "label": "Toll Free", "number": "84 122 80763" },
+            { "label": "Mobifone access", "number": "121 020 004" },
+            { "label": "Foreign Accessible", "number": "+603-8315 6534" },
+            { "label": "Foreign Accessible", "number": "+1 919 804 6980" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "Vietnamese" ]
+        },
+        "Premier": {
+          "id": "Premier",
+          "label": "Premier Support",
+          "phoneNumbers": [
+            { "label": "Local", "number": "12011177" },
+            { "label": "Mobifone access", "number": "121020005" }
+          ],
+          "workingHours": "24 hours/day, 7 days/week",
+          "languages": [ "English", "Vietnamese" ]
+        }
+      }
     }
   ]
 }

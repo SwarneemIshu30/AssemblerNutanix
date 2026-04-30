@@ -80,7 +80,7 @@ The runtime skeleton mapping remains a generated/runtime-facing artifact and sho
 
 The current implementation should still be treated as WIP:
 
-- authoring support currently focuses on `scalar` and `table`
+- authoring support currently focuses on `scalar` and `table`; diagram views should be edited later as a separate contract surface backed by `assembler.diagrams.v1.json`
 - unsupported render shapes are surfaced for inspection, not silently converted to raw JSON
 - if YAML support is unavailable in the current PowerShell session, Mapping Studio falls back to read-only mode
 - staged targets are valid contract targets, but they are not automatically inserted into the DOCX template
