@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="470" viewBox="0 0 1200 470">
+<style>
+  .bg { fill: #ffffff; }
+  .title { font: 700 22px Segoe UI, Arial, sans-serif; fill: #111827; }
+  .subtitle { font: 12px Segoe UI, Arial, sans-serif; fill: #6B7280; }
+  .cardTitle { font: 700 18px Segoe UI, Arial, sans-serif; fill: #111827; }
+  .label { font: 600 11px Segoe UI, Arial, sans-serif; fill: #6B7280; text-transform: uppercase; }
+  .value { font: 13px Segoe UI, Arial, sans-serif; fill: #111827; }
+  .cell { font: 12px Segoe UI, Arial, sans-serif; fill: #111827; }
+  .mono { font-family: Consolas, 'Segoe UI Mono', monospace; }
+  .strong { font-weight: 700; }
+  .pillText { font: 700 10px Segoe UI, Arial, sans-serif; fill: #fff; }
+  .section { font: 700 13px Segoe UI, Arial, sans-serif; fill: #374151; }
+</style>
+<rect class="bg" width="1200" height="470"/>
+<text x="56" y="46" class="title">Host Port Topology</text>
+<text x="56" y="68" class="subtitle">Minimal topology map with port state only</text>
+<rect x="430" y="70" width="340" height="56" rx="10" fill="#E8F1FF" stroke="#60A5FA"/><text x="600" y="104" text-anchor="middle" class="cardTitle">DE4200 Array</text>
+<rect x="110" y="190" width="440" height="210" rx="10" fill="#F8FAFC" stroke="#CBD5E1"/>
+<text x="330" y="222" text-anchor="middle" class="cardTitle">Controller A</text>
+<line x1="330" y1="190" x2="600" y2="126" stroke="#94A3B8" stroke-width="2"/>
+<rect x="138" y="254" width="112" height="34" rx="17" fill="#ECFDF3" stroke="#86EFAC"/><text x="194" y="276" text-anchor="middle" class="cell strong">e0a down</text>
+<rect x="266" y="254" width="112" height="34" rx="17" fill="#ECFDF3" stroke="#86EFAC"/><text x="322" y="276" text-anchor="middle" class="cell strong">e0b down</text>
+<rect x="394" y="254" width="112" height="34" rx="17" fill="#ECFDF3" stroke="#86EFAC"/><text x="450" y="276" text-anchor="middle" class="cell strong">e1a down</text>
+<rect x="138" y="300" width="112" height="34" rx="17" fill="#ECFDF3" stroke="#86EFAC"/><text x="194" y="322" text-anchor="middle" class="cell strong">e1b down</text>
+<rect x="266" y="300" width="112" height="34" rx="17" fill="#ECFDF3" stroke="#86EFAC"/><text x="322" y="322" text-anchor="middle" class="cell strong">e1c down</text>
+<rect x="394" y="300" width="112" height="34" rx="17" fill="#ECFDF3" stroke="#86EFAC"/><text x="450" y="322" text-anchor="middle" class="cell strong">e1d down</text>
+<rect x="266" y="350" width="128" height="34" rx="17" fill="#FFF7ED" stroke="#FDBA74"/><text x="330" y="372" text-anchor="middle" class="cell strong">Mgmt 192.0.2.11</text>
+<rect x="650" y="190" width="440" height="210" rx="10" fill="#F8FAFC" stroke="#CBD5E1"/>
+<text x="870" y="222" text-anchor="middle" class="cardTitle">Controller B</text>
+<line x1="870" y1="190" x2="600" y2="126" stroke="#94A3B8" stroke-width="2"/>
+<rect x="678" y="254" width="112" height="34" rx="17" fill="#ECFDF3" stroke="#86EFAC"/><text x="734" y="276" text-anchor="middle" class="cell strong">e0a down</text>
+<rect x="806" y="254" width="112" height="34" rx="17" fill="#ECFDF3" stroke="#86EFAC"/><text x="862" y="276" text-anchor="middle" class="cell strong">e0b down</text>
+<rect x="934" y="254" width="112" height="34" rx="17" fill="#ECFDF3" stroke="#86EFAC"/><text x="990" y="276" text-anchor="middle" class="cell strong">e1a down</text>
+<rect x="678" y="300" width="112" height="34" rx="17" fill="#ECFDF3" stroke="#86EFAC"/><text x="734" y="322" text-anchor="middle" class="cell strong">e1b down</text>
+<rect x="806" y="300" width="112" height="34" rx="17" fill="#ECFDF3" stroke="#86EFAC"/><text x="862" y="322" text-anchor="middle" class="cell strong">e1c down</text>
+<rect x="934" y="300" width="112" height="34" rx="17" fill="#ECFDF3" stroke="#86EFAC"/><text x="990" y="322" text-anchor="middle" class="cell strong">e1d down</text>
+<rect x="806" y="350" width="128" height="34" rx="17" fill="#FFF7ED" stroke="#FDBA74"/><text x="870" y="372" text-anchor="middle" class="cell strong">Mgmt 192.0.2.10</text>
+</svg>

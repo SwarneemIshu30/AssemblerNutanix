@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="610" viewBox="0 0 1200 610">
+<style>
+  .bg { fill: #ffffff; }
+  .title { font: 700 22px Segoe UI, Arial, sans-serif; fill: #111827; }
+  .subtitle { font: 12px Segoe UI, Arial, sans-serif; fill: #6B7280; }
+  .cardTitle { font: 700 18px Segoe UI, Arial, sans-serif; fill: #111827; }
+  .label { font: 600 11px Segoe UI, Arial, sans-serif; fill: #6B7280; text-transform: uppercase; }
+  .value { font: 13px Segoe UI, Arial, sans-serif; fill: #111827; }
+  .cell { font: 12px Segoe UI, Arial, sans-serif; fill: #111827; }
+  .mono { font-family: Consolas, 'Segoe UI Mono', monospace; }
+  .strong { font-weight: 700; }
+  .pillText { font: 700 10px Segoe UI, Arial, sans-serif; fill: #fff; }
+  .section { font: 700 13px Segoe UI, Arial, sans-serif; fill: #374151; }
+</style>
+<rect class="bg" width="1200" height="610"/>
+<text x="56" y="46" class="title">Host Port Topology</text>
+<text x="56" y="68" class="subtitle">Controller summary with host and management interfaces from collector datasets</text>
+<g transform="translate(56,104)">
+<rect x="0" y="0" width="520" height="430" rx="10" fill="#F8FAFC" stroke="#CBD5E1"/>
+<rect x="0" y="0" width="520" height="54" rx="10" fill="#E8F1FF" stroke="#CBD5E1"/>
+<text x="20" y="34" class="cardTitle">Controller A</text>
+<text x="400" y="22" class="label">Status</text><text x="400" y="40" class="value" fill="#157347">optimal</text>
+<text x="20" y="84" class="label">Model</text><text x="20" y="104" class="value">DE4200</text>
+<text x="140" y="84" class="label">Tray</text><text x="140" y="104" class="value">99</text>
+<text x="230" y="84" class="label">Serial</text><text x="230" y="104" class="value mono">952529000086</text>
+<text x="20" y="142" class="section">Host ports</text>
+<line x1="20" y1="152" x2="500" y2="152" stroke="#CBD5E1"/>
+<rect x="20" y="162" width="480" height="24" fill="#FFFFFF"/>
+<text x="32" y="178" class="cell strong">e0a</text>
+<text x="88" y="178" class="cell">iscsi</text>
+<rect x="150" y="165" width="52" height="18" rx="9" fill="#B42318"/><text x="176" y="178" text-anchor="middle" class="pillText">down</text>
+<text x="222" y="178" class="cell mono">192.168.130.101</text>
+<text x="352" y="178" class="cell">Unknown</text>
+<rect x="20" y="188" width="480" height="24" fill="#F8FAFC"/>
+<text x="32" y="204" class="cell strong">e0b</text>
+<text x="88" y="204" class="cell">iscsi</text>
+<rect x="150" y="191" width="52" height="18" rx="9" fill="#B42318"/><text x="176" y="204" text-anchor="middle" class="pillText">down</text>
+<text x="222" y="204" class="cell mono">192.168.131.101</text>
+<text x="352" y="204" class="cell">Unknown</text>
+<rect x="20" y="214" width="480" height="24" fill="#FFFFFF"/>
+<text x="32" y="230" class="cell strong">e1a</text>
+<text x="88" y="230" class="cell">iscsi</text>
+<rect x="150" y="217" width="52" height="18" rx="9" fill="#B42318"/><text x="176" y="230" text-anchor="middle" class="pillText">down</text>
+<text x="222" y="230" class="cell mono">192.168.132.101</text>
+<text x="352" y="230" class="cell">Unknown</text>
+<rect x="20" y="240" width="480" height="24" fill="#F8FAFC"/>
+<text x="32" y="256" class="cell strong">e1b</text>
+<text x="88" y="256" class="cell">iscsi</text>
+<rect x="150" y="243" width="52" height="18" rx="9" fill="#B42318"/><text x="176" y="256" text-anchor="middle" class="pillText">down</text>
+<text x="222" y="256" class="cell mono">192.168.133.101</text>
+<text x="352" y="256" class="cell">Unknown</text>
+<rect x="20" y="266" width="480" height="24" fill="#FFFFFF"/>
+<text x="32" y="282" class="cell strong">e1c</text>
+<text x="88" y="282" class="cell">iscsi</text>
+<rect x="150" y="269" width="52" height="18" rx="9" fill="#B42318"/><text x="176" y="282" text-anchor="middle" class="pillText">down</text>
+<text x="222" y="282" class="cell mono">192.168.134.101</text>
+<text x="352" y="282" class="cell">Unknown</text>
+<rect x="20" y="292" width="480" height="24" fill="#F8FAFC"/>
+<text x="32" y="308" class="cell strong">e1d</text>
+<text x="88" y="308" class="cell">iscsi</text>
+<rect x="150" y="295" width="52" height="18" rx="9" fill="#B42318"/><text x="176" y="308" text-anchor="middle" class="pillText">down</text>
+<text x="222" y="308" class="cell mono">192.168.135.101</text>
+<text x="352" y="308" class="cell">Unknown</text>
+<text x="20" y="338" class="section">Management</text>
+<rect x="20" y="350" width="480" height="28" rx="6" fill="#FFF7ED" stroke="#FDBA74"/>
+<text x="32" y="368" class="cell strong">wan0</text>
+<rect x="110" y="355" width="52" height="18" rx="9" fill="#157347"/><text x="136" y="368" text-anchor="middle" class="pillText">up</text>
+<text x="186" y="368" class="cell mono">192.0.2.11</text>
+<text x="320" y="368" class="cell">speed1gig</text>
+</g>
+<g transform="translate(624,104)">
+<rect x="0" y="0" width="520" height="430" rx="10" fill="#F8FAFC" stroke="#CBD5E1"/>
+<rect x="0" y="0" width="520" height="54" rx="10" fill="#E8F1FF" stroke="#CBD5E1"/>
+<text x="20" y="34" class="cardTitle">Controller B</text>
+<text x="400" y="22" class="label">Status</text><text x="400" y="40" class="value" fill="#157347">optimal</text>
+<text x="20" y="84" class="label">Model</text><text x="20" y="104" class="value">DE4200</text>
+<text x="140" y="84" class="label">Tray</text><text x="140" y="104" class="value">99</text>
+<text x="230" y="84" class="label">Serial</text><text x="230" y="104" class="value mono">952529000077</text>
+<text x="20" y="142" class="section">Host ports</text>
+<line x1="20" y1="152" x2="500" y2="152" stroke="#CBD5E1"/>
+<rect x="20" y="162" width="480" height="24" fill="#FFFFFF"/>
+<text x="32" y="178" class="cell strong">e0a</text>
+<text x="88" y="178" class="cell">iscsi</text>
+<rect x="150" y="165" width="52" height="18" rx="9" fill="#B42318"/><text x="176" y="178" text-anchor="middle" class="pillText">down</text>
+<text x="222" y="178" class="cell mono">192.168.130.102</text>
+<text x="352" y="178" class="cell">Unknown</text>
+<rect x="20" y="188" width="480" height="24" fill="#F8FAFC"/>
+<text x="32" y="204" class="cell strong">e0b</text>
+<text x="88" y="204" class="cell">iscsi</text>
+<rect x="150" y="191" width="52" height="18" rx="9" fill="#B42318"/><text x="176" y="204" text-anchor="middle" class="pillText">down</text>
+<text x="222" y="204" class="cell mono">192.168.131.102</text>
+<text x="352" y="204" class="cell">Unknown</text>
+<rect x="20" y="214" width="480" height="24" fill="#FFFFFF"/>
+<text x="32" y="230" class="cell strong">e1a</text>
+<text x="88" y="230" class="cell">iscsi</text>
+<rect x="150" y="217" width="52" height="18" rx="9" fill="#B42318"/><text x="176" y="230" text-anchor="middle" class="pillText">down</text>
+<text x="222" y="230" class="cell mono">192.168.132.102</text>
+<text x="352" y="230" class="cell">Unknown</text>
+<rect x="20" y="240" width="480" height="24" fill="#F8FAFC"/>
+<text x="32" y="256" class="cell strong">e1b</text>
+<text x="88" y="256" class="cell">iscsi</text>
+<rect x="150" y="243" width="52" height="18" rx="9" fill="#B42318"/><text x="176" y="256" text-anchor="middle" class="pillText">down</text>
+<text x="222" y="256" class="cell mono">192.168.133.102</text>
+<text x="352" y="256" class="cell">Unknown</text>
+<rect x="20" y="266" width="480" height="24" fill="#FFFFFF"/>
+<text x="32" y="282" class="cell strong">e1c</text>
+<text x="88" y="282" class="cell">iscsi</text>
+<rect x="150" y="269" width="52" height="18" rx="9" fill="#B42318"/><text x="176" y="282" text-anchor="middle" class="pillText">down</text>
+<text x="222" y="282" class="cell mono">192.168.134.102</text>
+<text x="352" y="282" class="cell">Unknown</text>
+<rect x="20" y="292" width="480" height="24" fill="#F8FAFC"/>
+<text x="32" y="308" class="cell strong">e1d</text>
+<text x="88" y="308" class="cell">iscsi</text>
+<rect x="150" y="295" width="52" height="18" rx="9" fill="#B42318"/><text x="176" y="308" text-anchor="middle" class="pillText">down</text>
+<text x="222" y="308" class="cell mono">192.168.135.102</text>
+<text x="352" y="308" class="cell">Unknown</text>
+<text x="20" y="338" class="section">Management</text>
+<rect x="20" y="350" width="480" height="28" rx="6" fill="#FFF7ED" stroke="#FDBA74"/>
+<text x="32" y="368" class="cell strong">wan0</text>
+<rect x="110" y="355" width="52" height="18" rx="9" fill="#157347"/><text x="136" y="368" text-anchor="middle" class="pillText">up</text>
+<text x="186" y="368" class="cell mono">192.0.2.10</text>
+<text x="320" y="368" class="cell">speed1gig</text>
+</g>
+</svg>
