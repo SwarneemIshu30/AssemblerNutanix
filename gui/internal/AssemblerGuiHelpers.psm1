@@ -162,6 +162,102 @@ function Resolve-SupportRegionId {
     return $candidate
 }
 
+function Get-SupportTierOptions {
+    param(
+        [Parameter(Mandatory = $true)][string]$RepoRoot,
+        [Parameter(Mandatory = $false)][string]$CatalogPath,
+        [Parameter(Mandatory = $false)][string]$SupportRegion
+    )
+
+    $fallback = @([pscustomobject]@{
+        Id = 'Premier'
+        Label = 'Premier Support'
+        DisplayName = 'Premier - Premier Support'
+        IsDefault = $true
+    })
+
+    $sidecarPath = Resolve-SupportRegionSidecarPath -RepoRoot $RepoRoot -CatalogPath $CatalogPath
+    if ([string]::IsNullOrWhiteSpace($sidecarPath)) { return $fallback }
+
+    try {
+        $sidecar = Get-Content -LiteralPath $sidecarPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+    }
+    catch {
+        return $fallback
+    }
+
+    $regionOptions = @(Get-SupportRegionOptions -RepoRoot $RepoRoot -CatalogPath $CatalogPath)
+    $resolvedRegion = Resolve-SupportRegionId -SupportRegion $SupportRegion -Options $regionOptions
+    $defaultTier = [string]$sidecar.defaultSupportTier
+    $selectedRegion = $null
+    foreach ($region in @($sidecar.regions)) {
+        if ($region -isnot [System.Collections.IDictionary]) { continue }
+        if ([string]$region.id -eq $resolvedRegion) {
+            $selectedRegion = $region
+            break
+        }
+    }
+
+    if ($null -eq $selectedRegion) { return $fallback }
+    $supportTiers = $selectedRegion.supportTiers
+    if ($supportTiers -isnot [System.Collections.IDictionary]) {
+        $legacyTier = [string]$selectedRegion.supportTier
+        if ([string]::IsNullOrWhiteSpace($legacyTier)) { return $fallback }
+        return @([pscustomobject]@{
+            Id = $legacyTier
+            Label = $legacyTier
+            DisplayName = $legacyTier
+            IsDefault = $true
+        })
+    }
+
+    $options = [System.Collections.Generic.List[object]]::new()
+    foreach ($tierKey in @($supportTiers.Keys | Sort-Object)) {
+        $tier = $supportTiers[$tierKey]
+        if ($tier -isnot [System.Collections.IDictionary]) { continue }
+        $id = [string]$tier.id
+        if ([string]::IsNullOrWhiteSpace($id)) { $id = [string]$tierKey }
+        $label = [string]$tier.label
+        if ([string]::IsNullOrWhiteSpace($label)) { $label = $id }
+        [void]$options.Add([pscustomobject]@{
+            Id = $id
+            Label = $label
+            DisplayName = "$id - $label"
+            IsDefault = ($id -eq $defaultTier)
+        })
+    }
+
+    if ($options.Count -eq 0) { return $fallback }
+    return @($options.ToArray())
+}
+
+function Resolve-SupportTierId {
+    param(
+        [Parameter(Mandatory = $false)][string]$SupportTier,
+        [Parameter(Mandatory = $false)]$Options
+    )
+
+    $optionList = @($Options)
+    if ($optionList.Count -eq 0) { return [string]$SupportTier }
+
+    if ([string]::IsNullOrWhiteSpace($SupportTier)) {
+        $defaultOption = $optionList | Where-Object { [bool]$_.IsDefault } | Select-Object -First 1
+        if ($null -ne $defaultOption) { return [string]$defaultOption.Id }
+        return [string]$optionList[0].Id
+    }
+
+    $candidate = $SupportTier.Trim()
+    foreach ($option in $optionList) {
+        foreach ($value in @([string]$option.Id, [string]$option.Label, [string]$option.DisplayName)) {
+            if (-not [string]::IsNullOrWhiteSpace($value) -and $candidate -ieq $value) {
+                return [string]$option.Id
+            }
+        }
+    }
+
+    return $candidate
+}
+
 function Get-NearestExistingDirectory {
     param(
         [Parameter(Mandatory = $false)][string]$Path,
@@ -463,6 +559,8 @@ Export-ModuleMember -Function @(
     'Resolve-SupportRegionSidecarPath',
     'Get-SupportRegionOptions',
     'Resolve-SupportRegionId',
+    'Get-SupportTierOptions',
+    'Resolve-SupportTierId',
     'Resolve-DialogInitialDirectory',
     'Format-MatchedTagsSummary',
     'Test-IsDerivedBundleWrapperIssue',
