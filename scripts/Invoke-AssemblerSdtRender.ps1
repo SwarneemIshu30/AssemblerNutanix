@@ -1296,6 +1296,52 @@ function Add-DocxPngImagePart {
     return $relationshipId
 }
 
+function Get-PngDimensionsFromBase64 {
+    param([Parameter(Mandatory = $true)][string]$ImageBase64)
+
+    try {
+        $bytes = [Convert]::FromBase64String($ImageBase64)
+        if ($bytes.Length -lt 24) { return $null }
+        $pngSignature = [byte[]](137, 80, 78, 71, 13, 10, 26, 10)
+        for ($index = 0; $index -lt $pngSignature.Length; $index++) {
+            if ($bytes[$index] -ne $pngSignature[$index]) { return $null }
+        }
+
+        $width = (($bytes[16] -shl 24) -bor ($bytes[17] -shl 16) -bor ($bytes[18] -shl 8) -bor $bytes[19])
+        $height = (($bytes[20] -shl 24) -bor ($bytes[21] -shl 16) -bor ($bytes[22] -shl 8) -bor $bytes[23])
+        if ($width -le 0 -or $height -le 0) { return $null }
+        return [pscustomobject]@{ Width = [int]$width; Height = [int]$height }
+    }
+    catch {
+        return $null
+    }
+}
+
+function New-DocxImageSizeFromPngBase64 {
+    param(
+        [Parameter(Mandatory = $true)][string]$ImageBase64,
+        [Parameter(Mandatory = $false)][int64]$MaxWidthEmu = 5486400,
+        [Parameter(Mandatory = $false)][int64]$MaxHeightEmu = 7315200
+    )
+
+    $dimensions = Get-PngDimensionsFromBase64 -ImageBase64 $ImageBase64
+    if ($null -eq $dimensions) {
+        return [pscustomobject]@{ WidthEmu = $MaxWidthEmu; HeightEmu = 3200400 }
+    }
+
+    $widthEmu = [double]$MaxWidthEmu
+    $heightEmu = $widthEmu * ([double]$dimensions.Height / [double]$dimensions.Width)
+    if ($heightEmu -gt [double]$MaxHeightEmu) {
+        $heightEmu = [double]$MaxHeightEmu
+        $widthEmu = $heightEmu * ([double]$dimensions.Width / [double]$dimensions.Height)
+    }
+
+    return [pscustomobject]@{
+        WidthEmu = [int64][Math]::Round($widthEmu)
+        HeightEmu = [int64][Math]::Round($heightEmu)
+    }
+}
+
 function Convert-ImageModelToWordDrawingXml {
     param(
         [Parameter(Mandatory = $true)][System.Collections.IDictionary]$ImageModel,
@@ -3872,7 +3918,73 @@ function New-DiagrammerCoreTopologyImage {
 
     Import-Module Diagrammer.Core -ErrorAction Stop | Out-Null
 
+    $layout = if ((Test-MapHasKey -Map $DiagramDefinition -Key 'layout') -and $DiagramDefinition.layout -is [System.Collections.IDictionary]) { $DiagramDefinition.layout } else { @{} }
+    $title = if ((Test-MapHasKey -Map $layout -Key 'title') -and -not [string]::IsNullOrWhiteSpace([string]$layout.title)) { [string]$layout.title } else { [string]$Tag }
+    $direction = if ((Test-MapHasKey -Map $layout -Key 'direction') -and [string]$layout.direction -eq 'left-to-right') { 'left-to-right' } else { 'top-to-bottom' }
+    $mainGraphSize = if ((Test-MapHasKey -Map $layout -Key 'size') -and -not [string]::IsNullOrWhiteSpace([string]$layout.size)) { [string]$layout.size } else { $null }
+    $layoutStyle = if ((Test-MapHasKey -Map $layout -Key 'style') -and -not [string]::IsNullOrWhiteSpace([string]$layout.style)) { [string]$layout.style } else { 'node-link' }
+
+    $safeNodeNames = @{}
+    $nodeIndex = 1
+    foreach ($node in @($Nodes)) {
+        $sourceNodeId = [string]$node.id
+        if ([string]::IsNullOrWhiteSpace($sourceNodeId) -or (Test-MapHasKey -Map $safeNodeNames -Key $sourceNodeId)) { continue }
+        $safeNodeNames[$sourceNodeId] = "diagram_node_$nodeIndex"
+        $nodeIndex++
+    }
+
     $graphInput = & {
+        if ($layoutStyle -eq 'group-summary') {
+            $edgeSourceIds = @{}
+            foreach ($edge in @($Edges)) {
+                $edgeSourceIds[[string]$edge.from] = $true
+            }
+
+            $summaryIndex = 1
+            $summaryNodeNames = [System.Collections.Generic.List[string]]::new()
+            foreach ($group in @($Nodes | Group-Object -Property group)) {
+                $groupName = [string]$group.Name
+                if ([string]::IsNullOrWhiteSpace($groupName)) { $groupName = "Group $summaryIndex" }
+                $groupNodes = @($group.Group)
+                $sourceNodes = @($groupNodes | Where-Object { Test-MapHasKey -Map $edgeSourceIds -Key ([string]$_.id) })
+                $detailNodes = @($groupNodes | Where-Object { -not (Test-MapHasKey -Map $edgeSourceIds -Key ([string]$_.id)) })
+
+                $labelLines = [System.Collections.Generic.List[string]]::new()
+                [void]$labelLines.Add($groupName)
+                foreach ($node in @($sourceNodes)) {
+                    [void]$labelLines.Add('')
+                    [void]$labelLines.Add([string]$node.label)
+                    foreach ($fieldLine in @($node.fields)) {
+                        [void]$labelLines.Add("  $fieldLine")
+                    }
+                }
+                if (@($detailNodes).Count -gt 0) {
+                    [void]$labelLines.Add('')
+                    [void]$labelLines.Add('Interfaces')
+                    foreach ($node in @($detailNodes | Sort-Object -Property label)) {
+                        $fieldSummary = @($node.fields | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) }) -join ' | '
+                        if ([string]::IsNullOrWhiteSpace($fieldSummary)) {
+                            [void]$labelLines.Add("  $([string]$node.label)")
+                        }
+                        else {
+                            [void]$labelLines.Add("  $([string]$node.label): $fieldSummary")
+                        }
+                    }
+                }
+
+                $summaryNodeName = "diagram_group_$summaryIndex"
+                Node -Name $summaryNodeName -Attributes @{ Label = (@($labelLines) -join "`n"); shape = 'rectangle'; fillColor = '#F8FAFC'; style = 'filled,rounded'; fontsize = 12 }
+                [void]$summaryNodeNames.Add($summaryNodeName)
+                $summaryIndex++
+            }
+            if ($direction -eq 'left-to-right' -and $summaryNodeNames.Count -gt 1) {
+                for ($index = 0; $index -lt ($summaryNodeNames.Count - 1); $index++) {
+                    Edge -From $summaryNodeNames[$index] -To $summaryNodeNames[$index + 1] -Attributes @{ style = 'invis'; weight = 10 }
+                }
+            }
+            return
+        }
+
         $emittedNodeIds = @{}
         foreach ($group in @($Nodes | Group-Object -Property group)) {
             $groupName = [string]$group.Name
@@ -3881,7 +3993,7 @@ function New-DiagrammerCoreTopologyImage {
                 foreach ($node in @($groupNodes)) {
                     $nodeLabel = ([string]$node.label)
                     if (@($node.fields).Count -gt 0) { $nodeLabel = "$nodeLabel`n$(@($node.fields) -join "`n")" }
-                    Node -Name ([string]$node.id) -Attributes @{ Label = $nodeLabel; shape = [string]$node.shape; fillColor = [string]$node.fillColor; style = 'filled,rounded'; fontsize = 12 }
+                    Node -Name ([string]$safeNodeNames[[string]$node.id]) -Attributes @{ Label = $nodeLabel; shape = [string]$node.shape; fillColor = [string]$node.fillColor; style = 'filled,rounded'; fontsize = 12 }
                     $emittedNodeIds[[string]$node.id] = $true
                 }
                 continue
@@ -3892,26 +4004,24 @@ function New-DiagrammerCoreTopologyImage {
                 foreach ($node in @($groupNodes)) {
                     $nodeLabel = ([string]$node.label)
                     if (@($node.fields).Count -gt 0) { $nodeLabel = "$nodeLabel`n$(@($node.fields) -join "`n")" }
-                    Node -Name ([string]$node.id) -Attributes @{ Label = $nodeLabel; shape = [string]$node.shape; fillColor = [string]$node.fillColor; style = 'filled,rounded'; fontsize = 12 }
+                    Node -Name ([string]$safeNodeNames[[string]$node.id]) -Attributes @{ Label = $nodeLabel; shape = [string]$node.shape; fillColor = [string]$node.fillColor; style = 'filled,rounded'; fontsize = 12 }
                     $emittedNodeIds[[string]$node.id] = $true
                 }
             }
         }
 
         foreach ($edge in @($Edges)) {
+            if (-not (Test-MapHasKey -Map $safeNodeNames -Key ([string]$edge.from))) { continue }
+            if (-not (Test-MapHasKey -Map $safeNodeNames -Key ([string]$edge.to))) { continue }
             $attributes = @{ fontsize = 10 }
             if (-not [string]::IsNullOrWhiteSpace([string]$edge.label)) { $attributes.Label = [string]$edge.label }
-            Edge -From ([string]$edge.from) -To ([string]$edge.to) -Attributes $attributes
+            Edge -From ([string]$safeNodeNames[[string]$edge.from]) -To ([string]$safeNodeNames[[string]$edge.to]) -Attributes $attributes
         }
     }
 
     $outputFolder = Join-Path ([System.IO.Path]::GetTempPath()) ('assembler-diagram-' + [guid]::NewGuid().ToString('N'))
     $null = New-Item -Path $outputFolder -ItemType Directory -Force
     try {
-        $layout = if ((Test-MapHasKey -Map $DiagramDefinition -Key 'layout') -and $DiagramDefinition.layout -is [System.Collections.IDictionary]) { $DiagramDefinition.layout } else { @{} }
-        $title = if ((Test-MapHasKey -Map $layout -Key 'title') -and -not [string]::IsNullOrWhiteSpace([string]$layout.title)) { [string]$layout.title } else { [string]$Tag }
-        $direction = if ((Test-MapHasKey -Map $layout -Key 'direction') -and [string]$layout.direction -eq 'left-to-right') { 'left-to-right' } else { 'top-to-bottom' }
-        $mainGraphSize = if ((Test-MapHasKey -Map $layout -Key 'size') -and -not [string]::IsNullOrWhiteSpace([string]$layout.size)) { [string]$layout.size } else { $null }
         $fileName = 'diagram'
 
         $diagrammerParameters = @{
@@ -4879,11 +4989,12 @@ try {
             $resolvedText = [string]$diagramRender.placeholder
             $replaceByTag[$tag] = $resolvedText
             if ($isDocxTemplate -and -not [string]::IsNullOrWhiteSpace([string]$diagramRender.imageBase64)) {
+                $diagramImageSize = New-DocxImageSizeFromPngBase64 -ImageBase64 ([string]$diagramRender.imageBase64)
                 $docxImageByTag[$tag] = [ordered]@{
                     imageBase64 = [string]$diagramRender.imageBase64
                     name = [string]$diagramRender.diagramRef
-                    widthEmu = 5486400
-                    heightEmu = 3200400
+                    widthEmu = [int64]$diagramImageSize.WidthEmu
+                    heightEmu = [int64]$diagramImageSize.HeightEmu
                 }
             }
             $matches.Add([ordered]@{ tag = $tag; dataset = [string]$entry.dataset; selector = ''; valuePreview = $resolvedText })
