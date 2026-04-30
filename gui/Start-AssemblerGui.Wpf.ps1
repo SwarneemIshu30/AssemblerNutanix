@@ -23,9 +23,11 @@ param(
     [Parameter(Mandatory = $false)][string]$DocReferenceId,
     [Parameter(Mandatory = $false)][string]$DocClassification = 'PROTECTED',
     [Parameter(Mandatory = $false)][string]$SupportRegion = 'AU',
+    [Parameter(Mandatory = $false)][string]$SupportTier = 'Premier',
     [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
     [Parameter(Mandatory = $false)][bool]$IncludeTxt = $false,
     [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
+    [Parameter(Mandatory = $false)][bool]$EnableDiagramRendering = $false,
     [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
     [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
 )
@@ -62,6 +64,8 @@ if ([string]::IsNullOrWhiteSpace($OutputRoot)) { $OutputRoot = $defaultOutputRoo
 if ([string]::IsNullOrWhiteSpace($ContractsRoot)) { $ContractsRoot = $defaultContractsRoot }
 $supportRegionOptions = @(Get-SupportRegionOptions -RepoRoot $repoRoot -CatalogPath $CatalogPath)
 $SupportRegion = Resolve-SupportRegionId -SupportRegion $SupportRegion -Options $supportRegionOptions
+$supportTierOptions = @(Get-SupportTierOptions -RepoRoot $repoRoot -CatalogPath $CatalogPath -SupportRegion $SupportRegion)
+$SupportTier = Resolve-SupportTierId -SupportTier $SupportTier -Options $supportTierOptions
 
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName PresentationCore
@@ -110,9 +114,11 @@ function Invoke-BundleRender {
         [Parameter(Mandatory = $false)][string]$DocReferenceId,
         [Parameter(Mandatory = $false)][string]$DocClassification,
         [Parameter(Mandatory = $false)][string]$DocSupportRegion,
+        [Parameter(Mandatory = $false)][string]$DocSupportTier,
         [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
         [Parameter(Mandatory = $false)][bool]$IncludeTxt = $false,
         [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
+        [Parameter(Mandatory = $false)][bool]$EnableDiagramRendering = $false,
         [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
         [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
     )
@@ -155,6 +161,7 @@ function Invoke-BundleRender {
     if (-not [string]::IsNullOrWhiteSpace($DocReferenceId)) { $params.DocReferenceId = $DocReferenceId }
     if (-not [string]::IsNullOrWhiteSpace($DocClassification)) { $params.DocClassification = $DocClassification }
     if (-not [string]::IsNullOrWhiteSpace($DocSupportRegion)) { $params.DocSupportRegion = $DocSupportRegion }
+    if (-not [string]::IsNullOrWhiteSpace($DocSupportTier)) { $params.DocSupportTier = $DocSupportTier }
 
     $outputType = @()
     if ($IncludeDocx) { $outputType += 'docx' }
@@ -165,6 +172,9 @@ function Invoke-BundleRender {
     $params.OutputType = $outputType
     if ($AnnotateResolvedTags) {
         $params.AnnotateResolvedTags = $true
+    }
+    if ($EnableDiagramRendering) {
+        $params.EnableDiagramRendering = $true
     }
     $params.DocxMatchMode = [string]$DocxMatchMode
     $params.UnresolvedTokenPolicy = [string]$UnresolvedTokenPolicy
@@ -186,6 +196,7 @@ $xaml = @"
       <TabItem Header='Document Properties'>
         <Grid Margin='12'>
           <Grid.RowDefinitions>
+            <RowDefinition Height='Auto'/>
             <RowDefinition Height='Auto'/>
             <RowDefinition Height='Auto'/>
             <RowDefinition Height='Auto'/>
@@ -241,7 +252,10 @@ $xaml = @"
           <TextBlock Grid.Row='11' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Support Region</TextBlock>
           <ComboBox Name='SupportRegionCombo' Grid.Row='11' Grid.Column='1' Margin='0,0,0,8'/>
 
-          <Border Grid.Row='12'
+          <TextBlock Grid.Row='12' Grid.Column='0' Margin='0,0,8,8' VerticalAlignment='Center'>Support Tier</TextBlock>
+          <ComboBox Name='SupportTierCombo' Grid.Row='12' Grid.Column='1' Margin='0,0,0,8'/>
+
+          <Border Grid.Row='13'
                   Grid.Column='0'
                   Grid.ColumnSpan='2'
                   Margin='0,28,0,0'
@@ -351,6 +365,7 @@ $xaml = @"
               <StackPanel Grid.Row='2' Grid.Column='1' Orientation='Horizontal' HorizontalAlignment='Left'>
                 <CheckBox Name='DocxCheckBox' Margin='0,0,16,0' VerticalAlignment='Center'>DOCX output</CheckBox>
                 <CheckBox Name='AnnotateCheckBox' Margin='0,0,16,0' VerticalAlignment='Center'>Annotate resolved SDT tags</CheckBox>
+                <CheckBox Name='DiagramCheckBox' Margin='0,0,16,0' VerticalAlignment='Center'>Enable diagram rendering</CheckBox>
                 <CheckBox Name='TxtCheckBox' Margin='0,0,16,0' VerticalAlignment='Center' Visibility='Collapsed'>Enable TXT output</CheckBox>
               </StackPanel>
 
@@ -815,6 +830,7 @@ $docConfigSnapDateText = $window.FindName('DocConfigSnapDateText')
 $docReferenceIdText = $window.FindName('DocReferenceIdText')
 $docClassificationText = $window.FindName('DocClassificationText')
 $supportRegionCombo = $window.FindName('SupportRegionCombo')
+$supportTierCombo = $window.FindName('SupportTierCombo')
 $coverKeyImage = $window.FindName('CoverKeyImage')
 $headFootKeyImage = $window.FindName('HeadFootKeyImage')
 $brandLogoImage = $window.FindName('BrandLogoImage')
@@ -837,6 +853,7 @@ $debugCheckBox = $window.FindName('DebugCheckBox')
 $docxCheckBox = $window.FindName('DocxCheckBox')
 $txtCheckBox = $window.FindName('TxtCheckBox')
 $annotateCheckBox = $window.FindName('AnnotateCheckBox')
+$diagramCheckBox = $window.FindName('DiagramCheckBox')
 $docxMatchModeCombo = $window.FindName('DocxMatchModeCombo')
 $unresolvedTokenPolicyCombo = $window.FindName('UnresolvedTokenPolicyCombo')
 $outputText = $window.FindName('OutputText')
@@ -916,6 +933,34 @@ function Get-SelectedSupportRegionId {
     return Resolve-SupportRegionId -SupportRegion $SupportRegion -Options $supportRegionOptions
 }
 
+function Get-SelectedSupportTierId {
+    if ($null -ne $supportTierCombo -and $null -ne $supportTierCombo.SelectedItem) {
+        return [string]$supportTierCombo.SelectedItem.Id
+    }
+
+    return Resolve-SupportTierId -SupportTier $SupportTier -Options $supportTierOptions
+}
+
+function Update-SupportTierOptions {
+    $currentTier = Get-SelectedSupportTierId
+    if ([string]::IsNullOrWhiteSpace($currentTier)) { $currentTier = $SupportTier }
+
+    $options = @(Get-SupportTierOptions -RepoRoot $repoRoot -CatalogPath $catalogPathText.Text -SupportRegion (Get-SelectedSupportRegionId))
+    $resolvedTier = Resolve-SupportTierId -SupportTier $currentTier -Options $options
+
+    $supportTierCombo.Items.Clear()
+    $supportTierCombo.DisplayMemberPath = 'DisplayName'
+    foreach ($option in $options) {
+        [void]$supportTierCombo.Items.Add($option)
+        if ([string]$option.Id -eq $resolvedTier) {
+            $supportTierCombo.SelectedItem = $option
+        }
+    }
+    if ($null -eq $supportTierCombo.SelectedItem -and $supportTierCombo.Items.Count -gt 0) {
+        $supportTierCombo.SelectedIndex = 0
+    }
+}
+
 function Update-SupportRegionOptions {
     $currentRegion = Get-SelectedSupportRegionId
     if ([string]::IsNullOrWhiteSpace($currentRegion)) { $currentRegion = $SupportRegion }
@@ -934,6 +979,7 @@ function Update-SupportRegionOptions {
     if ($null -eq $supportRegionCombo.SelectedItem -and $supportRegionCombo.Items.Count -gt 0) {
         $supportRegionCombo.SelectedIndex = 0
     }
+    Update-SupportTierOptions
 }
 
 if (-not [string]::IsNullOrWhiteSpace($BundleArchivePath)) {
@@ -959,6 +1005,9 @@ $docConfigSnapDateText.Text = $DocConfigSnapDate
 $docReferenceIdText.Text = $DocReferenceId
 $docClassificationText.Text = $DocClassification
 Update-SupportRegionOptions
+$supportRegionCombo.Add_SelectionChanged({
+    Update-SupportTierOptions
+})
 $techIdText.Text = (($TechId ?? @()) -join ',')
 $entryIdText.Text = (($EntryId ?? @()) -join ',')
 $docxCheckBox.IsChecked = $true
@@ -966,6 +1015,7 @@ $docxCheckBox.IsEnabled = $false
 $txtCheckBox.IsChecked = $false
 $txtCheckBox.IsEnabled = $false
 $annotateCheckBox.IsChecked = $AnnotateResolvedTags
+$diagramCheckBox.IsChecked = $EnableDiagramRendering
 switch ([string]$DocxMatchMode) {
     'literal-token' { $docxMatchModeCombo.SelectedIndex = 2 }
     'content-control-tag' { $docxMatchModeCombo.SelectedIndex = 1 }
@@ -1139,7 +1189,9 @@ function Start-RenderFromCurrentInputs {
         DocReferenceId = $docReferenceIdText.Text
         DocClassification = $docClassificationText.Text
         DocSupportRegion = (Get-SelectedSupportRegionId)
+        DocSupportTier = (Get-SelectedSupportTierId)
         AnnotateResolvedTags = ([bool]$annotateCheckBox.IsChecked)
+        EnableDiagramRendering = ([bool]$diagramCheckBox.IsChecked)
         DocxMatchMode = $docxModeSelection
         UnresolvedTokenPolicy = $unresolvedTokenPolicySelection
     }

@@ -23,7 +23,9 @@ param(
     [Parameter(Mandatory = $false)][string]$DocReferenceId,
     [Parameter(Mandatory = $false)][string]$DocClassification,
     [Parameter(Mandatory = $false)][string]$DocSupportRegion,
+    [Parameter(Mandatory = $false)][string]$DocSupportTier,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
+    [Parameter(Mandatory = $false)][switch]$EnableDiagramRendering,
     [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
     [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
 )
@@ -677,6 +679,9 @@ try {
                 if ($AnnotateResolvedTags.IsPresent) {
                     $renderParams.AnnotateResolvedTags = $true
                 }
+                if ($EnableDiagramRendering.IsPresent) {
+                    $renderParams.EnableDiagramRendering = $true
+                }
                 if ((Get-CatalogEntryOutputType -Entry $entry) -eq 'docx') {
                     $renderParams.DocxMatchMode = [string]$DocxMatchMode
                     if (-not [string]::IsNullOrWhiteSpace($DocTitle)) { $renderParams.DocTitle = [string]$DocTitle }
@@ -691,6 +696,7 @@ try {
                     if (-not [string]::IsNullOrWhiteSpace($DocReferenceId)) { $renderParams.DocReferenceId = [string]$DocReferenceId }
                     if (-not [string]::IsNullOrWhiteSpace($DocClassification)) { $renderParams.DocClassification = [string]$DocClassification }
                     if (-not [string]::IsNullOrWhiteSpace($DocSupportRegion)) { $renderParams.DocSupportRegion = [string]$DocSupportRegion }
+                    if (-not [string]::IsNullOrWhiteSpace($DocSupportTier)) { $renderParams.DocSupportTier = [string]$DocSupportTier }
                     if (-not [string]::IsNullOrWhiteSpace($supportRegionSidecarPath)) { $renderParams.SupportRegionSidecarPath = [string]$supportRegionSidecarPath }
                 }
                 $json = & $invokeRenderScript @renderParams

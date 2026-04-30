@@ -1,0 +1,342 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv.asbuiltdoc/contracts/standards/assembler/assembler.diagrams.schema.v1.json",
+  "title": "Assembler Diagram Contract",
+  "description": "Contract for SDT-oriented diagram definitions consumed by the assembler renderer.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schemaVersion",
+    "techId",
+    "diagrams"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "assembler.diagrams"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "techId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "aliases": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "diagrams": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/diagramDefinition"
+      }
+    }
+  },
+  "$defs": {
+    "inputDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dataset"
+      ],
+      "properties": {
+        "dataset": {
+          "type": "string",
+          "minLength": 1
+        },
+        "root": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "direction": {
+          "type": "string",
+          "enum": [
+            "top-to-bottom",
+            "left-to-right"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "style": {
+          "type": "string",
+          "enum": [
+            "node-link",
+            "group-summary",
+            "dense-controller-rows"
+          ]
+        },
+        "size": {
+          "type": "string",
+          "minLength": 1
+        },
+        "nodeSeparation": {
+          "type": "number"
+        },
+        "sectionSeparation": {
+          "type": "number"
+        }
+      }
+    },
+    "assets": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "theme": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "icons": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field",
+        "equals"
+      ],
+      "properties": {
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "equals": {
+          "type": [
+            "string",
+            "number",
+            "integer",
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "fieldDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "field"
+          ]
+        },
+        {
+          "required": [
+            "value"
+          ]
+        }
+      ]
+    },
+    "nodeSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "input",
+        "id",
+        "label"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "where": {
+          "$ref": "#/$defs/condition"
+        },
+        "groupBy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "shape": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fillColor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "icon": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fieldDefinition"
+          }
+        }
+      }
+    },
+    "edgeSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input",
+        "from",
+        "to"
+      ],
+      "properties": {
+        "input": {
+          "type": "string",
+          "minLength": 1
+        },
+        "where": {
+          "$ref": "#/$defs/condition"
+        },
+        "from": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "fallback": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "placeholder",
+            "fail"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "diagramDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engine",
+        "kind",
+        "inputs",
+        "nodes",
+        "edges"
+      ],
+      "properties": {
+        "engine": {
+          "type": "string",
+          "enum": [
+            "diagrammer.core"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "topology"
+          ]
+        },
+        "inputs": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/inputDefinition"
+          }
+        },
+        "layout": {
+          "$ref": "#/$defs/layout"
+        },
+        "assets": {
+          "$ref": "#/$defs/assets"
+        },
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nodeSet"
+          }
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/edgeSet"
+          }
+        },
+        "fallback": {
+          "$ref": "#/$defs/fallback"
+        }
+      }
+    }
+  }
+}

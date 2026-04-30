@@ -12,6 +12,7 @@ Collectors and contracts should tell assembler:
 - which dataset is being used
 - what the dataset is intended to represent in a document
 - which projection/view should shape the data
+- which diagram view should shape graph/topology output
 - how empty, structured, and evidence/debug outputs should behave
 
 Assembler should then execute that declarative intent deterministically.
@@ -37,6 +38,7 @@ The repo already contains the main contract building blocks for the projection/v
 ### 1. Mapping render hints
 `mapping.dataset-to-sdt` supports render-hint fields including:
 - `projectionRef`
+- `diagramRef`
 - `renderAs`
 - `view`
 - `renderMode`
@@ -72,7 +74,22 @@ Relevant files:
 - `.deps/contracts/standards/assembler/assembler.transform-semantics.v1.md`
 - `.deps/contracts/tech/Lenovo.DE/assembler.projections.v1.json`
 
-### 3. Dataset presentation sidecars
+### 3. Diagram contracts
+Diagram definitions are separate from table projections. They are the right place for graph/topology intent:
+- rendering engine and diagram kind
+- input datasets and item roots
+- nodes, fields, grouping, and edges
+- layout and fallback policy
+
+Mappings should declare `renderAs: diagram`, `renderMode: diagram`, and `diagramRef`; assembler should then resolve the diagram definition and render an image for DOCX output. Text/debug output should use a concise placeholder with diagram metadata, not raw JSON.
+
+Relevant files:
+- `.deps/contracts/standards/assembler/assembler.diagrams.schema.v1.json`
+- `.deps/contracts/tech/Lenovo.DE/assembler.diagrams.v1.json`
+
+The first implemented engine is `diagrammer.core` for topology-style diagrams. DE physical front-view drive SVGs are intentionally out of this contract family for now and should be handled as a later physical-layout diagram type.
+
+### 4. Dataset presentation sidecars
 Collectors can inform assembler of upstream document intent through dataset presentation metadata sidecars such as:
 - `presentationKind`
 - `defaultItemRoot`
@@ -92,7 +109,7 @@ The intended dependency chain in this repo is:
 2. `mapping.dataset-to-sdt` binds those datasets to SDT destinations and declares render intent through `renderHint` fields such as `renderAs`, `projectionRef`, and `view`.
 3. Dataset sidecars under `tech/<techId>/dataset/*.assembler.meta.json` describe upstream document intent and dataset path templates used by sync/runtime generation.
 4. `Sync-AssemblerContractsToRepo.ps1` consumes `renderAs` and `syncPolicy` to generate the runtime-facing skeleton mapping copy.
-5. `Invoke-AssemblerSdtRender.ps1` resolves the selected projection through `projectionRef`, `view`, tag, and alias lookup, then executes the currently implemented projection subset against DOCX or text output.
+5. `Invoke-AssemblerSdtRender.ps1` resolves the selected projection or diagram through `projectionRef`, `diagramRef`, `view`, tag, and alias lookup, then executes the currently implemented projection/diagram subset against DOCX or text output.
 
 ## Current runtime subset
 
@@ -105,6 +122,9 @@ Current supported runtime behavior:
 - Projection lookup already supports direct tag lookup, alias lookup, `projectionRef`, and `view`.
 - Current projection execution supports aliases, `filter`, legacy `sortBy`, `columns`, and column formats `bytesHuman` and `join`.
 - Current table empty-state handling is partial: `emptyBehavior=placeholder` can synthesize a placeholder row, but the full `emptyBehavior` model is not yet enforced.
+- Diagram lookup supports direct tag lookup, alias lookup, and `diagramRef`.
+- Current diagram execution supports `diagrammer.core` topology diagrams with dataset inputs, simple field/template expansion, equality filters, node groups, and edges.
+- DOCX diagram output embeds a PNG image; text output renders a placeholder such as `[diagram: ...]`.
 
 Current runtime mode precedence:
 - projection `renderMode`
@@ -119,6 +139,8 @@ Current unsupported or partial areas:
 - `rowOrder`, `identityKeys`, and `formatProfiles` are defined in contracts but not yet executed by the renderer
 - `renderAs`/`renderMode` disagreement is not yet enforced as a contract error
 - `emptyBehavior` values other than the current placeholder path are not yet fully implemented
+- Diagram expressions are intentionally minimal and do not execute arbitrary script.
+- Physical front-view drive diagrams are not implemented in this pass.
 
 ## Why `renderAs` does not win today
 
@@ -133,6 +155,7 @@ Mode differences in the current repo:
 - `renderMode`: legacy runtime execution switch still consumed first by the renderer.
 - `renderAs`: newer declarative contract intent already used by mappings and sync.
 - `projectionRef`: explicit projection identity for shaping rows/values.
+- `diagramRef`: explicit diagram identity for shaping graph/topology image output.
 - `view`: named projection/view selector used during projection lookup.
 
 ## Target semantics and backlog
@@ -157,6 +180,7 @@ When a rendered table is not converging or raw JSON leaks into output:
    - dataset presentation metadata
    - mapping render hints
    - projection/view definitions
+   - diagram definitions
 3. Only change invoke/orchestration scripts when the runtime lacks a **generic** capability needed to consume those contracts.
 4. Avoid adding Lenovo-specific or tech-specific alias/fallback logic directly to the renderer when the rule can be declared in contracts.
 

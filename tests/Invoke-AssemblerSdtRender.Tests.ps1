@@ -93,6 +93,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         $schemaRelativePaths = @(
             'standards/mapping.dataset-to-sdt.schema.v1.json',
             'standards/assembler/assembler.projections.schema.v1.json',
+            'standards/assembler/assembler.diagrams.schema.v1.json',
             'standards/assembler/assembler.render-report.schema.v1.json'
         )
 
@@ -1890,6 +1891,181 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             }
             if ([string]$result.mode -ne [string]$variant.expectedMode) {
                 throw "Expected '$($variant.name)' compatibility mode '$($variant.expectedMode)', got '$($result.mode)'"
+            }
+        }
+    }
+
+    It 'accepts diagram render hints in the mapping schema' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $mappingSchemaPath = Join-Path $repoRoot '.deps/contracts/standards/mapping.dataset-to-sdt.schema.v1.json'
+
+        $mapping = @{
+            schema = 'mapping.dataset-to-sdt'
+            schemaVersion = 1
+            techId = 'Lenovo.DE'
+            displayName = 'diagram mapping schema test'
+            compatibility = @{ contracts = @{ version = 'v1' } }
+            mappings = @(
+                @{
+                    dataset = 'host-ports'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Diagrams.HostPortTopology'
+                    target = @{ sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Diagrams.HostPortTopology' }
+                    renderHint = @{
+                        renderAs = 'diagram'
+                        renderMode = 'diagram'
+                        diagramRef = 'LNV.Lenovo.DE.System[ArrayName].Diagrams.HostPortTopology'
+                    }
+                }
+            )
+        }
+
+        $mappingPath = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-diagram-mapping-schema-" + [guid]::NewGuid().ToString() + ".json")
+        try {
+            Set-Content -LiteralPath $mappingPath -Encoding UTF8 -Value ($mapping | ConvertTo-Json -Depth 10)
+            if (-not (Test-Json -Path $mappingPath -SchemaFile $mappingSchemaPath)) {
+                throw 'Test-Json returned false.'
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $mappingPath -PathType Leaf) {
+                Remove-Item -LiteralPath $mappingPath -Force
+            }
+        }
+    }
+
+    It 'renders diagram SDTs as a placeholder instead of raw JSON when Diagrammer.Core is unavailable' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-diagram-missing-module-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $bundleRoot = Join-Path $tempRoot 'bundle'
+            $systemDatasetRelativeRoot = 'datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4'
+            $datasetsRoot = Join-Path $bundleRoot $systemDatasetRelativeRoot
+            $null = New-Item -ItemType Directory -Path $datasetsRoot -Force
+            $manifestPath = Join-Path $bundleRoot 'manifest.json'
+            Set-Content -LiteralPath $manifestPath -Encoding UTF8 -Value (@{ bundleId = 'bundle-test' } | ConvertTo-Json -Depth 5)
+
+            $hostPortsDatasetPath = Join-Path $datasetsRoot 'host-ports.json'
+            Set-Content -LiteralPath $hostPortsDatasetPath -Encoding UTF8 -Value (@{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'host-ports'
+                item_count = 1
+                items = @(
+                    @{
+                        systemId = 'sys-1'
+                        transport = 'iscsi'
+                        controllerRef = 'ctrl-a'
+                        controllerLabel = 'A'
+                        controllerSlot = 1
+                        portLabel = 'P1'
+                        interfaceRef = 'if-a-p1'
+                        linkStatus = 'up'
+                        ipv4Address = '192.0.2.10'
+                    }
+                )
+            } | ConvertTo-Json -Depth 10)
+
+            $mappingPath = Join-Path $tempRoot 'mapping.json'
+            Set-Content -LiteralPath $mappingPath -Encoding UTF8 -Value (@{
+                schema = 'mapping.dataset-to-sdt'
+                schemaVersion = 1
+                techId = 'Lenovo.DE'
+                displayName = 'diagram render test mapping'
+                compatibility = @{ contracts = @{ version = 'v1' } }
+                mappings = @(
+                    @{
+                        dataset = "$systemDatasetRelativeRoot/host-ports.json"
+                        sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Diagrams.HostPortTopology'
+                        required = $false
+                        renderHint = @{
+                            renderAs = 'diagram'
+                            renderMode = 'diagram'
+                            diagramRef = 'LNV.Lenovo.DE.System[ArrayName].Diagrams.HostPortTopology'
+                        }
+                    }
+                )
+            } | ConvertTo-Json -Depth 10)
+
+            $templatePath = Join-Path $tempRoot 'template.txt'
+            $outputPath = Join-Path $tempRoot 'rendered.txt'
+            $reportPath = Join-Path $tempRoot 'report.json'
+            Set-Content -LiteralPath $templatePath -Encoding UTF8 -Value 'Diagram=<<SDT:LNV.Lenovo.DE.System[ArrayName].Diagrams.HostPortTopology>>'
+
+            $controllerDatasetPath = Join-Path $datasetsRoot 'system-controllers.json'
+            Set-Content -LiteralPath $controllerDatasetPath -Encoding UTF8 -Value (@{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'system-controllers'
+                item_count = 1
+                items = @(
+                    @{
+                        systemId = 'sys-1'
+                        controllerRef = 'ctrl-a'
+                        controllerLabel = 'A'
+                        controllerSlot = 1
+                        trayId = 99
+                        status = 'online'
+                        appVersion = '1.0'
+                        bootVersion = '1.0'
+                        serialNumber = 'SERIAL-A'
+                        modelName = 'DE-Test'
+                    }
+                )
+            } | ConvertTo-Json -Depth 10)
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $disabledOutput = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $bundleRoot -MappingPath $mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot
+            if ($LASTEXITCODE -ne 0) { throw "Expected exit code 0 when diagram rendering is disabled. Output: $disabledOutput" }
+            $disabledRendered = Get-Content -LiteralPath $outputPath -Raw -Encoding UTF8
+            if ($disabledRendered -notmatch '\[diagram disabled: LNV\.Lenovo\.DE\.System\[ArrayName\]\.Diagrams\.HostPortTopology\]') {
+                throw "Expected disabled diagram placeholder output, got '$disabledRendered'"
+            }
+            $disabledReport = Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            $disabledIssue = @($disabledReport.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DIAGRAM-RENDER-FAILED' }) | Select-Object -First 1
+            if ($null -ne $disabledIssue) {
+                throw 'Did not expect diagram render failure issue when diagram rendering is disabled.'
+            }
+
+            $previousDisableValue = $env:ASSEMBLER_DISABLE_DIAGRAMMER_CORE
+            $env:ASSEMBLER_DISABLE_DIAGRAMMER_CORE = '1'
+            try {
+                $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $bundleRoot -MappingPath $mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot -EnableDiagramRendering
+                if ($LASTEXITCODE -eq 0) { throw "Expected non-zero exit code when diagram generation fails closed. Output: $output" }
+            }
+            finally {
+                $env:ASSEMBLER_DISABLE_DIAGRAMMER_CORE = $previousDisableValue
+            }
+
+            $rendered = Get-Content -LiteralPath $outputPath -Raw -Encoding UTF8
+            if ($rendered -notmatch '\[diagram unavailable: LNV\.Lenovo\.DE\.System\[ArrayName\]\.Diagrams\.HostPortTopology\]') {
+                throw "Expected diagram placeholder output, got '$rendered'"
+            }
+            if ($rendered -match '"items"|interfaceRef|SERIAL-A') {
+                throw "Expected diagram fallback to avoid raw JSON, got '$rendered'"
+            }
+
+            $report = Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            $issue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DIAGRAM-RENDER-FAILED' }) | Select-Object -First 1
+            if ($null -eq $issue) {
+                throw 'Expected diagram render failure issue in report'
+            }
+            if ([string]$issue.message -notmatch 'Diagrammer\.Core has been disabled' -or [string]$issue.message -match 'dataset .* was not found') {
+                throw "Expected sibling diagram inputs to resolve before Diagrammer.Core is invoked, got '$($issue.message)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
             }
         }
     }

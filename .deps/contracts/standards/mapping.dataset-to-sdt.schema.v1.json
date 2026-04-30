@@ -293,6 +293,10 @@
           "type": "string",
           "minLength": 1
         },
+        "diagramRef": {
+          "type": "string",
+          "minLength": 1
+        },
         "renderAs": {
           "type": "string",
           "minLength": 1
@@ -306,6 +310,7 @@
           "enum": [
             "scalar",
             "table",
+            "diagram",
             "json-evidence",
             "json-debug"
           ]

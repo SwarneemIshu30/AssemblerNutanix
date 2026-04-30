@@ -22,8 +22,10 @@ param(
     [Parameter(Mandatory = $false)][string]$DocReferenceId,
     [Parameter(Mandatory = $false)][string]$DocClassification,
     [Parameter(Mandatory = $false)][string]$DocSupportRegion,
+    [Parameter(Mandatory = $false)][string]$DocSupportTier,
     [Parameter(Mandatory = $false)][string]$SupportRegionSidecarPath,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
+    [Parameter(Mandatory = $false)][switch]$EnableDiagramRendering,
     [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
     [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
 )
@@ -135,6 +137,18 @@ function Format-SupportGuidance {
     return ($lines.ToArray() -join [Environment]::NewLine)
 }
 
+function Format-SupportLanguages {
+    param([Parameter(Mandatory = $false)]$Languages)
+
+    $lines = [System.Collections.Generic.List[string]]::new()
+    foreach ($language in @($Languages)) {
+        $value = [string]$language
+        if (-not [string]::IsNullOrWhiteSpace($value)) { $lines.Add($value) }
+    }
+
+    return ($lines.ToArray() -join ', ')
+}
+
 function New-SupportProcessText {
     param([Parameter(Mandatory = $true)][System.Collections.IDictionary]$SupportRegionModel)
 
@@ -142,6 +156,8 @@ function New-SupportProcessText {
     $regionLabel = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportRegionLabel' -Default '')
     $supportTier = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportTier' -Default '')
     $phoneNumbersInline = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPhoneNumbersInline' -Default '')
+    $workingHours = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportWorkingHours' -Default '')
+    $languages = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportLanguages' -Default '')
     $serviceRequestUrl = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportServiceRequestUrl' -Default '')
     $supportPortalUrl = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPortalUrl' -Default '')
     $supportPlanUrl = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPlanUrl' -Default '')
@@ -159,6 +175,14 @@ function New-SupportProcessText {
 
     if (-not [string]::IsNullOrWhiteSpace($phoneNumbersInline)) {
         $paragraphs.Add(("Phone support: {0}." -f $phoneNumbersInline))
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($workingHours)) {
+        $paragraphs.Add(("Working hours: {0}." -f $workingHours))
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($languages)) {
+        $paragraphs.Add(("Support language: {0}." -f $languages))
     }
 
     if (-not [string]::IsNullOrWhiteSpace($serviceRequestUrl)) {
@@ -184,16 +208,22 @@ function New-SupportProcessText {
 function Resolve-SupportRegionDocumentModel {
     param(
         [Parameter(Mandatory = $false)][string]$SupportRegion,
+        [Parameter(Mandatory = $false)][string]$SupportTier,
         [Parameter(Mandatory = $false)][string]$SidecarPath
     )
 
     $requestedRegion = ([string]$SupportRegion).Trim()
+    $requestedTier = ([string]$SupportTier).Trim()
     $selectedRegion = $null
+    $selectedTier = $null
+    $selectedTierId = $requestedTier
     $resolvedSidecarPath = ''
+    $defaultSupportTier = ''
 
     if (-not [string]::IsNullOrWhiteSpace($SidecarPath) -and (Test-Path -LiteralPath $SidecarPath -PathType Leaf)) {
         $resolvedSidecarPath = (Resolve-Path -LiteralPath $SidecarPath).Path
         $sidecar = Read-JsonFile -Path $resolvedSidecarPath
+        $defaultSupportTier = [string](Get-SupportMapValue -Map $sidecar -Key 'defaultSupportTier' -Default '')
         $regions = @(Get-SupportMapValue -Map $sidecar -Key 'regions' -Default @())
         if (-not [string]::IsNullOrWhiteSpace($requestedRegion)) {
             foreach ($region in $regions) {
@@ -229,9 +259,13 @@ function Resolve-SupportRegionDocumentModel {
     $model = [ordered]@{
         SupportRegion = $requestedRegion
         DocSupportRegion = $requestedRegion
+        SupportTierId = $requestedTier
+        DocSupportTier = $requestedTier
         SupportRegionLabel = ''
         SupportRegionDisplayName = $requestedRegion
         SupportLanguage = ''
+        SupportLanguages = ''
+        SupportWorkingHours = ''
         SupportCountryCode = ''
         SupportTier = ''
         SupportPhoneNumbers = ''
@@ -249,21 +283,64 @@ function Resolve-SupportRegionDocumentModel {
         $id = [string](Get-SupportMapValue -Map $selectedRegion -Key 'id' -Default $requestedRegion)
         $label = [string](Get-SupportMapValue -Map $selectedRegion -Key 'label' -Default '')
         $display = if ([string]::IsNullOrWhiteSpace($label)) { $id } else { ('{0} - {1}' -f $id, $label) }
-        $phoneNumbers = Get-SupportMapValue -Map $selectedRegion -Key 'phoneNumbers' -Default @()
+        $supportTiers = Get-SupportMapValue -Map $selectedRegion -Key 'supportTiers' -Default $null
+        if ($supportTiers -is [System.Collections.IDictionary] -and @($supportTiers.Keys).Count -gt 0) {
+            $tierCandidates = @()
+            if (-not [string]::IsNullOrWhiteSpace($requestedTier)) { $tierCandidates += $requestedTier }
+            if (-not [string]::IsNullOrWhiteSpace($defaultSupportTier)) { $tierCandidates += $defaultSupportTier }
+            $tierCandidates += @('Premier', 'ESS')
+
+            foreach ($tierCandidate in @($tierCandidates)) {
+                if ([string]::IsNullOrWhiteSpace([string]$tierCandidate)) { continue }
+                foreach ($tierKey in @($supportTiers.Keys)) {
+                    $tier = $supportTiers[$tierKey]
+                    if ($tier -isnot [System.Collections.IDictionary]) { continue }
+                    $tierId = [string](Get-SupportMapValue -Map $tier -Key 'id' -Default $tierKey)
+                    $tierLabel = [string](Get-SupportMapValue -Map $tier -Key 'label' -Default $tierId)
+                    if ([string]$tierCandidate -ieq [string]$tierKey -or [string]$tierCandidate -ieq $tierId -or [string]$tierCandidate -ieq $tierLabel) {
+                        $selectedTier = $tier
+                        $selectedTierId = $tierId
+                        break
+                    }
+                }
+                if ($null -ne $selectedTier) { break }
+            }
+
+            if ($null -eq $selectedTier) {
+                foreach ($tierKey in @($supportTiers.Keys)) {
+                    $tier = $supportTiers[$tierKey]
+                    if ($tier -is [System.Collections.IDictionary]) {
+                        $selectedTier = $tier
+                        $selectedTierId = [string](Get-SupportMapValue -Map $tier -Key 'id' -Default $tierKey)
+                        break
+                    }
+                }
+            }
+        }
+        $phoneNumbers = if ($selectedTier -is [System.Collections.IDictionary]) { Get-SupportMapValue -Map $selectedTier -Key 'phoneNumbers' -Default @() } else { Get-SupportMapValue -Map $selectedRegion -Key 'phoneNumbers' -Default @() }
+        $languages = if ($selectedTier -is [System.Collections.IDictionary]) { Get-SupportMapValue -Map $selectedTier -Key 'languages' -Default (Get-SupportMapValue -Map $selectedRegion -Key 'languages' -Default @()) } else { Get-SupportMapValue -Map $selectedRegion -Key 'languages' -Default @() }
+        $languageText = Format-SupportLanguages -Languages $languages
+        if ([string]::IsNullOrWhiteSpace($languageText)) {
+            $languageText = [string](Get-SupportMapValue -Map $selectedRegion -Key 'language' -Default '')
+        }
 
         $model.SupportRegion = $id
         $model.DocSupportRegion = $id
+        $model.SupportTierId = $selectedTierId
+        $model.DocSupportTier = $selectedTierId
         $model.SupportRegionLabel = $label
         $model.SupportRegionDisplayName = $display
-        $model.SupportLanguage = [string](Get-SupportMapValue -Map $selectedRegion -Key 'language' -Default '')
+        $model.SupportLanguage = $languageText
+        $model.SupportLanguages = $languageText
+        $model.SupportWorkingHours = if ($selectedTier -is [System.Collections.IDictionary]) { [string](Get-SupportMapValue -Map $selectedTier -Key 'workingHours' -Default '') } else { [string](Get-SupportMapValue -Map $selectedRegion -Key 'workingHours' -Default '') }
         $model.SupportCountryCode = [string](Get-SupportMapValue -Map $selectedRegion -Key 'countryCode' -Default '')
-        $model.SupportTier = [string](Get-SupportMapValue -Map $selectedRegion -Key 'supportTier' -Default '')
+        $model.SupportTier = if ($selectedTier -is [System.Collections.IDictionary]) { [string](Get-SupportMapValue -Map $selectedTier -Key 'label' -Default $selectedTierId) } else { [string](Get-SupportMapValue -Map $selectedRegion -Key 'supportTier' -Default $selectedTierId) }
         $model.SupportPhoneNumbers = Format-SupportPhoneNumbers -PhoneNumbers $phoneNumbers
         $model.SupportPhoneNumbersInline = Format-SupportPhoneNumbers -PhoneNumbers $phoneNumbers -Inline
-        $model.SupportServiceRequestUrl = [string](Get-SupportMapValue -Map $selectedRegion -Key 'serviceRequestUrl' -Default '')
-        $model.SupportPortalUrl = [string](Get-SupportMapValue -Map $selectedRegion -Key 'supportPortalUrl' -Default '')
-        $model.SupportPhoneListUrl = [string](Get-SupportMapValue -Map $selectedRegion -Key 'supportPhoneListUrl' -Default '')
-        $model.SupportPlanUrl = [string](Get-SupportMapValue -Map $selectedRegion -Key 'supportPlanUrl' -Default '')
+        $model.SupportServiceRequestUrl = if ($selectedTier -is [System.Collections.IDictionary]) { [string](Get-SupportMapValue -Map $selectedTier -Key 'serviceRequestUrl' -Default (Get-SupportMapValue -Map $selectedRegion -Key 'serviceRequestUrl' -Default '')) } else { [string](Get-SupportMapValue -Map $selectedRegion -Key 'serviceRequestUrl' -Default '') }
+        $model.SupportPortalUrl = if ($selectedTier -is [System.Collections.IDictionary]) { [string](Get-SupportMapValue -Map $selectedTier -Key 'supportPortalUrl' -Default (Get-SupportMapValue -Map $selectedRegion -Key 'supportPortalUrl' -Default '')) } else { [string](Get-SupportMapValue -Map $selectedRegion -Key 'supportPortalUrl' -Default '') }
+        $model.SupportPhoneListUrl = if ($selectedTier -is [System.Collections.IDictionary]) { [string](Get-SupportMapValue -Map $selectedTier -Key 'supportPhoneListUrl' -Default (Get-SupportMapValue -Map $selectedRegion -Key 'supportPhoneListUrl' -Default '')) } else { [string](Get-SupportMapValue -Map $selectedRegion -Key 'supportPhoneListUrl' -Default '') }
+        $model.SupportPlanUrl = if ($selectedTier -is [System.Collections.IDictionary]) { [string](Get-SupportMapValue -Map $selectedTier -Key 'supportPlanUrl' -Default (Get-SupportMapValue -Map $selectedRegion -Key 'supportPlanUrl' -Default '')) } else { [string](Get-SupportMapValue -Map $selectedRegion -Key 'supportPlanUrl' -Default '') }
         $model.SupportGuidance = Format-SupportGuidance -Guidance (Get-SupportMapValue -Map $selectedRegion -Key 'guidance' -Default @())
     }
 
@@ -709,7 +786,10 @@ function Update-DocxMetadataProperties {
             'SupportRegionLabel',
             'SupportRegionDisplayName',
             'SupportLanguage',
+            'SupportLanguages',
+            'SupportWorkingHours',
             'SupportCountryCode',
+            'SupportTierId',
             'SupportTier',
             'SupportPhoneNumbers',
             'SupportPhoneNumbersInline',
@@ -1118,6 +1198,226 @@ function Convert-TableModelToWordTableXml {
     return $sb.ToString()
 }
 
+function Add-DocxPngImagePart {
+    param(
+        [Parameter(Mandatory = $true)][System.IO.Compression.ZipArchive]$Archive,
+        [Parameter(Mandatory = $true)][string]$ImageBase64,
+        [Parameter(Mandatory = $false)][string]$ImageExtension = 'png',
+        [Parameter(Mandatory = $false)][string]$ContentType = 'image/png'
+    )
+
+    $imageBytes = [Convert]::FromBase64String($ImageBase64)
+    $safeExtension = [regex]::Replace($ImageExtension.ToLowerInvariant(), '[^a-z0-9]', '')
+    if ([string]::IsNullOrWhiteSpace($safeExtension)) { $safeExtension = 'png' }
+    $mediaIndex = @($Archive.Entries | Where-Object { $_.FullName -like "word/media/assembler-diagram-*.$safeExtension" }).Count + 1
+    $mediaPath = "word/media/assembler-diagram-$mediaIndex.$safeExtension"
+    while ($null -ne $Archive.GetEntry($mediaPath)) {
+        $mediaIndex++
+        $mediaPath = "word/media/assembler-diagram-$mediaIndex.$safeExtension"
+    }
+
+    $mediaEntry = $Archive.CreateEntry($mediaPath)
+    $mediaStream = $mediaEntry.Open()
+    try {
+        $mediaStream.Write($imageBytes, 0, $imageBytes.Length)
+    }
+    finally {
+        $mediaStream.Dispose()
+    }
+
+    $contentTypesEntry = $Archive.GetEntry('[Content_Types].xml')
+    if ($null -ne $contentTypesEntry) {
+        $reader = [System.IO.StreamReader]::new($contentTypesEntry.Open())
+        try {
+            $contentTypesXmlText = $reader.ReadToEnd()
+        }
+        finally {
+            $reader.Dispose()
+        }
+
+        [xml]$contentTypesXml = $contentTypesXmlText
+        $contentTypesNamespace = 'http://schemas.openxmlformats.org/package/2006/content-types'
+        $imageDefault = @($contentTypesXml.SelectNodes("/*[local-name()='Types']/*[local-name()='Default'][@Extension='$safeExtension']")) | Select-Object -First 1
+        if ($null -eq $imageDefault) {
+            $defaultNode = $contentTypesXml.CreateElement('Default', $contentTypesNamespace)
+            $extensionAttribute = $contentTypesXml.CreateAttribute('Extension')
+            $extensionAttribute.Value = $safeExtension
+            [void]$defaultNode.Attributes.Append($extensionAttribute)
+            $contentTypeAttribute = $contentTypesXml.CreateAttribute('ContentType')
+            $contentTypeAttribute.Value = $ContentType
+            [void]$defaultNode.Attributes.Append($contentTypeAttribute)
+            [void]$contentTypesXml.DocumentElement.AppendChild($defaultNode)
+
+            $contentTypesEntry.Delete()
+            $updatedContentTypesEntry = $Archive.CreateEntry('[Content_Types].xml')
+            Set-ZipEntryText -Entry $updatedContentTypesEntry -Text $contentTypesXml.OuterXml
+        }
+    }
+
+    $relsPath = 'word/_rels/document.xml.rels'
+    $relsEntry = $Archive.GetEntry($relsPath)
+    $relsNamespace = 'http://schemas.openxmlformats.org/package/2006/relationships'
+    if ($null -eq $relsEntry) {
+        $relsEntry = $Archive.CreateEntry($relsPath)
+        Set-ZipEntryText -Entry $relsEntry -Text "<?xml version=`"1.0`" encoding=`"UTF-8`" standalone=`"yes`"?><Relationships xmlns=`"$relsNamespace`"></Relationships>"
+        $relsEntry = $Archive.GetEntry($relsPath)
+    }
+
+    $relsReader = [System.IO.StreamReader]::new($relsEntry.Open())
+    try {
+        $relsXmlText = $relsReader.ReadToEnd()
+    }
+    finally {
+        $relsReader.Dispose()
+    }
+
+    [xml]$relsXml = $relsXmlText
+    $maxRelationshipId = 0
+    foreach ($relationshipNode in @($relsXml.SelectNodes("/*[local-name()='Relationships']/*[local-name()='Relationship']"))) {
+        $idValue = [string]$relationshipNode.Id
+        if ($idValue -match '^rId(\d+)$') {
+            $maxRelationshipId = [Math]::Max($maxRelationshipId, [int]$Matches[1])
+        }
+    }
+
+    $relationshipId = 'rId' + ($maxRelationshipId + 1)
+    $relationship = $relsXml.CreateElement('Relationship', $relsNamespace)
+    foreach ($attribute in @(
+        @{ name = 'Id'; value = $relationshipId },
+        @{ name = 'Type'; value = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image' },
+        @{ name = 'Target'; value = ('media/' + [System.IO.Path]::GetFileName($mediaPath)) }
+    )) {
+        $attr = $relsXml.CreateAttribute([string]$attribute.name)
+        $attr.Value = [string]$attribute.value
+        [void]$relationship.Attributes.Append($attr)
+    }
+    [void]$relsXml.DocumentElement.AppendChild($relationship)
+
+    $relsEntry.Delete()
+    $updatedRelsEntry = $Archive.CreateEntry($relsPath)
+    Set-ZipEntryText -Entry $updatedRelsEntry -Text $relsXml.OuterXml
+
+    return $relationshipId
+}
+
+function Get-PngDimensionsFromBase64 {
+    param([Parameter(Mandatory = $true)][string]$ImageBase64)
+
+    try {
+        $bytes = [Convert]::FromBase64String($ImageBase64)
+        if ($bytes.Length -lt 24) { return $null }
+        $pngSignature = [byte[]](137, 80, 78, 71, 13, 10, 26, 10)
+        for ($index = 0; $index -lt $pngSignature.Length; $index++) {
+            if ($bytes[$index] -ne $pngSignature[$index]) { return $null }
+        }
+
+        $width = (($bytes[16] -shl 24) -bor ($bytes[17] -shl 16) -bor ($bytes[18] -shl 8) -bor $bytes[19])
+        $height = (($bytes[20] -shl 24) -bor ($bytes[21] -shl 16) -bor ($bytes[22] -shl 8) -bor $bytes[23])
+        if ($width -le 0 -or $height -le 0) { return $null }
+        return [pscustomobject]@{ Width = [int]$width; Height = [int]$height }
+    }
+    catch {
+        return $null
+    }
+}
+
+function New-DocxImageSizeFromPngBase64 {
+    param(
+        [Parameter(Mandatory = $true)][string]$ImageBase64,
+        [Parameter(Mandatory = $false)][int64]$MaxWidthEmu = 5486400,
+        [Parameter(Mandatory = $false)][int64]$MaxHeightEmu = 7315200
+    )
+
+    $dimensions = Get-PngDimensionsFromBase64 -ImageBase64 $ImageBase64
+    if ($null -eq $dimensions) {
+        return [pscustomobject]@{ WidthEmu = $MaxWidthEmu; HeightEmu = 3200400 }
+    }
+
+    $widthEmu = [double]$MaxWidthEmu
+    $heightEmu = $widthEmu * ([double]$dimensions.Height / [double]$dimensions.Width)
+    if ($heightEmu -gt [double]$MaxHeightEmu) {
+        $heightEmu = [double]$MaxHeightEmu
+        $widthEmu = $heightEmu * ([double]$dimensions.Width / [double]$dimensions.Height)
+    }
+
+    return [pscustomobject]@{
+        WidthEmu = [int64][Math]::Round($widthEmu)
+        HeightEmu = [int64][Math]::Round($heightEmu)
+    }
+}
+
+function New-DocxImageSizeFromPixelDimensions {
+    param(
+        [Parameter(Mandatory = $true)][int]$Width,
+        [Parameter(Mandatory = $true)][int]$Height,
+        [Parameter(Mandatory = $false)][int64]$MaxWidthEmu = 5486400,
+        [Parameter(Mandatory = $false)][int64]$MaxHeightEmu = 7315200
+    )
+
+    if ($Width -le 0 -or $Height -le 0) {
+        return [pscustomobject]@{ WidthEmu = $MaxWidthEmu; HeightEmu = 3200400 }
+    }
+
+    $widthEmu = [double]$MaxWidthEmu
+    $heightEmu = $widthEmu * ([double]$Height / [double]$Width)
+    if ($heightEmu -gt [double]$MaxHeightEmu) {
+        $heightEmu = [double]$MaxHeightEmu
+        $widthEmu = $heightEmu * ([double]$Width / [double]$Height)
+    }
+
+    return [pscustomobject]@{
+        WidthEmu = [int64][Math]::Round($widthEmu)
+        HeightEmu = [int64][Math]::Round($heightEmu)
+    }
+}
+
+function Convert-ImageModelToWordDrawingXml {
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$ImageModel,
+        [Parameter(Mandatory = $true)][string]$RelationshipId,
+        [Parameter(Mandatory = $true)][int]$ImageIndex
+    )
+
+    $widthEmu = if (Test-MapHasKey -Map $ImageModel -Key 'widthEmu') { [int64]$ImageModel.widthEmu } else { 5486400 }
+    $heightEmu = if (Test-MapHasKey -Map $ImageModel -Key 'heightEmu') { [int64]$ImageModel.heightEmu } else { 3200400 }
+    $name = if (Test-MapHasKey -Map $ImageModel -Key 'name') { [string]$ImageModel.name } else { "Assembler Diagram $ImageIndex" }
+    $escapedName = ConvertTo-WordXmlEscapedText -Text $name
+
+    return @"
+<w:p>
+  <w:r>
+    <w:drawing>
+      <wp:inline xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" distT="0" distB="0" distL="0" distR="0">
+        <wp:extent cx="$widthEmu" cy="$heightEmu"/>
+        <wp:docPr id="$ImageIndex" name="$escapedName"/>
+        <wp:cNvGraphicFramePr>
+          <a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/>
+        </wp:cNvGraphicFramePr>
+        <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+          <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+            <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+              <pic:nvPicPr>
+                <pic:cNvPr id="$ImageIndex" name="$escapedName"/>
+                <pic:cNvPicPr/>
+              </pic:nvPicPr>
+              <pic:blipFill>
+                <a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="$RelationshipId"/>
+                <a:stretch><a:fillRect/></a:stretch>
+              </pic:blipFill>
+              <pic:spPr>
+                <a:xfrm><a:off x="0" y="0"/><a:ext cx="$widthEmu" cy="$heightEmu"/></a:xfrm>
+                <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
+              </pic:spPr>
+            </pic:pic>
+          </a:graphicData>
+        </a:graphic>
+      </wp:inline>
+    </w:drawing>
+  </w:r>
+</w:p>
+"@.Trim()
+}
+
 function Replace-DocxParagraphTokenWithBlockXml {
     param(
         [Parameter(Mandatory = $true)][string]$XmlText,
@@ -1449,6 +1749,7 @@ function Get-DocxContentControlReplacementMap {
         [Parameter(Mandatory = $false)][string]$DocReferenceId,
         [Parameter(Mandatory = $false)][string]$DocClassification,
         [Parameter(Mandatory = $false)][string]$DocSupportRegion,
+        [Parameter(Mandatory = $false)][string]$DocSupportTier,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$SupportRegionModel
     )
 
@@ -1469,7 +1770,10 @@ function Get-DocxContentControlReplacementMap {
         SupportRegionLabel = @('SupportRegionLabel', 'DocSupportRegionLabel')
         SupportRegionDisplayName = @('SupportRegionDisplayName', 'DocSupportRegionDisplayName')
         SupportLanguage = @('SupportLanguage', 'DocSupportLanguage')
+        SupportLanguages = @('SupportLanguages', 'DocSupportLanguages')
+        SupportWorkingHours = @('SupportWorkingHours', 'DocSupportWorkingHours')
         SupportCountryCode = @('SupportCountryCode', 'DocSupportCountryCode')
+        SupportTierId = @('SupportTierId', 'DocSupportTierId')
         SupportTier = @('SupportTier', 'DocSupportTier')
         SupportPhoneNumbers = @('SupportPhoneNumbers', 'DocSupportPhoneNumbers')
         SupportPhoneNumbersInline = @('SupportPhoneNumbersInline', 'DocSupportPhoneNumbersInline')
@@ -1493,6 +1797,7 @@ function Get-DocxContentControlReplacementMap {
         ReferenceId = $DocReferenceId
         Classification = $DocClassification
         SupportRegion = $DocSupportRegion
+        SupportTierId = $DocSupportTier
     }
     if ($null -ne $SupportRegionModel) {
         foreach ($propertyName in @(
@@ -1500,7 +1805,10 @@ function Get-DocxContentControlReplacementMap {
             'SupportRegionLabel',
             'SupportRegionDisplayName',
             'SupportLanguage',
+            'SupportLanguages',
+            'SupportWorkingHours',
             'SupportCountryCode',
+            'SupportTierId',
             'SupportTier',
             'SupportPhoneNumbers',
             'SupportPhoneNumbersInline',
@@ -1541,6 +1849,7 @@ function Get-DocxDocPropertyFieldReplacementMap {
         [Parameter(Mandatory = $false)][string]$DocReferenceId,
         [Parameter(Mandatory = $false)][string]$DocClassification,
         [Parameter(Mandatory = $false)][string]$DocSupportRegion,
+        [Parameter(Mandatory = $false)][string]$DocSupportTier,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$SupportRegionModel
     )
 
@@ -1559,19 +1868,38 @@ function Get-DocxDocPropertyFieldReplacementMap {
         @{ name = 'ClassificationContentMarkingHeaderText'; value = $DocClassification },
         @{ name = 'SupportRegion'; value = $DocSupportRegion },
         @{ name = 'DocSupportRegion'; value = $DocSupportRegion },
+        @{ name = 'SupportTierId'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportTierId' -Default $DocSupportTier) },
+        @{ name = 'DocSupportTierId'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportTierId' -Default $DocSupportTier) },
         @{ name = 'SupportRegionLabel'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportRegionLabel' -Default '') },
+        @{ name = 'DocSupportRegionLabel'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportRegionLabel' -Default '') },
         @{ name = 'SupportRegionDisplayName'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportRegionDisplayName' -Default '') },
+        @{ name = 'DocSupportRegionDisplayName'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportRegionDisplayName' -Default '') },
         @{ name = 'SupportLanguage'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportLanguage' -Default '') },
+        @{ name = 'DocSupportLanguage'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportLanguage' -Default '') },
+        @{ name = 'SupportLanguages'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportLanguages' -Default '') },
+        @{ name = 'DocSupportLanguages'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportLanguages' -Default '') },
+        @{ name = 'SupportWorkingHours'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportWorkingHours' -Default '') },
+        @{ name = 'DocSupportWorkingHours'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportWorkingHours' -Default '') },
         @{ name = 'SupportCountryCode'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportCountryCode' -Default '') },
+        @{ name = 'DocSupportCountryCode'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportCountryCode' -Default '') },
         @{ name = 'SupportTier'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportTier' -Default '') },
+        @{ name = 'DocSupportTier'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportTier' -Default '') },
         @{ name = 'SupportPhoneNumbers'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPhoneNumbers' -Default '') },
+        @{ name = 'DocSupportPhoneNumbers'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPhoneNumbers' -Default '') },
         @{ name = 'SupportPhoneNumbersInline'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPhoneNumbersInline' -Default '') },
+        @{ name = 'DocSupportPhoneNumbersInline'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPhoneNumbersInline' -Default '') },
         @{ name = 'SupportServiceRequestUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportServiceRequestUrl' -Default '') },
+        @{ name = 'DocSupportServiceRequestUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportServiceRequestUrl' -Default '') },
         @{ name = 'SupportPortalUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPortalUrl' -Default '') },
+        @{ name = 'DocSupportPortalUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPortalUrl' -Default '') },
         @{ name = 'SupportPhoneListUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPhoneListUrl' -Default '') },
+        @{ name = 'DocSupportPhoneListUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPhoneListUrl' -Default '') },
         @{ name = 'SupportPlanUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPlanUrl' -Default '') },
+        @{ name = 'DocSupportPlanUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPlanUrl' -Default '') },
         @{ name = 'SupportGuidance'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportGuidance' -Default '') },
-        @{ name = 'SupportProcessText'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportProcessText' -Default '') }
+        @{ name = 'DocSupportGuidance'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportGuidance' -Default '') },
+        @{ name = 'SupportProcessText'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportProcessText' -Default '') },
+        @{ name = 'DocSupportProcessText'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportProcessText' -Default '') }
     )) {
         $name = [string]$entry.name
         $value = [string]$entry.value
@@ -2167,6 +2495,7 @@ function Render-DocxTemplate {
         [Parameter(Mandatory = $true)][string]$OutputPath,
         [Parameter(Mandatory = $true)][System.Collections.IDictionary]$ReplaceByTag,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$TableByTag,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$ImageByTag,
         [Parameter(Mandatory = $false)][string]$DocTitle,
         [Parameter(Mandatory = $false)][string]$DocCustomer,
         [Parameter(Mandatory = $false)][string]$DocCustomerAbbr,
@@ -2179,6 +2508,7 @@ function Render-DocxTemplate {
         [Parameter(Mandatory = $false)][string]$DocReferenceId,
         [Parameter(Mandatory = $false)][string]$DocClassification,
         [Parameter(Mandatory = $false)][string]$DocSupportRegion,
+        [Parameter(Mandatory = $false)][string]$DocSupportTier,
         [Parameter(Mandatory = $false)][string]$SupportRegionSidecarPath,
         [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
         [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
@@ -2209,12 +2539,20 @@ function Render-DocxTemplate {
                 $literalDatasetTokenLookup[$datasetTagText] = $true
             }
         }
+        if ($null -ne $ImageByTag) {
+            foreach ($datasetTag in @($ImageByTag.Keys)) {
+                $datasetTagText = [string]$datasetTag
+                if ([string]::IsNullOrWhiteSpace($datasetTagText)) { continue }
+                $literalDatasetTokenLookup[$datasetTagText] = $true
+            }
+        }
         $literalDatasetTokensExpected = @($literalDatasetTokenLookup.Keys).Count
         $literalDatasetTokensDiscovered = 0
         $literalDatasetTagsDiscovered = 0
         $literalTokensMatched = 0
         $literalTokensMatchedScalar = 0
         $literalTokensMatchedTable = 0
+        $literalTokensMatchedImage = 0
         $docPropertyLiteralTokensMatched = 0
         $controlsDiscovered = 0
         $taggedControlsMatched = 0
@@ -2231,9 +2569,9 @@ function Render-DocxTemplate {
         $literalDatasetTagStatus = @()
         $literalTagHitSummary = @()
         $literalPartHitSummary = @()
-        $supportRegionDocumentModel = Resolve-SupportRegionDocumentModel -SupportRegion $DocSupportRegion -SidecarPath $SupportRegionSidecarPath
-        $contentControlReplaceByTag = Get-DocxContentControlReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification -DocSupportRegion ([string]$supportRegionDocumentModel.SupportRegion) -SupportRegionModel $supportRegionDocumentModel
-        $docPropertyFieldReplaceByName = Get-DocxDocPropertyFieldReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification -DocSupportRegion ([string]$supportRegionDocumentModel.SupportRegion) -SupportRegionModel $supportRegionDocumentModel
+        $supportRegionDocumentModel = Resolve-SupportRegionDocumentModel -SupportRegion $DocSupportRegion -SupportTier $DocSupportTier -SidecarPath $SupportRegionSidecarPath
+        $contentControlReplaceByTag = Get-DocxContentControlReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification -DocSupportRegion ([string]$supportRegionDocumentModel.SupportRegion) -DocSupportTier ([string]$supportRegionDocumentModel.SupportTierId) -SupportRegionModel $supportRegionDocumentModel
+        $docPropertyFieldReplaceByName = Get-DocxDocPropertyFieldReplacementMap -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification -DocSupportRegion ([string]$supportRegionDocumentModel.SupportRegion) -DocSupportTier ([string]$supportRegionDocumentModel.SupportTierId) -SupportRegionModel $supportRegionDocumentModel
         $tableStyleId = ''
         $tableParagraphStyleId = ''
         if ($null -ne $TableByTag -and @($TableByTag.Keys).Count -gt 0) {
@@ -2269,6 +2607,22 @@ function Render-DocxTemplate {
             foreach ($tag in @($TableByTag.Keys)) {
                 $tagText = [string]$tag
                 $tableXmlByTag[$tagText] = Convert-TableModelToWordTableXml -TableModel $TableByTag[$tag] -TableStyleId $tableStyleId -ParagraphStyleId $tableParagraphStyleId
+            }
+        }
+
+        $imageXmlByTag = @{}
+        $imageIndex = 1
+        if ($null -ne $ImageByTag) {
+            foreach ($tag in @($ImageByTag.Keys)) {
+                $tagText = [string]$tag
+                $imageModel = $ImageByTag[$tag]
+                if (-not ($imageModel -is [System.Collections.IDictionary])) { continue }
+                if (-not (Test-MapHasKey -Map $imageModel -Key 'imageBase64') -or [string]::IsNullOrWhiteSpace([string]$imageModel.imageBase64)) { continue }
+                $imageFormat = if ((Test-MapHasKey -Map $imageModel -Key 'imageFormat') -and [string]$imageModel.imageFormat -eq 'svg') { 'svg' } else { 'png' }
+                $contentType = if ($imageFormat -eq 'svg') { 'image/svg+xml' } else { 'image/png' }
+                $relationshipId = Add-DocxPngImagePart -Archive $archive -ImageBase64 ([string]$imageModel.imageBase64) -ImageExtension $imageFormat -ContentType $contentType
+                $imageXmlByTag[$tagText] = Convert-ImageModelToWordDrawingXml -ImageModel $imageModel -RelationshipId $relationshipId -ImageIndex $imageIndex
+                $imageIndex++
             }
         }
 
@@ -2317,6 +2671,19 @@ function Render-DocxTemplate {
                         fragmentHint = [bool]$diagnostic.fragmentHint
                     })
                 }
+                if (Test-MapHasKey -Map $imageXmlByTag -Key $tagText) {
+                    $literalTagDiagnostics.Add([ordered]@{
+                        partName = [string]$diagnostic.partName
+                        tag = $tagText
+                        mode = 'image'
+                        imageXmlGenerated = -not [string]::IsNullOrWhiteSpace([string]$imageXmlByTag[$tagText])
+                        rawTokenHits = [int]$diagnostic.rawTokenHits
+                        escapedTokenHits = [int]$diagnostic.escapedTokenHits
+                        contiguousTokenHits = [int]$diagnostic.contiguousTokenHits
+                        containsTagText = [bool]$diagnostic.containsTagText
+                        fragmentHint = [bool]$diagnostic.fragmentHint
+                    })
+                }
             }
 
             $literalTagHitSummary = @(Get-LiteralTagHitSummary -Diagnostics $literalTagDiagnostics.ToArray())
@@ -2331,6 +2698,24 @@ function Render-DocxTemplate {
             $nsMgrTyped = $null
 
             if (Test-DocxMatchModeIncludes -DocxMatchMode $DocxMatchMode -Mode 'literal-token') {
+                if ($null -ne $ImageByTag -and [string]$entry.FullName -eq 'word/document.xml') {
+                    foreach ($tag in @($ImageByTag.Keys)) {
+                        $tagText = [string]$tag
+                        $imageTokenCount = 0
+                        $diagKey = "{0}`n{1}" -f [string]$entry.FullName, $tagText
+                        if (Test-MapHasKey -Map $literalDiagnosticLookup -Key $diagKey) {
+                            $imageTokenCount = [int]$literalDiagnosticLookup[$diagKey].contiguousTokenHits
+                        }
+
+                        $literalTokensMatched += [int]$imageTokenCount
+                        $literalTokensMatchedImage += [int]$imageTokenCount
+                        $imageXml = if (Test-MapHasKey -Map $imageXmlByTag -Key $tagText) { [string]$imageXmlByTag[$tagText] } else { '' }
+                        if (-not [string]::IsNullOrWhiteSpace($imageXml)) {
+                            $xmlText = Replace-DocxParagraphTokenWithBlockXml -XmlText $xmlText -Tag $tagText -BlockXml $imageXml
+                        }
+                    }
+                }
+
                 if ($null -ne $TableByTag) {
                     foreach ($tag in @($TableByTag.Keys)) {
                         $tagText = [string]$tag
@@ -2489,6 +2874,7 @@ function Render-DocxTemplate {
             literalTokensMatched = $literalTokensMatched
             literalTokensMatchedScalar = $literalTokensMatchedScalar
             literalTokensMatchedTable = $literalTokensMatchedTable
+            literalTokensMatchedImage = $literalTokensMatchedImage
             docPropertyLiteralTokensMatched = [int]$docPropertyLiteralTokensMatched
             docPropControlsExpected = @($contentControlReplaceByTag.Keys).Count
             docPropControlsMatched = $taggedControlsMatched
@@ -2509,7 +2895,9 @@ function Render-DocxTemplate {
                 id = [string]$supportRegionDocumentModel.SupportRegion
                 label = [string]$supportRegionDocumentModel.SupportRegionLabel
                 displayName = [string]$supportRegionDocumentModel.SupportRegionDisplayName
+                tierId = [string]$supportRegionDocumentModel.SupportTierId
                 tier = [string]$supportRegionDocumentModel.SupportTier
+                workingHours = [string]$supportRegionDocumentModel.SupportWorkingHours
                 sidecarPath = [string]$supportRegionDocumentModel.SupportRegionSidecarPath
             }
             partErrors = @($partErrors)
@@ -2824,9 +3212,9 @@ function Get-MappingRenderHint {
         }
     }
 
-    foreach ($legacyKey in @('projectionRef', 'renderAs', 'view', 'renderMode', 'structuredValuePolicy', 'missingProjectionPolicy')) {
-        if (-not $hint.Contains($legacyKey) -and (Test-MapHasKey -Map $MappingEntry -Key $legacyKey) -and -not [string]::IsNullOrWhiteSpace([string]$MappingEntry[$legacyKey])) {
-            $hint[$legacyKey] = [string]$MappingEntry[$legacyKey]
+    foreach ($topLevelHintKey in @('projectionRef', 'diagramRef', 'renderAs', 'view', 'renderMode', 'structuredValuePolicy', 'missingProjectionPolicy')) {
+        if (-not $hint.Contains($topLevelHintKey) -and (Test-MapHasKey -Map $MappingEntry -Key $topLevelHintKey) -and -not [string]::IsNullOrWhiteSpace([string]$MappingEntry[$topLevelHintKey])) {
+            $hint[$topLevelHintKey] = [string]$MappingEntry[$topLevelHintKey]
         }
     }
 
@@ -2939,6 +3327,7 @@ function Get-StructuredValuePlaceholder {
 
     switch ($RenderMode) {
         'table' { return '[table data omitted: projection required]' }
+        'diagram' { return '[diagram omitted: diagram contract required]' }
         'json-evidence' { return '[json evidence omitted]' }
         'json-debug' { return '[debug json omitted]' }
         default { return '[structured value omitted]' }
@@ -2970,10 +3359,13 @@ function Get-EffectiveSelectorsForMapping {
     if ($null -ne $RenderHint) {
         $renderAs = if (Test-MapHasKey -Map $RenderHint -Key 'renderAs') { [string]$RenderHint['renderAs'] } else { '' }
         $projectionRef = if (Test-MapHasKey -Map $RenderHint -Key 'projectionRef') { [string]$RenderHint['projectionRef'] } else { '' }
+        $diagramRef = if (Test-MapHasKey -Map $RenderHint -Key 'diagramRef') { [string]$RenderHint['diagramRef'] } else { '' }
         $view = if (Test-MapHasKey -Map $RenderHint -Key 'view') { [string]$RenderHint['view'] } else { '' }
         if (
             $renderAs -eq 'table' -or
+            $renderAs -eq 'diagram' -or
             -not [string]::IsNullOrWhiteSpace($projectionRef) -or
+            -not [string]::IsNullOrWhiteSpace($diagramRef) -or
             -not [string]::IsNullOrWhiteSpace($view)
         ) {
             if (-not [string]::IsNullOrWhiteSpace($defaultItemRoot)) {
@@ -3113,6 +3505,9 @@ function Resolve-ProjectionContractPath {
 
 $script:ProjectionDefinitionsCache = @{}
 $script:ProjectionAliasesCache = @{}
+$script:DiagramDefinitionsCache = @{}
+$script:DiagramAliasesCache = @{}
+$script:DiagramInputRowsCache = @{}
 
 function Get-ProjectionDefinitions {
     param(
@@ -3183,6 +3578,769 @@ function Get-ProjectionAliases {
     }
 
     return @{}
+}
+
+function Read-DiagramContractFile {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $raw = Read-JsonFile -Path $Path
+    return (ConvertTo-PlainHashtable -InputObject $raw)
+}
+
+function Resolve-DiagramContractPath {
+    param(
+        [Parameter(Mandatory = $true)][string]$ContractsRoot,
+        [Parameter(Mandatory = $true)][string]$TechId
+    )
+
+    $candidate = Join-Path (Join-Path (Join-Path $ContractsRoot 'tech') $TechId) 'assembler.diagrams.v1.json'
+    if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+        return (Resolve-Path -LiteralPath $candidate).Path
+    }
+
+    return $null
+}
+
+function Get-DiagramDefinitions {
+    param(
+        [Parameter(Mandatory = $true)][string]$ContractsRoot,
+        [Parameter(Mandatory = $true)][string]$TechId
+    )
+
+    $cacheKey = "$ContractsRoot|$TechId"
+    if (Test-MapHasKey -Map $script:DiagramDefinitionsCache -Key $cacheKey) {
+        return $script:DiagramDefinitionsCache[$cacheKey]
+    }
+
+    $definitions = @{}
+    $aliases = @{}
+    $diagramContractPath = Resolve-DiagramContractPath -ContractsRoot $ContractsRoot -TechId $TechId
+    if (-not [string]::IsNullOrWhiteSpace($diagramContractPath)) {
+        $contract = Read-DiagramContractFile -Path $diagramContractPath
+        if ($contract -is [System.Collections.IDictionary]) {
+            if ((Test-MapHasKey -Map $contract -Key 'diagrams') -and $contract.diagrams -is [System.Collections.IDictionary]) {
+                foreach ($diagramTag in @($contract.diagrams.Keys)) {
+                    if (-not [string]::IsNullOrWhiteSpace([string]$diagramTag)) {
+                        $definitions[[string]$diagramTag] = $contract.diagrams[$diagramTag]
+                    }
+                }
+            }
+
+            if ((Test-MapHasKey -Map $contract -Key 'aliases') -and $contract.aliases -is [System.Collections.IDictionary]) {
+                foreach ($aliasTag in @($contract.aliases.Keys)) {
+                    if (-not [string]::IsNullOrWhiteSpace([string]$aliasTag)) {
+                        $aliases[[string]$aliasTag] = [string]$contract.aliases[$aliasTag]
+                    }
+                }
+            }
+        }
+    }
+
+    $script:DiagramDefinitionsCache[$cacheKey] = $definitions
+    $script:DiagramAliasesCache[$cacheKey] = $aliases
+    return $definitions
+}
+
+function Get-DiagramAliases {
+    param(
+        [Parameter(Mandatory = $true)][string]$ContractsRoot,
+        [Parameter(Mandatory = $true)][string]$TechId
+    )
+
+    $cacheKey = "$ContractsRoot|$TechId"
+    if (-not (Test-MapHasKey -Map $script:DiagramAliasesCache -Key $cacheKey)) {
+        $null = Get-DiagramDefinitions -ContractsRoot $ContractsRoot -TechId $TechId
+    }
+
+    if (Test-MapHasKey -Map $script:DiagramAliasesCache -Key $cacheKey) {
+        return $script:DiagramAliasesCache[$cacheKey]
+    }
+
+    return @{}
+}
+
+function Get-DiagramDefinitionForTag {
+    param(
+        [Parameter(Mandatory = $false)][string]$Tag,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$DiagramDefinitions,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$DiagramAliases
+    )
+
+    if ($null -eq $DiagramDefinitions -or [string]::IsNullOrWhiteSpace($Tag)) {
+        return $null
+    }
+
+    if (Test-MapHasKey -Map $DiagramDefinitions -Key $Tag) {
+        return $DiagramDefinitions[$Tag]
+    }
+
+    if ($null -ne $DiagramAliases -and (Test-MapHasKey -Map $DiagramAliases -Key $Tag)) {
+        $resolvedTag = [string]$DiagramAliases[$Tag]
+        if (Test-MapHasKey -Map $DiagramDefinitions -Key $resolvedTag) {
+            return $DiagramDefinitions[$resolvedTag]
+        }
+    }
+
+    return $null
+}
+
+function Resolve-DiagramDefinitionForMapping {
+    param(
+        [Parameter(Mandatory = $false)][string]$Tag,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$DiagramDefinitions,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$DiagramAliases
+    )
+
+    if ($null -ne $RenderHint -and (Test-MapHasKey -Map $RenderHint -Key 'diagramRef') -and -not [string]::IsNullOrWhiteSpace([string]$RenderHint.diagramRef)) {
+        return Get-DiagramDefinitionForTag -Tag ([string]$RenderHint.diagramRef) -DiagramDefinitions $DiagramDefinitions -DiagramAliases $DiagramAliases
+    }
+
+    return Get-DiagramDefinitionForTag -Tag $Tag -DiagramDefinitions $DiagramDefinitions -DiagramAliases $DiagramAliases
+}
+
+function Get-DiagramRowFieldValue {
+    param(
+        [Parameter(Mandatory = $false)]$Row,
+        [Parameter(Mandatory = $false)][string]$Field
+    )
+
+    if ($null -eq $Row -or [string]::IsNullOrWhiteSpace($Field)) { return $null }
+
+    $current = $Row
+    foreach ($segment in @($Field -split '\.')) {
+        if ([string]::IsNullOrWhiteSpace($segment)) { continue }
+        if ($null -eq $current) { return $null }
+
+        if ($current -is [System.Collections.IDictionary]) {
+            if (-not $current.Contains($segment)) { return $null }
+            $current = $current[$segment]
+            continue
+        }
+
+        $property = $current.PSObject.Properties[[string]$segment]
+        if ($null -eq $property) { return $null }
+        $current = $property.Value
+    }
+
+    return $current
+}
+
+function Expand-DiagramTemplate {
+    param(
+        [Parameter(Mandatory = $false)][string]$Template,
+        [Parameter(Mandatory = $false)]$Row
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Template)) { return '' }
+
+    return [regex]::Replace($Template, '\{([^{}]+)\}', [System.Text.RegularExpressions.MatchEvaluator]{
+        param($match)
+        $fieldName = [string]$match.Groups[1].Value
+        $value = Get-DiagramRowFieldValue -Row $Row -Field $fieldName
+        if ($null -eq $value) { return '' }
+        return [string]$value
+    })
+}
+
+function Test-DiagramCondition {
+    param(
+        [Parameter(Mandatory = $false)]$Row,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$Condition
+    )
+
+    if ($null -eq $Condition) { return $true }
+    if ((Test-MapHasKey -Map $Condition -Key 'field') -and (Test-MapHasKey -Map $Condition -Key 'equals')) {
+        $actual = Get-DiagramRowFieldValue -Row $Row -Field ([string]$Condition.field)
+        return ([string]$actual -eq [string]$Condition.equals)
+    }
+
+    throw 'Diagram condition supports only field/equals in v1.'
+}
+
+function Resolve-DiagramInputRows {
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$InputDefinition,
+        [Parameter(Mandatory = $true)][string]$BundleRoot,
+        [Parameter(Mandatory = $true)][string]$TechId,
+        [Parameter(Mandatory = $false)][string]$CurrentDatasetPath
+    )
+
+    $datasetName = if (Test-MapHasKey -Map $InputDefinition -Key 'dataset') { [string]$InputDefinition.dataset } else { '' }
+    if ([string]::IsNullOrWhiteSpace($datasetName)) {
+        throw 'Diagram input is missing required dataset property.'
+    }
+
+    $rootSelector = if ((Test-MapHasKey -Map $InputDefinition -Key 'root') -and -not [string]::IsNullOrWhiteSpace([string]$InputDefinition.root)) { [string]$InputDefinition.root } else { 'items' }
+    $currentDatasetDirectory = ''
+    if (-not [string]::IsNullOrWhiteSpace($CurrentDatasetPath)) {
+        $currentDatasetDirectory = Split-Path -Path $CurrentDatasetPath -Parent
+    }
+
+    $cacheKey = "$BundleRoot|$TechId|$currentDatasetDirectory|$datasetName|$rootSelector"
+    if (Test-MapHasKey -Map $script:DiagramInputRowsCache -Key $cacheKey) {
+        return @($script:DiagramInputRowsCache[$cacheKey])
+    }
+
+    $datasetResolution = Resolve-DatasetFilePath -BundleRoot $BundleRoot -DatasetRelativePath $datasetName -TechId $TechId
+    $datasetPath = [string]$datasetResolution.path
+    if (-not (Test-Path -LiteralPath $datasetPath -PathType Leaf)) {
+        $candidatePaths = [System.Collections.Generic.List[string]]::new()
+        if (-not [string]::IsNullOrWhiteSpace($currentDatasetDirectory)) {
+            [void]$candidatePaths.Add((Join-Path $currentDatasetDirectory $datasetName))
+            [void]$candidatePaths.Add((Join-Path $currentDatasetDirectory ($datasetName + '.json')))
+        }
+        [void]$candidatePaths.Add((Join-Path $BundleRoot ($datasetName + '.json')))
+        [void]$candidatePaths.Add((Join-Path (Join-Path $BundleRoot 'datasets') ($datasetName + '.json')))
+        $resolvedCandidate = @($candidatePaths | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1)
+        if (@($resolvedCandidate).Count -gt 0) {
+            $datasetPath = [string]$resolvedCandidate[0]
+        }
+        else {
+            throw "Diagram input dataset '$datasetName' was not found at '$datasetPath'."
+        }
+    }
+
+    $dataset = Read-JsonFile -Path $datasetPath
+    $selection = Resolve-SelectorWithSummaryCompatibility -Dataset $dataset -Selectors @($rootSelector) -DatasetPath $datasetPath
+    if ([bool]$selection.selectorFailed) {
+        throw "Diagram input selector '$rootSelector' did not resolve for dataset '$datasetName'."
+    }
+
+    $rows = @(ConvertTo-ObjectArray -InputObject $selection.value)
+    $script:DiagramInputRowsCache[$cacheKey] = @($rows)
+    return @($rows)
+}
+
+function Resolve-DiagramInputs {
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$DiagramDefinition,
+        [Parameter(Mandatory = $true)][string]$BundleRoot,
+        [Parameter(Mandatory = $true)][string]$TechId,
+        [Parameter(Mandatory = $false)][string]$CurrentDatasetPath
+    )
+
+    $resolvedInputs = @{}
+    if (-not ((Test-MapHasKey -Map $DiagramDefinition -Key 'inputs') -and $DiagramDefinition.inputs -is [System.Collections.IDictionary])) {
+        throw 'Diagram definition is missing required inputs object.'
+    }
+
+    foreach ($inputName in @($DiagramDefinition.inputs.Keys)) {
+        $inputDefinition = $DiagramDefinition.inputs[$inputName]
+        if (-not ($inputDefinition -is [System.Collections.IDictionary])) { continue }
+
+        $required = if (Test-MapHasKey -Map $inputDefinition -Key 'required') { [bool]$inputDefinition.required } else { $true }
+        try {
+            $resolvedInputs[[string]$inputName] = @(Resolve-DiagramInputRows -InputDefinition $inputDefinition -BundleRoot $BundleRoot -TechId $TechId -CurrentDatasetPath $CurrentDatasetPath)
+        }
+        catch {
+            if ($required) {
+                throw
+            }
+            $resolvedInputs[[string]$inputName] = @()
+        }
+    }
+
+    return $resolvedInputs
+}
+
+function ConvertTo-DiagramNodeModel {
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$NodeSet,
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Inputs
+    )
+
+    $inputName = if (Test-MapHasKey -Map $NodeSet -Key 'input') { [string]$NodeSet.input } else { '' }
+    if ([string]::IsNullOrWhiteSpace($inputName) -or -not (Test-MapHasKey -Map $Inputs -Key $inputName)) {
+        throw "Diagram node set '$([string]$NodeSet.name)' references unknown input '$inputName'."
+    }
+
+    $nodes = @()
+    foreach ($row in @($Inputs[$inputName])) {
+        if ((Test-MapHasKey -Map $NodeSet -Key 'where') -and -not (Test-DiagramCondition -Row $row -Condition $NodeSet.where)) {
+            continue
+        }
+
+        $id = Expand-DiagramTemplate -Template ([string]$NodeSet.id) -Row $row
+        if ([string]::IsNullOrWhiteSpace($id)) { continue }
+
+        $label = Expand-DiagramTemplate -Template ([string]$NodeSet.label) -Row $row
+        if ([string]::IsNullOrWhiteSpace($label)) { $label = $id }
+
+        $fieldLines = @()
+        foreach ($fieldDefinition in @(ConvertTo-ObjectArray -InputObject $NodeSet.fields)) {
+            if (-not ($fieldDefinition -is [System.Collections.IDictionary])) { continue }
+            $fieldLabel = if (Test-MapHasKey -Map $fieldDefinition -Key 'label') { [string]$fieldDefinition.label } else { [string]$fieldDefinition.field }
+            $fieldValue = if (Test-MapHasKey -Map $fieldDefinition -Key 'value') {
+                Expand-DiagramTemplate -Template ([string]$fieldDefinition.value) -Row $row
+            }
+            else {
+                [string](Get-DiagramRowFieldValue -Row $row -Field ([string]$fieldDefinition.field))
+            }
+            if ([string]::IsNullOrWhiteSpace($fieldValue)) { continue }
+            $fieldLines += ("{0}: {1}" -f $fieldLabel, $fieldValue)
+        }
+
+        $groupValue = ''
+        if ((Test-MapHasKey -Map $NodeSet -Key 'groupBy') -and -not [string]::IsNullOrWhiteSpace([string]$NodeSet.groupBy)) {
+            $groupValue = [string](Get-DiagramRowFieldValue -Row $row -Field ([string]$NodeSet.groupBy))
+        }
+
+        $nodes += [pscustomobject]@{
+            id = $id
+            label = $label
+            fields = @($fieldLines)
+            group = $groupValue
+            shape = if (Test-MapHasKey -Map $NodeSet -Key 'shape') { [string]$NodeSet.shape } else { 'rectangle' }
+            fillColor = if (Test-MapHasKey -Map $NodeSet -Key 'fillColor') { [string]$NodeSet.fillColor } else { '#EAF2F8' }
+        }
+    }
+
+    return @($nodes)
+}
+
+function ConvertTo-DiagramEdgeModel {
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$EdgeSet,
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Inputs
+    )
+
+    $inputName = if (Test-MapHasKey -Map $EdgeSet -Key 'input') { [string]$EdgeSet.input } else { '' }
+    if ([string]::IsNullOrWhiteSpace($inputName) -or -not (Test-MapHasKey -Map $Inputs -Key $inputName)) {
+        throw "Diagram edge set references unknown input '$inputName'."
+    }
+
+    $edges = @()
+    foreach ($row in @($Inputs[$inputName])) {
+        if ((Test-MapHasKey -Map $EdgeSet -Key 'where') -and -not (Test-DiagramCondition -Row $row -Condition $EdgeSet.where)) {
+            continue
+        }
+
+        $from = Expand-DiagramTemplate -Template ([string]$EdgeSet.from) -Row $row
+        $to = Expand-DiagramTemplate -Template ([string]$EdgeSet.to) -Row $row
+        if ([string]::IsNullOrWhiteSpace($from) -or [string]::IsNullOrWhiteSpace($to)) { continue }
+
+        $edges += [pscustomobject]@{
+            from = $from
+            to = $to
+            label = if (Test-MapHasKey -Map $EdgeSet -Key 'label') { Expand-DiagramTemplate -Template ([string]$EdgeSet.label) -Row $row } else { '' }
+        }
+    }
+
+    return @($edges)
+}
+
+function ConvertTo-SvgEscapedText {
+    param([Parameter(Mandatory = $false)]$Value)
+
+    return [System.Security.SecurityElement]::Escape([string]$Value)
+}
+
+function Get-DiagramNodeFieldMap {
+    param([Parameter(Mandatory = $true)]$Node)
+
+    $fieldMap = @{}
+    foreach ($fieldLine in @($Node.fields)) {
+        $line = [string]$fieldLine
+        $separatorIndex = $line.IndexOf(':')
+        if ($separatorIndex -lt 0) { continue }
+        $name = $line.Substring(0, $separatorIndex).Trim()
+        $value = $line.Substring($separatorIndex + 1).Trim()
+        if (-not [string]::IsNullOrWhiteSpace($name)) {
+            $fieldMap[$name] = $value
+        }
+    }
+    return $fieldMap
+}
+
+function Get-DiagramSpeedLabel {
+    param([Parameter(Mandatory = $false)][string]$Value)
+
+    if ([string]::IsNullOrWhiteSpace($Value)) { return '' }
+    return (($Value -replace '^speed', '') -replace 'gig', 'G' -replace 'Unknown', 'Unknown')
+}
+
+function Get-DiagramStatusColor {
+    param([Parameter(Mandatory = $false)][string]$Value)
+
+    switch ([string]$Value) {
+        'up' { return '#157347' }
+        'optimal' { return '#157347' }
+        'down' { return '#B42318' }
+        default { return '#59636E' }
+    }
+}
+
+function New-DiagramSvgStatusPill {
+    param(
+        [Parameter(Mandatory = $true)][int]$X,
+        [Parameter(Mandatory = $true)][int]$Y,
+        [Parameter(Mandatory = $false)][string]$Status
+    )
+
+    $color = Get-DiagramStatusColor -Value $Status
+    $escapedStatus = ConvertTo-SvgEscapedText -Value $Status
+    return "<rect x='$X' y='$Y' width='52' height='18' rx='9' fill='$color'/><text x='$($X + 26)' y='$($Y + 13)' text-anchor='middle' class='pillText'>$escapedStatus</text>"
+}
+
+function New-DenseControllerRowsSvgImage {
+    param(
+        [Parameter(Mandatory = $true)][object[]]$Nodes,
+        [Parameter(Mandatory = $true)][object[]]$Edges,
+        [Parameter(Mandatory = $true)][string]$Tag
+    )
+
+    $edgeSourceIds = @{}
+    foreach ($edge in @($Edges)) {
+        $edgeSourceIds[[string]$edge.from] = $true
+    }
+
+    $style = @"
+<style>
+  .bg { fill: #ffffff; }
+  .title { font: 700 22px Segoe UI, Arial, sans-serif; fill: #111827; }
+  .subtitle { font: 12px Segoe UI, Arial, sans-serif; fill: #6B7280; }
+  .cardTitle { font: 700 18px Segoe UI, Arial, sans-serif; fill: #111827; }
+  .value { font: 13px Segoe UI, Arial, sans-serif; fill: #111827; }
+  .cell { font: 12px Segoe UI, Arial, sans-serif; fill: #111827; }
+  .mono { font-family: Consolas, 'Segoe UI Mono', monospace; }
+  .strong { font-weight: 700; }
+  .pillText { font: 700 10px Segoe UI, Arial, sans-serif; fill: #fff; }
+</style>
+"@
+
+    $rowGroups = [System.Collections.Generic.List[string]]::new()
+    $y = 92
+    foreach ($group in @($Nodes | Group-Object -Property group | Sort-Object Name)) {
+        $groupName = if ([string]::IsNullOrWhiteSpace([string]$group.Name)) { 'Controller' } else { [string]$group.Name }
+        $groupNodes = @($group.Group)
+        $controllerNode = @($groupNodes | Where-Object { Test-MapHasKey -Map $edgeSourceIds -Key ([string]$_.id) } | Select-Object -First 1)
+        $interfaceNodes = @($groupNodes | Where-Object { -not (Test-MapHasKey -Map $edgeSourceIds -Key ([string]$_.id)) })
+        $controllerFields = if ($null -ne $controllerNode) { Get-DiagramNodeFieldMap -Node $controllerNode } else { @{} }
+        $model = if (Test-MapHasKey -Map $controllerFields -Key 'Model') { [string]$controllerFields.Model } else { '' }
+        $tray = if (Test-MapHasKey -Map $controllerFields -Key 'Tray') { [string]$controllerFields.Tray } else { '' }
+        $serial = if (Test-MapHasKey -Map $controllerFields -Key 'Serial') { [string]$controllerFields.Serial } else { '' }
+        $status = if (Test-MapHasKey -Map $controllerFields -Key 'Status') { [string]$controllerFields.Status } else { '' }
+
+        [void]$rowGroups.Add("<g transform='translate(56,$y)'>")
+        [void]$rowGroups.Add("<rect x='0' y='0' width='1088' height='166' rx='10' fill='#F8FAFC' stroke='#CBD5E1'/>")
+        [void]$rowGroups.Add("<rect x='0' y='0' width='180' height='166' rx='10' fill='#E8F1FF' stroke='#CBD5E1'/>")
+        [void]$rowGroups.Add("<text x='22' y='34' class='cardTitle'>Controller $(ConvertTo-SvgEscapedText -Value $groupName)</text>")
+        [void]$rowGroups.Add("<text x='22' y='62' class='value'>$(ConvertTo-SvgEscapedText -Value $model) / Tray $(ConvertTo-SvgEscapedText -Value $tray)</text>")
+        [void]$rowGroups.Add("<text x='22' y='86' class='value mono'>$(ConvertTo-SvgEscapedText -Value $serial)</text>")
+        [void]$rowGroups.Add("<text x='22' y='118' class='value' fill='$(Get-DiagramStatusColor -Value $status)'>$(ConvertTo-SvgEscapedText -Value $status)</text>")
+
+        $px = 210
+        $py = 24
+        foreach ($interfaceNode in @($interfaceNodes | Sort-Object -Property label)) {
+            $fields = Get-DiagramNodeFieldMap -Node $interfaceNode
+            $transport = if (Test-MapHasKey -Map $fields -Key 'Transport') { [string]$fields.Transport } else { '' }
+            $link = if (Test-MapHasKey -Map $fields -Key 'Link') { [string]$fields.Link } else { '' }
+            $address = if (Test-MapHasKey -Map $fields -Key 'IPv4') { [string]$fields['IPv4'] } else { '' }
+            $speed = if (Test-MapHasKey -Map $fields -Key 'Speed') { Get-DiagramSpeedLabel -Value ([string]$fields.Speed) } else { '' }
+            $isManagement = Test-MapHasKey -Map $fields -Key 'Port'
+            if ($isManagement) { continue }
+
+            [void]$rowGroups.Add("<rect x='$px' y='$py' width='132' height='52' rx='8' fill='#ECFDF3' stroke='#86EFAC'/>")
+            [void]$rowGroups.Add("<text x='$($px + 10)' y='$($py + 18)' class='cell strong'>$(ConvertTo-SvgEscapedText -Value $interfaceNode.label)</text>")
+            [void]$rowGroups.Add("<text x='$($px + 10)' y='$($py + 36)' class='cell mono'>$(ConvertTo-SvgEscapedText -Value $address)</text>")
+            [void]$rowGroups.Add((New-DiagramSvgStatusPill -X ($px + 72) -Y ($py + 6) -Status $link))
+            $px += 142
+            if ($px -gt 980) {
+                $px = 210
+                $py += 64
+            }
+        }
+
+        foreach ($interfaceNode in @($interfaceNodes | Sort-Object -Property label)) {
+            $fields = Get-DiagramNodeFieldMap -Node $interfaceNode
+            if (-not (Test-MapHasKey -Map $fields -Key 'Port')) { continue }
+            $address = if (Test-MapHasKey -Map $fields -Key 'IPv4') { [string]$fields['IPv4'] } else { '' }
+            [void]$rowGroups.Add("<rect x='920' y='96' width='142' height='46' rx='8' fill='#FFF7ED' stroke='#FDBA74'/>")
+            [void]$rowGroups.Add("<text x='932' y='116' class='cell strong'>Mgmt $(ConvertTo-SvgEscapedText -Value $interfaceNode.label)</text>")
+            [void]$rowGroups.Add("<text x='932' y='134' class='cell mono'>$(ConvertTo-SvgEscapedText -Value $address)</text>")
+        }
+
+        [void]$rowGroups.Add('</g>')
+        $y += 194
+    }
+
+    $height = [Math]::Max(510, $y + 32)
+    $svg = @"
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="$height" viewBox="0 0 1200 $height">
+$style
+<rect class="bg" width="1200" height="$height"/>
+<text x="56" y="46" class="title">Host Port Topology</text>
+<text x="56" y="68" class="subtitle">Dense controller rows intended for DOCX page width</text>
+$(@($rowGroups) -join "`n")
+</svg>
+"@
+
+    $svgBytes = [System.Text.Encoding]::UTF8.GetBytes($svg)
+    return [ordered]@{
+        imageBase64 = [Convert]::ToBase64String($svgBytes)
+        imageFormat = 'svg'
+        width = 1200
+        height = $height
+    }
+}
+
+function New-DiagrammerCoreTopologyImage {
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$DiagramDefinition,
+        [Parameter(Mandatory = $true)][object[]]$Nodes,
+        [Parameter(Mandatory = $true)][object[]]$Edges,
+        [Parameter(Mandatory = $true)][string]$Tag
+    )
+
+    if ($env:ASSEMBLER_DISABLE_DIAGRAMMER_CORE -eq '1') {
+        throw 'Diagrammer.Core has been disabled for this process.'
+    }
+
+    $module = Get-Module -ListAvailable -Name Diagrammer.Core | Select-Object -First 1
+    if ($null -eq $module) {
+        throw 'Diagrammer.Core PowerShell module is not installed.'
+    }
+
+    Import-Module Diagrammer.Core -ErrorAction Stop | Out-Null
+
+    $layout = if ((Test-MapHasKey -Map $DiagramDefinition -Key 'layout') -and $DiagramDefinition.layout -is [System.Collections.IDictionary]) { $DiagramDefinition.layout } else { @{} }
+    $title = if ((Test-MapHasKey -Map $layout -Key 'title') -and -not [string]::IsNullOrWhiteSpace([string]$layout.title)) { [string]$layout.title } else { [string]$Tag }
+    $direction = if ((Test-MapHasKey -Map $layout -Key 'direction') -and [string]$layout.direction -eq 'left-to-right') { 'left-to-right' } else { 'top-to-bottom' }
+    $mainGraphSize = if ((Test-MapHasKey -Map $layout -Key 'size') -and -not [string]::IsNullOrWhiteSpace([string]$layout.size)) { [string]$layout.size } else { $null }
+    $layoutStyle = if ((Test-MapHasKey -Map $layout -Key 'style') -and -not [string]::IsNullOrWhiteSpace([string]$layout.style)) { [string]$layout.style } else { 'node-link' }
+
+    $safeNodeNames = @{}
+    $nodeIndex = 1
+    foreach ($node in @($Nodes)) {
+        $sourceNodeId = [string]$node.id
+        if ([string]::IsNullOrWhiteSpace($sourceNodeId) -or (Test-MapHasKey -Map $safeNodeNames -Key $sourceNodeId)) { continue }
+        $safeNodeNames[$sourceNodeId] = "diagram_node_$nodeIndex"
+        $nodeIndex++
+    }
+
+    $graphInput = & {
+        if ($layoutStyle -eq 'group-summary') {
+            $edgeSourceIds = @{}
+            foreach ($edge in @($Edges)) {
+                $edgeSourceIds[[string]$edge.from] = $true
+            }
+
+            $summaryIndex = 1
+            $summaryNodeNames = [System.Collections.Generic.List[string]]::new()
+            foreach ($group in @($Nodes | Group-Object -Property group)) {
+                $groupName = [string]$group.Name
+                if ([string]::IsNullOrWhiteSpace($groupName)) { $groupName = "Group $summaryIndex" }
+                $groupNodes = @($group.Group)
+                $sourceNodes = @($groupNodes | Where-Object { Test-MapHasKey -Map $edgeSourceIds -Key ([string]$_.id) })
+                $detailNodes = @($groupNodes | Where-Object { -not (Test-MapHasKey -Map $edgeSourceIds -Key ([string]$_.id)) })
+
+                $labelLines = [System.Collections.Generic.List[string]]::new()
+                [void]$labelLines.Add($groupName)
+                foreach ($node in @($sourceNodes)) {
+                    [void]$labelLines.Add('')
+                    [void]$labelLines.Add([string]$node.label)
+                    foreach ($fieldLine in @($node.fields)) {
+                        [void]$labelLines.Add("  $fieldLine")
+                    }
+                }
+                if (@($detailNodes).Count -gt 0) {
+                    [void]$labelLines.Add('')
+                    [void]$labelLines.Add('Interfaces')
+                    foreach ($node in @($detailNodes | Sort-Object -Property label)) {
+                        $fieldSummary = @($node.fields | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) }) -join ' | '
+                        if ([string]::IsNullOrWhiteSpace($fieldSummary)) {
+                            [void]$labelLines.Add("  $([string]$node.label)")
+                        }
+                        else {
+                            [void]$labelLines.Add("  $([string]$node.label): $fieldSummary")
+                        }
+                    }
+                }
+
+                $summaryNodeName = "diagram_group_$summaryIndex"
+                Node -Name $summaryNodeName -Attributes @{ Label = (@($labelLines) -join "`n"); shape = 'rectangle'; fillColor = '#F8FAFC'; style = 'filled,rounded'; fontsize = 12 }
+                [void]$summaryNodeNames.Add($summaryNodeName)
+                $summaryIndex++
+            }
+            if ($direction -eq 'left-to-right' -and $summaryNodeNames.Count -gt 1) {
+                for ($index = 0; $index -lt ($summaryNodeNames.Count - 1); $index++) {
+                    Edge -From $summaryNodeNames[$index] -To $summaryNodeNames[$index + 1] -Attributes @{ style = 'invis'; weight = 10 }
+                }
+            }
+            return
+        }
+
+        $emittedNodeIds = @{}
+        foreach ($group in @($Nodes | Group-Object -Property group)) {
+            $groupName = [string]$group.Name
+            $groupNodes = @($group.Group)
+            if ([string]::IsNullOrWhiteSpace($groupName)) {
+                foreach ($node in @($groupNodes)) {
+                    $nodeLabel = ([string]$node.label)
+                    if (@($node.fields).Count -gt 0) { $nodeLabel = "$nodeLabel`n$(@($node.fields) -join "`n")" }
+                    Node -Name ([string]$safeNodeNames[[string]$node.id]) -Attributes @{ Label = $nodeLabel; shape = [string]$node.shape; fillColor = [string]$node.fillColor; style = 'filled,rounded'; fontsize = 12 }
+                    $emittedNodeIds[[string]$node.id] = $true
+                }
+                continue
+            }
+
+            $subgraphName = ('cluster_' + ([regex]::Replace($groupName, '[^A-Za-z0-9_]', '_')))
+            SubGraph $subgraphName -Attributes @{ Label = $groupName; fontsize = 14; penwidth = 1.2; labelloc = 't'; style = 'dashed,rounded'; color = '#9AA4B2' } {
+                foreach ($node in @($groupNodes)) {
+                    $nodeLabel = ([string]$node.label)
+                    if (@($node.fields).Count -gt 0) { $nodeLabel = "$nodeLabel`n$(@($node.fields) -join "`n")" }
+                    Node -Name ([string]$safeNodeNames[[string]$node.id]) -Attributes @{ Label = $nodeLabel; shape = [string]$node.shape; fillColor = [string]$node.fillColor; style = 'filled,rounded'; fontsize = 12 }
+                    $emittedNodeIds[[string]$node.id] = $true
+                }
+            }
+        }
+
+        foreach ($edge in @($Edges)) {
+            if (-not (Test-MapHasKey -Map $safeNodeNames -Key ([string]$edge.from))) { continue }
+            if (-not (Test-MapHasKey -Map $safeNodeNames -Key ([string]$edge.to))) { continue }
+            $attributes = @{ fontsize = 10 }
+            if (-not [string]::IsNullOrWhiteSpace([string]$edge.label)) { $attributes.Label = [string]$edge.label }
+            Edge -From ([string]$safeNodeNames[[string]$edge.from]) -To ([string]$safeNodeNames[[string]$edge.to]) -Attributes $attributes
+        }
+    }
+
+    $outputFolder = Join-Path ([System.IO.Path]::GetTempPath()) ('assembler-diagram-' + [guid]::NewGuid().ToString('N'))
+    $null = New-Item -Path $outputFolder -ItemType Directory -Force
+    try {
+        $fileName = 'diagram'
+
+        $diagrammerParameters = @{
+            InputObject = $graphInput
+            OutputFolderPath = $outputFolder
+            Format = @('png')
+            MainDiagramLabel = $title
+            Filename = $fileName
+            Direction = $direction
+            DisableMainDiagramLogo = $true
+        }
+        if (-not [string]::IsNullOrWhiteSpace($mainGraphSize)) {
+            $diagrammerParameters.MainGraphSize = $mainGraphSize
+        }
+
+        New-Diagrammer @diagrammerParameters | Out-Null
+        $pngPath = Join-Path $outputFolder "$fileName.png"
+        if (-not (Test-Path -LiteralPath $pngPath -PathType Leaf)) {
+            throw "Diagrammer.Core did not produce expected PNG '$pngPath'."
+        }
+
+        return [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($pngPath))
+    }
+    finally {
+        if (Test-Path -LiteralPath $outputFolder -PathType Container) {
+            Remove-Item -LiteralPath $outputFolder -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
+function Invoke-DiagramRender {
+    param(
+        [Parameter(Mandatory = $true)][string]$Tag,
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$RenderHint,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$DiagramDefinitions,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$DiagramAliases,
+        [Parameter(Mandatory = $true)][string]$BundleRoot,
+        [Parameter(Mandatory = $true)][string]$TechId,
+        [Parameter(Mandatory = $false)][string]$CurrentDatasetPath
+    )
+
+    $diagramDefinition = Resolve-DiagramDefinitionForMapping -Tag $Tag -RenderHint $RenderHint -DiagramDefinitions $DiagramDefinitions -DiagramAliases $DiagramAliases
+    $diagramRef = if ((Test-MapHasKey -Map $RenderHint -Key 'diagramRef') -and -not [string]::IsNullOrWhiteSpace([string]$RenderHint.diagramRef)) { [string]$RenderHint.diagramRef } else { [string]$Tag }
+    if (-not $EnableDiagramRendering.IsPresent) {
+        return [ordered]@{ placeholder = "[diagram disabled: $diagramRef]"; imageBase64 = ''; nodeCount = 0; edgeCount = 0; diagramRef = $diagramRef }
+    }
+
+    if ($null -eq $diagramDefinition) {
+        Add-RenderIssue -Code 'ASB-ASM-SDT-DIAGRAM-UNKNOWN' -Severity 'ERROR' -Message "Tag '$Tag' declared diagram render mode but diagramRef '$diagramRef' was not found." -PathValue $script:currentDatasetPath
+        return [ordered]@{ placeholder = "[diagram unavailable: $diagramRef]"; imageBase64 = ''; nodeCount = 0; edgeCount = 0; diagramRef = $diagramRef }
+    }
+
+    try {
+        if ((Test-MapHasKey -Map $diagramDefinition -Key 'engine') -and [string]$diagramDefinition.engine -ne 'diagrammer.core') {
+            throw "Unsupported diagram engine '$([string]$diagramDefinition.engine)'."
+        }
+        if ((Test-MapHasKey -Map $diagramDefinition -Key 'kind') -and [string]$diagramDefinition.kind -ne 'topology') {
+            throw "Unsupported diagram kind '$([string]$diagramDefinition.kind)'."
+        }
+        if ($env:ASSEMBLER_DISABLE_DIAGRAMMER_CORE -eq '1') {
+            throw 'Diagrammer.Core has been disabled for this process.'
+        }
+        $diagrammerCoreModule = Get-Module -ListAvailable -Name Diagrammer.Core | Select-Object -First 1
+        if ($null -eq $diagrammerCoreModule) {
+            throw 'Diagrammer.Core PowerShell module is not installed.'
+        }
+
+        $inputs = Resolve-DiagramInputs -DiagramDefinition $diagramDefinition -BundleRoot $BundleRoot -TechId $TechId -CurrentDatasetPath $CurrentDatasetPath
+        $nodes = @()
+        foreach ($nodeSet in @(ConvertTo-ObjectArray -InputObject $diagramDefinition.nodes)) {
+            if ($nodeSet -is [System.Collections.IDictionary]) {
+                $nodes += @(ConvertTo-DiagramNodeModel -NodeSet $nodeSet -Inputs $inputs)
+            }
+        }
+
+        $edges = @()
+        foreach ($edgeSet in @(ConvertTo-ObjectArray -InputObject $diagramDefinition.edges)) {
+            if ($edgeSet -is [System.Collections.IDictionary]) {
+                $edges += @(ConvertTo-DiagramEdgeModel -EdgeSet $edgeSet -Inputs $inputs)
+            }
+        }
+
+        $nodeIds = @{}
+        $dedupedNodes = @()
+        foreach ($node in @($nodes)) {
+            if (Test-MapHasKey -Map $nodeIds -Key ([string]$node.id)) { continue }
+            $nodeIds[[string]$node.id] = $true
+            $dedupedNodes += $node
+        }
+
+        $dedupedEdges = @()
+        $edgeIds = @{}
+        foreach ($edge in @($edges)) {
+            if (-not (Test-MapHasKey -Map $nodeIds -Key ([string]$edge.from))) { continue }
+            if (-not (Test-MapHasKey -Map $nodeIds -Key ([string]$edge.to))) { continue }
+            $edgeId = "$($edge.from)|$($edge.to)|$($edge.label)"
+            if (Test-MapHasKey -Map $edgeIds -Key $edgeId) { continue }
+            $edgeIds[$edgeId] = $true
+            $dedupedEdges += $edge
+        }
+
+        if (@($dedupedNodes).Count -eq 0) {
+            throw "Diagram '$diagramRef' produced no nodes."
+        }
+
+        $layout = if ((Test-MapHasKey -Map $diagramDefinition -Key 'layout') -and $diagramDefinition.layout -is [System.Collections.IDictionary]) { $diagramDefinition.layout } else { @{} }
+        $layoutStyle = if ((Test-MapHasKey -Map $layout -Key 'style') -and -not [string]::IsNullOrWhiteSpace([string]$layout.style)) { [string]$layout.style } else { 'node-link' }
+        $diagramImage = if ($layoutStyle -eq 'dense-controller-rows') {
+            New-DenseControllerRowsSvgImage -Nodes $dedupedNodes -Edges $dedupedEdges -Tag $Tag
+        }
+        else {
+            [ordered]@{
+                imageBase64 = (New-DiagrammerCoreTopologyImage -DiagramDefinition $diagramDefinition -Nodes $dedupedNodes -Edges $dedupedEdges -Tag $Tag)
+                imageFormat = 'png'
+                width = 0
+                height = 0
+            }
+        }
+        return [ordered]@{
+            placeholder = "[diagram: $diagramRef; nodes=$(@($dedupedNodes).Count); edges=$(@($dedupedEdges).Count)]"
+            imageBase64 = [string]$diagramImage.imageBase64
+            imageFormat = [string]$diagramImage.imageFormat
+            imageWidth = [int]$diagramImage.width
+            imageHeight = [int]$diagramImage.height
+            nodeCount = @($dedupedNodes).Count
+            edgeCount = @($dedupedEdges).Count
+            diagramRef = $diagramRef
+        }
+    }
+    catch {
+        Add-RenderIssue -Code 'ASB-ASM-SDT-DIAGRAM-RENDER-FAILED' -Severity 'ERROR' -Message "Diagram '$diagramRef' failed for tag '$Tag': $($_.Exception.Message)" -PathValue $script:currentDatasetPath
+        return [ordered]@{ placeholder = "[diagram unavailable: $diagramRef]"; imageBase64 = ''; nodeCount = 0; edgeCount = 0; diagramRef = $diagramRef }
+    }
 }
 
 function Get-ProjectionDefinitionForTag {
@@ -3791,6 +4949,10 @@ function Convert-ValueToString {
 
         return (Convert-ValueToTableString -Value $Value -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases -DatasetPath $DatasetPath)
     }
+    if ($renderMode -eq 'diagram') {
+        $diagramRef = if ($null -ne $RenderHint -and (Test-MapHasKey -Map $RenderHint -Key 'diagramRef')) { [string]$RenderHint.diagramRef } else { [string]$Tag }
+        return "[diagram: $diagramRef]"
+    }
     if ($Value -is [string]) {
         return $Value
     }
@@ -3811,7 +4973,7 @@ function Convert-ValueToString {
         }
 
         $policy = Get-StructuredValuePolicy -RenderHint $RenderHint -ProjectionDefinition $projectionDefinition -RenderMode $renderMode
-        Add-RenderIssue -Code 'ASB-ASM-SDT-STRUCTURED-VALUE-RENDERMODE-REQUIRED' -Severity 'WARN' -Message "Tag '$Tag' resolved to a structured value but renderMode '$renderMode' does not permit raw JSON output. Declare renderMode 'table', 'json-evidence', or 'json-debug'." -PathValue $script:currentDatasetPath
+        Add-RenderIssue -Code 'ASB-ASM-SDT-STRUCTURED-VALUE-RENDERMODE-REQUIRED' -Severity 'WARN' -Message "Tag '$Tag' resolved to a structured value but renderMode '$renderMode' does not permit raw JSON output. Declare renderMode 'table', 'diagram', 'json-evidence', or 'json-debug'." -PathValue $script:currentDatasetPath
         return (Get-StructuredValuePlaceholder -RenderMode $renderMode -Policy $policy)
     }
 
@@ -3877,6 +5039,7 @@ try {
     $effectiveContractsRoot = Resolve-AssemblerContractsRoot -ContractsRoot $ContractsRoot -RepoRoot $repoRoot
     $mappingSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards') 'mapping.dataset-to-sdt.schema.v1.json'
     $projectionSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards/assembler') 'assembler.projections.schema.v1.json'
+    $diagramSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards/assembler') 'assembler.diagrams.schema.v1.json'
     $renderReportSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards/assembler') 'assembler.render-report.schema.v1.json'
 
     Start-RenderStage -Stage $stageMap.Load
@@ -3885,6 +5048,10 @@ try {
     $projectionContract = Read-ProjectionContractFile -Path $projectionContractPath
     $projectionDefinitions = Get-ProjectionDefinitions -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
     $projectionAliases = Get-ProjectionAliases -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
+    $diagramContractPath = Resolve-DiagramContractPath -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
+    $diagramContract = if ([string]::IsNullOrWhiteSpace($diagramContractPath)) { $null } else { Read-DiagramContractFile -Path $diagramContractPath }
+    $diagramDefinitions = Get-DiagramDefinitions -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
+    $diagramAliases = Get-DiagramAliases -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
     $mappingSchema = Read-JsonFile -Path $mappingSchemaPath
     $templateExtension = [string]([System.IO.Path]::GetExtension($TemplatePath)).ToLowerInvariant()
     $isDocxTemplate = ($templateExtension -eq '.docx')
@@ -3897,7 +5064,7 @@ try {
         $manifest = Read-JsonFile -Path $manifestPath
         $bundleId = $manifest.bundleId
     }
-    Complete-RenderStage -Stage $stageMap.Load -Status 'OK' -Details ([ordered]@{ mappingPath = $MappingPath; templatePath = $TemplatePath; templateExtension = $templateExtension; contractsRoot = $effectiveContractsRoot; mappingSchemaPath = $mappingSchemaPath; projectionContractPath = $projectionContractPath; projectionSchemaPath = $projectionSchemaPath })
+    Complete-RenderStage -Stage $stageMap.Load -Status 'OK' -Details ([ordered]@{ mappingPath = $MappingPath; templatePath = $TemplatePath; templateExtension = $templateExtension; contractsRoot = $effectiveContractsRoot; mappingSchemaPath = $mappingSchemaPath; projectionContractPath = $projectionContractPath; projectionSchemaPath = $projectionSchemaPath; diagramContractPath = $diagramContractPath; diagramSchemaPath = $diagramSchemaPath })
 
     Start-RenderStage -Stage $stageMap.Validate
     $mappingCompatibility = Resolve-MappingSchemaCompatibleDocument -MappingDocument $mapping -SchemaPath $mappingSchemaPath -DocumentLabel $MappingPath
@@ -3952,11 +5119,29 @@ try {
         $status = 'ERROR'
         throw 'Projection schema validation failed.'
     }
-    Complete-RenderStage -Stage $stageMap.Validate -Status 'OK' -Details ([ordered]@{ mappingCount = @($mapping.mappings).Count; projectionCount = @($projectionDefinitions.Keys).Count })
+    if ($null -ne $diagramContract) {
+        if (-not (Test-Path -LiteralPath $diagramSchemaPath -PathType Leaf)) {
+            Add-SchemaValidationIssue -Code 'ASB-ASM-SCHEMA-DIAGRAMS-MISSING' -Message "Diagram contract '$diagramContractPath' exists but diagram schema '$diagramSchemaPath' was not found." -PathValue $diagramSchemaPath
+            Complete-RenderStage -Stage $stageMap.Validate -Status 'ERROR'
+            $status = 'ERROR'
+            throw 'Diagram schema missing.'
+        }
+
+        $diagramContractJson = $diagramContract | ConvertTo-Json -Depth 30
+        $diagramValidation = Test-AssemblerSchemaJson -JsonText $diagramContractJson -SchemaPath $diagramSchemaPath -DocumentLabel $diagramContractPath
+        if (-not $diagramValidation.isValid) {
+            Add-SchemaValidationIssue -Code 'ASB-ASM-SCHEMA-DIAGRAMS-INVALID' -Message ([string]$diagramValidation.message) -PathValue $diagramContractPath
+            Complete-RenderStage -Stage $stageMap.Validate -Status 'ERROR'
+            $status = 'ERROR'
+            throw 'Diagram schema validation failed.'
+        }
+    }
+    Complete-RenderStage -Stage $stageMap.Validate -Status 'OK' -Details ([ordered]@{ mappingCount = @($mapping.mappings).Count; projectionCount = @($projectionDefinitions.Keys).Count; diagramCount = @($diagramDefinitions.Keys).Count })
 
     Start-RenderStage -Stage $stageMap.Transform
     $replaceByTag = @{}
     $docxTableByTag = @{}
+    $docxImageByTag = @{}
     foreach ($entry in @($mapping.mappings)) {
         $currentDatasetRelativePath = [string]$entry.dataset
         $currentDatasetPath = $null
@@ -4006,6 +5191,35 @@ try {
         $datasetContractKey = Get-DatasetContractKey -DatasetRelativePath ([string]$entry.dataset) -Dataset $dataset
         $datasetPresentation = Get-DatasetPresentationMetadata -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId) -DatasetContractKey $datasetContractKey
         $renderHint = Get-MappingRenderHint -MappingEntry $entry -DatasetPresentation $datasetPresentation -Tag $tag
+        $preSelectorRenderMode = Get-EffectiveRenderMode -RenderHint $renderHint -ProjectionDefinition $null -Tag $tag
+        if ($preSelectorRenderMode -eq 'diagram') {
+            $diagramRender = Invoke-DiagramRender -Tag $tag -RenderHint $renderHint -DiagramDefinitions $diagramDefinitions -DiagramAliases $diagramAliases -BundleRoot $BundleRoot -TechId ([string]$mapping.techId) -CurrentDatasetPath $datasetPath
+            $resolvedText = [string]$diagramRender.placeholder
+            $replaceByTag[$tag] = $resolvedText
+            if ($isDocxTemplate -and -not [string]::IsNullOrWhiteSpace([string]$diagramRender.imageBase64)) {
+                $imageFormat = if ((Test-MapHasKey -Map $diagramRender -Key 'imageFormat') -and [string]$diagramRender.imageFormat -eq 'svg') { 'svg' } else { 'png' }
+                $diagramImageSize = if ($imageFormat -eq 'svg' -and (Test-MapHasKey -Map $diagramRender -Key 'imageWidth') -and (Test-MapHasKey -Map $diagramRender -Key 'imageHeight')) {
+                    New-DocxImageSizeFromPixelDimensions -Width ([int]$diagramRender.imageWidth) -Height ([int]$diagramRender.imageHeight)
+                }
+                else {
+                    New-DocxImageSizeFromPngBase64 -ImageBase64 ([string]$diagramRender.imageBase64)
+                }
+                $docxImageByTag[$tag] = [ordered]@{
+                    imageBase64 = [string]$diagramRender.imageBase64
+                    imageFormat = $imageFormat
+                    name = [string]$diagramRender.diagramRef
+                    widthEmu = [int64]$diagramImageSize.WidthEmu
+                    heightEmu = [int64]$diagramImageSize.HeightEmu
+                }
+            }
+            $matches.Add([ordered]@{ tag = $tag; dataset = [string]$entry.dataset; selector = ''; valuePreview = $resolvedText })
+            $currentTag = $null
+            $currentDatasetRelativePath = $null
+            $currentDatasetPath = $null
+            $currentSelectorChain = ''
+            continue
+        }
+
         $selectors = @(Get-EffectiveSelectorsForMapping -MappingEntry $entry -RenderHint $renderHint -DatasetPresentation $datasetPresentation)
         $currentSelectorChain = if (@($selectors).Count -gt 0) { (($selectors | ForEach-Object { [string]$_ }) -join ' -> ') } else { '' }
         if (@($selectors).Count -gt 0) {
@@ -4082,7 +5296,7 @@ try {
         if ($outputDir -and -not (Test-Path -LiteralPath $outputDir -PathType Container)) {
             New-Item -Path $outputDir -ItemType Directory -Force | Out-Null
         }
-        $docxRender = Render-DocxTemplate -TemplatePath $resolvedTemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification -DocSupportRegion $DocSupportRegion -SupportRegionSidecarPath $SupportRegionSidecarPath -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy
+        $docxRender = Render-DocxTemplate -TemplatePath $resolvedTemplatePath -OutputPath $OutputPath -ReplaceByTag $replaceByTag -TableByTag $docxTableByTag -ImageByTag $docxImageByTag -DocTitle $DocTitle -DocCustomer $DocCustomer -DocCustomerAbbr $DocCustomerAbbr -DocLocation $DocLocation -DocSubsidiary $DocSubsidiary -DocEnvironment $DocEnvironment -DocDocumentReference $DocDocumentReference -DocVersion $DocVersion -DocConfigSnapDate $DocConfigSnapDate -DocReferenceId $DocReferenceId -DocClassification $DocClassification -DocSupportRegion $DocSupportRegion -DocSupportTier $DocSupportTier -SupportRegionSidecarPath $SupportRegionSidecarPath -DocxMatchMode $DocxMatchMode -UnresolvedTokenPolicy $UnresolvedTokenPolicy
         $docxUnresolvedLiteralByTag = $docxRender.unresolvedLiteralByTag
         $unresolvedByTag = $docxUnresolvedLiteralByTag
         $renderDetails.templatePathResolved = [string]$templateMetadata.path
@@ -4101,6 +5315,7 @@ try {
         $renderDetails.literalTokensMatched = [int]$docxRender.literalTokensMatched
         $renderDetails.literalTokensMatchedScalar = [int]$docxRender.literalTokensMatchedScalar
         $renderDetails.literalTokensMatchedTable = [int]$docxRender.literalTokensMatchedTable
+        $renderDetails.literalTokensMatchedImage = [int]$docxRender.literalTokensMatchedImage
         $renderDetails.docPropertyLiteralTokensMatched = [int]$docxRender.docPropertyLiteralTokensMatched
         $renderDetails.docPropControlsExpected = [int]$docxRender.docPropControlsExpected
         $renderDetails.docPropControlsMatched = [int]$docxRender.docPropControlsMatched
@@ -4242,7 +5457,7 @@ try {
     foreach ($entry in @($mapping.mappings)) {
         $requiredTag = if (Test-MapHasKey -Map $entry -Key 'sdtTag') { [string]$entry['sdtTag'] } elseif ((Test-MapHasKey -Map $entry -Key 'target') -and $entry['target'] -is [System.Collections.IDictionary] -and (Test-MapHasKey -Map $entry['target'] -Key 'sdtTag')) { [string]$entry['target']['sdtTag'] } else { '' }
         if ([string]::IsNullOrWhiteSpace($requiredTag)) { continue }
-        if ([bool]$entry.required) {
+        if ((Test-MapHasKey -Map $entry -Key 'required') -and [bool]$entry.required) {
             $requiredTagLookup[$requiredTag] = $true
         }
     }
@@ -4301,6 +5516,7 @@ try {
         docxLiteralTokensMatched = $(if ($isDocxTemplate) { [int]$renderDetails.literalTokensMatched } else { 0 })
         docxLiteralTokensMatchedScalar = $(if ($isDocxTemplate) { [int]$renderDetails.literalTokensMatchedScalar } else { 0 })
         docxLiteralTokensMatchedTable = $(if ($isDocxTemplate) { [int]$renderDetails.literalTokensMatchedTable } else { 0 })
+        docxLiteralTokensMatchedImage = $(if ($isDocxTemplate) { [int]$renderDetails.literalTokensMatchedImage } else { 0 })
         docxDocPropertyLiteralTokensMatched = $(if ($isDocxTemplate) { [int]$renderDetails.docPropertyLiteralTokensMatched } else { 0 })
         docxDocPropControlsExpected = $(if ($isDocxTemplate) { [int]$renderDetails.docPropControlsExpected } else { 0 })
         docxDocPropControlsMatched = $(if ($isDocxTemplate) { [int]$renderDetails.docPropControlsMatched } else { 0 })
@@ -4316,7 +5532,7 @@ try {
         docxDiscoveredUnmappedTaggedControls = $(if ($isDocxTemplate) { @($renderDetails.discoveredUnmappedTaggedControls) } else { @() })
         docxUnmatchedTaggedControls = $(if ($isDocxTemplate) { @($renderDetails.unmatchedTaggedControls) } else { @() })
         docxDocPropMappedTags = $(if ($isDocxTemplate) { @($renderDetails.docPropMappedTags) } else { @() })
-        docxSupportRegion = $(if ($isDocxTemplate -and $null -ne $renderDetails.supportRegion) { $renderDetails.supportRegion } else { [ordered]@{ id = ''; label = ''; displayName = ''; tier = ''; sidecarPath = '' } })
+        docxSupportRegion = $(if ($isDocxTemplate -and $null -ne $renderDetails.supportRegion) { $renderDetails.supportRegion } else { [ordered]@{ id = ''; label = ''; displayName = ''; tierId = ''; tier = ''; workingHours = ''; sidecarPath = '' } })
         docxPartErrors = $(if ($isDocxTemplate) { @($renderDetails.partErrors) } else { @() })
         docxUnresolvedLiteralTokens = $(if ($isDocxTemplate) { @($renderDetails.unresolvedLiteralTokens) } else { @() })
         docxLiteralTagDiagnosticsSummary = $(if ($isDocxTemplate) { $renderDetails.literalTagDiagnosticsSummary } else { [ordered]@{ totalEntries = 0; hitEntries = 0; zeroHitEntries = 0; distinctTagCount = 0; distinctPartCount = 0; topEntryLimit = 0; topEntries = @(); zeroHitTagSampleLimit = 0; zeroHitTagSamples = @() } })

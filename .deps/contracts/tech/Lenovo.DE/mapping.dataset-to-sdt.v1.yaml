@@ -16,12 +16,15 @@ syncPolicy:
     allowedRenderAs:
     - table
     - scalar
+    - diagram
     selectors:
       defaultByRenderAs:
         table:
         - items
         scalar:
         - items.0
+        diagram:
+        - items
     unsupportedRenderShape:
       documentFacing: fail
       nonDocumentFacing: skip
@@ -96,6 +99,14 @@ mappings:
     renderAs: table
     projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC
     emptyBehavior: placeholder
+- dataset: host-ports
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Diagrams.HostPortTopology
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=HostPortTopology; scope=PerSystem; diagramType=topology
+  renderHint:
+    renderAs: diagram
+    renderMode: diagram
+    diagramRef: LNV.Lenovo.DE.System[ArrayName].Diagrams.HostPortTopology
 - dataset: hosts
   sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Hosts
   required: false

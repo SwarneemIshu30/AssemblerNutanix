@@ -53,7 +53,9 @@ function New-AssemblerGuiRenderInvocation {
         [Parameter(Mandatory = $false)][string]$DocReferenceId,
         [Parameter(Mandatory = $false)][string]$DocClassification,
         [Parameter(Mandatory = $false)][string]$DocSupportRegion,
+        [Parameter(Mandatory = $false)][string]$DocSupportTier,
         [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
+        [Parameter(Mandatory = $false)][bool]$EnableDiagramRendering = $false,
         [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
         [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
     )
@@ -101,7 +103,9 @@ function New-AssemblerGuiRenderInvocation {
     Add-ArgumentValue -Arguments $arguments -Name '-DocReferenceId' -Value $DocReferenceId
     Add-ArgumentValue -Arguments $arguments -Name '-DocClassification' -Value $DocClassification
     Add-ArgumentValue -Arguments $arguments -Name '-DocSupportRegion' -Value $DocSupportRegion
+    Add-ArgumentValue -Arguments $arguments -Name '-DocSupportTier' -Value $DocSupportTier
     if ($AnnotateResolvedTags) { [void]$arguments.Add('-AnnotateResolvedTags') }
+    if ($EnableDiagramRendering) { [void]$arguments.Add('-EnableDiagramRendering') }
     Add-ArgumentValue -Arguments $arguments -Name '-DocxMatchMode' -Value $DocxMatchMode
     Add-ArgumentValue -Arguments $arguments -Name '-UnresolvedTokenPolicy' -Value $UnresolvedTokenPolicy
     Add-ArgumentValue -Arguments $arguments -Name '-ProgressPath' -Value $progressPath
@@ -134,6 +138,9 @@ function Start-AssemblerGuiRenderProcess {
     $outputParent = Split-Path -Path ([string]$Invocation.ReportPath) -Parent
     if (-not [string]::IsNullOrWhiteSpace($outputParent) -and -not (Test-Path -LiteralPath $outputParent -PathType Container)) {
         New-Item -Path $outputParent -ItemType Directory -Force | Out-Null
+    }
+    if (Test-Path -LiteralPath ([string]$Invocation.ProgressPath) -PathType Leaf) {
+        Remove-Item -LiteralPath ([string]$Invocation.ProgressPath) -Force
     }
     if (Test-Path -LiteralPath ([string]$Invocation.CancelSignalPath) -PathType Leaf) {
         Remove-Item -LiteralPath ([string]$Invocation.CancelSignalPath) -Force

@@ -269,7 +269,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         $wpfScriptPath = Join-Path $script:repoRoot 'gui/Start-AssemblerGui.Wpf.ps1'
         $wpfScriptText = Get-Content -LiteralPath $wpfScriptPath -Raw -Encoding UTF8
 
-        foreach ($expectedText in @('Document Version', 'Configuration Snapshot Date', 'Reference ID', 'Support Region', 'SupportRegionCombo', 'Cover Page Diagram', 'Header/Footer Diagram', 'CoverKeyImage', 'HeadFootKeyImage')) {
+        foreach ($expectedText in @('Document Version', 'Configuration Snapshot Date', 'Reference ID', 'Support Region', 'SupportRegionCombo', 'Cover Page Diagram', 'Header/Footer Diagram', 'CoverKeyImage', 'HeadFootKeyImage', 'DiagramCheckBox', 'Enable diagram rendering')) {
             if ($wpfScriptText -notmatch [regex]::Escape($expectedText)) {
                 throw "Expected the WPF launcher to contain '$expectedText'"
             }

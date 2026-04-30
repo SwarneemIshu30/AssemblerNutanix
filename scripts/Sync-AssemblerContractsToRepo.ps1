@@ -1058,7 +1058,7 @@ function Sync-CollectorSkeletonMappingFromContract {
 
             $mappingEntry = [ordered]@{
                 dataset = (Get-CollectorDatasetPathFromTemplate -DatasetName $datasetName -ResolvedTechId $ResolvedTechId -DatasetPathTemplateMap $datasetPathTemplateMap)
-                required = [bool]$entryTable.required
+                required = ((Test-MapHasKey -Map $entryTable -Key 'required') -and [bool]$entryTable.required)
             }
 
             $entryPhase = if (Test-MapHasKey -Map $entryTable -Key 'phase') { [string]$entryTable.phase } else { '' }
@@ -1103,7 +1103,7 @@ function Sync-CollectorSkeletonMappingFromContract {
 
             $renderHint = [ordered]@{}
             if ($null -ne $renderHintSource) {
-                foreach ($renderHintKey in @('renderAs', 'projectionRef', 'view')) {
+                foreach ($renderHintKey in @('renderAs', 'renderMode', 'projectionRef', 'diagramRef', 'view')) {
                     if ((Test-MapHasKey -Map $renderHintSource -Key $renderHintKey) -and -not [string]::IsNullOrWhiteSpace([string]$renderHintSource[$renderHintKey])) {
                         $renderHint[$renderHintKey] = [string]$renderHintSource[$renderHintKey]
                     }
@@ -1113,7 +1113,8 @@ function Sync-CollectorSkeletonMappingFromContract {
             if ($renderHint.Count -gt 0) {
                 $resolvedRenderAs = if (Test-MapHasKey -Map $renderHint -Key 'renderAs') { [string]$renderHint.renderAs } else { '' }
                 if (-not [string]::IsNullOrWhiteSpace($resolvedRenderAs) -and $resolvedRenderAs -notin @($syncPolicy.allowedRenderAs)) {
-                    $unsupportedAction = if ([bool]$entryTable.required) {
+                    $entryRequired = (Test-MapHasKey -Map $entryTable -Key 'required') -and [bool]$entryTable.required
+                    $unsupportedAction = if ($entryRequired) {
                         [string]$syncPolicy.unsupportedRenderShape.documentFacing
                     }
                     else {
@@ -1121,7 +1122,7 @@ function Sync-CollectorSkeletonMappingFromContract {
                     }
 
                     if ([string]::IsNullOrWhiteSpace($unsupportedAction)) {
-                        $unsupportedAction = if ([bool]$entryTable.required) { 'fail' } else { 'skip' }
+                        $unsupportedAction = if ($entryRequired) { 'fail' } else { 'skip' }
                     }
 
                     $skipReasonCounters.unsupportedShape++

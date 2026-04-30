@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="510" viewBox="0 0 1200 510">
+<style>
+  .bg { fill: #ffffff; }
+  .title { font: 700 22px Segoe UI, Arial, sans-serif; fill: #111827; }
+  .subtitle { font: 12px Segoe UI, Arial, sans-serif; fill: #6B7280; }
+  .cardTitle { font: 700 18px Segoe UI, Arial, sans-serif; fill: #111827; }
+  .label { font: 600 11px Segoe UI, Arial, sans-serif; fill: #6B7280; text-transform: uppercase; }
+  .value { font: 13px Segoe UI, Arial, sans-serif; fill: #111827; }
+  .cell { font: 12px Segoe UI, Arial, sans-serif; fill: #111827; }
+  .mono { font-family: Consolas, 'Segoe UI Mono', monospace; }
+  .strong { font-weight: 700; }
+  .pillText { font: 700 10px Segoe UI, Arial, sans-serif; fill: #fff; }
+  .section { font: 700 13px Segoe UI, Arial, sans-serif; fill: #374151; }
+</style>
+<rect class="bg" width="1200" height="510"/>
+<text x="56" y="46" class="title">Host Port Topology</text>
+<text x="56" y="68" class="subtitle">Dense controller rows intended for DOCX page width</text>
+<g transform="translate(56,92)">
+<rect x="0" y="0" width="1088" height="166" rx="10" fill="#F8FAFC" stroke="#CBD5E1"/>
+<rect x="0" y="0" width="180" height="166" rx="10" fill="#E8F1FF" stroke="#CBD5E1"/>
+<text x="22" y="34" class="cardTitle">Controller A</text>
+<text x="22" y="62" class="value">DE4200 / Tray 99</text>
+<text x="22" y="86" class="value mono">952529000086</text>
+<text x="22" y="118" class="value" fill="#157347">optimal</text>
+<rect x="210" y="24" width="132" height="52" rx="8" fill="#ECFDF3" stroke="#86EFAC"/>
+<text x="220" y="42" class="cell strong">e0a</text>
+<text x="220" y="60" class="cell mono">192.168.130.101</text>
+<rect x="282" y="30" width="52" height="18" rx="9" fill="#B42318"/><text x="308" y="43" text-anchor="middle" class="pillText">down</text>
+<rect x="352" y="24" width="132" height="52" rx="8" fill="#ECFDF3" stroke="#86EFAC"/>
+<text x="362" y="42" class="cell strong">e0b</text>
+<text x="362" y="60" class="cell mono">192.168.131.101</text>
+<rect x="424" y="30" width="52" height="18" rx="9" fill="#B42318"/><text x="450" y="43" text-anchor="middle" class="pillText">down</text>
+<rect x="494" y="24" width="132" height="52" rx="8" fill="#ECFDF3" stroke="#86EFAC"/>
+<text x="504" y="42" class="cell strong">e1a</text>
+<text x="504" y="60" class="cell mono">192.168.132.101</text>
+<rect x="566" y="30" width="52" height="18" rx="9" fill="#B42318"/><text x="592" y="43" text-anchor="middle" class="pillText">down</text>
+<rect x="636" y="24" width="132" height="52" rx="8" fill="#ECFDF3" stroke="#86EFAC"/>
+<text x="646" y="42" class="cell strong">e1b</text>
+<text x="646" y="60" class="cell mono">192.168.133.101</text>
+<rect x="708" y="30" width="52" height="18" rx="9" fill="#B42318"/><text x="734" y="43" text-anchor="middle" class="pillText">down</text>
+<rect x="778" y="24" width="132" height="52" rx="8" fill="#ECFDF3" stroke="#86EFAC"/>
+<text x="788" y="42" class="cell strong">e1c</text>
+<text x="788" y="60" class="cell mono">192.168.134.101</text>
+<rect x="850" y="30" width="52" height="18" rx="9" fill="#B42318"/><text x="876" y="43" text-anchor="middle" class="pillText">down</text>
+<rect x="920" y="24" width="132" height="52" rx="8" fill="#ECFDF3" stroke="#86EFAC"/>
+<text x="930" y="42" class="cell strong">e1d</text>
+<text x="930" y="60" class="cell mono">192.168.135.101</text>
+<rect x="992" y="30" width="52" height="18" rx="9" fill="#B42318"/><text x="1018" y="43" text-anchor="middle" class="pillText">down</text>
+<rect x="920" y="96" width="142" height="46" rx="8" fill="#FFF7ED" stroke="#FDBA74"/>
+<text x="932" y="116" class="cell strong">Mgmt wan0</text>
+<text x="932" y="134" class="cell mono">192.0.2.11</text>
+</g>
+<g transform="translate(56,286)">
+<rect x="0" y="0" width="1088" height="166" rx="10" fill="#F8FAFC" stroke="#CBD5E1"/>
+<rect x="0" y="0" width="180" height="166" rx="10" fill="#E8F1FF" stroke="#CBD5E1"/>
+<text x="22" y="34" class="cardTitle">Controller B</text>
+<text x="22" y="62" class="value">DE4200 / Tray 99</text>
+<text x="22" y="86" class="value mono">952529000077</text>
+<text x="22" y="118" class="value" fill="#157347">optimal</text>
+<rect x="210" y="24" width="132" height="52" rx="8" fill="#ECFDF3" stroke="#86EFAC"/>
+<text x="220" y="42" class="cell strong">e0a</text>
+<text x="220" y="60" class="cell mono">192.168.130.102</text>
+<rect x="282" y="30" width="52" height="18" rx="9" fill="#B42318"/><text x="308" y="43" text-anchor="middle" class="pillText">down</text>
+<rect x="352" y="24" width="132" height="52" rx="8" fill="#ECFDF3" stroke="#86EFAC"/>
+<text x="362" y="42" class="cell strong">e0b</text>
+<text x="362" y="60" class="cell mono">192.168.131.102</text>
+<rect x="424" y="30" width="52" height="18" rx="9" fill="#B42318"/><text x="450" y="43" text-anchor="middle" class="pillText">down</text>
+<rect x="494" y="24" width="132" height="52" rx="8" fill="#ECFDF3" stroke="#86EFAC"/>
+<text x="504" y="42" class="cell strong">e1a</text>
+<text x="504" y="60" class="cell mono">192.168.132.102</text>
+<rect x="566" y="30" width="52" height="18" rx="9" fill="#B42318"/><text x="592" y="43" text-anchor="middle" class="pillText">down</text>
+<rect x="636" y="24" width="132" height="52" rx="8" fill="#ECFDF3" stroke="#86EFAC"/>
+<text x="646" y="42" class="cell strong">e1b</text>
+<text x="646" y="60" class="cell mono">192.168.133.102</text>
+<rect x="708" y="30" width="52" height="18" rx="9" fill="#B42318"/><text x="734" y="43" text-anchor="middle" class="pillText">down</text>
+<rect x="778" y="24" width="132" height="52" rx="8" fill="#ECFDF3" stroke="#86EFAC"/>
+<text x="788" y="42" class="cell strong">e1c</text>
+<text x="788" y="60" class="cell mono">192.168.134.102</text>
+<rect x="850" y="30" width="52" height="18" rx="9" fill="#B42318"/><text x="876" y="43" text-anchor="middle" class="pillText">down</text>
+<rect x="920" y="24" width="132" height="52" rx="8" fill="#ECFDF3" stroke="#86EFAC"/>
+<text x="930" y="42" class="cell strong">e1d</text>
+<text x="930" y="60" class="cell mono">192.168.135.102</text>
+<rect x="992" y="30" width="52" height="18" rx="9" fill="#B42318"/><text x="1018" y="43" text-anchor="middle" class="pillText">down</text>
+<rect x="920" y="96" width="142" height="46" rx="8" fill="#FFF7ED" stroke="#FDBA74"/>
+<text x="932" y="116" class="cell strong">Mgmt wan0</text>
+<text x="932" y="134" class="cell mono">192.0.2.10</text>
+</g>
+</svg>

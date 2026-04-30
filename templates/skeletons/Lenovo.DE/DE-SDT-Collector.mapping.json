@@ -146,6 +146,22 @@
     },
     {
       "target": {
+        "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Diagrams.HostPortTopology"
+      },
+      "required": false,
+      "selectors": [
+        "items"
+      ],
+      "renderHint": {
+        "renderAs": "diagram",
+        "renderMode": "diagram",
+        "diagramRef": "LNV.Lenovo.DE.System[ArrayName].Diagrams.HostPortTopology"
+      },
+      "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Diagrams.HostPortTopology",
+      "dataset": "datasets/Lenovo.DE/__TARGET__/__SYSTEM__/host-ports.json"
+    },
+    {
+      "target": {
         "sdtTag": "LNV.Lenovo.DE.System[ArrayName].Tables.Hosts"
       },
       "required": false,

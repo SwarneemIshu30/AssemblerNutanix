@@ -30,7 +30,9 @@ param(
     [Parameter(Mandatory = $false)][string]$DocReferenceId,
     [Parameter(Mandatory = $false)][string]$DocClassification,
     [Parameter(Mandatory = $false)][string]$DocSupportRegion,
+    [Parameter(Mandatory = $false)][string]$DocSupportTier,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
+    [Parameter(Mandatory = $false)][switch]$EnableDiagramRendering,
     [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
     [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain',
     [Parameter(Mandatory = $false)][string]$ProgressPath,
@@ -242,7 +244,9 @@ try {
     Add-IfValue -Arguments $arguments -Name '-DocReferenceId' -Value $DocReferenceId
     Add-IfValue -Arguments $arguments -Name '-DocClassification' -Value $DocClassification
     Add-IfValue -Arguments $arguments -Name '-DocSupportRegion' -Value $DocSupportRegion
+    Add-IfValue -Arguments $arguments -Name '-DocSupportTier' -Value $DocSupportTier
     if ($AnnotateResolvedTags) { [void]$arguments.Add('-AnnotateResolvedTags') }
+    if ($EnableDiagramRendering) { [void]$arguments.Add('-EnableDiagramRendering') }
     Add-IfValue -Arguments $arguments -Name '-DocxMatchMode' -Value $DocxMatchMode
     Add-IfValue -Arguments $arguments -Name '-UnresolvedTokenPolicy' -Value $UnresolvedTokenPolicy
     $backendArguments = @($arguments)

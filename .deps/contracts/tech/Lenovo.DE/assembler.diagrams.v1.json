@@ -1,0 +1,153 @@
+{
+  "schema": "assembler.diagrams",
+  "schemaVersion": 1,
+  "techId": "Lenovo.DE",
+  "displayName": "Lenovo DE assembler diagram definitions",
+  "diagrams": {
+    "LNV.Lenovo.DE.System[ArrayName].Diagrams.HostPortTopology": {
+      "engine": "diagrammer.core",
+      "kind": "topology",
+      "inputs": {
+        "controllers": {
+          "dataset": "system-controllers",
+          "root": "items",
+          "required": true
+        },
+        "hostPorts": {
+          "dataset": "host-ports",
+          "root": "items",
+          "required": true
+        },
+        "managementInterfaces": {
+          "dataset": "management-interfaces",
+          "root": "items",
+          "required": false
+        }
+      },
+      "layout": {
+        "direction": "left-to-right",
+        "title": "Host Port Topology",
+        "style": "dense-controller-rows"
+      },
+      "assets": {
+        "theme": {
+          "controllerFill": "#E8F1FF",
+          "hostPortFill": "#EAF7EA",
+          "managementFill": "#FFF4E5"
+        },
+        "icons": {
+          "controller": "controller",
+          "hostPort": "network-port",
+          "management": "management-port"
+        }
+      },
+      "nodes": [
+        {
+          "name": "controllers",
+          "input": "controllers",
+          "id": "controller:{controllerRef}",
+          "label": "Controller {controllerLabel}",
+          "groupBy": "controllerLabel",
+          "shape": "rectangle",
+          "fillColor": "#E8F1FF",
+          "fields": [
+            {
+              "label": "Tray",
+              "field": "trayId"
+            },
+            {
+              "label": "Status",
+              "field": "status"
+            },
+            {
+              "label": "Serial",
+              "field": "serialNumber"
+            },
+            {
+              "label": "Model",
+              "field": "modelName"
+            }
+          ]
+        },
+        {
+          "name": "hostPorts",
+          "input": "hostPorts",
+          "id": "hostport:{interfaceRef}",
+          "label": "{portLabel}",
+          "groupBy": "controllerLabel",
+          "shape": "rectangle",
+          "fillColor": "#EAF7EA",
+          "fields": [
+            {
+              "label": "Transport",
+              "field": "transport"
+            },
+            {
+              "label": "Link",
+              "field": "linkStatus"
+            },
+            {
+              "label": "IPv4",
+              "field": "ipv4Address"
+            },
+            {
+              "label": "Speed",
+              "field": "currentSpeed"
+            }
+          ]
+        },
+        {
+          "name": "managementInterfaces",
+          "input": "managementInterfaces",
+          "id": "mgmt:{interfaceRef}",
+          "label": "{interfaceName}",
+          "groupBy": "controllerLabel",
+          "shape": "rectangle",
+          "fillColor": "#FFF4E5",
+          "fields": [
+            {
+              "label": "Port",
+              "field": "portLabel"
+            },
+            {
+              "label": "Link",
+              "field": "linkStatus"
+            },
+            {
+              "label": "IPv4",
+              "field": "ipv4Address"
+            },
+            {
+              "label": "Mask",
+              "field": "ipv4SubnetMask"
+            }
+          ]
+        }
+      ],
+      "groups": [
+        {
+          "name": "controllerLabel",
+          "label": "Controller {controllerLabel}"
+        }
+      ],
+      "edges": [
+        {
+          "input": "hostPorts",
+          "from": "controller:{controllerRef}",
+          "to": "hostport:{interfaceRef}",
+          "label": "{transport}"
+        },
+        {
+          "input": "managementInterfaces",
+          "from": "controller:{controllerRef}",
+          "to": "mgmt:{interfaceRef}",
+          "label": "mgmt"
+        }
+      ],
+      "fallback": {
+        "mode": "fail",
+        "message": "Host port topology diagram could not be generated."
+      }
+    }
+  }
+}

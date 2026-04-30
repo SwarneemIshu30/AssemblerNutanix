@@ -17,6 +17,7 @@ Describe 'Assembler GUI render process module' {
             -OutputType @('docx') `
             -DocTitle 'Title With Spaces' `
             -DocSupportRegion 'AU' `
+            -EnableDiagramRendering $true `
             -DocxMatchMode both `
             -UnresolvedTokenPolicy retain
 
@@ -37,6 +38,9 @@ Describe 'Assembler GUI render process module' {
         }
         if (@($invocation.Arguments) -notcontains '-DocSupportRegion' -or @($invocation.Arguments) -notcontains 'AU') {
             throw 'Expected invocation to pass DocSupportRegion.'
+        }
+        if (@($invocation.Arguments) -notcontains '-EnableDiagramRendering') {
+            throw 'Expected invocation to pass EnableDiagramRendering when selected.'
         }
     }
 
@@ -93,6 +97,39 @@ Describe 'Assembler GUI render process module' {
         }
         if ([string]$events[1].stage -ne 'Complete') {
             throw "Expected Complete event, got $($events[1].stage)"
+        }
+    }
+
+    It 'clears stale progress before starting a new render process' {
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("lnv-render-start-test-" + [guid]::NewGuid().ToString('n'))
+        New-Item -Path $tempRoot -ItemType Directory -Force | Out-Null
+        $progressPath = Join-Path $tempRoot 'progress.jsonl'
+        $reportPath = Join-Path $tempRoot 'render-report.json'
+        $cancelSignalPath = Join-Path $tempRoot '.assembler-render.cancel'
+        Set-Content -LiteralPath $progressPath -Value '{"stage":"Failed","percent":100,"message":"stale failure"}' -Encoding UTF8
+
+        $invocation = [pscustomobject]@{
+            Arguments = @('-NoProfile', '-Command', 'Start-Sleep -Milliseconds 200')
+            ProgressPath = $progressPath
+            ReportPath = $reportPath
+            CancelSignalPath = $cancelSignalPath
+            WorkingDirectory = $script:repoRoot
+        }
+
+        $state = Start-AssemblerGuiRenderProcess -Invocation $invocation
+        try {
+            if (Test-Path -LiteralPath $progressPath -PathType Leaf) {
+                throw 'Expected stale progress file to be removed before process start.'
+            }
+        }
+        finally {
+            if ($null -ne $state -and $null -ne $state.Process -and -not $state.Process.HasExited) {
+                $state.Process.Kill()
+                $state.Process.WaitForExit()
+            }
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
         }
     }
 }
