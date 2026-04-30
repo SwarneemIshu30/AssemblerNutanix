@@ -35,6 +35,7 @@ Document-property inputs exposed in the GUI:
 - `Reference ID` (`LNV.ReferenceID`)
 - `Classification`
 - `Support Region` (`SupportRegion`, loaded from the catalog-adjacent support-region sidecar)
+- `Support Tier` (`SupportTier`, loaded from the selected region in the same sidecar)
 
 Workflow defaults exposed in the GUI:
 - DOCX enabled
@@ -69,7 +70,8 @@ Current WPF document-property behavior:
 - `Configuration Snapshot Date` is refreshed from a selected folder bundle capture date when available; archive mode exposes the verified extracted bundle path after render in `archiveImport.extractedBundleRoot`
 - `Reference ID` is available as an operator-entered field
 - `Support Region` defaults from `templates/skeletons/Lenovo.DE/DE-SDT-SupportRegions.sidecar.json` and is passed to the renderer as `DocSupportRegion`
-- DOCX rendering now resolves the same sidecar into support-process fields for literal `<<SDT:...>>` tokens, content controls, or `DOCPROPERTY` fields such as `SupportRegionLabel`, `SupportTier`, `SupportPhoneNumbers`, `SupportServiceRequestUrl`, `SupportPortalUrl`, `SupportPlanUrl`, and `SupportProcessText`
+- `Support Tier` defaults to `Premier`, refreshes when the selected support region changes, and is passed to the renderer as `DocSupportTier`
+- DOCX rendering now resolves the same sidecar into support-process fields for literal `<<SDT:...>>` tokens, content controls, or `DOCPROPERTY` fields such as `SupportRegionLabel`, `SupportTierId`, `SupportTier`, `SupportWorkingHours`, `SupportLanguages`, `SupportPhoneNumbers`, `SupportServiceRequestUrl`, `SupportPortalUrl`, `SupportPlanUrl`, and `SupportProcessText`
 - `CoverKey.png` and `HeadFootKey.png` are shown beneath the document-property fields as a visual key for the cover page and header/footer regions
 
 Current `Mapping Studio` status:

@@ -1795,7 +1795,9 @@ function Get-DocxDocPropertyFieldReplacementMap {
         @{ name = 'SupportTierId'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportTierId' -Default $DocSupportTier) },
         @{ name = 'DocSupportTierId'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportTierId' -Default $DocSupportTier) },
         @{ name = 'SupportRegionLabel'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportRegionLabel' -Default '') },
+        @{ name = 'DocSupportRegionLabel'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportRegionLabel' -Default '') },
         @{ name = 'SupportRegionDisplayName'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportRegionDisplayName' -Default '') },
+        @{ name = 'DocSupportRegionDisplayName'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportRegionDisplayName' -Default '') },
         @{ name = 'SupportLanguage'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportLanguage' -Default '') },
         @{ name = 'DocSupportLanguage'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportLanguage' -Default '') },
         @{ name = 'SupportLanguages'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportLanguages' -Default '') },
@@ -1803,16 +1805,25 @@ function Get-DocxDocPropertyFieldReplacementMap {
         @{ name = 'SupportWorkingHours'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportWorkingHours' -Default '') },
         @{ name = 'DocSupportWorkingHours'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportWorkingHours' -Default '') },
         @{ name = 'SupportCountryCode'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportCountryCode' -Default '') },
+        @{ name = 'DocSupportCountryCode'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportCountryCode' -Default '') },
         @{ name = 'SupportTier'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportTier' -Default '') },
         @{ name = 'DocSupportTier'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportTier' -Default '') },
         @{ name = 'SupportPhoneNumbers'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPhoneNumbers' -Default '') },
+        @{ name = 'DocSupportPhoneNumbers'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPhoneNumbers' -Default '') },
         @{ name = 'SupportPhoneNumbersInline'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPhoneNumbersInline' -Default '') },
+        @{ name = 'DocSupportPhoneNumbersInline'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPhoneNumbersInline' -Default '') },
         @{ name = 'SupportServiceRequestUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportServiceRequestUrl' -Default '') },
+        @{ name = 'DocSupportServiceRequestUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportServiceRequestUrl' -Default '') },
         @{ name = 'SupportPortalUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPortalUrl' -Default '') },
+        @{ name = 'DocSupportPortalUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPortalUrl' -Default '') },
         @{ name = 'SupportPhoneListUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPhoneListUrl' -Default '') },
+        @{ name = 'DocSupportPhoneListUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPhoneListUrl' -Default '') },
         @{ name = 'SupportPlanUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPlanUrl' -Default '') },
+        @{ name = 'DocSupportPlanUrl'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportPlanUrl' -Default '') },
         @{ name = 'SupportGuidance'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportGuidance' -Default '') },
-        @{ name = 'SupportProcessText'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportProcessText' -Default '') }
+        @{ name = 'DocSupportGuidance'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportGuidance' -Default '') },
+        @{ name = 'SupportProcessText'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportProcessText' -Default '') },
+        @{ name = 'DocSupportProcessText'; value = [string](Get-SupportMapValue -Map $SupportRegionModel -Key 'SupportProcessText' -Default '') }
     )) {
         $name = [string]$entry.name
         $value = [string]$entry.value

@@ -998,6 +998,9 @@ $docConfigSnapDateText.Text = $DocConfigSnapDate
 $docReferenceIdText.Text = $DocReferenceId
 $docClassificationText.Text = $DocClassification
 Update-SupportRegionOptions
+$supportRegionCombo.Add_SelectionChanged({
+    Update-SupportTierOptions
+})
 $techIdText.Text = (($TechId ?? @()) -join ',')
 $entryIdText.Text = (($EntryId ?? @()) -join ',')
 $docxCheckBox.IsChecked = $true
@@ -1178,6 +1181,7 @@ function Start-RenderFromCurrentInputs {
         DocReferenceId = $docReferenceIdText.Text
         DocClassification = $docClassificationText.Text
         DocSupportRegion = (Get-SelectedSupportRegionId)
+        DocSupportTier = (Get-SelectedSupportTierId)
         AnnotateResolvedTags = ([bool]$annotateCheckBox.IsChecked)
         DocxMatchMode = $docxModeSelection
         UnresolvedTokenPolicy = $unresolvedTokenPolicySelection
