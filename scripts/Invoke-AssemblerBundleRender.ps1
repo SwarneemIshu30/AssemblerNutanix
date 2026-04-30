@@ -25,6 +25,7 @@ param(
     [Parameter(Mandatory = $false)][string]$DocSupportRegion,
     [Parameter(Mandatory = $false)][string]$DocSupportTier,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
+    [Parameter(Mandatory = $false)][switch]$EnableDiagramRendering,
     [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
     [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
 )
@@ -677,6 +678,9 @@ try {
                 }
                 if ($AnnotateResolvedTags.IsPresent) {
                     $renderParams.AnnotateResolvedTags = $true
+                }
+                if ($EnableDiagramRendering.IsPresent) {
+                    $renderParams.EnableDiagramRendering = $true
                 }
                 if ((Get-CatalogEntryOutputType -Entry $entry) -eq 'docx') {
                     $renderParams.DocxMatchMode = [string]$DocxMatchMode

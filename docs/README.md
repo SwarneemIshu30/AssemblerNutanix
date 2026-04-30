@@ -13,6 +13,10 @@ Key current topics that should be documented here:
 - ownership boundaries between assembler and contracts
 - offline handoff rules for mirrored contract artifacts under `exports/LNV.AsBuiltDoc.Contracts/...`
 
+Launcher note:
+- `gui/Start-AssemblerGui.Wpf.ps1` is the active desktop launcher for new render controls and Mapping Studio work.
+- `gui/Start-AssemblerGui.ps1` is the legacy WinForms/terminal launcher and is pending removal; do not add new UI features there.
+
 See also:
 - `docs/contract-driven-projections.md`
 - `docs/mapping-studio-wip.md`

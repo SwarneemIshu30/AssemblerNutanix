@@ -55,6 +55,7 @@ function New-AssemblerGuiRenderInvocation {
         [Parameter(Mandatory = $false)][string]$DocSupportRegion,
         [Parameter(Mandatory = $false)][string]$DocSupportTier,
         [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
+        [Parameter(Mandatory = $false)][bool]$EnableDiagramRendering = $false,
         [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
         [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
     )
@@ -104,6 +105,7 @@ function New-AssemblerGuiRenderInvocation {
     Add-ArgumentValue -Arguments $arguments -Name '-DocSupportRegion' -Value $DocSupportRegion
     Add-ArgumentValue -Arguments $arguments -Name '-DocSupportTier' -Value $DocSupportTier
     if ($AnnotateResolvedTags) { [void]$arguments.Add('-AnnotateResolvedTags') }
+    if ($EnableDiagramRendering) { [void]$arguments.Add('-EnableDiagramRendering') }
     Add-ArgumentValue -Arguments $arguments -Name '-DocxMatchMode' -Value $DocxMatchMode
     Add-ArgumentValue -Arguments $arguments -Name '-UnresolvedTokenPolicy' -Value $UnresolvedTokenPolicy
     Add-ArgumentValue -Arguments $arguments -Name '-ProgressPath' -Value $progressPath

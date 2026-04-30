@@ -1946,7 +1946,8 @@ Describe 'Invoke-AssemblerSdtRender integration' {
 
         try {
             $bundleRoot = Join-Path $tempRoot 'bundle'
-            $datasetsRoot = Join-Path $bundleRoot 'datasets'
+            $systemDatasetRelativeRoot = 'datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/system_1_DE4200_Rack4'
+            $datasetsRoot = Join-Path $bundleRoot $systemDatasetRelativeRoot
             $null = New-Item -ItemType Directory -Path $datasetsRoot -Force
             $manifestPath = Join-Path $bundleRoot 'manifest.json'
             Set-Content -LiteralPath $manifestPath -Encoding UTF8 -Value (@{ bundleId = 'bundle-test' } | ConvertTo-Json -Depth 5)
@@ -1982,7 +1983,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                 compatibility = @{ contracts = @{ version = 'v1' } }
                 mappings = @(
                     @{
-                        dataset = 'datasets/host-ports.json'
+                        dataset = "$systemDatasetRelativeRoot/host-ports.json"
                         sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Diagrams.HostPortTopology'
                         required = $false
                         renderHint = @{
@@ -2023,10 +2024,22 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             } | ConvertTo-Json -Depth 10)
 
             $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $disabledOutput = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $bundleRoot -MappingPath $mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot
+            if ($LASTEXITCODE -ne 0) { throw "Expected exit code 0 when diagram rendering is disabled. Output: $disabledOutput" }
+            $disabledRendered = Get-Content -LiteralPath $outputPath -Raw -Encoding UTF8
+            if ($disabledRendered -notmatch '\[diagram disabled: LNV\.Lenovo\.DE\.System\[ArrayName\]\.Diagrams\.HostPortTopology\]') {
+                throw "Expected disabled diagram placeholder output, got '$disabledRendered'"
+            }
+            $disabledReport = Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            $disabledIssue = @($disabledReport.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DIAGRAM-RENDER-FAILED' }) | Select-Object -First 1
+            if ($null -ne $disabledIssue) {
+                throw 'Did not expect diagram render failure issue when diagram rendering is disabled.'
+            }
+
             $previousDisableValue = $env:ASSEMBLER_DISABLE_DIAGRAMMER_CORE
             $env:ASSEMBLER_DISABLE_DIAGRAMMER_CORE = '1'
             try {
-                $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $bundleRoot -MappingPath $mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot
+                $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $bundleRoot -MappingPath $mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot -EnableDiagramRendering
                 if ($LASTEXITCODE -eq 0) { throw "Expected non-zero exit code when diagram generation fails closed. Output: $output" }
             }
             finally {
@@ -2045,6 +2058,9 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             $issue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DIAGRAM-RENDER-FAILED' }) | Select-Object -First 1
             if ($null -eq $issue) {
                 throw 'Expected diagram render failure issue in report'
+            }
+            if ([string]$issue.message -notmatch 'Diagrammer\.Core has been disabled' -or [string]$issue.message -match 'dataset .* was not found') {
+                throw "Expected sibling diagram inputs to resolve before Diagrammer.Core is invoked, got '$($issue.message)'"
             }
         }
         finally {

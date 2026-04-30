@@ -17,6 +17,7 @@ Describe 'Assembler GUI render process module' {
             -OutputType @('docx') `
             -DocTitle 'Title With Spaces' `
             -DocSupportRegion 'AU' `
+            -EnableDiagramRendering $true `
             -DocxMatchMode both `
             -UnresolvedTokenPolicy retain
 
@@ -37,6 +38,9 @@ Describe 'Assembler GUI render process module' {
         }
         if (@($invocation.Arguments) -notcontains '-DocSupportRegion' -or @($invocation.Arguments) -notcontains 'AU') {
             throw 'Expected invocation to pass DocSupportRegion.'
+        }
+        if (@($invocation.Arguments) -notcontains '-EnableDiagramRendering') {
+            throw 'Expected invocation to pass EnableDiagramRendering when selected.'
         }
     }
 

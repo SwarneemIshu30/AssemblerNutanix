@@ -27,6 +27,7 @@ param(
     [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
     [Parameter(Mandatory = $false)][bool]$IncludeTxt = $false,
     [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
+    [Parameter(Mandatory = $false)][bool]$EnableDiagramRendering = $false,
     [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
     [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
 )
@@ -117,6 +118,7 @@ function Invoke-BundleRender {
         [Parameter(Mandatory = $false)][bool]$IncludeDocx = $true,
         [Parameter(Mandatory = $false)][bool]$IncludeTxt = $false,
         [Parameter(Mandatory = $false)][bool]$AnnotateResolvedTags = $false,
+        [Parameter(Mandatory = $false)][bool]$EnableDiagramRendering = $false,
         [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
         [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
     )
@@ -170,6 +172,9 @@ function Invoke-BundleRender {
     $params.OutputType = $outputType
     if ($AnnotateResolvedTags) {
         $params.AnnotateResolvedTags = $true
+    }
+    if ($EnableDiagramRendering) {
+        $params.EnableDiagramRendering = $true
     }
     $params.DocxMatchMode = [string]$DocxMatchMode
     $params.UnresolvedTokenPolicy = [string]$UnresolvedTokenPolicy
@@ -360,6 +365,7 @@ $xaml = @"
               <StackPanel Grid.Row='2' Grid.Column='1' Orientation='Horizontal' HorizontalAlignment='Left'>
                 <CheckBox Name='DocxCheckBox' Margin='0,0,16,0' VerticalAlignment='Center'>DOCX output</CheckBox>
                 <CheckBox Name='AnnotateCheckBox' Margin='0,0,16,0' VerticalAlignment='Center'>Annotate resolved SDT tags</CheckBox>
+                <CheckBox Name='DiagramCheckBox' Margin='0,0,16,0' VerticalAlignment='Center'>Enable diagram rendering</CheckBox>
                 <CheckBox Name='TxtCheckBox' Margin='0,0,16,0' VerticalAlignment='Center' Visibility='Collapsed'>Enable TXT output</CheckBox>
               </StackPanel>
 
@@ -847,6 +853,7 @@ $debugCheckBox = $window.FindName('DebugCheckBox')
 $docxCheckBox = $window.FindName('DocxCheckBox')
 $txtCheckBox = $window.FindName('TxtCheckBox')
 $annotateCheckBox = $window.FindName('AnnotateCheckBox')
+$diagramCheckBox = $window.FindName('DiagramCheckBox')
 $docxMatchModeCombo = $window.FindName('DocxMatchModeCombo')
 $unresolvedTokenPolicyCombo = $window.FindName('UnresolvedTokenPolicyCombo')
 $outputText = $window.FindName('OutputText')
@@ -1008,6 +1015,7 @@ $docxCheckBox.IsEnabled = $false
 $txtCheckBox.IsChecked = $false
 $txtCheckBox.IsEnabled = $false
 $annotateCheckBox.IsChecked = $AnnotateResolvedTags
+$diagramCheckBox.IsChecked = $EnableDiagramRendering
 switch ([string]$DocxMatchMode) {
     'literal-token' { $docxMatchModeCombo.SelectedIndex = 2 }
     'content-control-tag' { $docxMatchModeCombo.SelectedIndex = 1 }
@@ -1183,6 +1191,7 @@ function Start-RenderFromCurrentInputs {
         DocSupportRegion = (Get-SelectedSupportRegionId)
         DocSupportTier = (Get-SelectedSupportTierId)
         AnnotateResolvedTags = ([bool]$annotateCheckBox.IsChecked)
+        EnableDiagramRendering = ([bool]$diagramCheckBox.IsChecked)
         DocxMatchMode = $docxModeSelection
         UnresolvedTokenPolicy = $unresolvedTokenPolicySelection
     }

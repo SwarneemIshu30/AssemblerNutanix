@@ -25,6 +25,7 @@ param(
     [Parameter(Mandatory = $false)][string]$DocSupportTier,
     [Parameter(Mandatory = $false)][string]$SupportRegionSidecarPath,
     [Parameter(Mandatory = $false)][switch]$AnnotateResolvedTags,
+    [Parameter(Mandatory = $false)][switch]$EnableDiagramRendering,
     [Parameter(Mandatory = $false)][ValidateSet('content-control-tag','literal-token','both')][string]$DocxMatchMode = 'both',
     [Parameter(Mandatory = $false)][ValidateSet('retain','remove')][string]$UnresolvedTokenPolicy = 'retain'
 )
@@ -3684,7 +3685,8 @@ function Resolve-DiagramInputRows {
     param(
         [Parameter(Mandatory = $true)][System.Collections.IDictionary]$InputDefinition,
         [Parameter(Mandatory = $true)][string]$BundleRoot,
-        [Parameter(Mandatory = $true)][string]$TechId
+        [Parameter(Mandatory = $true)][string]$TechId,
+        [Parameter(Mandatory = $false)][string]$CurrentDatasetPath
     )
 
     $datasetName = if (Test-MapHasKey -Map $InputDefinition -Key 'dataset') { [string]$InputDefinition.dataset } else { '' }
@@ -3693,7 +3695,12 @@ function Resolve-DiagramInputRows {
     }
 
     $rootSelector = if ((Test-MapHasKey -Map $InputDefinition -Key 'root') -and -not [string]::IsNullOrWhiteSpace([string]$InputDefinition.root)) { [string]$InputDefinition.root } else { 'items' }
-    $cacheKey = "$BundleRoot|$TechId|$datasetName|$rootSelector"
+    $currentDatasetDirectory = ''
+    if (-not [string]::IsNullOrWhiteSpace($CurrentDatasetPath)) {
+        $currentDatasetDirectory = Split-Path -Path $CurrentDatasetPath -Parent
+    }
+
+    $cacheKey = "$BundleRoot|$TechId|$currentDatasetDirectory|$datasetName|$rootSelector"
     if (Test-MapHasKey -Map $script:DiagramInputRowsCache -Key $cacheKey) {
         return @($script:DiagramInputRowsCache[$cacheKey])
     }
@@ -3701,10 +3708,13 @@ function Resolve-DiagramInputRows {
     $datasetResolution = Resolve-DatasetFilePath -BundleRoot $BundleRoot -DatasetRelativePath $datasetName -TechId $TechId
     $datasetPath = [string]$datasetResolution.path
     if (-not (Test-Path -LiteralPath $datasetPath -PathType Leaf)) {
-        $candidatePaths = @(
-            (Join-Path $BundleRoot ($datasetName + '.json')),
-            (Join-Path (Join-Path $BundleRoot 'datasets') ($datasetName + '.json'))
-        )
+        $candidatePaths = [System.Collections.Generic.List[string]]::new()
+        if (-not [string]::IsNullOrWhiteSpace($currentDatasetDirectory)) {
+            [void]$candidatePaths.Add((Join-Path $currentDatasetDirectory $datasetName))
+            [void]$candidatePaths.Add((Join-Path $currentDatasetDirectory ($datasetName + '.json')))
+        }
+        [void]$candidatePaths.Add((Join-Path $BundleRoot ($datasetName + '.json')))
+        [void]$candidatePaths.Add((Join-Path (Join-Path $BundleRoot 'datasets') ($datasetName + '.json')))
         $resolvedCandidate = @($candidatePaths | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1)
         if (@($resolvedCandidate).Count -gt 0) {
             $datasetPath = [string]$resolvedCandidate[0]
@@ -3729,7 +3739,8 @@ function Resolve-DiagramInputs {
     param(
         [Parameter(Mandatory = $true)][System.Collections.IDictionary]$DiagramDefinition,
         [Parameter(Mandatory = $true)][string]$BundleRoot,
-        [Parameter(Mandatory = $true)][string]$TechId
+        [Parameter(Mandatory = $true)][string]$TechId,
+        [Parameter(Mandatory = $false)][string]$CurrentDatasetPath
     )
 
     $resolvedInputs = @{}
@@ -3743,7 +3754,7 @@ function Resolve-DiagramInputs {
 
         $required = if (Test-MapHasKey -Map $inputDefinition -Key 'required') { [bool]$inputDefinition.required } else { $true }
         try {
-            $resolvedInputs[[string]$inputName] = @(Resolve-DiagramInputRows -InputDefinition $inputDefinition -BundleRoot $BundleRoot -TechId $TechId)
+            $resolvedInputs[[string]$inputName] = @(Resolve-DiagramInputRows -InputDefinition $inputDefinition -BundleRoot $BundleRoot -TechId $TechId -CurrentDatasetPath $CurrentDatasetPath)
         }
         catch {
             if ($required) {
@@ -3938,11 +3949,16 @@ function Invoke-DiagramRender {
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$DiagramDefinitions,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$DiagramAliases,
         [Parameter(Mandatory = $true)][string]$BundleRoot,
-        [Parameter(Mandatory = $true)][string]$TechId
+        [Parameter(Mandatory = $true)][string]$TechId,
+        [Parameter(Mandatory = $false)][string]$CurrentDatasetPath
     )
 
     $diagramDefinition = Resolve-DiagramDefinitionForMapping -Tag $Tag -RenderHint $RenderHint -DiagramDefinitions $DiagramDefinitions -DiagramAliases $DiagramAliases
     $diagramRef = if ((Test-MapHasKey -Map $RenderHint -Key 'diagramRef') -and -not [string]::IsNullOrWhiteSpace([string]$RenderHint.diagramRef)) { [string]$RenderHint.diagramRef } else { [string]$Tag }
+    if (-not $EnableDiagramRendering.IsPresent) {
+        return [ordered]@{ placeholder = "[diagram disabled: $diagramRef]"; imageBase64 = ''; nodeCount = 0; edgeCount = 0; diagramRef = $diagramRef }
+    }
+
     if ($null -eq $diagramDefinition) {
         Add-RenderIssue -Code 'ASB-ASM-SDT-DIAGRAM-UNKNOWN' -Severity 'ERROR' -Message "Tag '$Tag' declared diagram render mode but diagramRef '$diagramRef' was not found." -PathValue $script:currentDatasetPath
         return [ordered]@{ placeholder = "[diagram unavailable: $diagramRef]"; imageBase64 = ''; nodeCount = 0; edgeCount = 0; diagramRef = $diagramRef }
@@ -3956,7 +3972,7 @@ function Invoke-DiagramRender {
             throw "Unsupported diagram kind '$([string]$diagramDefinition.kind)'."
         }
 
-        $inputs = Resolve-DiagramInputs -DiagramDefinition $diagramDefinition -BundleRoot $BundleRoot -TechId $TechId
+        $inputs = Resolve-DiagramInputs -DiagramDefinition $diagramDefinition -BundleRoot $BundleRoot -TechId $TechId -CurrentDatasetPath $CurrentDatasetPath
         $nodes = @()
         foreach ($nodeSet in @(ConvertTo-ObjectArray -InputObject $diagramDefinition.nodes)) {
             if ($nodeSet -is [System.Collections.IDictionary]) {
@@ -4859,7 +4875,7 @@ try {
         $renderHint = Get-MappingRenderHint -MappingEntry $entry -DatasetPresentation $datasetPresentation -Tag $tag
         $preSelectorRenderMode = Get-EffectiveRenderMode -RenderHint $renderHint -ProjectionDefinition $null -Tag $tag
         if ($preSelectorRenderMode -eq 'diagram') {
-            $diagramRender = Invoke-DiagramRender -Tag $tag -RenderHint $renderHint -DiagramDefinitions $diagramDefinitions -DiagramAliases $diagramAliases -BundleRoot $BundleRoot -TechId ([string]$mapping.techId)
+            $diagramRender = Invoke-DiagramRender -Tag $tag -RenderHint $renderHint -DiagramDefinitions $diagramDefinitions -DiagramAliases $diagramAliases -BundleRoot $BundleRoot -TechId ([string]$mapping.techId) -CurrentDatasetPath $datasetPath
             $resolvedText = [string]$diagramRender.placeholder
             $replaceByTag[$tag] = $resolvedText
             if ($isDocxTemplate -and -not [string]::IsNullOrWhiteSpace([string]$diagramRender.imageBase64)) {
