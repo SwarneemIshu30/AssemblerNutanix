@@ -529,6 +529,7 @@ function Get-DatasetMetadataMap {
         $map[$datasetId] = [pscustomobject]@{
             DatasetId = $datasetId
             MetadataPath = $metadataPath.FullName
+            SchemaPath = Join-Path $datasetRoot ($datasetId + '.schema.json')
             PresentationKind = [string](Get-MapValueOrDefault -Map $metadata -Key 'presentationKind')
             DefaultItemRoot = [string](Get-MapValueOrDefault -Map $metadata -Key 'defaultItemRoot')
             PathTemplate = $pathTemplate
@@ -548,6 +549,31 @@ function Get-DatasetMetadataMap {
     }
 
     return $map
+}
+
+function Get-DatasetSchemaFieldCandidates {
+    param(
+        [Parameter(Mandatory = $true)][string]$ContractsRoot,
+        [Parameter(Mandatory = $true)][string]$TechId,
+        [Parameter(Mandatory = $true)][string]$DatasetId
+    )
+
+    $schemaPath = Join-Path (Join-Path (Join-Path (Join-Path $ContractsRoot 'tech') $TechId) 'dataset') ($DatasetId + '.schema.json')
+    if (-not (Test-Path -LiteralPath $schemaPath -PathType Leaf)) {
+        return @()
+    }
+
+    $schema = Read-JsonFile -Path $schemaPath
+    $schemaTable = ConvertTo-Dictionary -Value $schema
+    $properties = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $schemaTable -Key 'properties')
+    $itemsProperty = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $properties -Key 'items')
+    $itemSchema = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $itemsProperty -Key 'items')
+    $itemProperties = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $itemSchema -Key 'properties')
+    if ($null -eq $itemProperties) {
+        return @()
+    }
+
+    return @($itemProperties.Keys | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
 }
 
 function Get-ProjectionContractSurface {
@@ -1462,7 +1488,7 @@ function Get-TargetTagsFromText {
         return @()
     }
 
-    $matches = [regex]::Matches($Text, 'LNV\.[A-Za-z0-9\.\[\]<>-]+')
+    $matches = [regex]::Matches($Text, 'LNV(?:\.[A-Za-z0-9-]+(?:\[[^\]\r\n<>]+\])?)+')
     $tags = [System.Collections.Generic.List[string]]::new()
     foreach ($match in @($matches)) {
         $value = [string]$match.Value
@@ -1472,6 +1498,51 @@ function Get-TargetTagsFromText {
     }
 
     return @($tags)
+}
+
+function Get-TargetTagsFromDocx {
+    param([Parameter(Mandatory = $false)][string]$Path)
+
+    if ([string]::IsNullOrWhiteSpace($Path) -or -not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        return @()
+    }
+    if ([System.IO.Path]::GetExtension($Path) -ne '.docx') {
+        return @()
+    }
+
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $tags = [System.Collections.Generic.List[string]]::new()
+    $archive = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path -LiteralPath $Path).Path)
+    try {
+        foreach ($entry in @($archive.Entries)) {
+            if ($entry.FullName -notlike 'word/*.xml') { continue }
+
+            $stream = $entry.Open()
+            try {
+                $reader = [System.IO.StreamReader]::new($stream)
+                try {
+                    $text = $reader.ReadToEnd()
+                }
+                finally {
+                    $reader.Dispose()
+                }
+            }
+            finally {
+                $stream.Dispose()
+            }
+
+            foreach ($tag in @(Get-TargetTagsFromText -Text $text)) {
+                if (-not $tags.Contains($tag)) {
+                    $tags.Add($tag) | Out-Null
+                }
+            }
+        }
+    }
+    finally {
+        $archive.Dispose()
+    }
+
+    return @($tags | Sort-Object -Unique)
 }
 
 function Get-PlacementEvidence {
@@ -1499,6 +1570,12 @@ function Get-PlacementEvidence {
     $stageOnlyTags = [System.Collections.Generic.List[string]]::new()
 
     foreach ($tag in @(Get-TargetTagsFromText -Text $tokenAuditText)) {
+        if (-not $placedTags.Contains($tag)) {
+            $placedTags.Add($tag) | Out-Null
+        }
+    }
+
+    foreach ($tag in @(Get-TargetTagsFromDocx -Path $templatePath)) {
         if (-not $placedTags.Contains($tag)) {
             $placedTags.Add($tag) | Out-Null
         }
@@ -1908,6 +1985,8 @@ function Get-MappingStudioPreview {
     }
 
     $sourceFieldCandidates = @(Get-ProjectionFieldCandidatesFromRows -Rows $sourceRows)
+    $schemaFieldCandidates = @($datasetNode.SchemaFieldCandidates | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    $availableFieldCandidates = @($sourceFieldCandidates + $schemaFieldCandidates | Sort-Object -Unique)
     $projection = Get-ProjectionDefinitionForRef -ProjectionSurface $Workbench.ProjectionSurface -ProjectionRef $ProjectionRef
     $projectionSummary = $null
     $resolvedProjectionRef = ''
@@ -1931,7 +2010,7 @@ function Get-MappingStudioPreview {
             $validationErrors.Add('Each table column requires both a header and a source field.') | Out-Null
             continue
         }
-        if (@($sourceFieldCandidates).Count -gt 0 -and ($sourceFieldCandidates -notcontains $columnSource)) {
+        if (@($availableFieldCandidates).Count -gt 0 -and ($availableFieldCandidates -notcontains $columnSource)) {
             $validationErrors.Add("Column source '$columnSource' is not available from the current selector rows.") | Out-Null
         }
     }
@@ -1942,7 +2021,7 @@ function Get-MappingStudioPreview {
             $validationErrors.Add('Each filter requires a field name.') | Out-Null
             continue
         }
-        if (@($sourceFieldCandidates).Count -gt 0 -and ($sourceFieldCandidates -notcontains $field)) {
+        if (@($availableFieldCandidates).Count -gt 0 -and ($availableFieldCandidates -notcontains $field)) {
             $validationErrors.Add("Filter field '$field' is not available from the current selector rows.") | Out-Null
         }
     }
@@ -1953,7 +2032,7 @@ function Get-MappingStudioPreview {
             $validationErrors.Add('Each sort rule requires a field name.') | Out-Null
             continue
         }
-        if (@($sourceFieldCandidates).Count -gt 0 -and ($sourceFieldCandidates -notcontains $field)) {
+        if (@($availableFieldCandidates).Count -gt 0 -and ($availableFieldCandidates -notcontains $field)) {
             $validationErrors.Add("Sort field '$field' is not available from the current selector rows.") | Out-Null
         }
     }
@@ -1970,6 +2049,7 @@ function Get-MappingStudioPreview {
             Message = (@($validationErrors) -join ' ')
             ValidationErrors = ConvertTo-ObjectArray -Value $validationErrors
             SourceFieldCandidates = @($sourceFieldCandidates)
+            SchemaFieldCandidates = @($schemaFieldCandidates)
             SourceRowCount = @($sourceRows).Count
             SourcePreviewRows = @()
             RenderedGridColumns = @()
@@ -2043,6 +2123,7 @@ function Get-MappingStudioPreview {
         ProjectionSummary = $projectionSummary
         ExamplePath = $datasetNode.ExamplePath
         SourceFieldCandidates = @($sourceFieldCandidates)
+        SchemaFieldCandidates = @($schemaFieldCandidates)
         SourceRowCount = @($sourceRows).Count
         SourcePreviewRows = ConvertTo-ObjectArray -Value $sourcePreviewRows
         FilterSummary = @($filters | ForEach-Object {
@@ -2112,6 +2193,7 @@ function Get-MappingStudioWorkbench {
         $examplePath = Resolve-DatasetExamplePath -BundleRoot ([string]$resolvedBundle.bundleRoot) -TechId ([string]$Collection.TechId) -DatasetMetadata $metadata -DatasetId $datasetId -DatasetContext $datasetContext
         $exampleData = Read-DatasetExample -ExamplePath $examplePath
         $mappedEntries = @($mappingViews | Where-Object { $_.DatasetId -eq $datasetId })
+        $schemaFieldCandidates = @(Get-DatasetSchemaFieldCandidates -ContractsRoot $ContractsRoot -TechId ([string]$Collection.TechId) -DatasetId $datasetId)
 
         $node = [pscustomobject]@{
             DatasetId = $datasetId
@@ -2123,6 +2205,7 @@ function Get-MappingStudioWorkbench {
             ExamplePath = $examplePath
             ExampleData = $exampleData
             HasExampleData = ($null -ne $exampleData)
+            SchemaFieldCandidates = @($schemaFieldCandidates)
             Mappings = $mappedEntries
             MappingCount = @($mappedEntries).Count
             Label = ("[{0}/{1}] {2}" -f ([string]$metadata.Scope), ([string]$metadata.PresentationKind), $datasetId)
