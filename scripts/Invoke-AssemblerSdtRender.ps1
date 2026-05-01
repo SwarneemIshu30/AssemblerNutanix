@@ -825,9 +825,10 @@ function Update-DocxMetadataProperties {
     Set-ZipEntryText -Entry $updatedCustomEntry -Text $customXml.OuterXml
 }
 
-function Enable-DocxUpdateFieldsOnOpen {
+function Set-DocxUpdateFieldsOnOpen {
     param(
-        [Parameter(Mandatory = $true)][System.IO.Compression.ZipArchive]$Archive
+        [Parameter(Mandatory = $true)][System.IO.Compression.ZipArchive]$Archive,
+        [Parameter(Mandatory = $true)][bool]$Enabled
     )
 
     $settingsEntry = $Archive.GetEntry('word/settings.xml')
@@ -857,6 +858,27 @@ function Enable-DocxUpdateFieldsOnOpen {
 
     $wordNamespace = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
     $updateFieldsNode = $settingsXml.SelectSingleNode("/*[local-name()='settings']/*[local-name()='updateFields']")
+    if (-not $Enabled) {
+        if ($null -ne $updateFieldsNode) {
+            [void]$settingsNode.RemoveChild($updateFieldsNode)
+            $settingsEntry.Delete()
+            $updatedSettingsEntry = $Archive.CreateEntry('word/settings.xml')
+            Set-ZipEntryText -Entry $updatedSettingsEntry -Text $settingsXml.OuterXml
+
+            return [ordered]@{
+                applied = $true
+                enabled = $false
+                reason = 'word/settings.xml updated with w:updateFields removed'
+            }
+        }
+
+        return [ordered]@{
+            applied = $false
+            enabled = $false
+            reason = 'word/settings.xml has no w:updateFields setting'
+        }
+    }
+
     if ($null -eq $updateFieldsNode) {
         $updateFieldsNode = $settingsXml.CreateElement('w', 'updateFields', $wordNamespace)
         [void]$settingsNode.AppendChild($updateFieldsNode)
@@ -875,8 +897,94 @@ function Enable-DocxUpdateFieldsOnOpen {
 
     return [ordered]@{
         applied = $true
+        enabled = $true
         reason = 'word/settings.xml updated with w:updateFields=true'
     }
+}
+
+function Get-DocxFieldRefreshState {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path
+    )
+
+    $resolvedPath = [System.IO.Path]::GetFullPath($Path)
+    $result = [ordered]@{
+        path = $resolvedPath
+        exists = $false
+        lengthBytes = 0
+        lastWriteUtc = ''
+        attributes = ''
+        updateFieldsOnOpenEnabled = $false
+        updateFieldsOnOpenRaw = ''
+        attachedTemplateTarget = ''
+        attachedTemplateTargetMode = ''
+        readError = ''
+    }
+
+    if (-not (Test-Path -LiteralPath $resolvedPath -PathType Leaf)) {
+        $result.readError = "DOCX not found: $resolvedPath"
+        return $result
+    }
+
+    $item = Get-Item -LiteralPath $resolvedPath
+    $result.exists = $true
+    $result.lengthBytes = [int64]$item.Length
+    $result.lastWriteUtc = $item.LastWriteTimeUtc.ToString('o')
+    $result.attributes = [string]$item.Attributes
+
+    $archive = $null
+    try {
+        $archive = [System.IO.Compression.ZipFile]::OpenRead($resolvedPath)
+
+        $settingsEntry = $archive.GetEntry('word/settings.xml')
+        if ($null -ne $settingsEntry) {
+            $settingsReader = [System.IO.StreamReader]::new($settingsEntry.Open())
+            try {
+                $settingsXmlText = $settingsReader.ReadToEnd()
+            }
+            finally {
+                $settingsReader.Dispose()
+            }
+
+            [xml]$settingsXml = $settingsXmlText
+            $updateFieldsNode = $settingsXml.SelectSingleNode("/*[local-name()='settings']/*[local-name()='updateFields']")
+            if ($null -ne $updateFieldsNode) {
+                $result.updateFieldsOnOpenRaw = $updateFieldsNode.OuterXml
+                $wordNamespace = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+                $valAttr = $updateFieldsNode.Attributes.GetNamedItem('val', $wordNamespace)
+                $val = if ($null -ne $valAttr) { [string]$valAttr.Value } else { 'true' }
+                $result.updateFieldsOnOpenEnabled = ($val -in @('true', '1', 'on'))
+            }
+        }
+
+        $settingsRelsEntry = $archive.GetEntry('word/_rels/settings.xml.rels')
+        if ($null -ne $settingsRelsEntry) {
+            $relsReader = [System.IO.StreamReader]::new($settingsRelsEntry.Open())
+            try {
+                $settingsRelsXmlText = $relsReader.ReadToEnd()
+            }
+            finally {
+                $relsReader.Dispose()
+            }
+
+            [xml]$settingsRelsXml = $settingsRelsXmlText
+            $attachedTemplateNode = $settingsRelsXml.SelectSingleNode("/*[local-name()='Relationships']/*[local-name()='Relationship' and contains(@Type, '/attachedTemplate')]")
+            if ($null -ne $attachedTemplateNode) {
+                $result.attachedTemplateTarget = [string]$attachedTemplateNode.Target
+                $result.attachedTemplateTargetMode = [string]$attachedTemplateNode.TargetMode
+            }
+        }
+    }
+    catch {
+        $result.readError = [string]$_.Exception.Message
+    }
+    finally {
+        if ($null -ne $archive) {
+            $archive.Dispose()
+        }
+    }
+
+    return $result
 }
 
 function Try-RefreshDocxTableOfContents {
@@ -884,24 +992,36 @@ function Try-RefreshDocxTableOfContents {
         [Parameter(Mandatory = $true)][string]$OutputPath
     )
 
+    $beforeState = Get-DocxFieldRefreshState -Path $OutputPath
     if (-not (Test-Path -LiteralPath $OutputPath -PathType Leaf)) {
         return [ordered]@{
             status = 'skipped'
             method = 'none'
             message = "Output DOCX not found: $OutputPath"
+            diagnostics = [ordered]@{
+                before = $beforeState
+                after = $beforeState
+                word = [ordered]@{}
+            }
         }
     }
 
     if (-not $IsWindows) {
         return [ordered]@{
             status = 'deferred'
-            method = 'updateFieldsOnOpen'
+            method = 'none'
             message = 'Word automation is unavailable on non-Windows platforms.'
+            diagnostics = [ordered]@{
+                before = $beforeState
+                after = $beforeState
+                word = [ordered]@{}
+            }
         }
     }
 
     $word = $null
     $document = $null
+    $wordDiagnostics = [ordered]@{}
     try {
         $word = New-Object -ComObject Word.Application -ErrorAction Stop
         $word.Visible = $false
@@ -909,6 +1029,18 @@ function Try-RefreshDocxTableOfContents {
         $word.DisplayAlerts = 0
 
         $document = $word.Documents.Open($OutputPath)
+        $wordDiagnostics.documentFullName = [string]$document.FullName
+        $wordDiagnostics.documentPath = [string]$document.Path
+        $wordDiagnostics.readOnly = [bool]$document.ReadOnly
+        $wordDiagnostics.savedBeforeUpdate = [bool]$document.Saved
+        try {
+            $wordDiagnostics.attachedTemplate = [string]$document.AttachedTemplate.FullName
+        }
+        catch {
+            $wordDiagnostics.attachedTemplate = ''
+            $wordDiagnostics.attachedTemplateError = [string]$_.Exception.Message
+        }
+
         [void]$document.Fields.Update()
         $document.Repaginate()
 
@@ -929,18 +1061,35 @@ function Try-RefreshDocxTableOfContents {
 
         $document.Repaginate()
         $document.Save()
+        $wordDiagnostics.savedAfterExplicitSave = [bool]$document.Saved
+        $saveChanges = -1
+        $document.Close([ref]$saveChanges)
+        [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($document)
+        $document = $null
+        $afterState = Get-DocxFieldRefreshState -Path $OutputPath
 
         return [ordered]@{
             status = 'updated'
             method = 'word-com'
             message = "Updated $tocCount table(s) of contents via Word automation."
+            diagnostics = [ordered]@{
+                before = $beforeState
+                after = $afterState
+                word = $wordDiagnostics
+            }
         }
     }
     catch {
+        $afterState = Get-DocxFieldRefreshState -Path $OutputPath
         return [ordered]@{
             status = 'deferred'
-            method = 'updateFieldsOnOpen'
+            method = 'none'
             message = [string]$_.Exception.Message
+            diagnostics = [ordered]@{
+                before = $beforeState
+                after = $afterState
+                word = $wordDiagnostics
+            }
         }
     }
     finally {
@@ -2859,7 +3008,7 @@ function Render-DocxTemplate {
         }
 
         Update-DocxMetadataProperties -Archive $archive -Title $DocTitle -Customer $DocCustomer -CustomerAbbr $DocCustomerAbbr -Location $DocLocation -Subsidiary $DocSubsidiary -Environment $DocEnvironment -DocumentReference $DocDocumentReference -Version $DocVersion -ConfigSnapDate $DocConfigSnapDate -ReferenceId $DocReferenceId -Classification $DocClassification -SupportRegion ([string]$supportRegionDocumentModel.SupportRegion) -SupportRegionModel $supportRegionDocumentModel
-        $updateFieldsOnOpenResult = Enable-DocxUpdateFieldsOnOpen -Archive $archive
+        $updateFieldsOnOpenPreparationResult = Set-DocxUpdateFieldsOnOpen -Archive $archive -Enabled $false
 
         $renderResult = [ordered]@{
             unresolvedLiteralByTag = $unresolvedLiteralByTag
@@ -2904,8 +3053,11 @@ function Render-DocxTemplate {
             literalTagDiagnostics = $literalTagDiagnostics.ToArray()
             literalTagHitSummary = @($literalTagHitSummary)
             literalPartHitSummary = @($literalPartHitSummary)
-            updateFieldsOnOpenEnabled = [bool]$updateFieldsOnOpenResult.applied
-            updateFieldsOnOpenReason = [string]$updateFieldsOnOpenResult.reason
+            updateFieldsOnOpenEnabled = $false
+            updateFieldsOnOpenReason = [string]$updateFieldsOnOpenPreparationResult.reason
+            updateFieldsOnOpenPreparation = $updateFieldsOnOpenPreparationResult
+            updateFieldsOnOpenFinal = [ordered]@{}
+            tocRefreshDiagnostics = [ordered]@{}
         }
     }
     finally {
@@ -2914,9 +3066,20 @@ function Render-DocxTemplate {
 
     if ($null -ne $renderResult) {
         $tocRefreshResult = Try-RefreshDocxTableOfContents -OutputPath $OutputPath
+        $finalFieldRefreshState = Get-DocxFieldRefreshState -Path $OutputPath
+        $updateFieldsFinalReason = if ([bool]$finalFieldRefreshState.updateFieldsOnOpenEnabled) {
+            'Final DOCX contains enabled w:updateFields; Word may prompt to update fields/links on open.'
+        }
+        else {
+            'Final DOCX does not contain enabled w:updateFields.'
+        }
         $renderResult.tocRefreshStatus = [string]$tocRefreshResult.status
         $renderResult.tocRefreshMethod = [string]$tocRefreshResult.method
         $renderResult.tocRefreshMessage = [string]$tocRefreshResult.message
+        $renderResult.tocRefreshDiagnostics = $tocRefreshResult.diagnostics
+        $renderResult.updateFieldsOnOpenEnabled = [bool]$finalFieldRefreshState.updateFieldsOnOpenEnabled
+        $renderResult.updateFieldsOnOpenReason = $updateFieldsFinalReason
+        $renderResult.updateFieldsOnOpenFinal = $finalFieldRefreshState
     }
 
     return $renderResult
@@ -5341,9 +5504,30 @@ try {
         $renderDetails.docxMatchMode = [string]$DocxMatchMode
         $renderDetails.updateFieldsOnOpenEnabled = $(if (Test-MapHasKey -Map $docxRender -Key 'updateFieldsOnOpenEnabled') { [bool]$docxRender.updateFieldsOnOpenEnabled } else { $false })
         $renderDetails.updateFieldsOnOpenReason = $(if (Test-MapHasKey -Map $docxRender -Key 'updateFieldsOnOpenReason') { [string]$docxRender.updateFieldsOnOpenReason } else { '' })
+        $renderDetails.updateFieldsOnOpenPreparation = $(if (Test-MapHasKey -Map $docxRender -Key 'updateFieldsOnOpenPreparation') { $docxRender.updateFieldsOnOpenPreparation } else { [ordered]@{} })
+        $renderDetails.updateFieldsOnOpenFinal = $(if (Test-MapHasKey -Map $docxRender -Key 'updateFieldsOnOpenFinal') { $docxRender.updateFieldsOnOpenFinal } else { [ordered]@{} })
         $renderDetails.tocRefreshStatus = $(if (Test-MapHasKey -Map $docxRender -Key 'tocRefreshStatus') { [string]$docxRender.tocRefreshStatus } else { '' })
         $renderDetails.tocRefreshMethod = $(if (Test-MapHasKey -Map $docxRender -Key 'tocRefreshMethod') { [string]$docxRender.tocRefreshMethod } else { '' })
         $renderDetails.tocRefreshMessage = $(if (Test-MapHasKey -Map $docxRender -Key 'tocRefreshMessage') { [string]$docxRender.tocRefreshMessage } else { '' })
+        $renderDetails.tocRefreshDiagnostics = $(if (Test-MapHasKey -Map $docxRender -Key 'tocRefreshDiagnostics') { $docxRender.tocRefreshDiagnostics } else { [ordered]@{} })
+        if ([bool]$renderDetails.updateFieldsOnOpenEnabled) {
+            $issues.Add([ordered]@{
+                code = 'ASB-ASM-DOCX-UPDATEFIELDS-REMAINS'
+                severity = 'WARN'
+                message = "Final DOCX still contains enabled w:updateFields after render. Word may prompt to update fields or links on open. tocRefreshStatus='$($renderDetails.tocRefreshStatus)'; tocRefreshMethod='$($renderDetails.tocRefreshMethod)'; reason='$($renderDetails.updateFieldsOnOpenReason)'"
+                path = [string]$renderDetails.outputPathResolved
+            })
+            if ($status -eq 'OK') { $status = 'PARTIAL' }
+        }
+        if ([string]$renderDetails.tocRefreshStatus -eq 'deferred') {
+            $issues.Add([ordered]@{
+                code = 'ASB-ASM-DOCX-TOC-REFRESH-DEFERRED'
+                severity = 'WARN'
+                message = "DOCX TOC refresh was deferred because Word automation did not complete. The renderer did not enable Word open-time field updates by default. message='$($renderDetails.tocRefreshMessage)'"
+                path = [string]$renderDetails.outputPathResolved
+            })
+            if ($status -eq 'OK') { $status = 'PARTIAL' }
+        }
         $expectedDocPropertyControlCount = [int]$renderDetails.docPropControlsExpected
         $controlsPopulatedCount = [int]$renderDetails.docPropControlsPopulated
         $docPropertyFieldPopulatedCount = [int]$renderDetails.docPropertyFieldsPopulated
@@ -5543,9 +5727,12 @@ try {
         docxMatchMode = $(if ($isDocxTemplate) { [string]$renderDetails.docxMatchMode } else { '' })
         docxUpdateFieldsOnOpenEnabled = $(if ($isDocxTemplate) { [bool]$renderDetails.updateFieldsOnOpenEnabled } else { $false })
         docxUpdateFieldsOnOpenReason = $(if ($isDocxTemplate) { [string]$renderDetails.updateFieldsOnOpenReason } else { '' })
+        docxUpdateFieldsOnOpenPreparation = $(if ($isDocxTemplate) { $renderDetails.updateFieldsOnOpenPreparation } else { [ordered]@{} })
+        docxUpdateFieldsOnOpenFinal = $(if ($isDocxTemplate) { $renderDetails.updateFieldsOnOpenFinal } else { [ordered]@{} })
         docxTocRefreshStatus = $(if ($isDocxTemplate) { [string]$renderDetails.tocRefreshStatus } else { '' })
         docxTocRefreshMethod = $(if ($isDocxTemplate) { [string]$renderDetails.tocRefreshMethod } else { '' })
         docxTocRefreshMessage = $(if ($isDocxTemplate) { [string]$renderDetails.tocRefreshMessage } else { '' })
+        docxTocRefreshDiagnostics = $(if ($isDocxTemplate) { $renderDetails.tocRefreshDiagnostics } else { [ordered]@{} })
         unresolvedTokenPolicy = [string]$UnresolvedTokenPolicy
         unresolved = $unresolvedSummary
         unresolvedPolicy = [ordered]@{
