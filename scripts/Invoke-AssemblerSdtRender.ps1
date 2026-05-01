@@ -4570,6 +4570,54 @@ function Test-ProjectionCondition {
 }
 
 $script:ProjectionLookupRowsCache = @{}
+$script:ProjectionLookupMissCache = @{}
+
+function ConvertTo-ProjectionLookupKey {
+    param(
+        [Parameter(Mandatory = $false)]$Value,
+        [Parameter(Mandatory = $false)][string]$Transform
+    )
+
+    if ($null -eq $Value) { return $null }
+
+    $text = ([string]$Value).Trim()
+    if ([string]::IsNullOrWhiteSpace($text)) { return $null }
+
+    switch ([string]$Transform) {
+        'mtPrefix4' {
+            $normalized = $text.ToUpperInvariant()
+            if ($normalized.Length -gt 4) {
+                return $normalized.Substring(0, 4)
+            }
+            return $normalized
+        }
+        default {
+            return $text
+        }
+    }
+}
+
+function Get-ProjectionLookupFallbackValue {
+    param(
+        [Parameter(Mandatory = $false)]$Row,
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Lookup,
+        [Parameter(Mandatory = $false)]$OriginalValue
+    )
+
+    if (Test-MapHasKey -Map $Lookup -Key 'fallbackSources') {
+        foreach ($fallbackSource in @(ConvertTo-ObjectArray -InputObject $Lookup.fallbackSources)) {
+            $fieldName = [string]$fallbackSource
+            if ([string]::IsNullOrWhiteSpace($fieldName)) { continue }
+
+            $fallbackValue = Get-ProjectionRowFieldValue -Row $Row -Field $fieldName
+            if ($null -ne $fallbackValue -and -not [string]::IsNullOrWhiteSpace([string]$fallbackValue)) {
+                return $fallbackValue
+            }
+        }
+    }
+
+    return $OriginalValue
+}
 
 function Resolve-ProjectionLookupDatasetPath {
     param(
@@ -4598,27 +4646,57 @@ function Resolve-ProjectionLookupDatasetPath {
     return (Join-Path $datasetDirectory $lookupDataset)
 }
 
+function Resolve-ProjectionLookupContractPath {
+    param(
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Lookup,
+        [Parameter(Mandatory = $false)][string]$ContractsRoot,
+        [Parameter(Mandatory = $false)][string]$TechId
+    )
+
+    $lookupContract = [string]$Lookup.contract
+    if ([string]::IsNullOrWhiteSpace($lookupContract)) {
+        throw 'Projection lookup is missing required contract property.'
+    }
+
+    if ([System.IO.Path]::IsPathRooted($lookupContract)) {
+        return $lookupContract
+    }
+
+    if ([string]::IsNullOrWhiteSpace($ContractsRoot) -or [string]::IsNullOrWhiteSpace($TechId)) {
+        throw "Projection lookup contract '$lookupContract' could not be resolved because ContractsRoot or TechId is unavailable."
+    }
+
+    return (Join-Path (Join-Path (Join-Path $ContractsRoot 'tech') $TechId) $lookupContract)
+}
+
 function Get-ProjectionLookupRows {
     param(
         [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Lookup,
-        [Parameter(Mandatory = $false)][string]$DatasetPath
+        [Parameter(Mandatory = $false)][string]$DatasetPath,
+        [Parameter(Mandatory = $false)][string]$ContractsRoot,
+        [Parameter(Mandatory = $false)][string]$TechId
     )
 
-    $lookupDatasetPath = Resolve-ProjectionLookupDatasetPath -Lookup $Lookup -DatasetPath $DatasetPath
+    $lookupPath = if ((Test-MapHasKey -Map $Lookup -Key 'contract') -and -not [string]::IsNullOrWhiteSpace([string]$Lookup.contract)) {
+        Resolve-ProjectionLookupContractPath -Lookup $Lookup -ContractsRoot $ContractsRoot -TechId $TechId
+    }
+    else {
+        Resolve-ProjectionLookupDatasetPath -Lookup $Lookup -DatasetPath $DatasetPath
+    }
     $lookupSelector = if ((Test-MapHasKey -Map $Lookup -Key 'selector') -and -not [string]::IsNullOrWhiteSpace([string]$Lookup.selector)) { [string]$Lookup.selector } else { 'items' }
-    $cacheKey = "$lookupDatasetPath|$lookupSelector"
+    $cacheKey = "$lookupPath|$lookupSelector"
     if (Test-MapHasKey -Map $script:ProjectionLookupRowsCache -Key $cacheKey) {
         return @($script:ProjectionLookupRowsCache[$cacheKey])
     }
 
-    if (-not (Test-Path -LiteralPath $lookupDatasetPath -PathType Leaf)) {
-        throw "Projection lookup dataset '$lookupDatasetPath' was not found."
+    if (-not (Test-Path -LiteralPath $lookupPath -PathType Leaf)) {
+        throw "Projection lookup source '$lookupPath' was not found."
     }
 
-    $lookupDataset = Read-JsonFile -Path $lookupDatasetPath
+    $lookupDataset = Read-JsonFile -Path $lookupPath
     $lookupSelection = Resolve-Selector -InputObject $lookupDataset -Selector $lookupSelector
     if (-not [bool]$lookupSelection.found) {
-        throw "Projection lookup selector '$lookupSelector' did not resolve for dataset '$lookupDatasetPath'."
+        throw "Projection lookup selector '$lookupSelector' did not resolve for source '$lookupPath'."
     }
 
     $lookupRows = @(ConvertTo-ObjectArray -InputObject $lookupSelection.value)
@@ -4629,11 +4707,16 @@ function Get-ProjectionLookupRows {
 function Resolve-ProjectionLookupValue {
     param(
         [Parameter(Mandatory = $false)]$Value,
+        [Parameter(Mandatory = $false)]$Row,
         [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Lookup,
-        [Parameter(Mandatory = $false)][string]$DatasetPath
+        [Parameter(Mandatory = $false)][string]$DatasetPath,
+        [Parameter(Mandatory = $false)][string]$ContractsRoot,
+        [Parameter(Mandatory = $false)][string]$TechId
     )
 
-    if ($null -eq $Value) { return $null }
+    if ($null -eq $Value) {
+        return (Get-ProjectionLookupFallbackValue -Row $Row -Lookup $Lookup -OriginalValue $Value)
+    }
 
     $lookupKeyField = [string]$Lookup.key
     $lookupValueField = [string]$Lookup.value
@@ -4641,11 +4724,18 @@ function Resolve-ProjectionLookupValue {
         throw 'Projection lookup requires non-empty key and value properties.'
     }
 
-    foreach ($lookupRow in @(Get-ProjectionLookupRows -Lookup $Lookup -DatasetPath $DatasetPath)) {
+    $keyTransform = if ((Test-MapHasKey -Map $Lookup -Key 'keyTransform') -and -not [string]::IsNullOrWhiteSpace([string]$Lookup.keyTransform)) { [string]$Lookup.keyTransform } else { 'none' }
+    $normalizedLookupValue = ConvertTo-ProjectionLookupKey -Value $Value -Transform $keyTransform
+    if ($null -eq $normalizedLookupValue) {
+        return (Get-ProjectionLookupFallbackValue -Row $Row -Lookup $Lookup -OriginalValue $Value)
+    }
+
+    foreach ($lookupRow in @(Get-ProjectionLookupRows -Lookup $Lookup -DatasetPath $DatasetPath -ContractsRoot $ContractsRoot -TechId $TechId)) {
         $candidateKey = Get-ProjectionRowFieldValue -Row $lookupRow -Field $lookupKeyField
         if ($null -eq $candidateKey) { continue }
 
-        if ([string]$candidateKey -eq [string]$Value) {
+        $normalizedCandidateKey = ConvertTo-ProjectionLookupKey -Value $candidateKey -Transform 'none'
+        if ([string]$normalizedCandidateKey -eq [string]$normalizedLookupValue) {
             $resolvedValue = Get-ProjectionRowFieldValue -Row $lookupRow -Field $lookupValueField
             if ($null -ne $resolvedValue -and -not [string]::IsNullOrWhiteSpace([string]$resolvedValue)) {
                 return $resolvedValue
@@ -4655,14 +4745,26 @@ function Resolve-ProjectionLookupValue {
         }
     }
 
-    return $Value
+    if ((Test-MapHasKey -Map $Lookup -Key 'missingIssueCode') -and -not [string]::IsNullOrWhiteSpace([string]$Lookup.missingIssueCode)) {
+        $severity = if ((Test-MapHasKey -Map $Lookup -Key 'missingIssueSeverity') -and -not [string]::IsNullOrWhiteSpace([string]$Lookup.missingIssueSeverity)) { [string]$Lookup.missingIssueSeverity } else { 'WARN' }
+        if ($severity -notin @('INFO', 'WARN')) { $severity = 'WARN' }
+        $missCacheKey = "$([string]$Lookup.missingIssueCode)|$normalizedLookupValue|$DatasetPath"
+        if (-not (Test-MapHasKey -Map $script:ProjectionLookupMissCache -Key $missCacheKey)) {
+            $script:ProjectionLookupMissCache[$missCacheKey] = $true
+            Add-RenderIssue -Code ([string]$Lookup.missingIssueCode) -Severity $severity -Message "Projection lookup did not resolve key '$normalizedLookupValue' for value '$Value'." -PathValue $script:currentDatasetPath
+        }
+    }
+
+    return (Get-ProjectionLookupFallbackValue -Row $Row -Lookup $Lookup -OriginalValue $Value)
 }
 
 function Resolve-ProjectionColumnValue {
     param(
         [Parameter(Mandatory = $true)]$Row,
         [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Column,
-        [Parameter(Mandatory = $false)][string]$DatasetPath
+        [Parameter(Mandatory = $false)][string]$DatasetPath,
+        [Parameter(Mandatory = $false)][string]$ContractsRoot,
+        [Parameter(Mandatory = $false)][string]$TechId
     )
 
     $value = $null
@@ -4682,7 +4784,7 @@ function Resolve-ProjectionColumnValue {
     }
 
     if ((Test-MapHasKey -Map $Column -Key 'lookup') -and $Column.lookup -is [System.Collections.IDictionary]) {
-        $value = Resolve-ProjectionLookupValue -Value $value -Lookup $Column.lookup -DatasetPath $DatasetPath
+        $value = Resolve-ProjectionLookupValue -Value $value -Row $Row -Lookup $Column.lookup -DatasetPath $DatasetPath -ContractsRoot $ContractsRoot -TechId $TechId
     }
 
     if (Test-MapHasKey -Map $Column -Key 'format') {
@@ -4742,9 +4844,13 @@ function Get-ProjectionSortValue {
 
 function Get-ProjectionRowFieldValue {
     param(
-        [Parameter(Mandatory = $true)]$Row,
+        [Parameter(Mandatory = $false)]$Row,
         [Parameter(Mandatory = $true)][string]$Field
     )
+
+    if ($null -eq $Row) {
+        return $null
+    }
 
     if ($Row -is [System.Collections.IDictionary]) {
         if ($Row.Contains($Field)) {
@@ -4859,7 +4965,9 @@ function Invoke-TableProjection {
     param(
         [Parameter(Mandatory = $false)][object[]]$Rows,
         [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Definition,
-        [Parameter(Mandatory = $false)][string]$DatasetPath
+        [Parameter(Mandatory = $false)][string]$DatasetPath,
+        [Parameter(Mandatory = $false)][string]$ContractsRoot,
+        [Parameter(Mandatory = $false)][string]$TechId
     )
 
     $normalizedRows = @(ConvertTo-ObjectArray -InputObject $Rows)
@@ -4884,7 +4992,7 @@ function Invoke-TableProjection {
                 if (-not ($column -is [System.Collections.IDictionary]) -or -not (Test-MapHasKey -Map $column -Key 'name')) {
                     throw 'Projection column is missing required name property.'
                 }
-                $projected[[string]$column.name] = Convert-CellValueToString -Value (Resolve-ProjectionColumnValue -Row $row -Column $column -DatasetPath $DatasetPath)
+                $projected[[string]$column.name] = Convert-CellValueToString -Value (Resolve-ProjectionColumnValue -Row $row -Column $column -DatasetPath $DatasetPath -ContractsRoot $ContractsRoot -TechId $TechId)
             }
             [pscustomobject]$projected
         }
@@ -4898,13 +5006,15 @@ function Convert-TableRowsForTag {
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$ProjectionDefinitions,
         [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases,
-        [Parameter(Mandatory = $false)][string]$DatasetPath
+        [Parameter(Mandatory = $false)][string]$DatasetPath,
+        [Parameter(Mandatory = $false)][string]$ContractsRoot,
+        [Parameter(Mandatory = $false)][string]$TechId
     )
 
     $normalizedRows = @(ConvertTo-ObjectArray -InputObject $Rows)
     $projectionDefinition = Get-ProjectionDefinitionForMapping -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases
     if ($null -ne $projectionDefinition) {
-        return @(ConvertTo-ObjectArray -InputObject (Invoke-TableProjection -Rows $normalizedRows -Definition $projectionDefinition -DatasetPath $DatasetPath))
+        return @(ConvertTo-ObjectArray -InputObject (Invoke-TableProjection -Rows $normalizedRows -Definition $projectionDefinition -DatasetPath $DatasetPath -ContractsRoot $ContractsRoot -TechId $TechId))
     }
 
     return @($normalizedRows)
@@ -4992,7 +5102,9 @@ function Convert-ValueToTableModel {
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$ProjectionDefinitions,
         [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases,
-        [Parameter(Mandatory = $false)][string]$DatasetPath
+        [Parameter(Mandatory = $false)][string]$DatasetPath,
+        [Parameter(Mandatory = $false)][string]$ContractsRoot,
+        [Parameter(Mandatory = $false)][string]$TechId
     )
 
     if ($null -eq $Value) { return $null }
@@ -5019,7 +5131,7 @@ function Convert-ValueToTableModel {
         return $null
     }
 
-    $rows = @(ConvertTo-ObjectArray -InputObject (Convert-TableRowsForTag -Tag $Tag -Rows $rows -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases -DatasetPath $DatasetPath))
+    $rows = @(ConvertTo-ObjectArray -InputObject (Convert-TableRowsForTag -Tag $Tag -Rows $rows -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases -DatasetPath $DatasetPath -ContractsRoot $ContractsRoot -TechId $TechId))
     if (@($rows).Count -eq 0) {
         if ($projectionEmptyBehavior -eq 'placeholder' -and $null -ne $projectionDefinition -and @($projectionDefinition.columns).Count -gt 0) {
             $placeholderRow = [ordered]@{}
@@ -5068,10 +5180,12 @@ function Convert-ValueToTableString {
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$ProjectionDefinitions,
         [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases,
-        [Parameter(Mandatory = $false)][string]$DatasetPath
+        [Parameter(Mandatory = $false)][string]$DatasetPath,
+        [Parameter(Mandatory = $false)][string]$ContractsRoot,
+        [Parameter(Mandatory = $false)][string]$TechId
     )
 
-    $tableModel = Convert-ValueToTableModel -Value $Value -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases -DatasetPath $DatasetPath
+    $tableModel = Convert-ValueToTableModel -Value $Value -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases -DatasetPath $DatasetPath -ContractsRoot $ContractsRoot -TechId $TechId
     if ($null -eq $tableModel) {
         if (($Value -is [System.Collections.IList]) -or ($Value -is [hashtable])) {
             return ''
@@ -5091,7 +5205,9 @@ function Convert-ValueToString {
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$RenderHint,
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$ProjectionDefinitions,
         [Parameter(Mandatory = $false)][hashtable]$ProjectionAliases,
-        [Parameter(Mandatory = $false)][string]$DatasetPath
+        [Parameter(Mandatory = $false)][string]$DatasetPath,
+        [Parameter(Mandatory = $false)][string]$ContractsRoot,
+        [Parameter(Mandatory = $false)][string]$TechId
     )
 
     if ($null -eq $Value) {
@@ -5110,7 +5226,7 @@ function Convert-ValueToString {
             return (Get-StructuredValuePlaceholder -RenderMode $renderMode -Policy $policy)
         }
 
-        return (Convert-ValueToTableString -Value $Value -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases -DatasetPath $DatasetPath)
+        return (Convert-ValueToTableString -Value $Value -Tag $Tag -RenderHint $RenderHint -ProjectionDefinitions $ProjectionDefinitions -ProjectionAliases $ProjectionAliases -DatasetPath $DatasetPath -ContractsRoot $ContractsRoot -TechId $TechId)
     }
     if ($renderMode -eq 'diagram') {
         $diagramRef = if ($null -ne $RenderHint -and (Test-MapHasKey -Map $RenderHint -Key 'diagramRef')) { [string]$RenderHint.diagramRef } else { [string]$Tag }
@@ -5408,13 +5524,13 @@ try {
             continue
         }
 
-        $resolvedText = [string](Convert-ValueToString -Value $resolved -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases -DatasetPath $datasetPath)
+        $resolvedText = [string](Convert-ValueToString -Value $resolved -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases -DatasetPath $datasetPath -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId))
         $replaceByTag[$tag] = $resolvedText
         if ($isDocxTemplate) {
             $projectionDefinition = Get-ProjectionDefinitionForMapping -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases
             $renderMode = Get-EffectiveRenderMode -RenderHint $renderHint -ProjectionDefinition $projectionDefinition -Tag $tag
             if ($null -ne $projectionDefinition) {
-                $tableModel = Convert-ValueToTableModel -Value $resolved -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases -DatasetPath $datasetPath
+                $tableModel = Convert-ValueToTableModel -Value $resolved -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases -DatasetPath $datasetPath -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
                 if ($null -ne $tableModel) {
                     $docxTableByTag[$tag] = $tableModel
                 }
