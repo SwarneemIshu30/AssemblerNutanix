@@ -181,6 +181,109 @@ function Read-YamlFileSafe {
     return (Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Yaml)
 }
 
+function Copy-OrderedMapForYaml {
+    param(
+        [Parameter(Mandatory = $false)]$Map,
+        [Parameter(Mandatory = $true)][string[]]$PreferredOrder
+    )
+
+    $source = ConvertTo-Dictionary -Value $Map
+    if ($null -eq $source) {
+        return (Copy-PlainValue -Value $Map)
+    }
+
+    $ordered = [ordered]@{}
+    foreach ($key in $PreferredOrder) {
+        if (Test-MapHasKey -Map $source -Key $key) {
+            $ordered[$key] = Copy-PlainValue -Value (Get-MapValueOrDefault -Map $source -Key $key)
+        }
+    }
+    foreach ($key in @($source.Keys)) {
+        $keyText = [string]$key
+        if ($PreferredOrder -contains $keyText) {
+            continue
+        }
+        $ordered[$keyText] = Copy-PlainValue -Value $source[$key]
+    }
+
+    return $ordered
+}
+
+function Normalize-MappingEntryForYaml {
+    param([Parameter(Mandatory = $false)]$Entry)
+
+    $entryTable = ConvertTo-Dictionary -Value $Entry
+    if ($null -eq $entryTable) {
+        return (Copy-PlainValue -Value $Entry)
+    }
+
+    $orderedEntry = Copy-OrderedMapForYaml -Map $entryTable -PreferredOrder @(
+        'dataset',
+        'sdtTag',
+        'required',
+        'notes',
+        'selectors',
+        'target',
+        'renderHint',
+        'phase'
+    )
+
+    $renderHint = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $orderedEntry -Key 'renderHint')
+    if ($null -ne $renderHint) {
+        $orderedEntry['renderHint'] = Copy-OrderedMapForYaml -Map $renderHint -PreferredOrder @(
+            'renderAs',
+            'projectionRef',
+            'diagramRef',
+            'renderMode',
+            'view',
+            'emptyBehavior'
+        )
+    }
+
+    $target = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $orderedEntry -Key 'target')
+    if ($null -ne $target) {
+        $orderedEntry['target'] = Copy-OrderedMapForYaml -Map $target -PreferredOrder @('kind', 'path', 'sdtTag')
+    }
+
+    return $orderedEntry
+}
+
+function Normalize-MappingContractDocumentForYaml {
+    param([Parameter(Mandatory = $false)]$Value)
+
+    $doc = ConvertTo-Dictionary -Value $Value
+    if ($null -eq $doc) {
+        return (Copy-PlainValue -Value $Value)
+    }
+
+    $schema = [string](Get-MapValueOrDefault -Map $doc -Key 'schema')
+    if ($schema -ne 'mapping.dataset-to-sdt' -and -not (Test-MapHasKey -Map $doc -Key 'mappings')) {
+        return (Copy-PlainValue -Value $Value)
+    }
+
+    $orderedDoc = Copy-OrderedMapForYaml -Map $doc -PreferredOrder @(
+        'schema',
+        'schemaVersion',
+        'techId',
+        'displayName',
+        'compatibility',
+        'strictContracts',
+        'syncPolicy',
+        'collectorSdtTagPolicy',
+        'mappings'
+    )
+
+    if (Test-MapHasKey -Map $orderedDoc -Key 'mappings') {
+        $mappings = [System.Collections.Generic.List[object]]::new()
+        foreach ($entry in @(ConvertTo-ObjectArray -Value (Get-MapValueOrDefault -Map $orderedDoc -Key 'mappings'))) {
+            $mappings.Add((Normalize-MappingEntryForYaml -Entry $entry)) | Out-Null
+        }
+        $orderedDoc['mappings'] = [object[]]$mappings.ToArray()
+    }
+
+    return $orderedDoc
+}
+
 function Write-YamlFileSafe {
     param(
         [Parameter(Mandatory = $true)][string]$Path,
@@ -194,7 +297,8 @@ function Write-YamlFileSafe {
 
     $directory = Split-Path -Parent $Path
     Ensure-Directory -Path $directory
-    $yamlText = $Value | ConvertTo-Yaml
+    $valueToWrite = Normalize-MappingContractDocumentForYaml -Value $Value
+    $yamlText = $valueToWrite | ConvertTo-Yaml
     Set-Content -LiteralPath $Path -Encoding UTF8 -Value $yamlText
 }
 
@@ -529,6 +633,7 @@ function Get-DatasetMetadataMap {
         $map[$datasetId] = [pscustomobject]@{
             DatasetId = $datasetId
             MetadataPath = $metadataPath.FullName
+            SchemaPath = Join-Path $datasetRoot ($datasetId + '.schema.json')
             PresentationKind = [string](Get-MapValueOrDefault -Map $metadata -Key 'presentationKind')
             DefaultItemRoot = [string](Get-MapValueOrDefault -Map $metadata -Key 'defaultItemRoot')
             PathTemplate = $pathTemplate
@@ -548,6 +653,31 @@ function Get-DatasetMetadataMap {
     }
 
     return $map
+}
+
+function Get-DatasetSchemaFieldCandidates {
+    param(
+        [Parameter(Mandatory = $true)][string]$ContractsRoot,
+        [Parameter(Mandatory = $true)][string]$TechId,
+        [Parameter(Mandatory = $true)][string]$DatasetId
+    )
+
+    $schemaPath = Join-Path (Join-Path (Join-Path (Join-Path $ContractsRoot 'tech') $TechId) 'dataset') ($DatasetId + '.schema.json')
+    if (-not (Test-Path -LiteralPath $schemaPath -PathType Leaf)) {
+        return @()
+    }
+
+    $schema = Read-JsonFile -Path $schemaPath
+    $schemaTable = ConvertTo-Dictionary -Value $schema
+    $properties = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $schemaTable -Key 'properties')
+    $itemsProperty = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $properties -Key 'items')
+    $itemSchema = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $itemsProperty -Key 'items')
+    $itemProperties = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $itemSchema -Key 'properties')
+    if ($null -eq $itemProperties) {
+        return @()
+    }
+
+    return @($itemProperties.Keys | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
 }
 
 function Get-ProjectionContractSurface {
@@ -1240,6 +1370,91 @@ function ConvertTo-ProjectionRowOrderContract {
     }
 }
 
+function Get-ProjectionRowOrderSemanticKey {
+    param([Parameter(Mandatory = $false)]$RowOrderEntry)
+
+    $entryTable = ConvertTo-Dictionary -Value $RowOrderEntry
+    if ($null -ne $entryTable) {
+        $by = [string](Get-MapValueOrDefault -Map $entryTable -Key 'by')
+        if ([string]::IsNullOrWhiteSpace($by)) {
+            $by = [string](Get-MapValueOrDefault -Map $entryTable -Key 'By')
+        }
+        $direction = [string](Get-MapValueOrDefault -Map $entryTable -Key 'direction')
+        if ([string]::IsNullOrWhiteSpace($direction)) {
+            $direction = [string](Get-MapValueOrDefault -Map $entryTable -Key 'Direction' -DefaultValue 'asc')
+        }
+    }
+    else {
+        $by = [string]$RowOrderEntry
+        $direction = 'asc'
+    }
+
+    if ([string]::IsNullOrWhiteSpace($direction)) {
+        $direction = 'asc'
+    }
+
+    return ('{0}|{1}' -f $by.Trim(), $direction.Trim().ToLowerInvariant())
+}
+
+function Test-ProjectionRowOrderSemanticallyEqual {
+    param(
+        [Parameter(Mandatory = $false)]$ExistingRowOrder,
+        [Parameter(Mandatory = $false)]$DraftRowOrder
+    )
+
+    $existingKeys = @(ConvertTo-ObjectArray -Value $ExistingRowOrder | ForEach-Object { Get-ProjectionRowOrderSemanticKey -RowOrderEntry $_ })
+    $draftKeys = @(ConvertTo-ObjectArray -Value $DraftRowOrder | ForEach-Object { Get-ProjectionRowOrderSemanticKey -RowOrderEntry $_ })
+    if ($existingKeys.Count -ne $draftKeys.Count) {
+        return $false
+    }
+
+    for ($index = 0; $index -lt $existingKeys.Count; $index++) {
+        if ([string]$existingKeys[$index] -ne [string]$draftKeys[$index]) {
+            return $false
+        }
+    }
+
+    return $true
+}
+
+function ConvertTo-ProjectionRowOrderContractPreservingShape {
+    param(
+        [Parameter(Mandatory = $false)]$ExistingRowOrder,
+        [Parameter(Mandatory = $false)]$DraftRowOrder
+    )
+
+    $existingItems = @(ConvertTo-ObjectArray -Value $ExistingRowOrder)
+    $draftItems = @(ConvertTo-ObjectArray -Value $DraftRowOrder)
+
+    if ($existingItems.Count -gt 0 -and (Test-ProjectionRowOrderSemanticallyEqual -ExistingRowOrder $existingItems -DraftRowOrder $draftItems)) {
+        return (ConvertTo-JsonArrayValue -Value $ExistingRowOrder)
+    }
+
+    if ($existingItems.Count -gt 0 -and $existingItems.Count -eq $draftItems.Count) {
+        $canKeepCompactStrings = $true
+        for ($index = 0; $index -lt $existingItems.Count; $index++) {
+            $existingItem = $existingItems[$index]
+            if ($existingItem -is [System.Collections.IDictionary]) {
+                $canKeepCompactStrings = $false
+                break
+            }
+
+            $draftContract = ConvertTo-ProjectionRowOrderContract -RowOrderDraft $draftItems[$index]
+            if ([string]$existingItem -ne [string](Get-MapValueOrDefault -Map $draftContract -Key 'by') -or
+                [string](Get-MapValueOrDefault -Map $draftContract -Key 'direction' -DefaultValue 'asc') -ne 'asc') {
+                $canKeepCompactStrings = $false
+                break
+            }
+        }
+
+        if ($canKeepCompactStrings) {
+            return (ConvertTo-JsonArrayValue -Value $ExistingRowOrder)
+        }
+    }
+
+    return ,[object[]]($draftItems | ForEach-Object { ConvertTo-ProjectionRowOrderContract -RowOrderDraft $_ })
+}
+
 function Get-ProjectionFieldCandidatesFromRows {
     param([Parameter(Mandatory = $false)][object[]]$Rows = @())
 
@@ -1462,7 +1677,7 @@ function Get-TargetTagsFromText {
         return @()
     }
 
-    $matches = [regex]::Matches($Text, 'LNV\.[A-Za-z0-9\.\[\]<>-]+')
+    $matches = [regex]::Matches($Text, 'LNV(?:\.[A-Za-z0-9-]+(?:\[[^\]\r\n<>]+\])?)+')
     $tags = [System.Collections.Generic.List[string]]::new()
     foreach ($match in @($matches)) {
         $value = [string]$match.Value
@@ -1472,6 +1687,51 @@ function Get-TargetTagsFromText {
     }
 
     return @($tags)
+}
+
+function Get-TargetTagsFromDocx {
+    param([Parameter(Mandatory = $false)][string]$Path)
+
+    if ([string]::IsNullOrWhiteSpace($Path) -or -not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        return @()
+    }
+    if ([System.IO.Path]::GetExtension($Path) -ne '.docx') {
+        return @()
+    }
+
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $tags = [System.Collections.Generic.List[string]]::new()
+    $archive = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path -LiteralPath $Path).Path)
+    try {
+        foreach ($entry in @($archive.Entries)) {
+            if ($entry.FullName -notlike 'word/*.xml') { continue }
+
+            $stream = $entry.Open()
+            try {
+                $reader = [System.IO.StreamReader]::new($stream)
+                try {
+                    $text = $reader.ReadToEnd()
+                }
+                finally {
+                    $reader.Dispose()
+                }
+            }
+            finally {
+                $stream.Dispose()
+            }
+
+            foreach ($tag in @(Get-TargetTagsFromText -Text $text)) {
+                if (-not $tags.Contains($tag)) {
+                    $tags.Add($tag) | Out-Null
+                }
+            }
+        }
+    }
+    finally {
+        $archive.Dispose()
+    }
+
+    return @($tags | Sort-Object -Unique)
 }
 
 function Get-PlacementEvidence {
@@ -1499,6 +1759,12 @@ function Get-PlacementEvidence {
     $stageOnlyTags = [System.Collections.Generic.List[string]]::new()
 
     foreach ($tag in @(Get-TargetTagsFromText -Text $tokenAuditText)) {
+        if (-not $placedTags.Contains($tag)) {
+            $placedTags.Add($tag) | Out-Null
+        }
+    }
+
+    foreach ($tag in @(Get-TargetTagsFromDocx -Path $templatePath)) {
         if (-not $placedTags.Contains($tag)) {
             $placedTags.Add($tag) | Out-Null
         }
@@ -1908,6 +2174,8 @@ function Get-MappingStudioPreview {
     }
 
     $sourceFieldCandidates = @(Get-ProjectionFieldCandidatesFromRows -Rows $sourceRows)
+    $schemaFieldCandidates = @($datasetNode.SchemaFieldCandidates | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    $availableFieldCandidates = @($sourceFieldCandidates + $schemaFieldCandidates | Sort-Object -Unique)
     $projection = Get-ProjectionDefinitionForRef -ProjectionSurface $Workbench.ProjectionSurface -ProjectionRef $ProjectionRef
     $projectionSummary = $null
     $resolvedProjectionRef = ''
@@ -1931,7 +2199,7 @@ function Get-MappingStudioPreview {
             $validationErrors.Add('Each table column requires both a header and a source field.') | Out-Null
             continue
         }
-        if (@($sourceFieldCandidates).Count -gt 0 -and ($sourceFieldCandidates -notcontains $columnSource)) {
+        if (@($availableFieldCandidates).Count -gt 0 -and ($availableFieldCandidates -notcontains $columnSource)) {
             $validationErrors.Add("Column source '$columnSource' is not available from the current selector rows.") | Out-Null
         }
     }
@@ -1942,7 +2210,7 @@ function Get-MappingStudioPreview {
             $validationErrors.Add('Each filter requires a field name.') | Out-Null
             continue
         }
-        if (@($sourceFieldCandidates).Count -gt 0 -and ($sourceFieldCandidates -notcontains $field)) {
+        if (@($availableFieldCandidates).Count -gt 0 -and ($availableFieldCandidates -notcontains $field)) {
             $validationErrors.Add("Filter field '$field' is not available from the current selector rows.") | Out-Null
         }
     }
@@ -1953,7 +2221,7 @@ function Get-MappingStudioPreview {
             $validationErrors.Add('Each sort rule requires a field name.') | Out-Null
             continue
         }
-        if (@($sourceFieldCandidates).Count -gt 0 -and ($sourceFieldCandidates -notcontains $field)) {
+        if (@($availableFieldCandidates).Count -gt 0 -and ($availableFieldCandidates -notcontains $field)) {
             $validationErrors.Add("Sort field '$field' is not available from the current selector rows.") | Out-Null
         }
     }
@@ -1970,6 +2238,7 @@ function Get-MappingStudioPreview {
             Message = (@($validationErrors) -join ' ')
             ValidationErrors = ConvertTo-ObjectArray -Value $validationErrors
             SourceFieldCandidates = @($sourceFieldCandidates)
+            SchemaFieldCandidates = @($schemaFieldCandidates)
             SourceRowCount = @($sourceRows).Count
             SourcePreviewRows = @()
             RenderedGridColumns = @()
@@ -2043,6 +2312,7 @@ function Get-MappingStudioPreview {
         ProjectionSummary = $projectionSummary
         ExamplePath = $datasetNode.ExamplePath
         SourceFieldCandidates = @($sourceFieldCandidates)
+        SchemaFieldCandidates = @($schemaFieldCandidates)
         SourceRowCount = @($sourceRows).Count
         SourcePreviewRows = ConvertTo-ObjectArray -Value $sourcePreviewRows
         FilterSummary = @($filters | ForEach-Object {
@@ -2112,6 +2382,7 @@ function Get-MappingStudioWorkbench {
         $examplePath = Resolve-DatasetExamplePath -BundleRoot ([string]$resolvedBundle.bundleRoot) -TechId ([string]$Collection.TechId) -DatasetMetadata $metadata -DatasetId $datasetId -DatasetContext $datasetContext
         $exampleData = Read-DatasetExample -ExamplePath $examplePath
         $mappedEntries = @($mappingViews | Where-Object { $_.DatasetId -eq $datasetId })
+        $schemaFieldCandidates = @(Get-DatasetSchemaFieldCandidates -ContractsRoot $ContractsRoot -TechId ([string]$Collection.TechId) -DatasetId $datasetId)
 
         $node = [pscustomobject]@{
             DatasetId = $datasetId
@@ -2123,6 +2394,7 @@ function Get-MappingStudioWorkbench {
             ExamplePath = $examplePath
             ExampleData = $exampleData
             HasExampleData = ($null -ne $exampleData)
+            SchemaFieldCandidates = @($schemaFieldCandidates)
             Mappings = $mappedEntries
             MappingCount = @($mappedEntries).Count
             Label = ("[{0}/{1}] {2}" -f ([string]$metadata.Scope), ([string]$metadata.PresentationKind), $datasetId)
@@ -2627,18 +2899,84 @@ function Add-MappingStudioPendingChange {
 function New-ContractMappingEntryFromDraft {
     param(
         [Parameter(Mandatory = $true)]$Draft,
-        [Parameter(Mandatory = $false)]$ExistingEntry
+        [Parameter(Mandatory = $false)]$ExistingEntry,
+        [Parameter(Mandatory = $false)][hashtable]$TagPolicy = @{}
     )
 
     $draftTable = ConvertTo-Dictionary -Value $Draft
     $existing = ConvertTo-Dictionary -Value $ExistingEntry
+    $targetPath = [string]$draftTable.TargetPath
+    if ($null -ne $existing -and $null -ne $TagPolicy) {
+        $existingResolvedTarget = Resolve-CollectorTargetTag -MappingEntry $existing -TagPolicy $TagPolicy
+        if ($existingResolvedTarget -eq $targetPath) {
+            $mappingEntry = Copy-PlainValue -Value $existing
+            $mappingEntry.dataset = [string]$draftTable.DatasetId
+            if (-not (Test-MapHasKey -Map $mappingEntry -Key 'sdtTag') -or [string]::IsNullOrWhiteSpace([string]$mappingEntry.sdtTag)) {
+                $mappingEntry.sdtTag = $targetPath
+            }
+            $mappingEntry.required = [bool](Get-MapValueOrDefault -Map $draftTable -Key 'Required' -DefaultValue $false)
+
+            $renderAs = [string]$draftTable.RenderAs
+            $selector = [string](Get-MapValueOrDefault -Map $draftTable -Key 'Selector')
+            $defaultSelectors = @(Get-MappingEntrySelectorValues -Entry $null -RenderAs $renderAs)
+            $selectorIsDefault = $false
+            if (-not [string]::IsNullOrWhiteSpace($selector) -and $defaultSelectors.Count -eq 1 -and $selector -eq [string]$defaultSelectors[0]) {
+                $selectorIsDefault = $true
+            }
+            if (Test-MapHasKey -Map $mappingEntry -Key 'selectors') {
+                if (-not [string]::IsNullOrWhiteSpace($selector)) {
+                    $mappingEntry.selectors = @($selector)
+                }
+                else {
+                    $mappingEntry.Remove('selectors')
+                }
+            }
+            elseif (-not [string]::IsNullOrWhiteSpace($selector) -and -not $selectorIsDefault) {
+                $mappingEntry.selectors = @($selector)
+            }
+
+            $notes = [string](Get-MapValueOrDefault -Map $draftTable -Key 'Notes')
+            if (-not [string]::IsNullOrWhiteSpace($notes)) {
+                $mappingEntry.notes = $notes
+            }
+            elseif (Test-MapHasKey -Map $mappingEntry -Key 'notes') {
+                $mappingEntry.Remove('notes')
+            }
+
+            $renderHint = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $mappingEntry -Key 'renderHint')
+            if ($null -eq $renderHint) {
+                $renderHint = [ordered]@{}
+            }
+            $renderHint.renderAs = $renderAs
+            $projectionRef = [string](Get-MapValueOrDefault -Map $draftTable -Key 'ProjectionRef')
+            $view = [string](Get-MapValueOrDefault -Map $draftTable -Key 'View')
+            if (-not [string]::IsNullOrWhiteSpace($projectionRef)) {
+                $renderHint.projectionRef = $projectionRef
+            }
+            elseif (Test-MapHasKey -Map $renderHint -Key 'projectionRef') {
+                $renderHint.Remove('projectionRef')
+            }
+            if (-not [string]::IsNullOrWhiteSpace($view)) {
+                $renderHint.view = $view
+            }
+            elseif (Test-MapHasKey -Map $renderHint -Key 'view') {
+                $renderHint.Remove('view')
+            }
+            $mappingEntry.renderHint = $renderHint
+
+            return $mappingEntry
+        }
+    }
+
+    $authoringSdtTag = $targetPath
+    $authoringTargetPath = $targetPath
     $mappingEntry = [ordered]@{
         phase = 'dual'
         dataset = [string]$draftTable.DatasetId
-        sdtTag = [string]$draftTable.TargetPath
+        sdtTag = $authoringSdtTag
         target = [ordered]@{
             kind = 'sdt'
-            path = [string]$draftTable.TargetPath
+            path = $authoringTargetPath
         }
         required = [bool](Get-MapValueOrDefault -Map $draftTable -Key 'Required' -DefaultValue $false)
     }
@@ -2698,27 +3036,105 @@ function Apply-PendingProjectionDrafts {
         if ($null -eq $existingDefinition) {
             $existingDefinition = [ordered]@{}
         }
+        $draftColumns = ConvertTo-ObjectArray -Value (Get-MapValueOrDefault -Map $draftTable -Key 'ProjectionColumns')
+        $draftFilters = ConvertTo-ObjectArray -Value (Get-MapValueOrDefault -Map $draftTable -Key 'ProjectionFilter')
+        $draftRowOrder = ConvertTo-ObjectArray -Value (Get-MapValueOrDefault -Map $draftTable -Key 'ProjectionRowOrder')
 
         $updatedDefinition = [ordered]@{}
         foreach ($key in @($existingDefinition.Keys)) {
             $updatedDefinition[$key] = Copy-PlainValue -Value $existingDefinition[$key]
         }
         $updatedDefinition.renderMode = 'table'
-        $updatedDefinition.columns = @(@($draftTable.ProjectionColumns) | ForEach-Object { ConvertTo-ProjectionColumnContract -ColumnDraft $_ })
-        if (@($draftTable.ProjectionFilter).Count -gt 0) {
-            $updatedDefinition.filter = @(@($draftTable.ProjectionFilter) | ForEach-Object { ConvertTo-ProjectionFilterContract -FilterDraft $_ })
+        $updatedDefinition.columns = @($draftColumns | ForEach-Object { ConvertTo-ProjectionColumnContract -ColumnDraft $_ })
+        if (@($draftFilters).Count -gt 0) {
+            $updatedDefinition.filter = @($draftFilters | ForEach-Object { ConvertTo-ProjectionFilterContract -FilterDraft $_ })
         }
         else {
             $updatedDefinition.Remove('filter')
         }
-        if (@($draftTable.ProjectionRowOrder).Count -gt 0) {
-            $updatedDefinition.rowOrder = @(@($draftTable.ProjectionRowOrder) | ForEach-Object { ConvertTo-ProjectionRowOrderContract -RowOrderDraft $_ })
+        if (@($draftRowOrder).Count -gt 0) {
+            $existingRowOrder = if (Test-MapHasKey -Map $existingDefinition -Key 'rowOrder') { Get-MapValueOrDefault -Map $existingDefinition -Key 'rowOrder' } else { @() }
+            $updatedDefinition.rowOrder = ConvertTo-ProjectionRowOrderContractPreservingShape -ExistingRowOrder $existingRowOrder -DraftRowOrder $draftRowOrder
         }
         else {
             $updatedDefinition.Remove('rowOrder')
         }
 
         $definitions[$projectionRef] = $updatedDefinition
+    }
+
+    $doc.projections = $definitions
+    return $doc
+}
+
+function ConvertTo-JsonArrayValue {
+    param([Parameter(Mandatory = $false)]$Value)
+
+    if ($null -eq $Value) {
+        return [object[]]@()
+    }
+
+    return ,[object[]](ConvertTo-ObjectArray -Value $Value | ForEach-Object { Copy-PlainValue -Value $_ })
+}
+
+function Normalize-ProjectionContractDocumentArrayShapes {
+    param([Parameter(Mandatory = $true)]$ProjectionDocument)
+
+    $doc = Copy-PlainValue -Value $ProjectionDocument
+    $definitions = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $doc -Key 'projections')
+    if ($null -eq $definitions) {
+        $doc.projections = [ordered]@{}
+        return $doc
+    }
+
+    foreach ($projectionRef in @($definitions.Keys)) {
+        $definition = ConvertTo-Dictionary -Value $definitions[$projectionRef]
+        if ($null -eq $definition) { continue }
+
+        foreach ($arrayProperty in @('filter', 'columns', 'rowOrder', 'formatProfiles', 'identityKeys')) {
+            if (Test-MapHasKey -Map $definition -Key $arrayProperty) {
+                $definition[$arrayProperty] = ConvertTo-JsonArrayValue -Value $definition[$arrayProperty]
+            }
+        }
+
+        foreach ($conditionProperty in @('filter')) {
+            if (-not (Test-MapHasKey -Map $definition -Key $conditionProperty)) { continue }
+            $conditions = [System.Collections.Generic.List[object]]::new()
+            foreach ($condition in @(ConvertTo-ObjectArray -Value $definition[$conditionProperty])) {
+                $conditionTable = ConvertTo-Dictionary -Value $condition
+                if ($null -eq $conditionTable) {
+                    $conditions.Add((Copy-PlainValue -Value $condition)) | Out-Null
+                    continue
+                }
+                foreach ($nestedArrayProperty in @('anyOf', 'allOf')) {
+                    if (Test-MapHasKey -Map $conditionTable -Key $nestedArrayProperty) {
+                        $conditionTable[$nestedArrayProperty] = ConvertTo-JsonArrayValue -Value $conditionTable[$nestedArrayProperty]
+                    }
+                }
+                $conditions.Add((Copy-PlainValue -Value $conditionTable)) | Out-Null
+            }
+            $definition[$conditionProperty] = [object[]]$conditions.ToArray()
+        }
+
+        if (Test-MapHasKey -Map $definition -Key 'columns') {
+            $columns = [System.Collections.Generic.List[object]]::new()
+            foreach ($column in @(ConvertTo-ObjectArray -Value $definition.columns)) {
+                $columnTable = ConvertTo-Dictionary -Value $column
+                if ($null -eq $columnTable) {
+                    $columns.Add((Copy-PlainValue -Value $column)) | Out-Null
+                    continue
+                }
+                $lookup = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $columnTable -Key 'lookup')
+                if ($null -ne $lookup -and (Test-MapHasKey -Map $lookup -Key 'fallbackSources')) {
+                    $lookup.fallbackSources = ConvertTo-JsonArrayValue -Value $lookup.fallbackSources
+                    $columnTable.lookup = $lookup
+                }
+                $columns.Add((Copy-PlainValue -Value $columnTable)) | Out-Null
+            }
+            $definition.columns = [object[]]$columns.ToArray()
+        }
+
+        $definitions[$projectionRef] = $definition
     }
 
     $doc.projections = $definitions
@@ -2732,7 +3148,8 @@ function Write-ProjectionContractDocument {
     )
 
     Ensure-Directory -Path (Split-Path -Parent $Path)
-    $ProjectionDocument | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath $Path -Encoding UTF8
+    $normalizedDocument = Normalize-ProjectionContractDocumentArrayShapes -ProjectionDocument $ProjectionDocument
+    ConvertTo-Json -InputObject $normalizedDocument -Depth 100 | Set-Content -LiteralPath $Path -Encoding UTF8
 }
 
 function Apply-PendingMappingDrafts {
@@ -2765,7 +3182,12 @@ function Apply-PendingMappingDrafts {
             }
         }
 
-        $newEntry = New-ContractMappingEntryFromDraft -Draft $draft -ExistingEntry $existingEntry
+        $newEntry = if ($null -ne $existingEntry -and (Test-MappingEntryMatchesDraftSemantics -ExistingEntry $existingEntry -Draft $draft -TagPolicy $TagPolicy)) {
+            Copy-PlainValue -Value $existingEntry
+        }
+        else {
+            New-ContractMappingEntryFromDraft -Draft $draft -ExistingEntry $existingEntry -TagPolicy $TagPolicy
+        }
         $insertIndex = if ($matchedIndexes.Count -gt 0) { [Math]::Min($matchedIndexes[0], $mappings.Count) } else { $mappings.Count }
         $mappings.Insert($insertIndex, $newEntry)
     }
@@ -2784,6 +3206,100 @@ function Apply-PendingMappingDrafts {
 
     $doc.mappings = ConvertTo-ObjectArray -Value $mappings
     return $doc
+}
+
+function Get-MappingEntrySelectorValues {
+    param(
+        [Parameter(Mandatory = $false)]$Entry,
+        [Parameter(Mandatory = $false)][string]$RenderAs = ''
+    )
+
+    $entryTable = ConvertTo-Dictionary -Value $Entry
+    $selectors = if ($null -ne $entryTable) { ConvertTo-ObjectArray -Value (Get-MapValueOrDefault -Map $entryTable -Key 'selectors') } else { @() }
+    if (@($selectors).Count -gt 0) {
+        return @($selectors | ForEach-Object { [string]$_ })
+    }
+
+    switch ($RenderAs) {
+        'table' { return @('items') }
+        'diagram' { return @('items') }
+        'scalar' { return @('items.0') }
+        default { return @() }
+    }
+}
+
+function Test-StringArrayEqual {
+    param(
+        [Parameter(Mandatory = $false)]$Left,
+        [Parameter(Mandatory = $false)]$Right
+    )
+
+    $leftItems = @(ConvertTo-ObjectArray -Value $Left | ForEach-Object { [string]$_ })
+    $rightItems = @(ConvertTo-ObjectArray -Value $Right | ForEach-Object { [string]$_ })
+    if ($leftItems.Count -ne $rightItems.Count) {
+        return $false
+    }
+
+    for ($index = 0; $index -lt $leftItems.Count; $index++) {
+        if ($leftItems[$index] -ne $rightItems[$index]) {
+            return $false
+        }
+    }
+
+    return $true
+}
+
+function Test-MappingEntryMatchesDraftSemantics {
+    param(
+        [Parameter(Mandatory = $false)]$ExistingEntry,
+        [Parameter(Mandatory = $true)]$Draft,
+        [Parameter(Mandatory = $true)][hashtable]$TagPolicy
+    )
+
+    $existing = ConvertTo-Dictionary -Value $ExistingEntry
+    $draftTable = ConvertTo-Dictionary -Value $Draft
+    if ($null -eq $existing -or $null -eq $draftTable) {
+        return $false
+    }
+    if ((Test-MapHasKey -Map $existing -Key 'target') -or (Test-MapHasKey -Map $existing -Key 'selectors')) {
+        return $false
+    }
+
+    $existingRenderHint = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $existing -Key 'renderHint')
+    if ($null -eq $existingRenderHint) {
+        $existingRenderHint = [ordered]@{}
+    }
+
+    $renderAs = [string](Get-MapValueOrDefault -Map $draftTable -Key 'RenderAs')
+    $draftSelector = [string](Get-MapValueOrDefault -Map $draftTable -Key 'Selector')
+    $draftSelectors = if ([string]::IsNullOrWhiteSpace($draftSelector)) { Get-MappingEntrySelectorValues -Entry $null -RenderAs $renderAs } else { @($draftSelector) }
+
+    if ([string](Get-MapValueOrDefault -Map $existing -Key 'dataset') -ne [string](Get-MapValueOrDefault -Map $draftTable -Key 'DatasetId')) {
+        return $false
+    }
+    if ((Resolve-CollectorTargetTag -MappingEntry $existing -TagPolicy $TagPolicy) -ne [string](Get-MapValueOrDefault -Map $draftTable -Key 'TargetPath')) {
+        return $false
+    }
+    if ([bool](Get-MapValueOrDefault -Map $existing -Key 'required' -DefaultValue $false) -ne [bool](Get-MapValueOrDefault -Map $draftTable -Key 'Required' -DefaultValue $false)) {
+        return $false
+    }
+    if ([string](Get-MapValueOrDefault -Map $existingRenderHint -Key 'renderAs') -ne $renderAs) {
+        return $false
+    }
+    if ([string](Get-MapValueOrDefault -Map $existingRenderHint -Key 'projectionRef') -ne [string](Get-MapValueOrDefault -Map $draftTable -Key 'ProjectionRef')) {
+        return $false
+    }
+    if ([string](Get-MapValueOrDefault -Map $existingRenderHint -Key 'view') -ne [string](Get-MapValueOrDefault -Map $draftTable -Key 'View')) {
+        return $false
+    }
+    if ([string](Get-MapValueOrDefault -Map $existing -Key 'notes') -ne [string](Get-MapValueOrDefault -Map $draftTable -Key 'Notes')) {
+        return $false
+    }
+    if (-not (Test-StringArrayEqual -Left (Get-MappingEntrySelectorValues -Entry $existing -RenderAs $renderAs) -Right $draftSelectors)) {
+        return $false
+    }
+
+    return $true
 }
 
 function Resolve-RuntimeDatasetPathFromMetadata {
@@ -2847,7 +3363,7 @@ function Write-RuntimeMappingFromContract {
                 continue
             }
 
-            $selectors = @($entryTable.selectors | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+            $selectors = @(ConvertTo-ObjectArray -Value (Get-MapValueOrDefault -Map $entryTable -Key 'selectors') | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
             if (@($selectors).Count -eq 0) {
                 $selectors = @((Get-DefaultSelectorForRenderAs -RenderAs $renderAs -DatasetNode $datasetMetadata -SyncPolicy $SyncPolicy))
             }

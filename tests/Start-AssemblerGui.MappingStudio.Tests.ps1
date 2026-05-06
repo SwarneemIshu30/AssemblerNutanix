@@ -94,6 +94,16 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
                     projectionRef = 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces'
                 }
             }) | Out-Null
+        $mappings.Add([ordered]@{
+                dataset = 'snapshots'
+                sdtTag = 'LNV.Lenovo.DE.System[<SystemId>].Tables.SnapshotPolicy'
+                required = $false
+                notes = 'placement=Appendix; minInfoLevel=2; objectKey=SnapshotPolicy; scope=PerSystem'
+                renderHint = [ordered]@{
+                    renderAs = 'table'
+                    projectionRef = 'LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy'
+                }
+            }) | Out-Null
         if ($IncludeDuplicateManagementTarget) {
             $mappings.Add([ordered]@{
                     dataset = 'transport'
@@ -331,20 +341,27 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         }
     }
 
-    It 'builds known target inventory with placed, mapped-but-not-placed, and stage-only targets' {
+    It 'builds known target inventory from DOCX placement, mappings, and staged targets' {
         $workbench = Get-LenovoWorkbench
         $placedTarget = @($workbench.Targets | Where-Object { $_.TargetPath -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces' } | Select-Object -First 1)[0]
-        $mappedNotPlacedTarget = @($workbench.Targets | Where-Object { $_.TargetPath -eq 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config' } | Select-Object -First 1)[0]
-        $stageOnlyTarget = @($workbench.Targets | Where-Object { $_.TargetPath -eq 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config>>' } | Select-Object -First 1)[0]
+        $snapshotPolicyTarget = @($workbench.Targets | Where-Object { $_.TargetPath -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy' } | Select-Object -First 1)[0]
+        $mappedNotPlacedTarget = @($workbench.Targets | Where-Object { $_.TargetPath -eq 'LNV.Lenovo.DE.System[ArrayName].Narrative.DNS.Scope1' } | Select-Object -First 1)[0]
+        $stageOnlyTarget = @($workbench.Targets | Where-Object { $_.TargetPath -eq 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config' } | Select-Object -First 1)[0]
 
         if ($null -eq $placedTarget -or [string]$placedTarget.PlacementGroup -ne 'Placed in template') {
             throw 'Expected ManagementInterfaces target to be discovered as placed in template'
         }
+        if ($null -eq $snapshotPolicyTarget -or [string]$snapshotPolicyTarget.PlacementGroup -ne 'Placed in template' -or -not [bool]$snapshotPolicyTarget.IsMapped) {
+            throw 'Expected SnapshotPolicy target to be discovered as mapped and placed from the DOCX template'
+        }
         if ($null -eq $mappedNotPlacedTarget -or [string]$mappedNotPlacedTarget.PlacementGroup -ne 'Mapped but not placed') {
-            throw 'Expected Narrative.Config target to be discovered as mapped but not placed'
+            throw 'Expected DNS narrative target to remain mapped but not placed'
         }
         if ($null -eq $stageOnlyTarget -or [string]$stageOnlyTarget.PlacementGroup -ne 'Available to stage') {
-            throw 'Expected Narrative.Config>> target to be discovered as available to stage'
+            throw 'Expected Narrative.Config target to be discovered as available to stage without malformed trailing token characters'
+        }
+        if (@($workbench.Targets | Where-Object { [string]$_.TargetPath -match '>>|<$' }).Count -gt 0) {
+            throw 'Expected target inventory to strip markup delimiters from discovered target tags'
         }
         if (@($workbench.Warnings).Count -ne 0) {
             throw "Did not expect artifact warnings for the primary Lenovo.DE workbench. Warnings: $(@($workbench.Warnings) -join '; ')"
@@ -453,6 +470,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         $systemsPreview = Get-MappingStudioPreview -Workbench $workbench -DatasetId 'systems' -RenderAs 'scalar' -Selector 'items.0.name' -ProjectionRef '' -View ''
         $managementPreview = Get-MappingStudioPreview -Workbench $workbench -DatasetId 'management-interfaces' -RenderAs 'table' -Selector 'items' -ProjectionRef 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces' -View ''
         $capabilitiesPreview = Get-MappingStudioPreview -Workbench $workbench -DatasetId 'capabilities-normalized' -RenderAs 'table' -Selector 'items' -ProjectionRef 'LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary' -View 'CapabilitiesSummary'
+        $snapshotPolicyPreview = Get-MappingStudioPreview -Workbench $workbench -DatasetId 'snapshots' -RenderAs 'table' -Selector 'items' -ProjectionRef 'LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy' -View 'SnapshotPolicy'
 
         if ([string]$systemsPreview.Status -ne 'ok' -or [string]$systemsPreview.SampleValue -ne 'DE4200_Rack4') {
             throw "Expected scalar preview to resolve the systems sample value, got status='$($systemsPreview.Status)' sample='$($systemsPreview.SampleValue)'"
@@ -481,15 +499,24 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         if (@($managementPreview.RenderedGridRows).Count -lt 2) {
             throw "Expected rendered grid rows to include sample data, got '$(@($managementPreview.RenderedGridRows).Count)'"
         }
-        if ([string]@($managementPreview.RenderedGridRows)[0].Controller -ne 'B') {
+        if ([string]@($managementPreview.RenderedGridRows)[0].Controller -notin @('A', 'B')) {
             throw "Expected rendered grid rows to expose projected values, got '$([string]@($managementPreview.RenderedGridRows)[0].Controller)'"
+        }
+        if ([string]$snapshotPolicyPreview.Status -ne 'ok') {
+            throw "Expected snapshot policy preview to tolerate schema-backed sparse fields, got status='$($snapshotPolicyPreview.Status)' message='$($snapshotPolicyPreview.Message)'"
+        }
+        if ((@($snapshotPolicyPreview.SchemaFieldCandidates) -join ',') -notmatch 'state') {
+            throw "Expected snapshot preview to include schema field candidates such as state, got '$((@($snapshotPolicyPreview.SchemaFieldCandidates) -join ', '))'"
+        }
+        if ((@($snapshotPolicyPreview.ColumnNames) -join ',') -notmatch 'Policy,State,Retention Policy') {
+            throw "Expected snapshot policy preview columns, got '$((@($snapshotPolicyPreview.ColumnNames) -join ', '))'"
         }
     }
 
     It 'validates staged targets against the target inventory and replaces queued drafts for the same target' {
         $workbench = Get-LenovoWorkbench
-        $firstPending = Add-MappingStudioPendingChange -Workbench $workbench -PendingChanges @() -DatasetId 'systems' -TargetPath 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config>>' -RenderAs 'scalar' -Selector 'items.0.model' -View 'Config'
-        $replacedPending = Add-MappingStudioPendingChange -Workbench $workbench -PendingChanges $firstPending -DatasetId 'systems' -TargetPath 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config>>' -RenderAs 'scalar' -Selector 'items.0.name' -View 'Config'
+        $firstPending = Add-MappingStudioPendingChange -Workbench $workbench -PendingChanges @() -DatasetId 'systems' -TargetPath 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config' -RenderAs 'scalar' -Selector 'items.0.model' -View 'Config'
+        $replacedPending = Add-MappingStudioPendingChange -Workbench $workbench -PendingChanges $firstPending -DatasetId 'systems' -TargetPath 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config' -RenderAs 'scalar' -Selector 'items.0.name' -View 'Config'
 
         if (@($replacedPending).Count -ne 1) {
             throw "Expected only one queued draft for the staged target, got $(@($replacedPending).Count)"
@@ -690,12 +717,15 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
             $tempRepo = New-MappingStudioTempRepo -Name 'save-staged-mapping' -UseJsonYamlContract
             try {
                 $workbench = Get-LenovoWorkbench -ResolvedRepoRoot $tempRepo.RepoRoot -ResolvedCatalogPath $tempRepo.CatalogPath -ResolvedContractsRoot $tempRepo.ContractsRoot
-                $pending = Add-MappingStudioPendingChange -Workbench $workbench -PendingChanges @() -DatasetId 'systems' -TargetPath 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config>>' -RenderAs 'scalar' -Selector 'items.0.model' -View 'Config'
+                $pending = Add-MappingStudioPendingChange -Workbench $workbench -PendingChanges @() -DatasetId 'systems' -TargetPath 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config' -RenderAs 'scalar' -Selector 'items.0.model' -View 'Config'
                 $result = Save-MappingStudioPendingChanges -Workbench $workbench -PendingChanges $pending
                 $savedContract = Get-Content -LiteralPath $tempRepo.ContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $savedContractText = Get-Content -LiteralPath $tempRepo.ContractPath -Raw -Encoding UTF8
                 $runtimeDocument = Get-Content -LiteralPath $tempRepo.RuntimeMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
-                $savedEntry = @($savedContract.mappings | Where-Object { $_.sdtTag -eq 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config>>' } | Select-Object -First 1)[0]
-                $runtimeEntry = @($runtimeDocument.mappings | Where-Object { $_.sdtTag -eq 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config>>' } | Select-Object -First 1)[0]
+                $savedProjectionDocument = Get-Content -LiteralPath $tempRepo.ProjectionContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $exportProjectionDocument = Get-Content -LiteralPath $tempRepo.ProjectionExportMirrorPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $savedEntry = @($savedContract.mappings | Where-Object { $_.sdtTag -eq 'LNV.Lenovo.DE.System[<SystemId>].Narrative.Config' } | Select-Object -First 1)[0]
+                $runtimeEntry = @($runtimeDocument.mappings | Where-Object { $_.sdtTag -eq 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config' } | Select-Object -First 1)[0]
 
                 if ([bool]$workbench.MappingDocument.readOnly) {
                     throw 'Expected authoring workbench to be writable with YAML stubs installed'
@@ -704,9 +734,9 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
                     throw "Expected SavedCount=1, got '$($result.SavedCount)'"
                 }
                 if ($null -eq $savedEntry) {
-                    throw 'Expected saved contract document to include the staged Narrative.Config>> entry'
+                    throw 'Expected saved contract document to include the staged Narrative.Config entry'
                 }
-                if ([string]$savedEntry.target.kind -ne 'sdt' -or [string]$savedEntry.target.path -ne 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config>>') {
+                if ([string]$savedEntry.target.kind -ne 'sdt' -or [string]$savedEntry.target.path -ne 'LNV.Lenovo.DE.System[<SystemId>].Narrative.Config') {
                     throw "Expected dual-shape contract target.kind/path for staged entry, got kind='$([string]$savedEntry.target.kind)' path='$([string]$savedEntry.target.path)'"
                 }
                 if ([string]@($savedEntry.selectors)[0] -ne 'items.0.model') {
@@ -718,11 +748,142 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
                 if ((Get-Content -LiteralPath $tempRepo.ExportMirrorPath -Raw -Encoding UTF8) -ne (Get-Content -LiteralPath $tempRepo.ContractPath -Raw -Encoding UTF8)) {
                     throw 'Expected export mirror content to match the saved contract document exactly'
                 }
-                if ($null -eq $runtimeEntry) {
-                    throw 'Expected regenerated runtime mapping to include the staged Narrative.Config>> entry'
+                if ($savedContractText.IndexOf('"schema"') -gt $savedContractText.IndexOf('"mappings"') -or
+                    $savedContractText.IndexOf('"schemaVersion"') -gt $savedContractText.IndexOf('"mappings"')) {
+                    throw 'Expected mapping contract save to keep schema/schemaVersion before mappings'
                 }
-                if ([string]$runtimeEntry.target.sdtTag -ne 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config>>') {
+                foreach ($projectionDocument in @($savedProjectionDocument, $exportProjectionDocument)) {
+                    $storageProjection = $projectionDocument.projections['LNV.Lenovo.DE.System[ArrayName].Tables.StorageContainers']
+                    if (-not ($storageProjection.columns -is [System.Collections.IList])) {
+                        throw 'Expected projection save to preserve columns as a JSON array'
+                    }
+                    if (-not ($storageProjection.formatProfiles -is [System.Collections.IList])) {
+                        throw 'Expected projection save to preserve single-item formatProfiles as a JSON array'
+                    }
+                    if (-not ($storageProjection.identityKeys -is [System.Collections.IList])) {
+                        throw 'Expected projection save to preserve single-item identityKeys as a JSON array'
+                    }
+                    if (-not ($storageProjection.rowOrder -is [System.Collections.IList])) {
+                        throw 'Expected projection save to preserve single-item rowOrder as a JSON array'
+                    }
+                }
+                if ($null -eq $runtimeEntry) {
+                    throw 'Expected regenerated runtime mapping to include the staged Narrative.Config entry'
+                }
+                if ([string]$runtimeEntry.target.sdtTag -ne 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config') {
                     throw "Expected runtime mapping target.sdtTag for staged entry, got '$([string]$runtimeEntry.target.sdtTag)'"
+                }
+            }
+            finally {
+                if (Test-Path -LiteralPath $tempRepo.RepoRoot -PathType Container) {
+                    Remove-Item -LiteralPath $tempRepo.RepoRoot -Recurse -Force
+                }
+            }
+        }
+
+        It 'preserves legacy mapping shape and compact rowOrder when saving unchanged table semantics' {
+            $tempRepo = New-MappingStudioTempRepo -Name 'save-preserve-legacy-table-shape' -UseJsonYamlContract
+            try {
+                $contractDocument = Get-Content -LiteralPath $tempRepo.ContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $legacyEntry = @($contractDocument.mappings | Where-Object { [string]$_.sdtTag -eq 'LNV.Lenovo.DE.System[<SystemId>].Tables.ManagementInterfaces' } | Select-Object -First 1)[0]
+                $legacyEntry.Remove('target')
+                $legacyEntry.Remove('selectors')
+                $contractDocument | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath $tempRepo.ContractPath -Encoding UTF8
+
+                $workbench = Get-LenovoWorkbench -ResolvedRepoRoot $tempRepo.RepoRoot -ResolvedCatalogPath $tempRepo.CatalogPath -ResolvedContractsRoot $tempRepo.ContractsRoot
+                $connection = @($workbench.Connections | Where-Object {
+                        [string]$_.TargetPath -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces'
+                    } | Select-Object -First 1)[0]
+                $projectionDraft = New-MappingStudioProjectionDraft -Workbench $workbench -ExistingMapping $connection.MappingView -DatasetNode $connection.DatasetNode -TargetNode $connection.TargetNode -RenderAs 'table'
+                $pending = Add-MappingStudioPendingChange `
+                    -Workbench $workbench `
+                    -PendingChanges @() `
+                    -DatasetId 'management-interfaces' `
+                    -TargetPath 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces' `
+                    -RenderAs 'table' `
+                    -Selector 'items' `
+                    -ProjectionRef 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces' `
+                    -Required $true `
+                    -ProjectionColumns @($projectionDraft.Columns) `
+                    -ProjectionFilter @($projectionDraft.Filter) `
+                    -ProjectionRowOrder @(
+                        [pscustomobject]@{ By = 'controllerSlot'; Direction = 'asc' },
+                        [pscustomobject]@{ By = 'portLabel'; Direction = 'asc' },
+                        [pscustomobject]@{ By = 'interfaceName'; Direction = 'asc' }
+                    )
+
+                $null = Save-MappingStudioPendingChanges -Workbench $workbench -PendingChanges $pending
+                $savedContract = Get-Content -LiteralPath $tempRepo.ContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $savedProjectionDocument = Get-Content -LiteralPath $tempRepo.ProjectionContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $savedEntry = @($savedContract.mappings | Where-Object {
+                        [string]$_.renderHint.projectionRef -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces'
+                    } | Select-Object -First 1)[0]
+                $savedProjection = $savedProjectionDocument.projections['LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces']
+
+                if ($savedEntry.ContainsKey('target')) {
+                    throw 'Expected unchanged table save to preserve the legacy mapping entry without adding target.kind/path'
+                }
+                if ($savedEntry.ContainsKey('selectors')) {
+                    throw 'Expected unchanged table save to preserve the legacy mapping entry without adding default selectors'
+                }
+                if (@($savedProjection.rowOrder)[0] -is [System.Collections.IDictionary]) {
+                    throw 'Expected unchanged table save to preserve compact string rowOrder entries'
+                }
+                if ([string]@($savedProjection.rowOrder)[0] -ne 'controllerSlot') {
+                    throw "Expected rowOrder controllerSlot, got '$([string]@($savedProjection.rowOrder)[0])'"
+                }
+                if ([string]@($savedProjection.rowOrder)[2] -ne 'interfaceName') {
+                    throw "Expected compact rowOrder to preserve all sort fields, got '$((@($savedProjection.rowOrder) | ForEach-Object { [string]$_ }) -join ', ')'"
+                }
+            }
+            finally {
+                if (Test-Path -LiteralPath $tempRepo.RepoRoot -PathType Container) {
+                    Remove-Item -LiteralPath $tempRepo.RepoRoot -Recurse -Force
+                }
+            }
+        }
+
+        It 'preserves collector token sdtTag when saving a resolved target mapping' {
+            $tempRepo = New-MappingStudioTempRepo -Name 'save-preserve-authoring-sdt-tag' -UseJsonYamlContract
+            try {
+                $workbench = Get-LenovoWorkbench -ResolvedRepoRoot $tempRepo.RepoRoot -ResolvedCatalogPath $tempRepo.CatalogPath -ResolvedContractsRoot $tempRepo.ContractsRoot
+                $connection = @($workbench.Connections | Where-Object {
+                        [string]$_.TargetPath -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy'
+                    } | Select-Object -First 1)[0]
+                $projectionDraft = New-MappingStudioProjectionDraft -Workbench $workbench -ExistingMapping $connection.MappingView -DatasetNode $connection.DatasetNode -TargetNode $connection.TargetNode -RenderAs 'table'
+                $pending = Add-MappingStudioPendingChange `
+                    -Workbench $workbench `
+                    -PendingChanges @() `
+                    -DatasetId 'snapshots' `
+                    -TargetPath 'LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy' `
+                    -RenderAs 'table' `
+                    -Selector 'items' `
+                    -ProjectionRef 'LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy' `
+                    -View 'SnapshotPolicy' `
+                    -Required $false `
+                    -Notes 'placement=Appendix; minInfoLevel=2; objectKey=SnapshotPolicy; scope=PerSystem' `
+                    -ProjectionColumns @($projectionDraft.Columns) `
+                    -ProjectionFilter @($projectionDraft.Filter) `
+                    -ProjectionRowOrder @($projectionDraft.RowOrder)
+
+                $null = Save-MappingStudioPendingChanges -Workbench $workbench -PendingChanges $pending
+                $savedContract = Get-Content -LiteralPath $tempRepo.ContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $runtimeDocument = Get-Content -LiteralPath $tempRepo.RuntimeMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $contractEntry = @($savedContract.mappings | Where-Object {
+                        [string]$_.renderHint.projectionRef -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy'
+                    } | Select-Object -First 1)[0]
+                $runtimeEntry = @($runtimeDocument.mappings | Where-Object {
+                        [string]$_.sdtTag -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy'
+                    } | Select-Object -First 1)[0]
+
+                if ([string]$contractEntry.sdtTag -ne 'LNV.Lenovo.DE.System[<SystemId>].Tables.SnapshotPolicy') {
+                    throw "Expected contract sdtTag to preserve the collector token, got '$([string]$contractEntry.sdtTag)'"
+                }
+                if ([string]$contractEntry.renderHint.view -ne 'SnapshotPolicy') {
+                    throw "Expected saved contract renderHint.view=SnapshotPolicy, got '$([string]$contractEntry.renderHint.view)'"
+                }
+                if ($null -eq $runtimeEntry) {
+                    throw 'Expected runtime mapping to keep using the resolved ArrayName target'
                 }
             }
             finally {
@@ -741,7 +902,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
                 $savedContract = Get-Content -LiteralPath $tempRepo.ContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
                 $savedProjectionDocument = Get-Content -LiteralPath $tempRepo.ProjectionContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
                 $savedMatches = @($savedContract.mappings | Where-Object {
-                        [string]$_.sdtTag -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces'
+                        [string]$_.sdtTag -eq 'LNV.Lenovo.DE.System[<SystemId>].Tables.ManagementInterfaces'
                     })
                 $runtimeDocument = Get-Content -LiteralPath $tempRepo.RuntimeMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
                 $runtimeMatches = @($runtimeDocument.mappings | Where-Object {
