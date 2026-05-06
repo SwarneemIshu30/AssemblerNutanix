@@ -498,7 +498,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         if ((@($snapshotPolicyPreview.SchemaFieldCandidates) -join ',') -notmatch 'state') {
             throw "Expected snapshot preview to include schema field candidates such as state, got '$((@($snapshotPolicyPreview.SchemaFieldCandidates) -join ', '))'"
         }
-        if ((@($snapshotPolicyPreview.ColumnNames) -join ',') -notmatch 'Policy,State,RetentionPolicy') {
+        if ((@($snapshotPolicyPreview.ColumnNames) -join ',') -notmatch 'Policy,State,Retention Policy') {
             throw "Expected snapshot policy preview columns, got '$((@($snapshotPolicyPreview.ColumnNames) -join ', '))'"
         }
     }
@@ -710,7 +710,10 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
                 $pending = Add-MappingStudioPendingChange -Workbench $workbench -PendingChanges @() -DatasetId 'systems' -TargetPath 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config' -RenderAs 'scalar' -Selector 'items.0.model' -View 'Config'
                 $result = Save-MappingStudioPendingChanges -Workbench $workbench -PendingChanges $pending
                 $savedContract = Get-Content -LiteralPath $tempRepo.ContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $savedContractText = Get-Content -LiteralPath $tempRepo.ContractPath -Raw -Encoding UTF8
                 $runtimeDocument = Get-Content -LiteralPath $tempRepo.RuntimeMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $savedProjectionDocument = Get-Content -LiteralPath $tempRepo.ProjectionContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $exportProjectionDocument = Get-Content -LiteralPath $tempRepo.ProjectionExportMirrorPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
                 $savedEntry = @($savedContract.mappings | Where-Object { $_.sdtTag -eq 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config' } | Select-Object -First 1)[0]
                 $runtimeEntry = @($runtimeDocument.mappings | Where-Object { $_.sdtTag -eq 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config' } | Select-Object -First 1)[0]
 
@@ -735,11 +738,92 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
                 if ((Get-Content -LiteralPath $tempRepo.ExportMirrorPath -Raw -Encoding UTF8) -ne (Get-Content -LiteralPath $tempRepo.ContractPath -Raw -Encoding UTF8)) {
                     throw 'Expected export mirror content to match the saved contract document exactly'
                 }
+                if ($savedContractText.IndexOf('"schema"') -gt $savedContractText.IndexOf('"mappings"') -or
+                    $savedContractText.IndexOf('"schemaVersion"') -gt $savedContractText.IndexOf('"mappings"')) {
+                    throw 'Expected mapping contract save to keep schema/schemaVersion before mappings'
+                }
+                foreach ($projectionDocument in @($savedProjectionDocument, $exportProjectionDocument)) {
+                    $storageProjection = $projectionDocument.projections['LNV.Lenovo.DE.System[ArrayName].Tables.StorageContainers']
+                    if (-not ($storageProjection.columns -is [System.Collections.IList])) {
+                        throw 'Expected projection save to preserve columns as a JSON array'
+                    }
+                    if (-not ($storageProjection.formatProfiles -is [System.Collections.IList])) {
+                        throw 'Expected projection save to preserve single-item formatProfiles as a JSON array'
+                    }
+                    if (-not ($storageProjection.identityKeys -is [System.Collections.IList])) {
+                        throw 'Expected projection save to preserve single-item identityKeys as a JSON array'
+                    }
+                    if (-not ($storageProjection.rowOrder -is [System.Collections.IList])) {
+                        throw 'Expected projection save to preserve single-item rowOrder as a JSON array'
+                    }
+                }
                 if ($null -eq $runtimeEntry) {
                     throw 'Expected regenerated runtime mapping to include the staged Narrative.Config entry'
                 }
                 if ([string]$runtimeEntry.target.sdtTag -ne 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config') {
                     throw "Expected runtime mapping target.sdtTag for staged entry, got '$([string]$runtimeEntry.target.sdtTag)'"
+                }
+            }
+            finally {
+                if (Test-Path -LiteralPath $tempRepo.RepoRoot -PathType Container) {
+                    Remove-Item -LiteralPath $tempRepo.RepoRoot -Recurse -Force
+                }
+            }
+        }
+
+        It 'preserves legacy mapping shape and compact rowOrder when saving unchanged table semantics' {
+            $tempRepo = New-MappingStudioTempRepo -Name 'save-preserve-legacy-table-shape' -UseJsonYamlContract
+            try {
+                $contractDocument = Get-Content -LiteralPath $tempRepo.ContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $legacyEntry = @($contractDocument.mappings | Where-Object { [string]$_.sdtTag -eq 'LNV.Lenovo.DE.System[<SystemId>].Tables.ManagementInterfaces' } | Select-Object -First 1)[0]
+                $legacyEntry.Remove('target')
+                $legacyEntry.Remove('selectors')
+                $contractDocument | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath $tempRepo.ContractPath -Encoding UTF8
+
+                $workbench = Get-LenovoWorkbench -ResolvedRepoRoot $tempRepo.RepoRoot -ResolvedCatalogPath $tempRepo.CatalogPath -ResolvedContractsRoot $tempRepo.ContractsRoot
+                $connection = @($workbench.Connections | Where-Object {
+                        [string]$_.TargetPath -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces'
+                    } | Select-Object -First 1)[0]
+                $projectionDraft = New-MappingStudioProjectionDraft -Workbench $workbench -ExistingMapping $connection.MappingView -DatasetNode $connection.DatasetNode -TargetNode $connection.TargetNode -RenderAs 'table'
+                $pending = Add-MappingStudioPendingChange `
+                    -Workbench $workbench `
+                    -PendingChanges @() `
+                    -DatasetId 'management-interfaces' `
+                    -TargetPath 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces' `
+                    -RenderAs 'table' `
+                    -Selector 'items' `
+                    -ProjectionRef 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces' `
+                    -Required $true `
+                    -ProjectionColumns @($projectionDraft.Columns) `
+                    -ProjectionFilter @($projectionDraft.Filter) `
+                    -ProjectionRowOrder @(
+                        [pscustomobject]@{ By = 'controllerSlot'; Direction = 'asc' },
+                        [pscustomobject]@{ By = 'portLabel'; Direction = 'asc' },
+                        [pscustomobject]@{ By = 'interfaceName'; Direction = 'asc' }
+                    )
+
+                $null = Save-MappingStudioPendingChanges -Workbench $workbench -PendingChanges $pending
+                $savedContract = Get-Content -LiteralPath $tempRepo.ContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $savedProjectionDocument = Get-Content -LiteralPath $tempRepo.ProjectionContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $savedEntry = @($savedContract.mappings | Where-Object {
+                        [string]$_.renderHint.projectionRef -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces'
+                    } | Select-Object -First 1)[0]
+                $savedProjection = $savedProjectionDocument.projections['LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces']
+
+                if ($savedEntry.ContainsKey('target')) {
+                    throw 'Expected unchanged table save to preserve the legacy mapping entry without adding target.kind/path'
+                }
+                if ($savedEntry.ContainsKey('selectors')) {
+                    throw 'Expected unchanged table save to preserve the legacy mapping entry without adding default selectors'
+                }
+                if (@($savedProjection.rowOrder)[0] -is [System.Collections.IDictionary]) {
+                    throw 'Expected unchanged table save to preserve compact string rowOrder entries'
+                }
+                if ([string]@($savedProjection.rowOrder)[0] -ne 'controllerSlot') {
+                    throw "Expected rowOrder controllerSlot, got '$([string]@($savedProjection.rowOrder)[0])'"
+                }
+                if ([string]@($savedProjection.rowOrder)[2] -ne 'interfaceName') {
+                    throw "Expected compact rowOrder to preserve all sort fields, got '$((@($savedProjection.rowOrder) | ForEach-Object { [string]$_ }) -join ', ')'"
                 }
             }
             finally {

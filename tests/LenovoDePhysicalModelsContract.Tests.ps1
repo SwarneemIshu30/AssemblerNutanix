@@ -21,5 +21,8 @@ Describe 'Lenovo.DE physical model contract mirror' {
         $model | Should -Not -BeNullOrEmpty
         $model.displayName | Should -Be 'DE4200H 2U24'
         $model.visualAssetKey | Should -Be 'de4200h-2u24'
+        $model.modelFamily | Should -Be 'DE4200'
+        $model.modelSuffix | Should -Be 'H'
+        $model.enclosure | Should -Be '2U24'
     }
 }

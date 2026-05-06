@@ -1158,25 +1158,25 @@
           "source": "state"
         },
         {
-          "name": "RetentionPolicy",
+          "name": "Retention Policy",
           "source": "retention"
         },
         {
-          "name": "SnapshotCount",
+          "name": "Snapshot Count",
           "source": "snapshotCount"
         },
         {
-          "name": "RepositoryCapacity",
+          "name": "Repository Capacity",
           "source": "repositoryCapacity",
           "format": "bytesHuman"
         },
         {
-          "name": "RepositoryWarningThreshold",
+          "name": "Repository Warning Threshold",
           "source": "fullWarnThreshold",
           "format": "percent"
         },
         {
-          "name": "AutoDeleteLimit",
+          "name": "Auto Delete Limit",
           "source": "autoDeleteLimit"
         }
       ],

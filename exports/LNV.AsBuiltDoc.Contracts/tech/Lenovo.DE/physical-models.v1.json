@@ -11,7 +11,10 @@
       "formFactor": "2U24",
       "enclosureRole": "controller-tray",
       "displayName": "DE2000H 2U24",
-      "visualAssetKey": "de2000h-2u24"
+      "visualAssetKey": "de2000h-2u24",
+      "modelFamily": "DE2000",
+      "modelSuffix": "H",
+      "enclosure": "2U24"
     },
     {
       "mtPrefix": "7Y70",
@@ -20,7 +23,10 @@
       "formFactor": "2U12",
       "enclosureRole": "controller-tray",
       "displayName": "DE2000H 2U12",
-      "visualAssetKey": "de2000h-2u12"
+      "visualAssetKey": "de2000h-2u12",
+      "modelFamily": "DE2000",
+      "modelSuffix": "H",
+      "enclosure": "2U12"
     },
     {
       "mtPrefix": "7Y76",
@@ -29,7 +35,10 @@
       "formFactor": "2U24",
       "enclosureRole": "controller-tray",
       "displayName": "DE4000F 2U24",
-      "visualAssetKey": "de4000f-2u24"
+      "visualAssetKey": "de4000f-2u24",
+      "modelFamily": "DE4000",
+      "modelSuffix": "F",
+      "enclosure": "2U24"
     },
     {
       "mtPrefix": "7Y75",
@@ -38,7 +47,10 @@
       "formFactor": "2U24",
       "enclosureRole": "controller-tray",
       "displayName": "DE4000H 2U24",
-      "visualAssetKey": "de4000h-2u24"
+      "visualAssetKey": "de4000h-2u24",
+      "modelFamily": "DE4000",
+      "modelSuffix": "H",
+      "enclosure": "2U24"
     },
     {
       "mtPrefix": "7Y74",
@@ -47,7 +59,10 @@
       "formFactor": "2U12",
       "enclosureRole": "controller-tray",
       "displayName": "DE4000H 2U12",
-      "visualAssetKey": "de4000h-2u12"
+      "visualAssetKey": "de4000h-2u12",
+      "modelFamily": "DE4000",
+      "modelSuffix": "H",
+      "enclosure": "2U12"
     },
     {
       "mtPrefix": "7Y77",
@@ -56,7 +71,10 @@
       "formFactor": "4U60",
       "enclosureRole": "controller-tray",
       "displayName": "DE4000H 4U60",
-      "visualAssetKey": "de4000h-4u60"
+      "visualAssetKey": "de4000h-4u60",
+      "modelFamily": "DE4000",
+      "modelSuffix": "H",
+      "enclosure": "4U60"
     },
     {
       "mtPrefix": "7DCQ",
@@ -65,7 +83,10 @@
       "formFactor": "2U24",
       "enclosureRole": "controller-tray",
       "displayName": "DE4200H 2U24",
-      "visualAssetKey": "de4200h-2u24"
+      "visualAssetKey": "de4200h-2u24",
+      "modelFamily": "DE4200",
+      "modelSuffix": "H",
+      "enclosure": "2U24"
     },
     {
       "mtPrefix": "7DCA",
@@ -74,7 +95,10 @@
       "formFactor": "2U12",
       "enclosureRole": "controller-tray",
       "displayName": "DE4200H 2U12",
-      "visualAssetKey": "de4200h-2u12"
+      "visualAssetKey": "de4200h-2u12",
+      "modelFamily": "DE4200",
+      "modelSuffix": "H",
+      "enclosure": "2U12"
     },
     {
       "mtPrefix": "7DCC",
@@ -83,7 +107,10 @@
       "formFactor": "2U24",
       "enclosureRole": "controller-tray",
       "displayName": "DE4800F 2U24",
-      "visualAssetKey": "de4800f-2u24"
+      "visualAssetKey": "de4800f-2u24",
+      "modelFamily": "DE4800",
+      "modelSuffix": "F",
+      "enclosure": "2U24"
     },
     {
       "mtPrefix": "7DCR",
@@ -92,7 +119,10 @@
       "formFactor": "2U24",
       "enclosureRole": "controller-tray",
       "displayName": "DE4800H 2U24",
-      "visualAssetKey": "de4800h-2u24"
+      "visualAssetKey": "de4800h-2u24",
+      "modelFamily": "DE4800",
+      "modelSuffix": "H",
+      "enclosure": "2U24"
     },
     {
       "mtPrefix": "7DCB",
@@ -101,7 +131,10 @@
       "formFactor": "2U12",
       "enclosureRole": "controller-tray",
       "displayName": "DE4800H 2U12",
-      "visualAssetKey": "de4800h-2u12"
+      "visualAssetKey": "de4800h-2u12",
+      "modelFamily": "DE4800",
+      "modelSuffix": "H",
+      "enclosure": "2U12"
     },
     {
       "mtPrefix": "7DCS",
@@ -110,7 +143,10 @@
       "formFactor": "4U60",
       "enclosureRole": "controller-tray",
       "displayName": "DE4800H 4U60",
-      "visualAssetKey": "de4800h-4u60"
+      "visualAssetKey": "de4800h-4u60",
+      "modelFamily": "DE4800",
+      "modelSuffix": "H",
+      "enclosure": "4U60"
     },
     {
       "mtPrefix": "7Y79",
@@ -119,7 +155,10 @@
       "formFactor": "2U24",
       "enclosureRole": "controller-tray",
       "displayName": "DE6000F 2U24",
-      "visualAssetKey": "de6000f-2u24"
+      "visualAssetKey": "de6000f-2u24",
+      "modelFamily": "DE6000",
+      "modelSuffix": "F",
+      "enclosure": "2U24"
     },
     {
       "mtPrefix": "7Y78",
@@ -128,7 +167,10 @@
       "formFactor": "2U24",
       "enclosureRole": "controller-tray",
       "displayName": "DE6000H 2U24",
-      "visualAssetKey": "de6000h-2u24"
+      "visualAssetKey": "de6000h-2u24",
+      "modelFamily": "DE6000",
+      "modelSuffix": "H",
+      "enclosure": "2U24"
     },
     {
       "mtPrefix": "7Y80",
@@ -137,7 +179,10 @@
       "formFactor": "4U60",
       "enclosureRole": "controller-tray",
       "displayName": "DE6000H 4U60",
-      "visualAssetKey": "de6000h-4u60"
+      "visualAssetKey": "de6000h-4u60",
+      "modelFamily": "DE6000",
+      "modelSuffix": "H",
+      "enclosure": "4U60"
     },
     {
       "mtPrefix": "7DB6",
@@ -146,7 +191,10 @@
       "formFactor": "2U24",
       "enclosureRole": "controller-tray",
       "displayName": "DE6400 2U24",
-      "visualAssetKey": "de6400-2u24"
+      "visualAssetKey": "de6400-2u24",
+      "modelFamily": "DE6400",
+      "modelSuffix": null,
+      "enclosure": "2U24"
     },
     {
       "mtPrefix": "7DB7",
@@ -155,7 +203,10 @@
       "formFactor": "2U24",
       "enclosureRole": "controller-tray",
       "displayName": "DE6600 2U24",
-      "visualAssetKey": "de6600-2u24"
+      "visualAssetKey": "de6600-2u24",
+      "modelFamily": "DE6600",
+      "modelSuffix": null,
+      "enclosure": "2U24"
     },
     {
       "mtPrefix": "7Y63",
@@ -164,7 +215,10 @@
       "formFactor": "2U12",
       "enclosureRole": "expansion-tray",
       "displayName": "DE120S 2U12",
-      "visualAssetKey": "de120s-2u12"
+      "visualAssetKey": "de120s-2u12",
+      "modelFamily": "DE120S",
+      "modelSuffix": null,
+      "enclosure": "2U12"
     },
     {
       "mtPrefix": "7Y68",
@@ -173,7 +227,10 @@
       "formFactor": "2U24",
       "enclosureRole": "expansion-tray",
       "displayName": "DE240S 2U24",
-      "visualAssetKey": "de240s-2u24"
+      "visualAssetKey": "de240s-2u24",
+      "modelFamily": "DE240S",
+      "modelSuffix": null,
+      "enclosure": "2U24"
     },
     {
       "mtPrefix": "7Y69",
@@ -182,7 +239,11 @@
       "formFactor": "4U60",
       "enclosureRole": "expansion-tray",
       "displayName": "DE600S 4U60",
-      "visualAssetKey": "de600s-4u60"
+      "visualAssetKey": "de600s-4u60",
+      "modelFamily": "DE600S",
+      "modelSuffix": null,
+      "enclosure": "4U60"
     }
   ]
 }
+
