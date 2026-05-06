@@ -3193,7 +3193,7 @@ Opt=<<SDT:OPT_NAME>>
             if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode" }
 
             $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
-            if ($rendered -notmatch 'TrayId\s+TrayType\s+TrayRole\s+SerialNumber\s+PartNumber\s+DriveSlots\s+ControllerSlots\s+Status') {
+            if ($rendered -notmatch 'Model\s+TrayType\s+TrayRole\s+SerialNumber\s+PartNumber\s+DriveSlots\s+ControllerSlots\s+Status') {
                 throw "Expected projected tray table header, got '$rendered'"
             }
             if ($rendered -match 'manufacturer|\{"trayId":') {
@@ -3231,7 +3231,7 @@ Opt=<<SDT:OPT_NAME>>
                         trayType = 'DE212C'
                         trayRole = 'expansion-tray'
                         serialNumber = 'TRAY-0007'
-                        partNumber = '01KP999'
+                        partNumber = '7Y63CTO1WW'
                         numDriveSlots = 12
                         numControllerSlots = 0
                         status = 'optimal'
@@ -3255,14 +3255,151 @@ Opt=<<SDT:OPT_NAME>>
             if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode" }
 
             $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
-            if ($rendered -notmatch 'TrayId\s+TrayType\s+TrayRole\s+SerialNumber\s+PartNumber\s+DriveSlots\s+ControllerSlots\s+Status') {
+            if ($rendered -notmatch 'Model\s+TrayType\s+TrayRole\s+SerialNumber\s+PartNumber\s+DriveSlots\s+ControllerSlots\s+Status') {
                 throw "Expected readable projected tray header, got '$rendered'"
             }
-            if ($rendered -notmatch '7\s+DE212C\s+expansion-tray\s+TRAY-0007\s+01KP999\s+12\s+0\s+optimal') {
+            if ($rendered -notmatch 'DE120S 2U12\s+DE212C\s+expansion-tray\s+TRAY-0007\s+7Y63CTO1WW\s+12\s+0\s+optimal') {
                 throw "Expected projected tray values, got '$rendered'"
             }
             if ($rendered -match 'manufacturer|esmFirmware|numDriveSlots|numControllerSlots|\{"trayId":|^\s*Trays=\s*\{' ) {
                 throw "Expected projected tray output instead of raw/internal fields, got '$rendered'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'resolves Lenovo.DE tray model from full MT part number and preserves the full part number' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-tray-model-lookup-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template "Trays=<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Trays>>" -DatasetRelativePath 'datasets/trays.json' -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'trays'
+                item_count = 1
+                items = @(
+                    @{
+                        trayId = 99
+                        trayType = 'de224c'
+                        trayRole = 'controller-tray'
+                        controllerModelName = 'DE4200'
+                        serialNumber = 'J7024YT4'
+                        partNumber = '7DCQCTO1WW     '
+                        numDriveSlots = 24
+                        numControllerSlots = 2
+                        status = 'optimal'
+                    }
+                )
+            } -Mappings @(
+                @{
+                    dataset = 'datasets/trays.json'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Tables.Trays'
+                    required = $true
+                    selectors = @('items')
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode. Output: $output" }
+
+            $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
+            if ($rendered -notmatch 'DE4200H 2U24') {
+                throw "Expected resolved physical model name, got '$rendered'"
+            }
+            if ($rendered -notmatch '7DCQCTO1WW') {
+                throw "Expected full part number to remain visible, got '$rendered'"
+            }
+
+            $report = Get-Content -LiteralPath $fixture.reportPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            $lookupIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-DE-MODEL-LOOKUP-MISS' }) | Select-Object -First 1
+            if ($null -ne $lookupIssue) {
+                throw "Did not expect lookup miss for known MT prefix: $($lookupIssue.message)"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'warns and falls back when Lenovo.DE tray model lookup misses' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-tray-model-lookup-miss-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template "Trays=<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.Trays>>" -DatasetRelativePath 'datasets/trays.json' -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'trays'
+                item_count = 1
+                items = @(
+                    @{
+                        trayId = 1
+                        trayType = 'de224c'
+                        trayRole = 'controller-tray'
+                        controllerModelName = 'DE9999'
+                        serialNumber = 'UNKNOWN-TRAY'
+                        partNumber = 'ZZZZCTO1WW'
+                        numDriveSlots = 24
+                        numControllerSlots = 2
+                        status = 'optimal'
+                    }
+                )
+            } -Mappings @(
+                @{
+                    dataset = 'datasets/trays.json'
+                    sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Tables.Trays'
+                    required = $true
+                    selectors = @('items')
+                }
+            )
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -ne 0) { throw "Expected exit code 0 for lookup miss warning, got $exitCode. Output: $output" }
+
+            $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
+            if ($rendered -notmatch 'DE9999') {
+                throw "Expected lookup miss to fall back to controllerModelName, got '$rendered'"
+            }
+            if ($rendered -match '\{"trayId":') {
+                throw "Expected projected output instead of raw JSON on lookup miss, got '$rendered'"
+            }
+
+            $report = Get-Content -LiteralPath $fixture.reportPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            $lookupIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-DE-MODEL-LOOKUP-MISS' }) | Select-Object -First 1
+            if ($null -eq $lookupIssue) {
+                throw 'Expected Lenovo DE model lookup miss issue in report'
+            }
+            if ([string]$lookupIssue.severity -ne 'WARN') {
+                throw "Expected lookup miss severity WARN, got '$($lookupIssue.severity)'"
             }
         }
         finally {

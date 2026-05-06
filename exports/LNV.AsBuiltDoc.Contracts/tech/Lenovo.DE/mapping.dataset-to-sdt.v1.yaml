@@ -1,0 +1,363 @@
+schema: mapping.dataset-to-sdt
+schemaVersion: 1
+techId: Lenovo.DE
+displayName: Lenovo DE dataset-to-SDT mapping v1
+compatibility:
+  contracts:
+    version: 2.0.0
+  coreValidation: strict
+strictContracts:
+  enabled: true
+  requireAllMappings: false
+  forbidUnmappedDatasets: false
+  requireSelectors: false
+syncPolicy:
+  collectorSkeletonMapping:
+    allowedRenderAs:
+    - table
+    - scalar
+    - diagram
+    selectors:
+      defaultByRenderAs:
+        table:
+        - items
+        scalar:
+        - items.0
+        diagram:
+        - items
+    unsupportedRenderShape:
+      documentFacing: fail
+      nonDocumentFacing: skip
+collectorSdtTagPolicy:
+  required: true
+  tokenRewrites:
+    '[<SystemId>]': '[ArrayName]'
+  tagAliases:
+    LNV.Lenovo.DE.System[ArrayName].Tables.Drives: LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory
+    LNV.Lenovo.DE.System[ArrayName].Tables.StorageContainers: LNV.Lenovo.DE.Pool[PoolName].Tables.Inventory
+    LNV.Lenovo.DE.System[ArrayName].Tables.Volumes: LNV.Lenovo.DE.Volume[VolumeName].Tables.Inventory
+    LNV.Lenovo.DE.System[ArrayName].Tables.ASUP: LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport
+mappings:
+- dataset: systems
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Summary
+  required: true
+  notes: placement=Main; minInfoLevel=1; objectKey=System; scope=PerSystem
+- dataset: system-controllers
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Controllers
+  required: true
+  notes: placement=Main; minInfoLevel=1; objectKey=Controllers; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Controllers
+- dataset: management-interfaces
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.ManagementInterfaces
+  required: true
+  notes: placement=Main; minInfoLevel=1; objectKey=ManagementInterfaces; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces
+- dataset: transport
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Transport
+  required: true
+  notes: placement=Main; minInfoLevel=1; objectKey=ActiveTransport; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Transport
+- dataset: system-dns
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.DNS
+  required: true
+  notes: placement=Main; minInfoLevel=1; objectKey=DNS; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.DNS
+- dataset: system-time
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Time
+  required: true
+  notes: placement=Main; minInfoLevel=1; objectKey=NTP; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Time
+- dataset: trays
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Trays
+  required: false
+  notes: placement=Appendix; minInfoLevel=2; objectKey=Trays; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Trays
+- dataset: host-ports
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.HostPortsiSCSI
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=iSCSI; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsiSCSI
+- dataset: host-ports
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.HostPortsFC
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=FibreChannel; scope=PerSystem; emptyDataset=NotConfiguredRow
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.HostPortsFC
+    emptyBehavior: placeholder
+- dataset: host-ports
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Diagrams.HostPortTopology
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=HostPortTopology; scope=PerSystem; diagramType=topology
+  renderHint:
+    renderAs: diagram
+    renderMode: diagram
+    diagramRef: LNV.Lenovo.DE.System[ArrayName].Diagrams.HostPortTopology
+- dataset: hosts
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Hosts
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=Hosts; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Hosts
+- dataset: host-groups
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.HostGroups
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=HostGroups; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.HostGroups
+- dataset: drives
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Drives
+  required: false
+  notes: placement=Appendix; minInfoLevel=2; objectKey=Drives; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Drives
+- dataset: storage-containers
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.StorageContainers
+  required: true
+  notes: placement=Main; minInfoLevel=1; objectKey=VolumeGroups; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.StorageContainers
+- dataset: volumes
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Volumes
+  required: true
+  notes: placement=Main; minInfoLevel=1; objectKey=Volumes; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Volumes
+- dataset: volume-mappings
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.VolumeMappings
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=VolumeMappings; scope=PerSystem;
+    evidenceSource=NormalizedHostGroupVolumeMappings; narrativeScope=EndToEndHostAccessEvidence
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.VolumeMappings
+- dataset: hosts-to-host-groups
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.HostsToHostGroups
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=HostsToHostGroups; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.HostsToHostGroups
+- dataset: host-groups-to-volumes
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.HostGroupsToVolumes
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=HostGroupsToVolumes; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.HostGroupsToVolumes
+- dataset: hosts-to-volumes
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.HostsToVolumes
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=HostsToVolumes; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.HostsToVolumes
+- dataset: system-asup
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.ASUP
+  required: true
+  notes: placement=Appendix; minInfoLevel=1; objectKey=ASUP; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.AutoSupport
+- dataset: identity-sources
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.IdentitySources
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=IdentitySources; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.IdentitySources
+- dataset: roles
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Roles
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=Roles; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Roles
+- dataset: certificates
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Certificates
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=Certificates; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Certificates
+- dataset: alerts
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Alerts
+  required: false
+  notes: placement=Main; minInfoLevel=2; objectKey=Alerts; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Alerts
+- dataset: snapshots
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.SnapshotPolicy
+  required: false
+  notes: placement=Appendix; minInfoLevel=2; objectKey=SnapshotPolicy; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy
+- dataset: snapshots
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.SnapshotSchedule
+  required: false
+  notes: placement=Appendix; minInfoLevel=2; objectKey=SnapshotSchedule; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotSchedule
+- dataset: snapshots
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.SnapshotImages
+  required: false
+  notes: placement=Appendix; minInfoLevel=2; objectKey=SnapshotImages; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotImages
+- dataset: replication
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Replication
+  required: false
+  notes: placement=Appendix; minInfoLevel=2; objectKey=Replication; scope=PerSystem
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.Replication
+- dataset: capabilities-normalized
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.CapabilitiesSummary
+  required: false
+  notes: placement=Main; minInfoLevel=1; objectKey=CapabilitiesSummary; scope=PerSystem;
+    rendererProjection=Summary
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesSummary
+    view: Summary
+- dataset: capabilities-normalized
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.CapabilitiesKeyFeatures
+  required: false
+  notes: placement=Main; minInfoLevel=1; objectKey=CapabilitiesKeyFeatures; scope=PerSystem;
+    rendererProjection=KeyFeatures
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesKeyFeatures
+    view: KeyFeatures
+- dataset: capabilities-normalized
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.CapabilitiesLimits
+  required: false
+  notes: placement=Appendix; minInfoLevel=1; objectKey=CapabilitiesLimits; scope=PerSystem;
+    rendererProjection=Limits
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.DE.System[ArrayName].Tables.CapabilitiesLimits
+    view: Limits
+
+- dataset: management-interfaces
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.Management.ControllerA
+  required: false
+  notes: placement=Main; minInfoLevel=1; objectKey=ManagementControllerA; scope=PerSystem; narrativeScalar=true
+  selectors:
+  - items.0.ipv4Address
+  renderHint:
+    renderAs: scalar
+    view: ControllerA
+- dataset: management-interfaces
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.Management.ControllerB
+  required: false
+  notes: placement=Main; minInfoLevel=1; objectKey=ManagementControllerB; scope=PerSystem; narrativeScalar=true
+  selectors:
+  - items.1.ipv4Address
+  renderHint:
+    renderAs: scalar
+    view: ControllerB
+- dataset: system-dns
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.DNS.Scope1
+  required: false
+  notes: placement=Main; minInfoLevel=1; objectKey=DnsScope1; scope=PerSystem; narrativeScalar=true
+  selectors:
+  - items.0.dnsAcquisitionType
+  renderHint:
+    renderAs: scalar
+    view: Scope1
+- dataset: system-dns
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.DNS.Scope2
+  required: false
+  notes: placement=Main; minInfoLevel=1; objectKey=DnsScope2; scope=PerSystem; narrativeScalar=true
+  selectors:
+  - items.1.dnsAcquisitionType
+  renderHint:
+    renderAs: scalar
+    view: Scope2
+- dataset: system-time
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.Time.Scope1
+  required: false
+  notes: placement=Main; minInfoLevel=1; objectKey=TimeScope1; scope=PerSystem; narrativeScalar=true
+  selectors:
+  - items.0.ntpAcquisitionType
+  renderHint:
+    renderAs: scalar
+    view: Scope1
+- dataset: system-time
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.Time.Scope2
+  required: false
+  notes: placement=Main; minInfoLevel=1; objectKey=TimeScope2; scope=PerSystem; narrativeScalar=true
+  selectors:
+  - items.1.ntpAcquisitionType
+  renderHint:
+    renderAs: scalar
+    view: Scope2
+- dataset: host-ports
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.HostPorts.Port1
+  required: false
+  notes: placement=Main; minInfoLevel=1; objectKey=HostPortPrimary; scope=PerSystem; narrativeScalar=true; ordering=controllerSlot,channel,portLabel
+  selectors:
+  - items.0.portLabel
+  renderHint:
+    renderAs: scalar
+    view: Port1
+- dataset: host-ports
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.HostPorts.Port2
+  required: false
+  notes: placement=Main; minInfoLevel=1; objectKey=HostPortSecondary; scope=PerSystem; narrativeScalar=true; ordering=controllerSlot,channel,portLabel
+  selectors:
+  - items.1.portLabel
+  renderHint:
+    renderAs: scalar
+    view: Port2
+- dataset: systems
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.Version
+  required: false
+  notes: placement=Main; minInfoLevel=1; objectKey=SystemVersion; scope=PerSystem; narrativeScalar=true
+  selectors:
+  - items.0.appVersion
+  renderHint:
+    renderAs: scalar
+    view: Version
+- dataset: systems
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.Config
+  required: false
+  notes: placement=Main; minInfoLevel=1; objectKey=SystemConfig; scope=PerSystem; narrativeScalar=true
+  selectors:
+  - items.0.model
+  renderHint:
+    renderAs: scalar
+    view: Config
+- dataset: transport
+  sdtTag: LNV.Lenovo.DE.System[<SystemId>].Narrative.Evidence
+  required: false
+  notes: placement=Main; minInfoLevel=1; objectKey=SystemEvidence; scope=PerSystem; narrativeScalar=true
+  selectors:
+  - items.0.activeTransport
+  renderHint:
+    renderAs: scalar
+    view: Evidence
