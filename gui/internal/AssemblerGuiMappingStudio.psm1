@@ -2899,18 +2899,84 @@ function Add-MappingStudioPendingChange {
 function New-ContractMappingEntryFromDraft {
     param(
         [Parameter(Mandatory = $true)]$Draft,
-        [Parameter(Mandatory = $false)]$ExistingEntry
+        [Parameter(Mandatory = $false)]$ExistingEntry,
+        [Parameter(Mandatory = $false)][hashtable]$TagPolicy = @{}
     )
 
     $draftTable = ConvertTo-Dictionary -Value $Draft
     $existing = ConvertTo-Dictionary -Value $ExistingEntry
+    $targetPath = [string]$draftTable.TargetPath
+    if ($null -ne $existing -and $null -ne $TagPolicy) {
+        $existingResolvedTarget = Resolve-CollectorTargetTag -MappingEntry $existing -TagPolicy $TagPolicy
+        if ($existingResolvedTarget -eq $targetPath) {
+            $mappingEntry = Copy-PlainValue -Value $existing
+            $mappingEntry.dataset = [string]$draftTable.DatasetId
+            if (-not (Test-MapHasKey -Map $mappingEntry -Key 'sdtTag') -or [string]::IsNullOrWhiteSpace([string]$mappingEntry.sdtTag)) {
+                $mappingEntry.sdtTag = $targetPath
+            }
+            $mappingEntry.required = [bool](Get-MapValueOrDefault -Map $draftTable -Key 'Required' -DefaultValue $false)
+
+            $renderAs = [string]$draftTable.RenderAs
+            $selector = [string](Get-MapValueOrDefault -Map $draftTable -Key 'Selector')
+            $defaultSelectors = @(Get-MappingEntrySelectorValues -Entry $null -RenderAs $renderAs)
+            $selectorIsDefault = $false
+            if (-not [string]::IsNullOrWhiteSpace($selector) -and $defaultSelectors.Count -eq 1 -and $selector -eq [string]$defaultSelectors[0]) {
+                $selectorIsDefault = $true
+            }
+            if (Test-MapHasKey -Map $mappingEntry -Key 'selectors') {
+                if (-not [string]::IsNullOrWhiteSpace($selector)) {
+                    $mappingEntry.selectors = @($selector)
+                }
+                else {
+                    $mappingEntry.Remove('selectors')
+                }
+            }
+            elseif (-not [string]::IsNullOrWhiteSpace($selector) -and -not $selectorIsDefault) {
+                $mappingEntry.selectors = @($selector)
+            }
+
+            $notes = [string](Get-MapValueOrDefault -Map $draftTable -Key 'Notes')
+            if (-not [string]::IsNullOrWhiteSpace($notes)) {
+                $mappingEntry.notes = $notes
+            }
+            elseif (Test-MapHasKey -Map $mappingEntry -Key 'notes') {
+                $mappingEntry.Remove('notes')
+            }
+
+            $renderHint = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $mappingEntry -Key 'renderHint')
+            if ($null -eq $renderHint) {
+                $renderHint = [ordered]@{}
+            }
+            $renderHint.renderAs = $renderAs
+            $projectionRef = [string](Get-MapValueOrDefault -Map $draftTable -Key 'ProjectionRef')
+            $view = [string](Get-MapValueOrDefault -Map $draftTable -Key 'View')
+            if (-not [string]::IsNullOrWhiteSpace($projectionRef)) {
+                $renderHint.projectionRef = $projectionRef
+            }
+            elseif (Test-MapHasKey -Map $renderHint -Key 'projectionRef') {
+                $renderHint.Remove('projectionRef')
+            }
+            if (-not [string]::IsNullOrWhiteSpace($view)) {
+                $renderHint.view = $view
+            }
+            elseif (Test-MapHasKey -Map $renderHint -Key 'view') {
+                $renderHint.Remove('view')
+            }
+            $mappingEntry.renderHint = $renderHint
+
+            return $mappingEntry
+        }
+    }
+
+    $authoringSdtTag = $targetPath
+    $authoringTargetPath = $targetPath
     $mappingEntry = [ordered]@{
         phase = 'dual'
         dataset = [string]$draftTable.DatasetId
-        sdtTag = [string]$draftTable.TargetPath
+        sdtTag = $authoringSdtTag
         target = [ordered]@{
             kind = 'sdt'
-            path = [string]$draftTable.TargetPath
+            path = $authoringTargetPath
         }
         required = [bool](Get-MapValueOrDefault -Map $draftTable -Key 'Required' -DefaultValue $false)
     }
@@ -3120,7 +3186,7 @@ function Apply-PendingMappingDrafts {
             Copy-PlainValue -Value $existingEntry
         }
         else {
-            New-ContractMappingEntryFromDraft -Draft $draft -ExistingEntry $existingEntry
+            New-ContractMappingEntryFromDraft -Draft $draft -ExistingEntry $existingEntry -TagPolicy $TagPolicy
         }
         $insertIndex = if ($matchedIndexes.Count -gt 0) { [Math]::Min($matchedIndexes[0], $mappings.Count) } else { $mappings.Count }
         $mappings.Insert($insertIndex, $newEntry)

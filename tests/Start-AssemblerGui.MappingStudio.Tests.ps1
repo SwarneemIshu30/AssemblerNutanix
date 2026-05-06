@@ -94,6 +94,16 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
                     projectionRef = 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces'
                 }
             }) | Out-Null
+        $mappings.Add([ordered]@{
+                dataset = 'snapshots'
+                sdtTag = 'LNV.Lenovo.DE.System[<SystemId>].Tables.SnapshotPolicy'
+                required = $false
+                notes = 'placement=Appendix; minInfoLevel=2; objectKey=SnapshotPolicy; scope=PerSystem'
+                renderHint = [ordered]@{
+                    renderAs = 'table'
+                    projectionRef = 'LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy'
+                }
+            }) | Out-Null
         if ($IncludeDuplicateManagementTarget) {
             $mappings.Add([ordered]@{
                     dataset = 'transport'
@@ -714,7 +724,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
                 $runtimeDocument = Get-Content -LiteralPath $tempRepo.RuntimeMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
                 $savedProjectionDocument = Get-Content -LiteralPath $tempRepo.ProjectionContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
                 $exportProjectionDocument = Get-Content -LiteralPath $tempRepo.ProjectionExportMirrorPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
-                $savedEntry = @($savedContract.mappings | Where-Object { $_.sdtTag -eq 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config' } | Select-Object -First 1)[0]
+                $savedEntry = @($savedContract.mappings | Where-Object { $_.sdtTag -eq 'LNV.Lenovo.DE.System[<SystemId>].Narrative.Config' } | Select-Object -First 1)[0]
                 $runtimeEntry = @($runtimeDocument.mappings | Where-Object { $_.sdtTag -eq 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config' } | Select-Object -First 1)[0]
 
                 if ([bool]$workbench.MappingDocument.readOnly) {
@@ -726,7 +736,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
                 if ($null -eq $savedEntry) {
                     throw 'Expected saved contract document to include the staged Narrative.Config entry'
                 }
-                if ([string]$savedEntry.target.kind -ne 'sdt' -or [string]$savedEntry.target.path -ne 'LNV.Lenovo.DE.System[ArrayName].Narrative.Config') {
+                if ([string]$savedEntry.target.kind -ne 'sdt' -or [string]$savedEntry.target.path -ne 'LNV.Lenovo.DE.System[<SystemId>].Narrative.Config') {
                     throw "Expected dual-shape contract target.kind/path for staged entry, got kind='$([string]$savedEntry.target.kind)' path='$([string]$savedEntry.target.path)'"
                 }
                 if ([string]@($savedEntry.selectors)[0] -ne 'items.0.model') {
@@ -833,6 +843,56 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
             }
         }
 
+        It 'preserves collector token sdtTag when saving a resolved target mapping' {
+            $tempRepo = New-MappingStudioTempRepo -Name 'save-preserve-authoring-sdt-tag' -UseJsonYamlContract
+            try {
+                $workbench = Get-LenovoWorkbench -ResolvedRepoRoot $tempRepo.RepoRoot -ResolvedCatalogPath $tempRepo.CatalogPath -ResolvedContractsRoot $tempRepo.ContractsRoot
+                $connection = @($workbench.Connections | Where-Object {
+                        [string]$_.TargetPath -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy'
+                    } | Select-Object -First 1)[0]
+                $projectionDraft = New-MappingStudioProjectionDraft -Workbench $workbench -ExistingMapping $connection.MappingView -DatasetNode $connection.DatasetNode -TargetNode $connection.TargetNode -RenderAs 'table'
+                $pending = Add-MappingStudioPendingChange `
+                    -Workbench $workbench `
+                    -PendingChanges @() `
+                    -DatasetId 'snapshots' `
+                    -TargetPath 'LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy' `
+                    -RenderAs 'table' `
+                    -Selector 'items' `
+                    -ProjectionRef 'LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy' `
+                    -View 'SnapshotPolicy' `
+                    -Required $false `
+                    -Notes 'placement=Appendix; minInfoLevel=2; objectKey=SnapshotPolicy; scope=PerSystem' `
+                    -ProjectionColumns @($projectionDraft.Columns) `
+                    -ProjectionFilter @($projectionDraft.Filter) `
+                    -ProjectionRowOrder @($projectionDraft.RowOrder)
+
+                $null = Save-MappingStudioPendingChanges -Workbench $workbench -PendingChanges $pending
+                $savedContract = Get-Content -LiteralPath $tempRepo.ContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $runtimeDocument = Get-Content -LiteralPath $tempRepo.RuntimeMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $contractEntry = @($savedContract.mappings | Where-Object {
+                        [string]$_.renderHint.projectionRef -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy'
+                    } | Select-Object -First 1)[0]
+                $runtimeEntry = @($runtimeDocument.mappings | Where-Object {
+                        [string]$_.sdtTag -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotPolicy'
+                    } | Select-Object -First 1)[0]
+
+                if ([string]$contractEntry.sdtTag -ne 'LNV.Lenovo.DE.System[<SystemId>].Tables.SnapshotPolicy') {
+                    throw "Expected contract sdtTag to preserve the collector token, got '$([string]$contractEntry.sdtTag)'"
+                }
+                if ([string]$contractEntry.renderHint.view -ne 'SnapshotPolicy') {
+                    throw "Expected saved contract renderHint.view=SnapshotPolicy, got '$([string]$contractEntry.renderHint.view)'"
+                }
+                if ($null -eq $runtimeEntry) {
+                    throw 'Expected runtime mapping to keep using the resolved ArrayName target'
+                }
+            }
+            finally {
+                if (Test-Path -LiteralPath $tempRepo.RepoRoot -PathType Container) {
+                    Remove-Item -LiteralPath $tempRepo.RepoRoot -Recurse -Force
+                }
+            }
+        }
+
         It 'rebinds an existing mapped target without leaving duplicate active mappings behind' {
             $tempRepo = New-MappingStudioTempRepo -Name 'save-rebind-existing' -UseJsonYamlContract -IncludeDuplicateManagementTarget
             try {
@@ -842,7 +902,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
                 $savedContract = Get-Content -LiteralPath $tempRepo.ContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
                 $savedProjectionDocument = Get-Content -LiteralPath $tempRepo.ProjectionContractPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
                 $savedMatches = @($savedContract.mappings | Where-Object {
-                        [string]$_.sdtTag -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces'
+                        [string]$_.sdtTag -eq 'LNV.Lenovo.DE.System[<SystemId>].Tables.ManagementInterfaces'
                     })
                 $runtimeDocument = Get-Content -LiteralPath $tempRepo.RuntimeMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
                 $runtimeMatches = @($runtimeDocument.mappings | Where-Object {
