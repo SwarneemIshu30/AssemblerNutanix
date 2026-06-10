@@ -1,0 +1,17 @@
+repository:
+  owner: LNV-AsBuiltDoc
+  name: LNV.AsBuiltDoc.Assembler
+direct_v1: true
+supported_contracts_range: ">=2.0.0 <3.0.0"
+strict_contracts_capable: false
+required_checks:
+  - Package Assembler Runtime
+discovery:
+  contracts_snapshot: .deps/contracts/contracts.snapshot.json
+  standards:
+    - .deps/contracts/standards/*.json
+  tech_manifests:
+    - .deps/contracts/tech/**/manifest.yaml
+  contract_exports:
+    - exports/**/manifest.yaml
+    - exports/**/*.schema.json
