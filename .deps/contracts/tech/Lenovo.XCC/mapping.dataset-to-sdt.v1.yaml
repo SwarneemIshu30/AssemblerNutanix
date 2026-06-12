@@ -1,0 +1,40 @@
+kind: DatasetToSdtMapping
+apiVersion: lnv.asbuiltdoc/v1
+metadata:
+  techId: Lenovo.XCC
+spec:
+  mappings:
+    - dataset: collection-summary
+      sdt: XccCollectionSummary
+    - dataset: systems
+      sdt: XccSystem
+    - dataset: managers
+      sdt: XccManager
+    - dataset: chassis
+      sdt: XccChassis
+    - dataset: firmware-inventory
+      sdt: XccFirmwareComponent
+    - dataset: processors
+      sdt: XccProcessor
+    - dataset: memory
+      sdt: XccMemoryDevice
+    - dataset: network-interfaces
+      sdt: XccNetworkInterface
+    - dataset: ethernet-interfaces
+      sdt: XccNetworkInterface
+    - dataset: storage-controllers
+      sdt: XccStorageController
+    - dataset: storage-drives
+      sdt: XccStorageDrive
+    - dataset: storage-volumes
+      sdt: XccStorageVolume
+    - dataset: power
+      sdt: XccPowerSensor
+    - dataset: thermal
+      sdt: XccThermalSensor
+    - dataset: event-log
+      sdt: XccEvent
+    - dataset: security
+      sdt: XccSecurityPosture
+    - dataset: users-summary
+      sdt: XccUserSummary

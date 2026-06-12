@@ -1,0 +1,42 @@
+apiVersion: lnv.asbuiltdoc/v1
+kind: CollectorContractManifest
+metadata:
+  tech: Microsoft.FailoverCluster
+  collector: LNV.AsBuiltDoc.Microsoft.FailoverCluster
+spec:
+  entrypoint: Invoke-LnvAsBuiltDoc.Microsoft.FailoverCluster
+  bundleSchemas:
+    manifest: lnv.bundle.manifest.v1
+    configUsed: lnv.bundle.config_used.v1
+    dataset: lnv.collector.dataset.v1
+  planValidation: plan_validation.yaml
+  datasetSchemaPath: dataset
+  datasetToSdtMapping: mapping.dataset-to-sdt.v1.yaml
+  datasets:
+    - collection-summary
+    - collection-sources
+    - coverage
+    - cluster
+    - capabilities
+    - nodes
+    - networks
+    - roles
+    - resources
+    - cluster-disks
+    - cluster-shared-volumes
+    - volumes
+    - relationships
+    - ad-integration
+    - storage-pools
+    - physical-disks
+    - virtual-disks
+    - storage-tiers
+    - fault-domains
+    - storage-jobs
+    - storage-health
+    - hyperv-hosts
+    - virtual-machines
+    - virtual-switches
+    - vm-network-adapters
+    - live-migration
+    - replica

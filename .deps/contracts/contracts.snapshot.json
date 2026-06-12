@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "packUrl": "https://github.com/LNV-AsBuiltDoc/LNV.AsBuiltDoc.Contracts/releases/download/v2.0.8/asbuiltdoc-contracts-v2.0.8.zip",
-  "tag": "v2.0.8",
+  "version": "2.0.13",
+  "packUrl": "https://github.com/LNV-AsBuiltDoc/LNV.AsBuiltDoc.Contracts/releases/download/v2.0.13/asbuiltdoc-contracts-v2.0.13.zip",
+  "packPath": "C:\\Users\\lforrest\\AppData\\Local\\Temp\\asbuiltdoc-contracts-v2.0.13-f96bbd3fbf1d425d9d3e3a1d38a3bc48.zip",
+  "syncedUtc": "2026-06-12T03:56:50.7443698Z",
   "releaseUrl": null,
-  "packPath": "C:\\Users\\lforrest\\AppData\\Local\\Temp\\asbuiltdoc-contracts-v2.0.8-e1fb93ccfadc4272aea248450e23f69b.zip",
-  "source": "published-pack",
-  "version": "2.0.8",
-  "syncedUtc": "2026-04-25T06:37:52.9151105Z"
+  "tag": "v2.0.13",
+  "source": "published-pack"
 }

@@ -1,0 +1,28 @@
+kind: CollectorContractManifest
+apiVersion: lnv.asbuiltdoc/v1
+metadata:
+  techId: Lenovo.XCC
+  displayName: Lenovo XClarity Controller
+spec:
+  datasetSchemaPath: dataset
+  datasetToSdtMapping: mapping.dataset-to-sdt.v1.yaml
+  bundleSchemas:
+    dataset: lnv.collector.dataset.v1
+  datasets:
+    - collection-summary
+    - systems
+    - managers
+    - chassis
+    - firmware-inventory
+    - processors
+    - memory
+    - network-interfaces
+    - ethernet-interfaces
+    - storage-controllers
+    - storage-drives
+    - storage-volumes
+    - power
+    - thermal
+    - event-log
+    - security
+    - users-summary

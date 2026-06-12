@@ -1,0 +1,86 @@
+schema: mapping.dataset-to-sdt
+schemaVersion: 1
+techId: Nutanix.Prism
+displayName: Nutanix Prism dataset-to-SDT mapping v1
+compatibility:
+  contracts:
+    version: 2.0.0
+  coreValidation: strict
+strictContracts:
+  enabled: true
+  requireAllMappings: false
+  forbidUnmappedDatasets: false
+  requireSelectors: false
+mappings:
+  - dataset: cluster
+    sdtTag: LNV.Nutanix.Prism.Cluster[<ClusterKey>].Summary
+    required: true
+    notes: Cluster summary from Prism Element or Prism Central.
+  - dataset: hosts
+    sdtTag: LNV.Nutanix.Prism.Cluster[<ClusterKey>].Tables.Hosts
+    required: false
+    notes: Prism Element host inventory.
+  - dataset: host_nics
+    sdtTag: LNV.Nutanix.Prism.Cluster[<ClusterKey>].Tables.HostNics
+    required: false
+    notes: Prism Central host NIC inventory.
+  - dataset: cvms
+    sdtTag: LNV.Nutanix.Prism.Cluster[<ClusterKey>].Tables.CVMs
+    required: false
+    notes: Controller VM inventory derived from Prism Element VM payloads.
+  - dataset: vms
+    sdtTag: LNV.Nutanix.Prism.Cluster[<ClusterKey>].Tables.VMs
+    required: true
+    notes: Workload VM inventory from Prism Element or Prism Central.
+  - dataset: networks
+    sdtTag: LNV.Nutanix.Prism.Cluster[<ClusterKey>].Tables.Networks
+    required: true
+    notes: Network/subnet inventory from Prism Element or Prism Central.
+  - dataset: virtual_switches
+    sdtTag: LNV.Nutanix.Prism.Cluster[<ClusterKey>].Tables.VirtualSwitches
+    required: false
+    notes: Prism Central virtual switch inventory.
+  - dataset: storage_containers
+    sdtTag: LNV.Nutanix.Prism.Cluster[<ClusterKey>].Tables.StorageContainers
+    required: false
+    notes: Prism Element storage container inventory.
+  - dataset: storage_pools
+    sdtTag: LNV.Nutanix.Prism.Cluster[<ClusterKey>].Tables.StoragePools
+    required: false
+    notes: Prism Element storage pool inventory.
+  - dataset: disks
+    sdtTag: LNV.Nutanix.Prism.Cluster[<ClusterKey>].Tables.Disks
+    required: false
+    notes: Prism Element disk inventory.
+  - dataset: categories
+    sdtTag: LNV.Nutanix.Prism.Global.Tables.Categories
+    required: false
+    notes: Prism Central category inventory.
+  - dataset: policies
+    sdtTag: LNV.Nutanix.Prism.Global.Tables.Policies
+    required: false
+    notes: Prism Central policy inventory.
+  - dataset: templates
+    sdtTag: LNV.Nutanix.Prism.Global.Tables.Templates
+    required: false
+    notes: Prism Central VM template inventory.
+  - dataset: ssl_certificates
+    sdtTag: LNV.Nutanix.Prism.Global.Tables.SslCertificates
+    required: false
+    notes: Prism Central cluster SSL certificate metadata.
+  - dataset: alerts
+    sdtTag: LNV.Nutanix.Prism.Global.Tables.Alerts
+    required: false
+    notes: Prism Central alert inventory.
+  - dataset: tasks
+    sdtTag: LNV.Nutanix.Prism.Global.Tables.Tasks
+    required: false
+    notes: Prism Central task inventory.
+  - dataset: collection_sources
+    sdtTag: LNV.Nutanix.Prism.Collection.Tables.Sources
+    required: false
+    notes: Collection source and API fallback metadata.
+  - dataset: relationships
+    sdtTag: LNV.Nutanix.Prism.Relationships.Tables.Relationships
+    required: false
+    notes: Target and target-group correlation relationships.

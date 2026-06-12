@@ -1,0 +1,36 @@
+techId: Lenovo.DE
+owner: assembler-core-contract-pack
+sourceManifest: tech/Lenovo.DE/manifest.yaml
+intendedDestination:
+  repository: LNV.AsBuiltDoc.Contracts
+  path: tech/Lenovo.DE/host-access.contract-pack.yaml
+notes:
+  - Renderer and SDT projection metadata is exported here as a handoff artifact for the Contracts repo so downstream repos can own table bindings without treating this collector repo as the source of truth.
+projections:
+  - dataset: hosts-to-host-groups
+    sdtName: Tables.HostsToHostGroups
+    contract: first-class
+    reportColumns:
+      - hostName
+      - hostRef
+      - hostType
+      - hostGroupName
+      - hostGroupRef
+  - dataset: host-groups-to-volumes
+    sdtName: Tables.HostGroupsToVolumes
+    contract: first-class
+    reportColumns:
+      - hostGroupName
+      - hostGroupRef
+      - volumeName
+      - volumeRef
+      - lun
+  - dataset: hosts-to-volumes
+    sdtName: Tables.HostsToVolumes
+    contract: first-class
+    reportColumns:
+      - hostName
+      - hostRef
+      - volumeName
+      - volumeRef
+      - lun

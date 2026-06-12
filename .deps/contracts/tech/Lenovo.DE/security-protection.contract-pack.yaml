@@ -1,0 +1,98 @@
+techId: Lenovo.DE
+owner: assembler-core-contract-pack
+sourceManifest: tech/Lenovo.DE/manifest.yaml
+intendedDestination:
+  repository: LNV.AsBuiltDoc.Contracts
+  path: tech/Lenovo.DE/security-protection.contract-pack.yaml
+notes:
+  - Renderer and SDT projection metadata is exported here as a handoff artifact for Lenovo.DE security and protection datasets so downstream repos can bind the six first-class tables without treating this collector repo as the source of truth.
+projections:
+  - dataset: identity-sources
+    sdtName: Tables.IdentitySources
+    contract: first-class
+    reportColumns:
+      - sourceType
+      - displayName
+      - enabled
+      - endpoint
+      - protocol
+      - authMode
+      - scope
+      - baseDn
+      - searchBase
+      - notes
+  - dataset: roles
+    sdtName: Tables.Roles
+    contract: first-class
+    reportColumns:
+      - principalName
+      - principalType
+      - authSource
+      - roleName
+      - groupName
+      - enabled
+      - locked
+      - notes
+  - dataset: certificates
+    sdtName: Tables.Certificates
+    contract: first-class
+    reportColumns:
+      - purpose
+      - subject
+      - issuer
+      - serialNumber
+      - thumbprint
+      - validFrom
+      - validTo
+      - status
+      - scope
+  - dataset: alerts
+    sdtName: Tables.Alerts
+    contract: first-class
+    reportColumns:
+      - mechanism
+      - enabled
+      - destination
+      - severityProfile
+      - routingType
+      - authRequired
+      - notes
+  - dataset: snapshots
+    sdtName: Tables.Snapshots
+    contract: first-class
+    reportColumns:
+      - snapshotNameOrGroup
+      - baseObject
+      - schedule
+      - retention
+      - state
+      - createdAt
+      - policyType
+      - snapshotCount
+      - repositoryCapacity
+      - fullWarnThreshold
+      - autoDeleteLimit
+      - action
+      - lastRunTime
+      - nextRunTime
+      - timezone
+      - pitSequenceNumber
+      - creationMethod
+      - activeCOW
+      - repositoryCapacityUtilization
+      - isRollbackSource
+      - notes
+  - dataset: replication
+    sdtName: Tables.Replication
+    contract: first-class
+    reportColumns:
+      - relationshipName
+      - mode
+      - sourceObject
+      - targetObject
+      - direction
+      - state
+      - syncPolicy
+      - schedule
+      - health
+      - notes

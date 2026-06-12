@@ -1,0 +1,144 @@
+schema: mapping.dataset-to-sdt
+schemaVersion: 1
+techId: Microsoft.FailoverCluster
+displayName: Microsoft Failover Cluster dataset-to-SDT mapping v1
+compatibility:
+  contracts:
+    version: 2.0.12
+  coreValidation: strict
+strictContracts:
+  enabled: true
+  requireAllMappings: false
+  forbidUnmappedDatasets: false
+  requireSelectors: false
+mappings:
+  - phase: dual
+    dataset: cluster
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Summary
+    required: true
+    notes: Provisional document target pending KnowledgeContracts migration and compatibility review.
+  - phase: dual
+    dataset: capabilities
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Capabilities
+    required: true
+    notes: Provisional runtime mapping; capability booleans are independent.
+  - phase: dual
+    dataset: nodes
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Nodes
+    required: true
+    notes: Provisional runtime mapping.
+  - phase: dual
+    dataset: networks
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Networks
+    required: false
+    notes: Provisional runtime mapping.
+  - phase: dual
+    dataset: roles
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Roles
+    required: false
+    notes: Provisional runtime mapping.
+  - phase: dual
+    dataset: resources
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Resources
+    required: false
+    notes: Provisional runtime mapping.
+  - phase: dual
+    dataset: cluster-disks
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.ClusterDisks
+    required: true
+    notes: Provisional runtime mapping preserving vendor-correlation identifiers.
+  - phase: dual
+    dataset: cluster-shared-volumes
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.ClusterSharedVolumes
+    required: true
+    notes: Provisional runtime mapping.
+  - phase: dual
+    dataset: volumes
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Volumes
+    required: false
+    notes: Provisional runtime mapping.
+  - phase: dual
+    dataset: storage-pools
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.StoragePools
+    required: false
+    notes: Provisional capability-gated S2D mapping.
+  - phase: dual
+    dataset: physical-disks
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.PhysicalDisks
+    required: false
+    notes: Provisional capability-gated S2D mapping.
+  - phase: dual
+    dataset: virtual-disks
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.VirtualDisks
+    required: false
+    notes: Provisional capability-gated S2D mapping.
+  - phase: dual
+    dataset: storage-tiers
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.StorageTiers
+    required: false
+    notes: Provisional capability-gated S2D mapping.
+  - phase: dual
+    dataset: fault-domains
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.FaultDomains
+    required: false
+    notes: Provisional capability-gated S2D mapping.
+  - phase: dual
+    dataset: storage-jobs
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.StorageJobs
+    required: false
+    notes: Provisional capability-gated S2D mapping.
+  - phase: dual
+    dataset: storage-health
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.StorageHealth
+    required: false
+    notes: Provisional capability-gated S2D mapping.
+  - phase: dual
+    dataset: hyperv-hosts
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.HyperVHosts
+    required: false
+    notes: Provisional capability-gated Hyper-V mapping.
+  - phase: dual
+    dataset: virtual-machines
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.VirtualMachines
+    required: false
+    notes: Provisional capability-gated Hyper-V mapping.
+  - phase: dual
+    dataset: virtual-switches
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.VirtualSwitches
+    required: false
+    notes: Provisional capability-gated Hyper-V mapping.
+  - phase: dual
+    dataset: vm-network-adapters
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.VmNetworkAdapters
+    required: false
+    notes: Provisional capability-gated Hyper-V mapping.
+  - phase: dual
+    dataset: live-migration
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.LiveMigration
+    required: false
+    notes: Provisional capability-gated Hyper-V mapping.
+  - phase: dual
+    dataset: replica
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Replica
+    required: false
+    notes: Provisional capability-gated Hyper-V mapping.
+  - phase: dual
+    dataset: ad-integration
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.ActiveDirectoryIntegration
+    required: false
+    notes: Provisional opt-in scoped AD mapping.
+  - phase: dual
+    dataset: relationships
+    sdtTag: LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Relationships
+    required: false
+    notes: Provisional relationship evidence mapping.
+  - phase: dual
+    dataset: collection-sources
+    sdtTag: LNV.Microsoft.FailoverCluster.Collection[<ClusterKey>].Tables.Sources
+    required: false
+    notes: Command provenance and collection status evidence.
+  - phase: dual
+    dataset: coverage
+    sdtTag: LNV.Microsoft.FailoverCluster.Collection[<ClusterKey>].Tables.Coverage
+    required: false
+    notes: Dynamic capability-aware coverage evidence.

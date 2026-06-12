@@ -252,3 +252,10 @@ The preferred end state is:
 - mappings bind SDTs to explicit render intent and projection/view references
 - projections define how rows are filtered, ordered, formatted, and rendered
 - assembler remains small, deterministic, and generic
+
+### Cross-technology contribution composition TODO
+
+Support applying multiple technology mappings sequentially to one host skeleton
+and output. Preserve each contributing technology's own tag namespace,
+contracts, and projections; resolve targets independently; use deterministic
+contribution ordering; and emit one aggregate render report.

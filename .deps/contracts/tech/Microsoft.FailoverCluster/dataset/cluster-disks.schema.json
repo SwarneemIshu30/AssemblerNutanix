@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Microsoft.FailoverCluster/dataset/cluster-disks.schema.json",
+  "title": "Microsoft.FailoverCluster dataset contract: cluster-disks",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "collected_at_utc",
+    "item_count",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "lnv.collector.dataset.v1"
+    },
+    "collector": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "const": "LNV.AsBuiltDoc.Microsoft.FailoverCluster"
+        },
+        "vendor": {
+          "const": "LNV.AsBuiltDoc"
+        },
+        "version": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "entry_point": {
+          "const": "Invoke-LnvAsBuiltDoc.Microsoft.FailoverCluster"
+        }
+      },
+      "type": "object",
+      "required": [
+        "vendor",
+        "name",
+        "version",
+        "entry_point"
+      ]
+    },
+    "source": {
+      "additionalProperties": false,
+      "properties": {
+        "bundle_root": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "target_key": {
+          "type": "string"
+        },
+        "bundle_id": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "bundle_id",
+        "bundle_root",
+        "target_key",
+        "file"
+      ]
+    },
+    "dataset": {
+      "const": "cluster-disks"
+    },
+    "collected_at_utc": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "item_count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "items": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "uniqueIdFormat": {
+            "type": "string"
+          },
+          "lun": {
+            "type": [
+              "number",
+              "integer",
+              "null"
+            ]
+          },
+          "pathCount": {
+            "type": [
+              "number",
+              "integer",
+              "null"
+            ]
+          },
+          "operationalStatus": {
+            "type": "string"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "targetKey": {
+            "type": "string"
+          },
+          "storageBackend": {
+            "type": "string",
+            "enum": [
+              "storage-spaces-direct",
+              "shared-block",
+              "unknown"
+            ]
+          },
+          "mpioProduct": {
+            "type": "string"
+          },
+          "mpioVendor": {
+            "type": "string"
+          },
+          "clusterId": {
+            "type": "string"
+          },
+          "diskId": {
+            "type": "string"
+          },
+          "naa": {
+            "type": "string"
+          },
+          "uniqueId": {
+            "type": "string"
+          },
+          "busType": {
+            "type": "string"
+          },
+          "wwn": {
+            "type": "string"
+          },
+          "partitionStyle": {
+            "type": "string"
+          },
+          "healthStatus": {
+            "type": "string"
+          },
+          "targetPort": {
+            "type": "string"
+          },
+          "number": {
+            "type": [
+              "number",
+              "integer",
+              "null"
+            ]
+          },
+          "friendlyName": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": [
+              "number",
+              "integer",
+              "null"
+            ]
+          },
+          "isClustered": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "targetKey",
+          "clusterId",
+          "diskId",
+          "friendlyName",
+          "storageBackend"
+        ]
+      },
+      "type": "array"
+    }
+  },
+  "additionalProperties": false
+}

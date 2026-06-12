@@ -1,0 +1,54 @@
+schemaVersion: 1
+techId: NetApp.ONTAP
+appliesTo:
+  targetKind: NetApp.ONTAP
+
+defaults:
+  params:
+    port: 443
+    skipTlsVerify: false
+    timeoutSeconds: 60
+
+validation:
+  required:
+    - path: targets[].endpoints.mgmt
+      type: string
+      minLength: 1
+      message: "NetApp.ONTAP requires targets[].endpoints.mgmt."
+    - path: targets[].authRef
+      type: string
+      minLength: 1
+      message: "NetApp.ONTAP requires targets[].authRef."
+
+  fields:
+    - path: targets[].params.port
+      type: integer
+      rules:
+        - name: range
+          min: 1
+          max: 65535
+      message: "params.port must be 1..65535."
+    - path: targets[].params.skipTlsVerify
+      type: boolean
+      message: "params.skipTlsVerify must be true/false."
+    - path: targets[].params.timeoutSeconds
+      type: integer
+      rules:
+        - name: range
+          min: 5
+          max: 600
+      message: "params.timeoutSeconds must be 5..600 seconds."
+
+  links:
+    - description: "targets[].authRef must refer to a key under plan.auth"
+      fromPath: targets[].authRef
+      toObjectPath: auth
+      mode: error
+      message: "target authRef '{value}' must exist in plan.auth."
+
+authRefHints:
+  requiredFields:
+    - username
+    - password
+  notes:
+    - "Auth material resolves from target authRef through plan.auth and Core secret resolver shims."
