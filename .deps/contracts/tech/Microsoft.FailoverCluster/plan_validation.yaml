@@ -1,0 +1,88 @@
+schemaVersion: 1
+techId: Microsoft.FailoverCluster
+appliesTo:
+  targetKinds:
+    - Windows.FailoverCluster
+defaults:
+  params:
+    transport: wsman
+    port: 5986
+    useSsl: true
+    skipTlsVerify: false
+    timeoutSec: 120
+validation:
+  required:
+    - path: targets[].key
+      type: string
+      minLength: 1
+      message: "Failover Cluster targets require a stable key."
+    - path: targets[].kind
+      type: string
+      minLength: 1
+      message: "Failover Cluster targets require kind Windows.FailoverCluster."
+    - path: targets[].endpoints.seedNodes
+      type: array
+      minItems: 1
+      message: "Provide at least one node FQDN in endpoints.seedNodes."
+    - path: targets[].authRef
+      type: string
+      minLength: 1
+      message: "Failover Cluster targets require authRef."
+  fields:
+    - path: targets[].params.transport
+      type: string
+      rules:
+        - name: allowed_values
+          values: [wsman]
+    - path: targets[].params.port
+      type: integer
+      rules:
+        - name: range
+          min: 1
+          max: 65535
+    - path: targets[].params.timeoutSec
+      type: integer
+      rules:
+        - name: range
+          min: 5
+          max: 600
+    - path: targets[].params.useSsl
+      type: boolean
+    - path: targets[].params.skipTlsVerify
+      type: boolean
+  links:
+    - description: "targets[].authRef must resolve under plan.auth"
+      fromPath: targets[].authRef
+      toObjectPath: auth
+      mode: error
+      message: "target authRef '{value}' must exist in plan.auth."
+    - description: "Microsoft.FailoverCluster collectors select Windows.FailoverCluster targets"
+      collectorFilter:
+        path: collectors[].techId
+        equals: Microsoft.FailoverCluster
+      targetKeyPath: collectors[].targetKeys[]
+      targetLookup:
+        byKeyPath: targets[].key
+      requireTargetField:
+        path: targets[].kind
+        in: [Windows.FailoverCluster]
+      mode: error
+      message: "collector targetKeys must reference Windows.FailoverCluster targets."
+  unknownFieldPolicy:
+    endpoints: warn
+    params: warn
+  warnings:
+    - when:
+        path: targets[].params.skipTlsVerify
+        equals: true
+      message: "skipTlsVerify=true is diagnostic-only."
+authRefHints:
+  requiredFields: [username, password]
+  notes:
+    - "Use minimum cluster and node inventory permissions."
+preflight:
+  - id: wsman_connect
+    description: "Connect to the first reachable seed node."
+    inputs:
+      hostsPath: targets[].endpoints.seedNodes
+      portPath: targets[].params.port

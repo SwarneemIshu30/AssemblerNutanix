@@ -1,0 +1,33 @@
+apiVersion: lnv.asbuiltdoc/v1
+kind: CollectorContractManifest
+metadata:
+  tech: NetApp.ONTAP
+  collector: LNV.AsBuiltDoc.NetApp.ONTAP
+spec:
+  entrypoint: Invoke-LnvAsBuiltDoc.NetApp.ONTAP
+  bundleSchemas:
+    manifest: lnv.bundle.manifest.v1
+    configUsed: lnv.bundle.config_used.v1
+    dataset: lnv.collector.dataset.v1
+  planValidation: plan_validation.yaml
+  datasetSchemaPath: dataset
+  datasetToSdtMapping: mapping.dataset-to-sdt.v1.yaml
+  datasets:
+    - cluster
+    - nodes
+    - svms
+    - aggregates
+    - volumes
+    - network-interfaces
+    - licenses
+    - cluster-mediators
+    - multi-admin-approval-groups
+    - multi-admin-approval-rules
+    - consistency-groups
+    - s3-services
+    - s3-buckets
+    - toolkit-baseline
+    - diagram-cluster-graph
+    - diagram-aggregate-graph
+    - diagram-network-graph
+    - diagram-replication-graph

@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Microsoft.FailoverCluster/dataset/ad-integration.schema.json",
+  "title": "Microsoft.FailoverCluster dataset contract: ad-integration",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "collected_at_utc",
+    "item_count",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "lnv.collector.dataset.v1"
+    },
+    "collector": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "const": "LNV.AsBuiltDoc.Microsoft.FailoverCluster"
+        },
+        "vendor": {
+          "const": "LNV.AsBuiltDoc"
+        },
+        "version": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "entry_point": {
+          "const": "Invoke-LnvAsBuiltDoc.Microsoft.FailoverCluster"
+        }
+      },
+      "type": "object",
+      "required": [
+        "vendor",
+        "name",
+        "version",
+        "entry_point"
+      ]
+    },
+    "source": {
+      "additionalProperties": false,
+      "properties": {
+        "bundle_root": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "target_key": {
+          "type": "string"
+        },
+        "bundle_id": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "bundle_id",
+        "bundle_root",
+        "target_key",
+        "file"
+      ]
+    },
+    "dataset": {
+      "const": "ad-integration"
+    },
+    "collected_at_utc": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "item_count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "items": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "clusterId": {
+            "type": "string"
+          },
+          "distinguishedName": {
+            "type": "string"
+          },
+          "servicePrincipalNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "enabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "principalsAllowedToDelegateToAccount": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "targetKey": {
+            "type": "string"
+          },
+          "trustedForDelegation": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "targetKey",
+          "clusterId",
+          "name",
+          "enabled",
+          "servicePrincipalNames"
+        ]
+      },
+      "type": "array"
+    }
+  },
+  "additionalProperties": false
+}

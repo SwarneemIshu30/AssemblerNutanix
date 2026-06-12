@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv.asbuiltdoc/contracts/tech/NetApp.ONTAP/dataset/diagram-aggregate-graph.schema.json",
+  "title": "NetApp.ONTAP diagram-aggregate-graph Dataset",
+  "type": "object",
+  "required": ["schema_version", "collector", "source", "dataset", "item_count", "items"],
+  "properties": {
+    "schema_version": { "const": "lnv.collector.dataset.v1" },
+    "collector": { "type": "object" },
+    "source": { "type": "object" },
+    "dataset": { "const": "diagram-aggregate-graph" },
+    "item_count": { "type": "integer", "minimum": 0 },
+    "items": { "type": "array", "items": { "$ref": "#/$defs/graph" } }
+  },
+  "$defs": {
+    "graph": {
+      "type": "object",
+      "required": ["targetKey", "graphKey", "nodes", "edges", "groups", "collectedFrom"],
+      "properties": {
+        "targetKey": { "type": "string" },
+        "graphKey": { "const": "diagram-aggregate-graph" },
+        "nodes": { "type": "array" },
+        "edges": { "type": "array" },
+        "groups": { "type": "array" },
+        "collectedFrom": { "const": "diagram-aggregate-graph" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

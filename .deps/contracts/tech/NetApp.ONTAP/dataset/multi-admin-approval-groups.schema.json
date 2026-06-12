@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv.asbuiltdoc/contracts/tech/NetApp.ONTAP/dataset/multi-admin-approval-groups.schema.json",
+  "title": "NetApp.ONTAP multi-admin-approval-groups Dataset",
+  "type": "object",
+  "required": ["schema_version", "collector", "source", "dataset", "item_count", "items"],
+  "properties": { "schema_version": { "const": "lnv.collector.dataset.v1" }, "collector": { "type": "object" }, "source": { "type": "object" }, "dataset": { "const": "multi-admin-approval-groups" }, "item_count": { "type": "integer", "minimum": 0 }, "items": { "type": "array", "items": { "type": "object", "properties": { "collectedFrom": { "const": "multi-admin-approval-groups" } }, "additionalProperties": true } } },
+  "additionalProperties": true
+}
