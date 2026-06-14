@@ -1,21 +1,9 @@
-kind: PlanValidation
+kind: CollectorPlanValidation
 apiVersion: lnv.asbuiltdoc/v1
 metadata:
   techId: Lenovo.XCC
 spec:
   targetKind: lenovo.xcc
   collectorKind: lenovo.xcc
-  requiredTargetFields:
-    - key
-    - kind
-    - displayName
-    - endpoints.baseUri
-    - authRef
-  rules:
-    - endpoints.baseUri must start with https://
-    - authRef must resolve to auth[].ref
-    - params.tlsPolicy must be strict, allowSelfSigned, or skipCertificateCheck
-    - params.timeoutSeconds must be between 5 and 300
-    - params.retryCount must be between 0 and 5
-    - collector params.infoLevel must be between 1 and 5
-    - collector params.eventLogLimit must be between 0 and 5000
+  requiresHttps: true
+  requiresAuthRef: true

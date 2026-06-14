@@ -1,40 +1,201 @@
-kind: DatasetToSdtMapping
-apiVersion: lnv.asbuiltdoc/v1
-metadata:
-  techId: Lenovo.XCC
-spec:
-  mappings:
-    - dataset: collection-summary
-      sdt: XccCollectionSummary
-    - dataset: systems
-      sdt: XccSystem
-    - dataset: managers
-      sdt: XccManager
-    - dataset: chassis
-      sdt: XccChassis
-    - dataset: firmware-inventory
-      sdt: XccFirmwareComponent
-    - dataset: processors
-      sdt: XccProcessor
-    - dataset: memory
-      sdt: XccMemoryDevice
-    - dataset: network-interfaces
-      sdt: XccNetworkInterface
-    - dataset: ethernet-interfaces
-      sdt: XccNetworkInterface
-    - dataset: storage-controllers
-      sdt: XccStorageController
-    - dataset: storage-drives
-      sdt: XccStorageDrive
-    - dataset: storage-volumes
-      sdt: XccStorageVolume
-    - dataset: power
-      sdt: XccPowerSensor
-    - dataset: thermal
-      sdt: XccThermalSensor
-    - dataset: event-log
-      sdt: XccEvent
-    - dataset: security
-      sdt: XccSecurityPosture
-    - dataset: users-summary
-      sdt: XccUserSummary
+schema: mapping.dataset-to-sdt
+schemaVersion: 1
+techId: Lenovo.XCC
+displayName: Lenovo XCC contribution mapping v1
+compatibility:
+  contracts:
+    version: 2.0.0
+  coreValidation: strict
+strictContracts:
+  enabled: true
+  requireAllMappings: false
+  forbidUnmappedDatasets: false
+  requireSelectors: false
+syncPolicy:
+  collectorSkeletonMapping:
+    allowedRenderAs:
+      - table
+    selectors:
+      defaultByRenderAs:
+        table:
+          - items
+    unsupportedRenderShape:
+      documentFacing: fail
+      nonDocumentFacing: skip
+mappings:
+- dataset: collection-summary
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.CollectionStatus
+  required: true
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.CollectionStatus
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: systems
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Summary
+  required: true
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Summary
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: managers
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.Managers
+  required: true
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.Managers
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: chassis
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.Chassis
+  required: true
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.Chassis
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: firmware-inventory
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.Firmware
+  required: true
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.Firmware
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: processors
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.Processors
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.Processors
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: memory
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.Memory
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.Memory
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: ethernet-interfaces
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkInterfaces
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkInterfaces
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: storage-controllers
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.StorageControllers
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.StorageControllers
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: storage-drives
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.StorageDrives
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.StorageDrives
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: storage-volumes
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.StorageVolumes
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.StorageVolumes
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: power
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.Power
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.Power
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: thermal
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.Thermal
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.Thermal
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: event-log
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.EventLog
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.EventLog
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: security
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.Security
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.Security
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: users-summary
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.Users
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.Users
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank

@@ -1,0 +1,19 @@
+{
+  "schema": "mapping.dataset-to-sdt",
+  "schemaVersion": 1,
+  "techId": "NetApp.ONTAP",
+  "displayName": "NetApp.ONTAP collector blueprint mapping",
+  "compatibility": {
+    "contracts": {
+      "version": "v1"
+    }
+  },
+  "strictContracts": {
+    "enabled": true,
+    "requireAllMappings": true
+  },
+  "generatedFromContract": {
+    "path": "tech/NetApp.ONTAP/mapping.dataset-to-sdt.v1.yaml"
+  },
+  "mappings": []
+}

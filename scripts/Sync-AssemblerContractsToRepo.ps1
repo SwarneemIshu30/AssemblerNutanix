@@ -598,22 +598,26 @@ function New-CollectorSdtTagPolicyFromContract {
 
     $required = [bool](Get-MapValueOrDefault -Map $policySource -Key 'required' -DefaultValue $false)
 
-    $tokenRewritesSource = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $policySource -Key 'tokenRewrites')
-    if ($null -eq $tokenRewritesSource) {
-        if ($required) {
-            throw "Mapping contract '$MappingContractPath' requires collectorSdtTagPolicy.tokenRewrites, but it is missing or not a mapping object."
+    $tokenRewritesSource = [ordered]@{}
+    if (Test-MapHasKey -Map $policySource -Key 'tokenRewrites') {
+        $tokenRewritesValue = Get-MapValueOrDefault -Map $policySource -Key 'tokenRewrites'
+        if ($tokenRewritesValue -is [System.Collections.IDictionary] -or $tokenRewritesValue -is [PSCustomObject]) {
+            $tokenRewritesSource = ConvertTo-Dictionary -Value $tokenRewritesValue
         }
-
-        $tokenRewritesSource = [ordered]@{}
+        else {
+            throw "Mapping contract '$MappingContractPath' has collectorSdtTagPolicy.tokenRewrites, but it is not a mapping object."
+        }
     }
 
-    $tagAliasesSource = ConvertTo-Dictionary -Value (Get-MapValueOrDefault -Map $policySource -Key 'tagAliases')
-    if ($null -eq $tagAliasesSource) {
-        if ($required) {
-            throw "Mapping contract '$MappingContractPath' requires collectorSdtTagPolicy.tagAliases, but it is missing or not a mapping object."
+    $tagAliasesSource = [ordered]@{}
+    if (Test-MapHasKey -Map $policySource -Key 'tagAliases') {
+        $tagAliasesValue = Get-MapValueOrDefault -Map $policySource -Key 'tagAliases'
+        if ($tagAliasesValue -is [System.Collections.IDictionary] -or $tagAliasesValue -is [PSCustomObject]) {
+            $tagAliasesSource = ConvertTo-Dictionary -Value $tagAliasesValue
         }
-
-        $tagAliasesSource = [ordered]@{}
+        else {
+            throw "Mapping contract '$MappingContractPath' has collectorSdtTagPolicy.tagAliases, but it is not a mapping object."
+        }
     }
 
     $tokenRewrites = [ordered]@{}

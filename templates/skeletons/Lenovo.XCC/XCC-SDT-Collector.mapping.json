@@ -1,0 +1,276 @@
+{
+  "schema": "mapping.dataset-to-sdt",
+  "schemaVersion": 1,
+  "techId": "Lenovo.XCC",
+  "displayName": "Lenovo.XCC collector blueprint mapping",
+  "compatibility": {
+    "contracts": {
+      "version": "v1"
+    }
+  },
+  "strictContracts": {
+    "enabled": true,
+    "requireAllMappings": true
+  },
+  "generatedFromContract": {
+    "path": "tech/Lenovo.XCC/mapping.dataset-to-sdt.v1.yaml"
+  },
+  "mappings": [
+    {
+      "selectors": [
+        "items"
+      ],
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.CollectionStatus"
+      },
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.CollectionStatus"
+      },
+      "required": true,
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.CollectionStatus",
+      "dataset": "datasets/Lenovo.XCC/__TARGET__/collection-summary.json"
+    },
+    {
+      "selectors": [
+        "items"
+      ],
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Summary"
+      },
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Summary"
+      },
+      "required": true,
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Summary",
+      "dataset": "datasets/Lenovo.XCC/__TARGET__/systems.json"
+    },
+    {
+      "selectors": [
+        "items"
+      ],
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Managers"
+      },
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Managers"
+      },
+      "required": true,
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Managers",
+      "dataset": "datasets/Lenovo.XCC/__TARGET__/managers.json"
+    },
+    {
+      "selectors": [
+        "items"
+      ],
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Chassis"
+      },
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Chassis"
+      },
+      "required": true,
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Chassis",
+      "dataset": "datasets/Lenovo.XCC/__TARGET__/chassis.json"
+    },
+    {
+      "selectors": [
+        "items"
+      ],
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Firmware"
+      },
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Firmware"
+      },
+      "required": true,
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Firmware",
+      "dataset": "datasets/Lenovo.XCC/__TARGET__/firmware-inventory.json"
+    },
+    {
+      "selectors": [
+        "items"
+      ],
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Processors"
+      },
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Processors"
+      },
+      "required": false,
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Processors",
+      "dataset": "datasets/Lenovo.XCC/__TARGET__/processors.json"
+    },
+    {
+      "selectors": [
+        "items"
+      ],
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Memory"
+      },
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Memory"
+      },
+      "required": false,
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Memory",
+      "dataset": "datasets/Lenovo.XCC/__TARGET__/memory.json"
+    },
+    {
+      "selectors": [
+        "items"
+      ],
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkInterfaces"
+      },
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkInterfaces"
+      },
+      "required": false,
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkInterfaces",
+      "dataset": "datasets/Lenovo.XCC/__TARGET__/ethernet-interfaces.json"
+    },
+    {
+      "selectors": [
+        "items"
+      ],
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageControllers"
+      },
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageControllers"
+      },
+      "required": false,
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageControllers",
+      "dataset": "datasets/Lenovo.XCC/__TARGET__/storage-controllers.json"
+    },
+    {
+      "selectors": [
+        "items"
+      ],
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageDrives"
+      },
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageDrives"
+      },
+      "required": false,
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageDrives",
+      "dataset": "datasets/Lenovo.XCC/__TARGET__/storage-drives.json"
+    },
+    {
+      "selectors": [
+        "items"
+      ],
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageVolumes"
+      },
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageVolumes"
+      },
+      "required": false,
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageVolumes",
+      "dataset": "datasets/Lenovo.XCC/__TARGET__/storage-volumes.json"
+    },
+    {
+      "selectors": [
+        "items"
+      ],
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Power"
+      },
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Power"
+      },
+      "required": false,
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Power",
+      "dataset": "datasets/Lenovo.XCC/__TARGET__/power.json"
+    },
+    {
+      "selectors": [
+        "items"
+      ],
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Thermal"
+      },
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Thermal"
+      },
+      "required": false,
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Thermal",
+      "dataset": "datasets/Lenovo.XCC/__TARGET__/thermal.json"
+    },
+    {
+      "selectors": [
+        "items"
+      ],
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.EventLog"
+      },
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.EventLog"
+      },
+      "required": false,
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.EventLog",
+      "dataset": "datasets/Lenovo.XCC/__TARGET__/event-log.json"
+    },
+    {
+      "selectors": [
+        "items"
+      ],
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Security"
+      },
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Security"
+      },
+      "required": false,
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Security",
+      "dataset": "datasets/Lenovo.XCC/__TARGET__/security.json"
+    },
+    {
+      "selectors": [
+        "items"
+      ],
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Users"
+      },
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Users"
+      },
+      "required": false,
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Users",
+      "dataset": "datasets/Lenovo.XCC/__TARGET__/users-summary.json"
+    }
+  ]
+}

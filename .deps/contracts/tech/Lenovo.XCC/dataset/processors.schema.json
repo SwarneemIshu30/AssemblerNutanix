@@ -1,1 +1,225 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"Lenovo.XCC processors dataset","type":"object","required":["schema_version","collector","source","dataset","item_count","items"],"properties":{"schema_version":{"const":"lnv.collector.dataset.v1"},"dataset":{"const":"processors"},"item_count":{"type":"integer"},"items":{"type":"array","items":{"type":"object","required":["targetKey","collectionStatus","collectedUtc"],"properties":{"targetKey":{"type":"string"},"socket":{"type":["string","null"]},"processorModel":{"type":["string","null"]},"totalCores":{"type":["integer","number","null"]},"totalThreads":{"type":["integer","number","null"]}},"additionalProperties":true}}},"additionalProperties":true}
+{
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.XCC/dataset/processors.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "collected_at_utc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "collector": {
+      "type": "object"
+    },
+    "dataset": {
+      "const": "processors"
+    },
+    "item_count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "items": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "architecture": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "collectedUtc": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "collectionStatus": {
+            "enum": [
+              "success",
+              "partial",
+              "failed"
+            ],
+            "type": "string"
+          },
+          "componentId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "componentName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "componentType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "enabledCores": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "health": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hostName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "instructionSet": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "machineType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "managerId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "manufacturer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "maxSpeedMHz": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "processorModel": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "processorType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "serialNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "socket": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourceEndpoint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourcePath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "systemId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "targetDisplayName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "targetKey": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "tdpWatts": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "totalCores": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "totalThreads": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "xccAddress": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "targetKey",
+          "collectionStatus",
+          "collectedUtc"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "lnv.collector.dataset.v1"
+    },
+    "source": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
+    "items"
+  ],
+  "title": "Lenovo.XCC processors dataset",
+  "type": "object"
+}

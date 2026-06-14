@@ -1,46 +1,109 @@
 Describe 'Sync-AssemblerContractsToRepo' {
-    $repoRoot = Split-Path -Parent $PSScriptRoot
-    $scriptPath = Join-Path $repoRoot 'scripts/Sync-AssemblerContractsToRepo.ps1'
-    $sourceRoot = Join-Path $repoRoot '.deps/contracts'
-    $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+    BeforeAll {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $scriptPath = Join-Path $repoRoot 'scripts/Sync-AssemblerContractsToRepo.ps1'
+        $sourceRoot = Join-Path $repoRoot '.deps/contracts'
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
 
-    function New-DeterministicTempRoot {
-        param([Parameter(Mandatory = $true)][string]$Name)
+        function New-DeterministicTempRoot {
+            param([Parameter(Mandatory = $true)][string]$Name)
 
-        $root = Join-Path ([System.IO.Path]::GetTempPath()) (Join-Path 'assembler-contract-sync-tests' $Name)
-        if (Test-Path -LiteralPath $root -PathType Container) {
-            Remove-Item -LiteralPath $root -Recurse -Force
+            $root = Join-Path ([System.IO.Path]::GetTempPath()) (Join-Path 'assembler-contract-sync-tests' $Name)
+            if (Test-Path -LiteralPath $root -PathType Container) {
+                Remove-Item -LiteralPath $root -Recurse -Force
+            }
+
+            New-Item -ItemType Directory -Path $root -Force | Out-Null
+            return $root
         }
 
-        New-Item -ItemType Directory -Path $root -Force | Out-Null
-        return $root
-    }
+        function Invoke-SyncScript {
+            param(
+                [Parameter(Mandatory = $true)][string[]]$Arguments,
+                [string]$ScriptPath = $scriptPath,
+                [switch]$NonInteractive
+            )
 
-    function Invoke-SyncScript {
-        param(
-            [Parameter(Mandatory = $true)][string[]]$Arguments,
-            [string]$ScriptPath = $scriptPath,
-            [switch]$NonInteractive
-        )
+            $invocationArgs = @('-NoLogo', '-NoProfile')
+            if ($NonInteractive) {
+                $invocationArgs += '-NonInteractive'
+            }
 
-        $invocationArgs = @('-NoLogo', '-NoProfile')
-        if ($NonInteractive) {
-            $invocationArgs += '-NonInteractive'
+            $invocationArgs += @('-File', $ScriptPath)
+            $invocationArgs += $Arguments
+
+            $output = @(& $pwshPath @invocationArgs 2>&1)
+            $outputText = @($output | ForEach-Object { [string]$_ }) -join [Environment]::NewLine
+            $jsonStartIndex = -1
+            for ($outputIndex = 0; $outputIndex -lt $output.Count; $outputIndex++) {
+                if (([string]$output[$outputIndex]).TrimStart().StartsWith('{')) {
+                    $jsonStartIndex = $outputIndex
+                }
+            }
+            $jsonText = if ($jsonStartIndex -ge 0) {
+                @($output[$jsonStartIndex..($output.Count - 1)] | ForEach-Object { [string]$_ }) -join [Environment]::NewLine
+            }
+            else {
+                ''
+            }
+            [ordered]@{
+                Output = $outputText
+                ExitCode = $LASTEXITCODE
+                Json = if ([string]::IsNullOrWhiteSpace([string]$jsonText)) { $null } else { $jsonText | ConvertFrom-Json -AsHashtable }
+            }
         }
 
-        $invocationArgs += @('-File', $ScriptPath)
-        $invocationArgs += $Arguments
+        function New-TagPolicyFixture {
+            param(
+                [Parameter(Mandatory = $true)][string]$Name,
+                [Parameter(Mandatory = $true)][AllowEmptyString()][string]$PolicyYaml
+            )
 
-        $output = & $pwshPath @invocationArgs
-        [ordered]@{
-            Output = [string]$output
-            ExitCode = $LASTEXITCODE
-            Json = if ([string]::IsNullOrWhiteSpace([string]$output)) { $null } else { $output | ConvertFrom-Json -AsHashtable }
+            $tempRoot = New-DeterministicTempRoot -Name $Name
+            $contractsSourceRoot = Join-Path $tempRoot 'contracts-source'
+            $techId = 'Regression.TagPolicy'
+            $techRoot = Join-Path $contractsSourceRoot "tech/$techId"
+            $datasetRoot = Join-Path $techRoot 'dataset'
+
+            New-Item -ItemType Directory -Path (Join-Path $contractsSourceRoot 'standards') -Force | Out-Null
+            New-Item -ItemType Directory -Path $datasetRoot -Force | Out-Null
+            Set-Content -LiteralPath (Join-Path $datasetRoot 'inventory.assembler.meta.json') -Encoding UTF8 -Value @'
+{
+  "schemaVersion": 1,
+  "dataset": "inventory",
+  "presentationKind": "table",
+  "defaultItemRoot": "items",
+  "datasetPath": {
+    "template": "datasets/__TECH_ID__/__DATASET__.json"
+  }
+}
+'@
+
+            $policyBlock = if ([string]::IsNullOrWhiteSpace($PolicyYaml)) { '' } else { "collectorSdtTagPolicy:`n$PolicyYaml`n" }
+            Set-Content -LiteralPath (Join-Path $techRoot 'mapping.dataset-to-sdt.v1.yaml') -Encoding UTF8 -Value @"
+schema: mapping.dataset-to-sdt
+schemaVersion: 1
+techId: $techId
+displayName: Regression tag policy mapping
+$policyBlock
+mappings:
+  - dataset: inventory
+    sdtTag: LNV.Lenovo.DE.System[<SystemId>].Tables.Drives
+    required: true
+"@
+
+            return [ordered]@{
+                tempRoot = $tempRoot
+                contractsSourceRoot = $contractsSourceRoot
+                destinationRoot = (Join-Path $tempRoot '.deps/contracts')
+                skeletonMappingPath = (Join-Path $tempRoot 'templates/skeletons/Regression.TagPolicy/TagPolicy-SDT-Collector.mapping.json')
+                techId = $techId
+            }
         }
-    }
 
-    if ([string]::IsNullOrWhiteSpace($pwshPath)) {
-        throw 'pwsh is required to execute scripts in this test'
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
     }
 
     It 'copies an explicit local contracts source into the deterministic destination' {
@@ -596,6 +659,183 @@ mappings:
         finally {
             if (Test-Path -LiteralPath $tempRoot -PathType Container) {
                 Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'accepts a required SDT tag policy containing only token rewrites' {
+        $fixture = New-TagPolicyFixture -Name 'tag-policy-token-rewrites-only' -PolicyYaml @'
+  required: true
+  tokenRewrites:
+    '[<SystemId>]': '[ArrayName]'
+'@
+        try {
+            $result = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $fixture.contractsSourceRoot,
+                '-DepsContractsPath', $fixture.destinationRoot,
+                '-TechId', $fixture.techId,
+                '-SkeletonMappingOutputPath', $fixture.skeletonMappingPath,
+                '-Clean'
+            )
+
+            if ($result.ExitCode -ne 0) {
+                throw "Expected required tokenRewrites-only policy to succeed. Output: $($result.Output)"
+            }
+
+            $generatedMapping = Get-Content -LiteralPath $fixture.skeletonMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            if ([string]$generatedMapping.mappings[0].sdtTag -ne 'LNV.Lenovo.DE.System[ArrayName].Tables.Drives') {
+                throw "Expected token rewrite in generated tag, got '$($generatedMapping.mappings[0].sdtTag)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $fixture.tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $fixture.tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'accepts a required SDT tag policy containing only tag aliases' {
+        $fixture = New-TagPolicyFixture -Name 'tag-policy-aliases-only' -PolicyYaml @'
+  required: true
+  tagAliases:
+    'LNV.Lenovo.DE.System[<SystemId>].Tables.Drives': 'LNV.Regression.AliasOnly.Tables.Drives'
+'@
+        try {
+            $result = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $fixture.contractsSourceRoot,
+                '-DepsContractsPath', $fixture.destinationRoot,
+                '-TechId', $fixture.techId,
+                '-SkeletonMappingOutputPath', $fixture.skeletonMappingPath,
+                '-Clean'
+            )
+
+            if ($result.ExitCode -ne 0) {
+                throw "Expected required tagAliases-only policy to succeed. Output: $($result.Output)"
+            }
+
+            $generatedMapping = Get-Content -LiteralPath $fixture.skeletonMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            if ([string]$generatedMapping.mappings[0].sdtTag -ne 'LNV.Regression.AliasOnly.Tables.Drives') {
+                throw "Expected tag alias in generated tag, got '$($generatedMapping.mappings[0].sdtTag)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $fixture.tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $fixture.tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'applies token rewrites before tag aliases when both maps are present' {
+        $fixture = New-TagPolicyFixture -Name 'tag-policy-rewrite-before-alias' -PolicyYaml @'
+  required: true
+  tokenRewrites:
+    '[<SystemId>]': '[ArrayName]'
+  tagAliases:
+    'LNV.Lenovo.DE.System[ArrayName].Tables.Drives': 'LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory'
+'@
+        try {
+            $result = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $fixture.contractsSourceRoot,
+                '-DepsContractsPath', $fixture.destinationRoot,
+                '-TechId', $fixture.techId,
+                '-SkeletonMappingOutputPath', $fixture.skeletonMappingPath,
+                '-Clean'
+            )
+
+            if ($result.ExitCode -ne 0) {
+                throw "Expected existing Lenovo.DE tag policy to succeed. Output: $($result.Output)"
+            }
+
+            $generatedMapping = Get-Content -LiteralPath $fixture.skeletonMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            if ([string]$generatedMapping.mappings[0].sdtTag -ne 'LNV.Lenovo.DE.Drive[DriveID].Tables.Inventory') {
+                throw "Expected rewrite-before-alias output for drives, got '$($generatedMapping.mappings[0].sdtTag)'"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $fixture.tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $fixture.tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'fails a required SDT tag policy when both transformation maps are absent' {
+        $fixture = New-TagPolicyFixture -Name 'tag-policy-required-absent' -PolicyYaml '  required: true'
+        try {
+            $result = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $fixture.contractsSourceRoot,
+                '-DepsContractsPath', $fixture.destinationRoot,
+                '-TechId', $fixture.techId,
+                '-Clean'
+            )
+
+            if ($result.ExitCode -eq 0) {
+                throw 'Expected required policy with no transformations to fail'
+            }
+            if ([string]$result.Output -notmatch 'both tokenRewrites and tagAliases are empty') {
+                throw "Expected empty required-policy error. Output: $($result.Output)"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $fixture.tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $fixture.tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'fails a required SDT tag policy when both transformation maps are empty' {
+        $fixture = New-TagPolicyFixture -Name 'tag-policy-required-empty' -PolicyYaml @'
+  required: true
+  tokenRewrites: {}
+  tagAliases: {}
+'@
+        try {
+            $result = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $fixture.contractsSourceRoot,
+                '-DepsContractsPath', $fixture.destinationRoot,
+                '-TechId', $fixture.techId,
+                '-Clean'
+            )
+
+            if ($result.ExitCode -eq 0) {
+                throw 'Expected required policy with empty transformations to fail'
+            }
+            if ([string]$result.Output -notmatch 'both tokenRewrites and tagAliases are empty') {
+                throw "Expected empty required-policy error. Output: $($result.Output)"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $fixture.tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $fixture.tempRoot -Recurse -Force
+            }
+        }
+    }
+
+    It 'fails when a present SDT tag policy member is not a mapping object' {
+        $fixture = New-TagPolicyFixture -Name 'tag-policy-malformed-member' -PolicyYaml @'
+  required: true
+  tokenRewrites:
+    - invalid
+  tagAliases:
+    source: target
+'@
+        try {
+            $result = Invoke-SyncScript -Arguments @(
+                '-ExportContractsPath', $fixture.contractsSourceRoot,
+                '-DepsContractsPath', $fixture.destinationRoot,
+                '-TechId', $fixture.techId,
+                '-Clean'
+            )
+
+            if ($result.ExitCode -eq 0) {
+                throw 'Expected malformed tokenRewrites policy member to fail'
+            }
+            if ([string]$result.Output -notmatch 'tokenRewrites, but it is not a mapping object') {
+                throw "Expected malformed policy-member error. Output: $($result.Output)"
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $fixture.tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $fixture.tempRoot -Recurse -Force
             }
         }
     }

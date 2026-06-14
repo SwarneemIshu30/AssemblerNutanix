@@ -1,15 +1,15 @@
 # Lenovo XCC Collector Contract
 
-Direct-v1 collector contract for Lenovo ThinkSystem XClarity Controller using HTTPS Redfish.
+The Direct-v1 collector emits normalized `lnv.collector.dataset.v1` envelopes
+under `datasets/Lenovo.XCC/collector-out/target_<key>/`.
 
-The collector emits `lnv.collector.dataset.v1` dataset envelopes and supports plan-driven targets with `kind: lenovo.xcc`.
+The exported contract pack is contribution-ready:
 
-Required Redfish probes:
+- schemas constrain the envelope, common identity fields, and projected fields
+- dataset sidecars declare target-scoped paths and presentation intent
+- the mapping binds normalized datasets to `LNV.Lenovo.XCC.*` SDT tags
+- projections define explicit reader-facing table columns
 
-- `/redfish/v1/`
-- `/redfish/v1/Systems`
-- `/redfish/v1/Managers`
-- `/redfish/v1/Chassis`
-- `/redfish/v1/UpdateService/FirmwareInventory`
-
-Optional Redfish domains include processors, memory, Ethernet interfaces, storage, power, thermal, event log, security, and users summary. Optional failures are represented as warnings and may produce a target status of `partial`.
+`network-interfaces` is retained as compatibility evidence. Its normalized twin,
+`ethernet-interfaces`, is the only network dataset mapped for presentation.
+Raw endpoint output is excluded from presentation contracts.

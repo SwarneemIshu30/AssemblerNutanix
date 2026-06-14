@@ -1,1 +1,192 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"Lenovo.XCC collection-summary dataset","type":"object","required":["schema_version","collector","source","dataset","item_count","items"],"properties":{"schema_version":{"const":"lnv.collector.dataset.v1"},"dataset":{"const":"collection-summary"},"item_count":{"type":"integer"},"items":{"type":"array","items":{"type":"object","required":["targetKey","collectionStatus","collectedUtc"],"properties":{"targetKey":{"type":"string"},"collectionStatus":{"type":"string"},"collectedUtc":{"type":"string"}},"additionalProperties":true}}},"additionalProperties":true}
+{
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.XCC/dataset/collection-summary.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "collected_at_utc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "collector": {
+      "type": "object"
+    },
+    "dataset": {
+      "const": "collection-summary"
+    },
+    "item_count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "items": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "apiType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "authenticated": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "baseUri": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "collectedUtc": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "collectionStatus": {
+            "enum": [
+              "success",
+              "partial",
+              "failed"
+            ],
+            "type": "string"
+          },
+          "completedUtc": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "displayName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "endpointResults": {
+            "type": "array"
+          },
+          "errors": {
+            "type": "array"
+          },
+          "health": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hostName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "machineType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "managerId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "serialNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "serviceRootReachable": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "sourceEndpoint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourcePath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "startedUtc": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "systemId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "targetDisplayName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "targetKey": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "warnings": {
+            "type": "array"
+          },
+          "xccAddress": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "targetKey",
+          "collectionStatus",
+          "collectedUtc"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "lnv.collector.dataset.v1"
+    },
+    "source": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
+    "items"
+  ],
+  "title": "Lenovo.XCC collection-summary dataset",
+  "type": "object"
+}

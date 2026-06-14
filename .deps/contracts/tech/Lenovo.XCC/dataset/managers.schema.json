@@ -1,1 +1,147 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"Lenovo.XCC managers dataset","type":"object","required":["schema_version","collector","source","dataset","item_count","items"],"properties":{"schema_version":{"const":"lnv.collector.dataset.v1"},"dataset":{"const":"managers"},"item_count":{"type":"integer"},"items":{"type":"array","items":{"type":"object","required":["targetKey","collectionStatus","collectedUtc"],"properties":{"targetKey":{"type":"string"},"managerId":{"type":["string","null"]},"firmwareVersion":{"type":["string","null"]}},"additionalProperties":true}}},"additionalProperties":true}
+{
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.XCC/dataset/managers.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "collected_at_utc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "collector": {
+      "type": "object"
+    },
+    "dataset": {
+      "const": "managers"
+    },
+    "item_count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "items": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "collectedUtc": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "collectionStatus": {
+            "enum": [
+              "success",
+              "partial",
+              "failed"
+            ],
+            "type": "string"
+          },
+          "firmwareVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "health": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hostName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "machineType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "managerId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "serialNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourceEndpoint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourcePath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "systemId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "targetDisplayName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "targetKey": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "xccAddress": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "targetKey",
+          "collectionStatus",
+          "collectedUtc"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "lnv.collector.dataset.v1"
+    },
+    "source": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
+    "items"
+  ],
+  "title": "Lenovo.XCC managers dataset",
+  "type": "object"
+}

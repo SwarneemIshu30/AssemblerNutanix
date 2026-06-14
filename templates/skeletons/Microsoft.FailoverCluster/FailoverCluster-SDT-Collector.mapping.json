@@ -1,0 +1,19 @@
+{
+  "schema": "mapping.dataset-to-sdt",
+  "schemaVersion": 1,
+  "techId": "Microsoft.FailoverCluster",
+  "displayName": "Microsoft.FailoverCluster collector blueprint mapping",
+  "compatibility": {
+    "contracts": {
+      "version": "v1"
+    }
+  },
+  "strictContracts": {
+    "enabled": true,
+    "requireAllMappings": true
+  },
+  "generatedFromContract": {
+    "path": "tech/Microsoft.FailoverCluster/mapping.dataset-to-sdt.v1.yaml"
+  },
+  "mappings": []
+}

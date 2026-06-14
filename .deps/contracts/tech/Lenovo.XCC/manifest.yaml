@@ -1,13 +1,19 @@
-kind: CollectorContractManifest
 apiVersion: lnv.asbuiltdoc/v1
+kind: CollectorContractManifest
 metadata:
-  techId: Lenovo.XCC
-  displayName: Lenovo XClarity Controller
+  tech: Lenovo.XCC
+  collector: LNV.AsBuiltDoc.Lenovo.XCC
 spec:
+  entrypoint: Invoke-LnvAsBuiltDoc.Lenovo.XCC
+  bundleSchemas:
+    manifest: lnv.bundle.manifest.v1
+    configUsed: lnv.bundle.config_used.v1
+    dataset: lnv.collector.dataset.v1
+  planValidation: plan_validation.yaml
   datasetSchemaPath: dataset
   datasetToSdtMapping: mapping.dataset-to-sdt.v1.yaml
-  bundleSchemas:
-    dataset: lnv.collector.dataset.v1
+  assemblerProjections: assembler.projections.v1.json
+  contributionModel: host-skeleton
   datasets:
     - collection-summary
     - systems
