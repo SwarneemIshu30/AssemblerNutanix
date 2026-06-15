@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "dataset": "templates",
+  "presentationKind": "table",
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    {
+      "name": "Default",
+      "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Templates"
+    }
+  ]
+}

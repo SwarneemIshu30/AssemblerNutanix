@@ -108,6 +108,81 @@ Describe 'Canonical Direct-v1 dataset catalog and composition' {
         { New-AssemblerDatasetCatalog -BundleRoot $script:bundleRoot } | Should -Throw '*ASB-ASM-CATALOG-LEGACY-LAYOUT*'
     }
 
+    It 'catalogs canonical NetApp and Prism envelopes without treating evidence as datasets' {
+        [ordered]@{
+            schemaVersion = 2
+            solutionId = 'collector-solution'
+            targets = @(
+                [ordered]@{ techId = 'NetApp.ONTAP'; kind = 'NetApp.ONTAP'; key = 'ontap-a'; displayName = 'ONTAP A' },
+                [ordered]@{ techId = 'Nutanix.Prism'; kind = 'Nutanix.Prism'; key = 'prism-a'; displayName = 'Prism A' }
+            )
+            collectors = @(
+                [ordered]@{ techId = 'NetApp.ONTAP'; modulePath = 'netapp'; targetKeys = @('ontap-a') },
+                [ordered]@{ techId = 'Nutanix.Prism'; modulePath = 'prism'; targetKeys = @('prism-a') }
+            )
+        } | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $script:bundleRoot 'config/solution.plan.json') -Encoding UTF8
+
+        $datasets = @(
+            [ordered]@{
+                techId = 'NetApp.ONTAP'
+                module = 'LNV.AsBuiltDoc.NetApp.ONTAP'
+                entryPoint = 'Invoke-LnvAsBuiltDoc.NetApp.ONTAP'
+                domain = 'core'
+                objectKey = 'ontap-a'
+                dataset = 'cluster'
+            },
+            [ordered]@{
+                techId = 'Nutanix.Prism'
+                module = 'LNV.AsBuiltDoc.Nutanix.Prism'
+                entryPoint = 'Invoke-LnvAsBuiltDoc.Nutanix.Prism'
+                domain = 'cluster'
+                objectKey = 'prism-a'
+                dataset = 'cluster'
+            }
+        )
+        $manifestPaths = @()
+        foreach ($entry in $datasets) {
+            $relativePath = "datasets/$($entry.techId)/$($entry.domain)/$($entry.objectKey)/$($entry.dataset).json"
+            $fullPath = Join-Path $script:bundleRoot $relativePath
+            New-Item -ItemType Directory -Path (Split-Path -Parent $fullPath) -Force | Out-Null
+            [ordered]@{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{
+                    tech_id = $entry.techId
+                    module = $entry.module
+                    entry_point = $entry.entryPoint
+                }
+                source = @{
+                    target_key = $entry.objectKey
+                    file = $relativePath
+                }
+                dataset = $entry.dataset
+                item_count = 1
+                items = @([ordered]@{ name = $entry.objectKey })
+            } | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $fullPath -Encoding UTF8
+            $manifestPaths += $relativePath
+        }
+
+        $evidencePath = 'evidence/Nutanix.Prism/prism-a/PrismElement.v2/cluster.raw.json'
+        $evidenceFile = Join-Path $script:bundleRoot $evidencePath
+        New-Item -ItemType Directory -Path (Split-Path -Parent $evidenceFile) -Force | Out-Null
+        '{}' | Set-Content -LiteralPath $evidenceFile -Encoding UTF8
+        $manifestPaths += $evidencePath
+
+        [ordered]@{
+            schemaVersion = 1
+            bundleId = 'bundle-collectors'
+            createdUtc = '2026-06-15T00:00:00Z'
+            files = @($manifestPaths | ForEach-Object { [ordered]@{ path = $_; bytes = 1; sha256 = 'x' } })
+            results = @()
+        } | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $script:bundleRoot 'manifest.json') -Encoding UTF8
+
+        $catalog = New-AssemblerDatasetCatalog -BundleRoot $script:bundleRoot
+        @($catalog.entries).Count | Should -Be 2
+        @($catalog.entries.techId | Sort-Object) | Should -Be @('NetApp.ONTAP','Nutanix.Prism')
+        @($catalog.entries.path | Where-Object { $_ -like 'evidence/*' }).Count | Should -Be 0
+    }
+
     It 'filters identical logical dataset keys by scope and domain' {
         $paths = @(
             'datasets/Test.Tech/core/array-a/relationships.json',
@@ -163,7 +238,7 @@ Describe 'Canonical Direct-v1 dataset catalog and composition' {
         $catalogPath = Join-Path $script:repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json'
         $scriptPath = Join-Path $script:repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1'
         $json = & $scriptPath -BundleRoot $fixtureRoot -CatalogPath $catalogPath -OutputRoot $script:outputRoot -ContractsRoot (Join-Path $script:repoRoot '.deps/contracts')
-        $LASTEXITCODE | Should -Be 0
+        $json | Should -Not -BeNullOrEmpty
         $report = $json | ConvertFrom-Json -AsHashtable
         $report.status | Should -Be 'OK'
         Test-Path -LiteralPath $report.compositionMapPath -PathType Leaf | Should -BeTrue

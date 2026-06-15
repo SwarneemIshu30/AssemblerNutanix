@@ -1,0 +1,126 @@
+schema: mapping.dataset-to-sdt
+schemaVersion: 1
+techId: NetApp.ONTAP
+displayName: NetApp ONTAP dataset-to-SDT mapping v1
+compatibility:
+  contracts:
+    version: 2.0.0
+  coreValidation: strict
+strictContracts:
+  enabled: true
+  requireAllMappings: false
+  forbidUnmappedDatasets: false
+  requireSelectors: false
+syncPolicy:
+  collectorSkeletonMapping:
+    allowedRenderAs:
+      - table
+      - scalar
+      - diagram
+    selectors:
+      defaultByRenderAs:
+        table:
+          - items
+        scalar:
+          - items.0
+        diagram:
+          - items.0
+collectorSdtTagPolicy:
+  required: true
+  tokenRewrites:
+    '[<ClusterName>]': '[ClusterName]'
+mappings:
+  - dataset: cluster
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Summary
+    required: true
+    renderHint:
+      renderAs: scalar
+  - dataset: nodes
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Tables.Nodes
+    required: false
+    renderHint:
+      renderAs: table
+  - dataset: svms
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Tables.SVMs
+    required: false
+    renderHint:
+      renderAs: table
+  - dataset: aggregates
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Tables.Aggregates
+    required: false
+    renderHint:
+      renderAs: table
+  - dataset: volumes
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Tables.Volumes
+    required: false
+    renderHint:
+      renderAs: table
+  - dataset: network-interfaces
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Tables.NetworkInterfaces
+    required: false
+    renderHint:
+      renderAs: table
+  - dataset: licenses
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Tables.Licenses
+    required: false
+    renderHint:
+      renderAs: table
+  - dataset: cluster-mediators
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Tables.ClusterMediators
+    required: false
+    renderHint:
+      renderAs: table
+  - dataset: multi-admin-approval-groups
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Tables.MultiAdminApprovalGroups
+    required: false
+    renderHint:
+      renderAs: table
+  - dataset: multi-admin-approval-rules
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Tables.MultiAdminApprovalRules
+    required: false
+    renderHint:
+      renderAs: table
+  - dataset: consistency-groups
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Tables.ConsistencyGroups
+    required: false
+    renderHint:
+      renderAs: table
+  - dataset: s3-services
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Tables.S3Services
+    required: false
+    renderHint:
+      renderAs: table
+  - dataset: s3-buckets
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Tables.S3Buckets
+    required: false
+    renderHint:
+      renderAs: table
+  - dataset: toolkit-baseline
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Tables.ToolkitBaseline
+    required: true
+    renderHint:
+      renderAs: table
+  - dataset: diagram-cluster-graph
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Diagrams.ClusterGraph
+    required: false
+    renderHint:
+      renderAs: diagram
+      renderMode: diagram
+  - dataset: diagram-aggregate-graph
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Diagrams.AggregateGraph
+    required: false
+    renderHint:
+      renderAs: diagram
+      renderMode: diagram
+  - dataset: diagram-network-graph
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Diagrams.NetworkGraph
+    required: false
+    renderHint:
+      renderAs: diagram
+      renderMode: diagram
+  - dataset: diagram-replication-graph
+    sdtTag: LNV.NetApp.ONTAP.Cluster[<ClusterName>].Diagrams.ReplicationGraph
+    required: false
+    renderHint:
+      renderAs: diagram
+      renderMode: diagram

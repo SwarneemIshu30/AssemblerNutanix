@@ -1,0 +1,120 @@
+schemaVersion: 1
+techId: Nutanix.Prism
+appliesTo:
+  targetKinds:
+    - Nutanix.Prism
+    - PrismElement
+    - PrismCentral
+    - Nutanix.PrismCentral
+
+defaults:
+  params:
+    port: 9440
+    scheme: https
+    skipTlsVerify: false
+    timeoutSec: 60
+
+validation:
+  required:
+    - path: targets[].key
+      type: string
+      minLength: 1
+      message: "Nutanix.Prism targets require a stable targets[].key."
+
+    - path: targets[].kind
+      type: string
+      minLength: 1
+      message: "Nutanix.Prism targets require targets[].kind."
+
+  fields:
+    - path: targets[].endpoints.prism
+      type: string
+      rules:
+        - name: not_blank
+      message: "endpoints.prism should contain the Prism Element or Prism Central host/FQDN/URL."
+
+    - path: targets[].params.port
+      type: integer
+      rules:
+        - name: range
+          min: 1
+          max: 65535
+      message: "params.port must be 1..65535 (default: 9440)."
+
+    - path: targets[].params.timeoutSec
+      type: integer
+      rules:
+        - name: range
+          min: 5
+          max: 600
+      message: "params.timeoutSec must be 5..600 seconds."
+
+    - path: targets[].params.skipTlsVerify
+      type: boolean
+      message: "params.skipTlsVerify must be true/false."
+
+  links:
+    - description: "targets[].authRef must refer to a key under plan.auth"
+      fromPath: targets[].authRef
+      toObjectPath: auth
+      mode: error
+      message: "target authRef '{value}' must exist in plan.auth."
+
+    - description: "collectors with techId Nutanix.Prism should reference Nutanix Prism targets"
+      collectorFilter:
+        path: collectors[].techId
+        equals: Nutanix.Prism
+      targetKeyPath: collectors[].targetKeys[]
+      targetLookup:
+        byKeyPath: targets[].key
+      requireTargetField:
+        path: targets[].kind
+        in:
+          - Nutanix.Prism
+          - PrismElement
+          - PrismCentral
+          - Nutanix.PrismCentral
+      mode: error
+      message: "collector targetKeys must reference Nutanix Prism targets."
+
+    - description: "targetGroups[].members must reference existing targets"
+      fromPath: targetGroups[].members[]
+      toObjectPath: targets
+      toKeyPath: targets[].key
+      mode: error
+      message: "targetGroup member '{value}' must exist in targets[].key."
+
+  unknownFieldPolicy:
+    endpoints: warn
+    params: warn
+    targetGroups: warn
+
+  warnings:
+    - when:
+        path: targets[].params.skipTlsVerify
+        equals: true
+      message: "skipTlsVerify=true is diagnostic-only. Prefer installing a trusted certificate."
+
+authRefHints:
+  requiredFields:
+    - username
+    - password
+  notes:
+    - "authRef must resolve outside the plan; secrets are never stored in bundle outputs."
+
+preflight:
+  - id: tcp_connect
+    description: "TCP connectivity to Prism endpoint"
+    inputs:
+      hostPath: targets[].endpoints.prism
+      portPath: targets[].params.port
+
+  - id: https_probe
+    description: "Probe Prism HTTPS endpoint"
+    request:
+      method: GET
+      urlTemplate: "https://{prism}:{port}/"
+      successStatusCodes: [200, 301, 302, 401, 403]
+      timeoutSecPath: targets[].params.timeoutSec
+      tls:
+        skipVerifyPath: targets[].params.skipTlsVerify

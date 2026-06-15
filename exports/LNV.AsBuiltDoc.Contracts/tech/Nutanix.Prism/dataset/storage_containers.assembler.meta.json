@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "dataset": "storage_containers",
+  "presentationKind": "table",
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    {
+      "name": "Default",
+      "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.StorageContainers"
+    }
+  ]
+}

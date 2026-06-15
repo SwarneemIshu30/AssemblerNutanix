@@ -1,0 +1,432 @@
+{
+  "schema": "assembler.projections",
+  "schemaVersion": 1,
+  "techId": "Nutanix.Prism",
+  "displayName": "Nutanix Prism assembler projections",
+  "projections": {
+    "LNV.Nutanix.Prism.Target[TargetKey].Summary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Target",
+          "source": "_assembler.displayName"
+        },
+        {
+          "name": "Cluster",
+          "source": "name"
+        },
+        {
+          "name": "UUID",
+          "source": "uuid"
+        },
+        {
+          "name": "External ID",
+          "source": "extId"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.Hosts": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Target",
+          "source": "_assembler.displayName"
+        },
+        {
+          "name": "Host",
+          "source": "name"
+        },
+        {
+          "name": "UUID",
+          "source": "uuid"
+        },
+        {
+          "name": "Serial",
+          "source": "serialNumber"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.HostNics": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Host NIC",
+          "source": "name"
+        },
+        {
+          "name": "MAC",
+          "source": "macAddress"
+        },
+        {
+          "name": "Speed Kbps",
+          "source": "linkSpeedInKbps"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.CVMs": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "CVM",
+          "source": "name"
+        },
+        {
+          "name": "UUID",
+          "source": "uuid"
+        },
+        {
+          "name": "Host",
+          "source": "hostName"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.VMs": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "VM",
+          "source": "name"
+        },
+        {
+          "name": "UUID",
+          "source": "uuid"
+        },
+        {
+          "name": "External ID",
+          "source": "extId"
+        },
+        {
+          "name": "Controller VM",
+          "source": "controllerVm"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.VMNics": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "VM",
+          "source": "vmName"
+        },
+        {
+          "name": "NIC",
+          "source": "name"
+        },
+        {
+          "name": "MAC",
+          "source": "macAddress"
+        },
+        {
+          "name": "Network",
+          "source": "networkName"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.Networks": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Network",
+          "source": "name"
+        },
+        {
+          "name": "UUID",
+          "source": "uuid"
+        },
+        {
+          "name": "External ID",
+          "source": "extId"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.VirtualSwitches": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Virtual Switch",
+          "source": "name"
+        },
+        {
+          "name": "External ID",
+          "source": "extId"
+        },
+        {
+          "name": "MTU",
+          "source": "mtu"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.StorageContainers": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Container",
+          "source": "name"
+        },
+        {
+          "name": "UUID",
+          "source": "uuid"
+        },
+        {
+          "name": "External ID",
+          "source": "extId"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.StoragePools": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Storage Pool",
+          "source": "name"
+        },
+        {
+          "name": "UUID",
+          "source": "uuid"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.Disks": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Disk",
+          "source": "id"
+        },
+        {
+          "name": "Serial",
+          "source": "serial"
+        },
+        {
+          "name": "Host",
+          "source": "hostName"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.ProtectionDomains": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Protection Domain",
+          "source": "name"
+        },
+        {
+          "name": "UUID",
+          "source": "uuid"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.Alerts": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Alert",
+          "source": "title"
+        },
+        {
+          "name": "Severity",
+          "source": "severity"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.Tasks": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Operation",
+          "source": "operation"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "External ID",
+          "source": "extId"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.Templates": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Template",
+          "source": "name"
+        },
+        {
+          "name": "Description",
+          "source": "description"
+        },
+        {
+          "name": "External ID",
+          "source": "extId"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.CollectionSources": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Dataset",
+          "source": "dataset"
+        },
+        {
+          "name": "API",
+          "source": "apiFamily"
+        },
+        {
+          "name": "Version",
+          "source": "apiVersion"
+        },
+        {
+          "name": "Success",
+          "source": "success"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.Relationships": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Type",
+          "source": "relationshipType"
+        },
+        {
+          "name": "Source",
+          "source": "sourceKey"
+        },
+        {
+          "name": "Target",
+          "source": "targetKey"
+        },
+        {
+          "name": "Correlation",
+          "source": "correlationStatus"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Tables.Relationships": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Type",
+          "source": "relationshipType"
+        },
+        {
+          "name": "Source Target",
+          "source": "sourceTargetKey"
+        },
+        {
+          "name": "Target",
+          "source": "targetKey"
+        },
+        {
+          "name": "Correlation",
+          "source": "correlationStatus"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    }
+  }
+}
