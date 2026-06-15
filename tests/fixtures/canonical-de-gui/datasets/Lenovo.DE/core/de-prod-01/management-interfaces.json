@@ -1,0 +1,54 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.DE",
+    "module": "LNV.AsBuiltDoc.Lenovo.DE",
+    "entry_point": "Invoke-LnvAsBuiltDoc.Lenovo.DE"
+  },
+  "source": {
+    "bundle_id": "target_de-prod-01",
+    "bundle_root": "C:\\Github\\LNV.AsBuiltDoc.Core\\out\\b844bba2-c02f-4139-a656-21a1a511d95f\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01",
+    "file": "system_1_DE4200_Rack4/management-interfaces.json",
+    "domain": "core",
+    "target_key": "de-prod-01"
+  },
+  "dataset": {
+    "key": "management-interfaces",
+    "schema_path": "tech/Lenovo.DE/dataset/management-interfaces.schema.json"
+  },
+  "item_count": 2,
+  "items": [
+    {
+      "systemId": "1",
+      "controllerRef": "070000000000000000000001",
+      "controllerLabel": "A",
+      "controllerSlot": 1,
+      "portLabel": "P1",
+      "portSlot": 0,
+      "interfaceName": "wan0",
+      "interfaceRef": "2800070000000000000000000001000000000000",
+      "linkStatus": "up",
+      "macAddress": "D039EAD9EFC2",
+      "currentSpeed": "speed1gig",
+      "ipv4Address": "192.0.2.11",
+      "ipv4SubnetMask": "255.255.252.0",
+      "ipv4GatewayAddress": "10.240.56.1"
+    },
+    {
+      "systemId": "1",
+      "controllerRef": "070000000000000000000002",
+      "controllerLabel": "B",
+      "controllerSlot": 2,
+      "portLabel": "P1",
+      "portSlot": 0,
+      "interfaceName": "wan0",
+      "interfaceRef": "2800070000000000000000000002000000000000",
+      "linkStatus": "up",
+      "macAddress": "D039EAD9F018",
+      "currentSpeed": "speed1gig",
+      "ipv4Address": "192.0.2.10",
+      "ipv4SubnetMask": "255.255.252.0",
+      "ipv4GatewayAddress": "10.240.56.1"
+    }
+  ]
+}

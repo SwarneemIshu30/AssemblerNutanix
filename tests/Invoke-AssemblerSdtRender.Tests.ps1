@@ -13,7 +13,6 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
 
         Invoke-Expression $functionBlock
-    }
 
     function New-TestRenderFixture {
         param(
@@ -586,6 +585,8 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         if ($reportedTemplateLength -ne $expectedTemplateLength) {
             throw "Artifact hash diagnostics mismatch for template length. expected='$expectedTemplateLength' reported='$reportedTemplateLength'"
         }
+    }
+
     }
 
     It 'keeps successful render reports schema-valid when matches are emitted' {

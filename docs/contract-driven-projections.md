@@ -116,7 +116,7 @@ The intended dependency chain in this repo is:
 The current renderer already consumes the Direct-v1 contract model, but only a subset is fully implemented.
 
 Current supported runtime behavior:
-- Direct-v1 facts are read from `lnv.collector.dataset.v1` envelopes, with a narrow compatibility path for legacy `run_summary.json`.
+- Direct-v1 facts are read from canonical `lnv.collector.dataset.v1` envelopes. `run_summary.json` has no compatibility or document-rendering exception.
 - Mapping contracts already declare `renderHint.renderAs`, `projectionRef`, and `view`.
 - Sync already consumes `renderAs` and `syncPolicy.collectorSkeletonMapping`.
 - Projection lookup already supports direct tag lookup, alias lookup, `projectionRef`, and `view`.

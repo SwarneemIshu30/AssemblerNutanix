@@ -1,0 +1,22 @@
+{
+  "solutionId": "canonical-de-gui",
+  "targets": [
+    {
+      "key": "de-prod-01",
+      "kind": "storageArray",
+      "displayName": "DE4200 Rack4",
+      "tags": {
+        "site": "lab"
+      }
+    }
+  ],
+  "targetGroups": [],
+  "collectors": [
+    {
+      "techId": "Lenovo.DE",
+      "targetKeys": [
+        "de-prod-01"
+      ]
+    }
+  ]
+}

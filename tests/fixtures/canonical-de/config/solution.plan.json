@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "solutionId": "canonical-de-test",
+  "targets": [
+    {
+      "techId": "Lenovo.DE",
+      "kind": "Lenovo.DE",
+      "key": "de-a",
+      "displayName": "DE Array A",
+      "endpoints": { "mgmt": "192.0.2.10" },
+      "tags": { "site": "dc1", "env": "test" }
+    },
+    {
+      "techId": "Lenovo.DE",
+      "kind": "Lenovo.DE",
+      "key": "de-b",
+      "displayName": "DE Array B",
+      "endpoints": { "mgmt": "192.0.2.11" },
+      "tags": { "site": "dc1", "env": "test" }
+    }
+  ],
+  "collectors": [
+    {
+      "techId": "Lenovo.DE",
+      "modulePath": "LNV.AsBuiltDoc.Lenovo.DE",
+      "targetKeys": ["de-a", "de-b"]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "schema": "mapping.dataset-to-sdt",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "techId": "Nutanix.Prism",
   "displayName": "Nutanix.Prism collector blueprint mapping",
   "compatibility": {

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv.asbuiltdoc/contracts/standards/assembler/assembler.composition-map.schema.v1.json",
+  "title": "Assembler Composition Map",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schemaVersion", "document", "policy", "objects", "contributions"],
+  "properties": {
+    "schema": { "const": "assembler.composition-map" },
+    "schemaVersion": { "const": 1 },
+    "document": {
+      "type": "object",
+      "required": ["id", "outputName"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "outputName": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "policy": { "type": "object" },
+    "objects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["scope", "techId", "objectKey", "included"],
+        "properties": {
+          "scope": { "enum": ["target", "targetGroup", "solution"] },
+          "techId": { "type": "string", "minLength": 1 },
+          "objectKey": { "type": "string", "minLength": 1 },
+          "included": { "type": "boolean" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "contributions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["entryId", "techId", "included"],
+        "properties": {
+          "entryId": { "type": "string", "minLength": 1 },
+          "techId": { "type": "string", "minLength": 1 },
+          "included": { "type": "boolean" }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}

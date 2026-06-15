@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv.asbuiltdoc/contracts/standards/mapping.dataset-to-sdt.schema.v2.json",
+  "title": "AsBuiltDoc Logical Dataset-to-SDT Mapping v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schemaVersion", "techId", "compatibility", "mappings"],
+  "properties": {
+    "schema": { "const": "mapping.dataset-to-sdt" },
+    "schemaVersion": { "const": 2 },
+    "techId": { "type": "string", "minLength": 1 },
+    "displayName": { "type": "string" },
+    "compatibility": { "type": "object" },
+    "strictContracts": { "type": "object" },
+    "generatedFromContract": { "type": "object" },
+    "mappings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["dataset"],
+        "properties": {
+          "dataset": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "resolvedDataset": { "type": "string", "minLength": 1 },
+          "scope": { "enum": ["target", "targetGroup", "solution", "any"] },
+          "domain": { "type": "string", "minLength": 1 },
+          "sdtTag": { "type": "string", "minLength": 1 },
+          "target": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "sdtTag": { "type": "string", "minLength": 1 },
+              "kind": { "type": "string", "minLength": 1 },
+              "path": { "type": "string", "minLength": 1 }
+            },
+            "anyOf": [
+              { "required": ["sdtTag"] },
+              { "required": ["kind", "path"] }
+            ]
+          },
+          "required": { "type": "boolean" },
+          "selectors": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "notes": { "type": "string" },
+          "renderHint": { "type": "object" }
+        },
+        "anyOf": [
+          { "required": ["sdtTag"] },
+          { "required": ["target"] }
+        ]
+      }
+    }
+  }
+}

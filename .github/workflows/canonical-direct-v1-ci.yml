@@ -1,0 +1,59 @@
+name: Canonical Direct V1 CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - dev
+      - main
+      - cdxwl/canonical-direct-v1-composition
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run isolated Pester suites
+        shell: pwsh
+        run: |
+          $total = 0
+          $passed = 0
+          $failed = 0
+          foreach ($file in @(Get-ChildItem ./tests -Filter '*.Tests.ps1' -File | Sort-Object Name)) {
+            $resultJson = & pwsh -NoLogo -NoProfile -Command @"
+          `$result = Invoke-Pester -Path '$($file.FullName.Replace("'", "''"))' -PassThru -Output None
+          [ordered]@{ Total = `$result.TotalCount; Passed = `$result.PassedCount; Failed = `$result.FailedCount } | ConvertTo-Json -Compress
+          if (`$result.FailedCount -gt 0) { exit 1 }
+          "@
+            $result = $resultJson | Select-Object -Last 1 | ConvertFrom-Json
+            $total += $result.Total
+            $passed += $result.Passed
+            $failed += $result.Failed
+          }
+          Write-Host "Pester total=$total passed=$passed failed=$failed"
+          if ($failed -gt 0) { throw "$failed Pester tests failed." }
+
+      - name: Build and validate package
+        shell: pwsh
+        run: |
+          ./scripts/New-AssemblerPackage.ps1 -OutputDir dist -BuildChannel ci -PackageVersion "0.0.0-ci.${{ github.run_number }}"
+          $manifest = Get-Content ./dist/package.manifest.json -Raw | ConvertFrom-Json
+          if (-not (Test-Path -LiteralPath $manifest.zipPath -PathType Leaf)) {
+            throw "Package was not created: $($manifest.zipPath)"
+          }
+
+      - name: Canonical DE runtime smoke
+        shell: pwsh
+        run: |
+          $output = Join-Path $env:RUNNER_TEMP 'assembler-de-smoke'
+          ./scripts/Invoke-AssemblerBundleRender.ps1 `
+            -BundleRoot ./tests/fixtures/canonical-de `
+            -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json `
+            -ContractsRoot ./.deps/contracts `
+            -OutputRoot $output
+          if ($LASTEXITCODE -ne 0) { throw 'Canonical DE runtime smoke failed.' }

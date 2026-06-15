@@ -16,7 +16,10 @@ Describe 'Invoke-AssemblerBundleRender DOCX match mode forwarding' {
             'standards/assembler/assembler.projections.schema.v1.json',
             'standards/assembler/assembler.render-report.schema.v1.json',
             'standards/assembler/assembler.template-catalog.schema.v1.json',
-            'standards/assembler/assembler.bundle-render-report.schema.v1.json'
+            'standards/assembler/assembler.bundle-render-report.schema.v1.json',
+            'standards/assembler/assembler.composition-map.schema.v1.json',
+            'standards/assembler/assembler.composition-policy.schema.v1.json',
+            'standards/assembler/assembler.default-composition-policy.v1.json'
         )
 
         foreach ($schemaRelativePath in $schemaRelativePaths) {
@@ -133,16 +136,33 @@ Describe 'Invoke-AssemblerBundleRender DOCX match mode forwarding' {
             $null = New-Item -ItemType Directory -Path $bundleRoot -Force
             $null = New-Item -ItemType Directory -Path $catalogRoot -Force
             $null = New-Item -ItemType Directory -Path (Join-Path $bundleRoot 'config') -Force
-            $null = New-Item -ItemType Directory -Path (Join-Path $bundleRoot 'datasets') -Force
+            $datasetRelativePath = 'datasets/Test.Tech/core/test-target/transport.json'
+            $datasetPath = Join-Path $bundleRoot $datasetRelativePath
+            $null = New-Item -ItemType Directory -Path (Split-Path -Parent $datasetPath) -Force
 
-            Set-Content -LiteralPath (Join-Path $bundleRoot 'manifest.json') -Encoding UTF8 -Value (@{ bundleId = 'bundle-test' } | ConvertTo-Json -Depth 5)
-            Set-Content -LiteralPath (Join-Path $bundleRoot 'objectIndex.json') -Encoding UTF8 -Value (@{ objects = @(@{ techId = 'Test.Tech' }) } | ConvertTo-Json -Depth 5)
-            Set-Content -LiteralPath (Join-Path $bundleRoot 'config/solution.plan.json') -Encoding UTF8 -Value (@{ collectors = @(@{ techId = 'Test.Tech'; targetKeys = @() }) } | ConvertTo-Json -Depth 5)
-            Set-Content -LiteralPath (Join-Path $bundleRoot 'datasets/transport.json') -Encoding UTF8 -Value (@{
+            Set-Content -LiteralPath (Join-Path $bundleRoot 'manifest.json') -Encoding UTF8 -Value (@{
+                schemaVersion = 1
+                bundleId = 'bundle-test'
+                createdUtc = '2026-06-15T00:00:00Z'
+                files = @(@{ path = $datasetRelativePath; bytes = 1; sha256 = 'fixture' })
+                results = @()
+            } | ConvertTo-Json -Depth 10)
+            Set-Content -LiteralPath (Join-Path $bundleRoot 'objectIndex.json') -Encoding UTF8 -Value (@{
+                schemaVersion = 1
+                collectedUtc = '2026-06-15T00:00:00Z'
+                objects = @(@{ techId = 'Test.Tech'; kind = 'test'; key = 'test-target'; displayName = 'Test Target' })
+            } | ConvertTo-Json -Depth 10)
+            Set-Content -LiteralPath (Join-Path $bundleRoot 'config/solution.plan.json') -Encoding UTF8 -Value (@{
+                schemaVersion = 1
+                solutionId = 'test-solution'
+                targets = @(@{ techId = 'Test.Tech'; kind = 'test'; key = 'test-target'; displayName = 'Test Target'; endpoints = @{ test = 'local' } })
+                collectors = @(@{ techId = 'Test.Tech'; modulePath = 'test.module'; targetKeys = @('test-target') })
+            } | ConvertTo-Json -Depth 10)
+            Set-Content -LiteralPath $datasetPath -Encoding UTF8 -Value (@{
                 schema_version = 'lnv.collector.dataset.v1'
                 collector = @{ module = 'test.module'; version = '1.0.0' }
                 source = @{ kind = 'integration-test'; endpoint = 'local' }
-                dataset = 'transport'
+                dataset = @{ key = 'transport'; schema_path = 'tech/Test.Tech/dataset/transport.schema.json' }
                 item_count = 1
                 items = @(@{ status = 'Ready' })
             } | ConvertTo-Json -Depth 10)
@@ -157,7 +177,7 @@ Describe 'Invoke-AssemblerBundleRender DOCX match mode forwarding' {
                 strictContracts = @{ enabled = $true; requireAllMappings = $true }
                 mappings = @(
                     @{
-                        dataset = 'datasets/transport.json'
+                        dataset = 'transport'
                         required = $true
                         selectors = @('items', '0', 'status')
                         target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus' }

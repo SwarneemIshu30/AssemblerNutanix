@@ -1,0 +1,10 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": { "tech_id": "Lenovo.DE", "module": "LNV.AsBuiltDoc.Lenovo.DE", "entry_point": "Invoke-LnvAsBuiltDoc.Lenovo.DE" },
+  "source": { "bundle_id": "canonical-de-test", "domain": "core", "target_key": "de-b", "file": "datasets/Lenovo.DE/core/de-b/systems.json" },
+  "dataset": { "key": "systems", "schema_path": "tech/Lenovo.DE/dataset/systems.schema.json" },
+  "item_count": 1,
+  "items": [
+    { "id": "array-b", "name": "DE Array B", "model": "DE4200", "status": "optimal", "ip2": "192.0.2.11", "driveCount": 48 }
+  ]
+}

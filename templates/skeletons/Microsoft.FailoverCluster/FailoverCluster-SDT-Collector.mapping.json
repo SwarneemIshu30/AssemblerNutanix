@@ -1,6 +1,6 @@
 {
   "schema": "mapping.dataset-to-sdt",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "techId": "Microsoft.FailoverCluster",
   "displayName": "Microsoft.FailoverCluster collector blueprint mapping",
   "compatibility": {

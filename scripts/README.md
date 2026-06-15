@@ -140,7 +140,9 @@ Wrapper artifact layout:
 - `<OutputRoot>/progress.jsonl`
 - `<OutputRoot>/render-report.json`
 - `<OutputRoot>/assembler-bundle-render-report.json`
-- `<OutputRoot>/.resolved-mappings/`
+- `<OutputRoot>/.render-plan/mappings/` contains compiled logical mappings.
+- `<OutputRoot>/.render-plan/datasets/` contains deterministic composed envelopes.
+- `<OutputRoot>/assembler.composition-map.json` records authoritative object and contribution selection.
 
 Example:
 

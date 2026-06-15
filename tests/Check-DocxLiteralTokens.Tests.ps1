@@ -1,4 +1,5 @@
 Describe 'Check-DocxLiteralTokens script' {
+    BeforeAll {
     function New-TestDocxTemplate {
         param(
             [Parameter(Mandatory = $true)][string]$Path,
@@ -72,6 +73,8 @@ Describe 'Check-DocxLiteralTokens script' {
         finally {
             $fs.Dispose()
         }
+    }
+
     }
 
     It 'reports the same OK and MISSING statuses as the shared literal-token discovery helper' {

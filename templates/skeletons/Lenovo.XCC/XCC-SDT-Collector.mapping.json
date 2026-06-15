@@ -1,6 +1,6 @@
 {
   "schema": "mapping.dataset-to-sdt",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "techId": "Lenovo.XCC",
   "displayName": "Lenovo.XCC collector blueprint mapping",
   "compatibility": {
@@ -30,7 +30,7 @@
       },
       "required": true,
       "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.CollectionStatus",
-      "dataset": "datasets/Lenovo.XCC/__TARGET__/collection-summary.json"
+      "dataset": "collection-summary"
     },
     {
       "selectors": [
@@ -46,7 +46,7 @@
       },
       "required": true,
       "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Summary",
-      "dataset": "datasets/Lenovo.XCC/__TARGET__/systems.json"
+      "dataset": "systems"
     },
     {
       "selectors": [
@@ -62,7 +62,7 @@
       },
       "required": true,
       "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Managers",
-      "dataset": "datasets/Lenovo.XCC/__TARGET__/managers.json"
+      "dataset": "managers"
     },
     {
       "selectors": [
@@ -78,7 +78,7 @@
       },
       "required": true,
       "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Chassis",
-      "dataset": "datasets/Lenovo.XCC/__TARGET__/chassis.json"
+      "dataset": "chassis"
     },
     {
       "selectors": [
@@ -94,7 +94,7 @@
       },
       "required": true,
       "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Firmware",
-      "dataset": "datasets/Lenovo.XCC/__TARGET__/firmware-inventory.json"
+      "dataset": "firmware-inventory"
     },
     {
       "selectors": [
@@ -110,7 +110,7 @@
       },
       "required": false,
       "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Processors",
-      "dataset": "datasets/Lenovo.XCC/__TARGET__/processors.json"
+      "dataset": "processors"
     },
     {
       "selectors": [
@@ -126,7 +126,7 @@
       },
       "required": false,
       "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Memory",
-      "dataset": "datasets/Lenovo.XCC/__TARGET__/memory.json"
+      "dataset": "memory"
     },
     {
       "selectors": [
@@ -142,7 +142,7 @@
       },
       "required": false,
       "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkInterfaces",
-      "dataset": "datasets/Lenovo.XCC/__TARGET__/ethernet-interfaces.json"
+      "dataset": "ethernet-interfaces"
     },
     {
       "selectors": [
@@ -158,7 +158,7 @@
       },
       "required": false,
       "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageControllers",
-      "dataset": "datasets/Lenovo.XCC/__TARGET__/storage-controllers.json"
+      "dataset": "storage-controllers"
     },
     {
       "selectors": [
@@ -174,7 +174,7 @@
       },
       "required": false,
       "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageDrives",
-      "dataset": "datasets/Lenovo.XCC/__TARGET__/storage-drives.json"
+      "dataset": "storage-drives"
     },
     {
       "selectors": [
@@ -190,7 +190,7 @@
       },
       "required": false,
       "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageVolumes",
-      "dataset": "datasets/Lenovo.XCC/__TARGET__/storage-volumes.json"
+      "dataset": "storage-volumes"
     },
     {
       "selectors": [
@@ -206,7 +206,7 @@
       },
       "required": false,
       "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Power",
-      "dataset": "datasets/Lenovo.XCC/__TARGET__/power.json"
+      "dataset": "power"
     },
     {
       "selectors": [
@@ -222,7 +222,7 @@
       },
       "required": false,
       "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Thermal",
-      "dataset": "datasets/Lenovo.XCC/__TARGET__/thermal.json"
+      "dataset": "thermal"
     },
     {
       "selectors": [
@@ -238,7 +238,7 @@
       },
       "required": false,
       "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.EventLog",
-      "dataset": "datasets/Lenovo.XCC/__TARGET__/event-log.json"
+      "dataset": "event-log"
     },
     {
       "selectors": [
@@ -254,7 +254,7 @@
       },
       "required": false,
       "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Security",
-      "dataset": "datasets/Lenovo.XCC/__TARGET__/security.json"
+      "dataset": "security"
     },
     {
       "selectors": [
@@ -270,7 +270,7 @@
       },
       "required": false,
       "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Users",
-      "dataset": "datasets/Lenovo.XCC/__TARGET__/users-summary.json"
+      "dataset": "users-summary"
     }
   ]
 }

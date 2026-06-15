@@ -1,0 +1,12 @@
+{
+  "schema": "assembler.composition-policy",
+  "schemaVersion": 1,
+  "aggregation": {
+    "strategy": "append",
+    "orderBy": ["scope", "techId", "objectKey", "domain", "relativePath"]
+  },
+  "provenance": {
+    "property": "_assembler",
+    "fields": ["techId", "domain", "scope", "objectKey", "objectKind", "displayName", "tags"]
+  }
+}

@@ -18,6 +18,7 @@ param(
     [Parameter(Mandatory = $false)][string[]]$TechId,
     [Parameter(Mandatory = $false)][string[]]$EntryId,
     [Parameter(Mandatory = $false)][ValidateSet('docx','text')][string[]]$OutputType,
+    [Parameter(Mandatory = $false)][string]$CompositionMapPath,
     [Parameter(Mandatory = $false)][string]$DocTitle,
     [Parameter(Mandatory = $false)][string]$DocCustomer,
     [Parameter(Mandatory = $false)][string]$DocCustomerAbbr,
@@ -232,6 +233,7 @@ try {
     Add-IfValue -Arguments $arguments -Name '-TechId' -Value $TechId
     Add-IfValue -Arguments $arguments -Name '-EntryId' -Value $EntryId
     Add-IfValue -Arguments $arguments -Name '-OutputType' -Value $OutputType
+    Add-IfValue -Arguments $arguments -Name '-CompositionMapPath' -Value $CompositionMapPath
     Add-IfValue -Arguments $arguments -Name '-DocTitle' -Value $DocTitle
     Add-IfValue -Arguments $arguments -Name '-DocCustomer' -Value $DocCustomer
     Add-IfValue -Arguments $arguments -Name '-DocCustomerAbbr' -Value $DocCustomerAbbr
@@ -398,6 +400,7 @@ finally {
             techId = @($TechId)
             entryId = @($EntryId)
             outputType = @($OutputType)
+            compositionMapPath = $CompositionMapPath
         }
         progress = @($progressEvents)
         issues = @($issues)

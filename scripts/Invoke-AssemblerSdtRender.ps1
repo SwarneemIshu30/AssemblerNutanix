@@ -446,7 +446,12 @@ function Resolve-DatasetFilePath {
         [Parameter(Mandatory = $false)][string]$TechId
     )
 
-    $exactPath = Join-Path $BundleRoot $DatasetRelativePath
+    $exactPath = if ([System.IO.Path]::IsPathRooted($DatasetRelativePath)) {
+        $DatasetRelativePath
+    }
+    else {
+        Join-Path $BundleRoot $DatasetRelativePath
+    }
     return [ordered]@{ path = $exactPath; autoResolved = $false; reason = $null }
 }
 
@@ -515,25 +520,6 @@ function Test-DatasetEnvelope {
     return @($errors.ToArray())
 }
 
-function Test-LegacySummaryCompatibilityDataset {
-    param(
-        [Parameter(Mandatory = $true)][hashtable]$Dataset,
-        [Parameter(Mandatory = $true)][string]$DatasetPath
-    )
-
-    if ([string]::IsNullOrWhiteSpace($DatasetPath)) { return $false }
-    if ([System.IO.Path]::GetFileName($DatasetPath) -ne 'run_summary.json') { return $false }
-    if ($Dataset.ContainsKey('schema_version') -or $Dataset.ContainsKey('items')) { return $false }
-
-    foreach ($requiredField in @('collectedUtc', 'mode', 'controller', 'port', 'systemCount')) {
-        if (-not $Dataset.ContainsKey($requiredField)) {
-            return $false
-        }
-    }
-
-    return $true
-}
-
 function Resolve-SelectorWithSummaryCompatibility {
     param(
         [Parameter(Mandatory = $true)][hashtable]$Dataset,
@@ -545,30 +531,11 @@ function Resolve-SelectorWithSummaryCompatibility {
     foreach ($selector in $Selectors) {
         $resolution = Resolve-Selector -InputObject $resolved -Selector ([string]$selector)
         if (-not $resolution.found) {
-            $summaryItem = $null
-            if (
-                [System.IO.Path]::GetFileName($DatasetPath) -eq 'run_summary.json' -and
-                $Dataset.ContainsKey('items') -and
-                $Dataset.items -is [System.Collections.IList] -and
-                @($Dataset.items).Count -eq 1 -and
-                $Dataset.items[0] -is [hashtable] -and
-                -not [string]::IsNullOrWhiteSpace([string]$selector) -and
-                -not ([string]$selector).StartsWith('items.', [System.StringComparison]::Ordinal)
-            ) {
-                $summaryItem = $Dataset.items[0]
-            }
-
-            if ($null -ne $summaryItem) {
-                $resolution = Resolve-Selector -InputObject $summaryItem -Selector ([string]$selector)
-            }
-
-            if (-not $resolution.found) {
-                return [ordered]@{
-                    value = $null
-                    selectorFailed = $true
-                    valueIsNull = $false
-                    valueIsEmptyArray = $false
-                }
+            return [ordered]@{
+                value = $null
+                selectorFailed = $true
+                valueIsNull = $false
+                valueIsEmptyArray = $false
             }
         }
 
@@ -5323,6 +5290,8 @@ try {
 
     Start-RenderStage -Stage $stageMap.Load
     $mapping = Read-JsonFile -Path $MappingPath
+    $mappingSchemaVersion = if ($mapping.ContainsKey('schemaVersion')) { [int]$mapping.schemaVersion } else { 1 }
+    $mappingSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards') "mapping.dataset-to-sdt.schema.v$mappingSchemaVersion.json"
     $projectionContractPath = Resolve-ProjectionContractPath -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
     $projectionContract = Read-ProjectionContractFile -Path $projectionContractPath
     $projectionDefinitions = Get-ProjectionDefinitions -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
@@ -5432,7 +5401,13 @@ try {
             continue
         }
 
-        $datasetResolution = Resolve-DatasetFilePath -BundleRoot $BundleRoot -DatasetRelativePath ([string]$entry.dataset) -TechId ([string]$mapping.techId)
+        $datasetReference = if ((Test-MapHasKey -Map $entry -Key 'resolvedDataset') -and -not [string]::IsNullOrWhiteSpace([string]$entry.resolvedDataset)) {
+            [string]$entry.resolvedDataset
+        }
+        else {
+            [string]$entry.dataset
+        }
+        $datasetResolution = Resolve-DatasetFilePath -BundleRoot $BundleRoot -DatasetRelativePath $datasetReference -TechId ([string]$mapping.techId)
         $datasetPath = [string]$datasetResolution.path
         $currentDatasetPath = $datasetPath
         if (-not (Test-Path -LiteralPath $datasetPath -PathType Leaf)) {
@@ -5448,22 +5423,12 @@ try {
         $dataset = Read-JsonFile -Path $datasetPath
         $envelopeErrors = @(Test-DatasetEnvelope -Dataset $dataset -DatasetPath $datasetPath)
         if (@($envelopeErrors).Count -gt 0) {
-            if (Test-LegacySummaryCompatibilityDataset -Dataset $dataset -DatasetPath $datasetPath) {
-                $issues.Add([ordered]@{
-                    code = 'ASB-ASM-SDT-DATASET-COMPAT'
-                    severity = 'WARN'
-                    message = "Dataset '$($entry.dataset)' uses legacy run_summary.json compatibility for tag '$tag'; update the collector/Core output to emit a full lnv.collector.dataset.v1 envelope."
-                    path = $datasetPath
-                })
+            $severity = if ($entry.required) { 'ERROR' } else { 'WARN' }
+            foreach ($envelopeError in $envelopeErrors) {
+                $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-DATASET-ENVELOPE'; severity = $severity; message = "Dataset '$($entry.dataset)' failed envelope validation for tag '$tag': $envelopeError"; path = $datasetPath })
             }
-            else {
-                $severity = if ($entry.required) { 'ERROR' } else { 'WARN' }
-                foreach ($envelopeError in $envelopeErrors) {
-                    $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-DATASET-ENVELOPE'; severity = $severity; message = "Dataset '$($entry.dataset)' failed envelope validation for tag '$tag': $envelopeError"; path = $datasetPath })
-                }
-                if ($severity -eq 'ERROR') { $status = 'ERROR' }
-                continue
-            }
+            if ($severity -eq 'ERROR') { $status = 'ERROR' }
+            continue
         }
 
         $resolved = $null
