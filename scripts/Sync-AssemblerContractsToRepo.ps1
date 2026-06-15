@@ -54,6 +54,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+Import-Module (Join-Path $PSScriptRoot 'internal/AssemblerSchemaValidation.psm1') -Force
 
 function Get-DefaultSkeletonMappingOutputPath {
     param(
@@ -983,16 +984,15 @@ function Sync-CollectorSkeletonMappingFromContract {
     $mappings = @(Get-MapValueOrDefault -Map $contractTable -Key 'mappings')
     if (
         $schema -ne 'mapping.dataset-to-sdt' -or
-        [int]$schemaVersionValue -ne 1 -or
+        [int]$schemaVersionValue -notin @(1, 2) -or
         $techId -ne $ResolvedTechId -or
         (-not (Test-MapHasKey -Map $contractTable -Key 'mappings'))
     ) {
-        throw "Mapping contract '$contractMappingPath' failed validation (expected schema=mapping.dataset-to-sdt, schemaVersion=1, techId=$ResolvedTechId, mappings=present)."
+        throw "Mapping contract '$contractMappingPath' failed validation (expected schema=mapping.dataset-to-sdt, schemaVersion=1 or 2, techId=$ResolvedTechId, mappings=present)."
     }
 
     $tagPolicy = New-CollectorSdtTagPolicyFromContract -MappingContractPath $contractMappingPath -Contract $contract
     $syncPolicy = New-CollectorMappingSyncPolicyFromContract -MappingContractPath $contractMappingPath -Contract $contract
-    $datasetPathTemplateMap = Get-CollectorDatasetPathTemplateMap -ContractsRoot $ContractsRoot -ResolvedTechId $ResolvedTechId
     $generatedMappings = [System.Collections.Generic.List[hashtable]]::new()
     $processedCount = 0
     $generatedCount = 0
@@ -1054,15 +1054,17 @@ function Sync-CollectorSkeletonMappingFromContract {
                 continue
             }
 
-            if (-not (Test-MapHasKey -Map $datasetPathTemplateMap -Key $datasetName)) {
-                $skipReasonCounters.missingDatasetTemplate++
-                Write-Verbose ("[collector-mapping-sync] skip mapping[{0}] sourceKey={1} reason=missing datasetPath.template metadata under tech '{2}'" -f $mappingIndex, $sourceKey, $ResolvedTechId)
-                continue
-            }
-
             $mappingEntry = [ordered]@{
-                dataset = (Get-CollectorDatasetPathFromTemplate -DatasetName $datasetName -ResolvedTechId $ResolvedTechId -DatasetPathTemplateMap $datasetPathTemplateMap)
+                dataset = $datasetName
                 required = ((Test-MapHasKey -Map $entryTable -Key 'required') -and [bool]$entryTable.required)
+            }
+            foreach ($filterKey in @('scope', 'domain')) {
+                if ((Test-MapHasKey -Map $entryTable -Key $filterKey) -and -not [string]::IsNullOrWhiteSpace([string]$entryTable[$filterKey])) {
+                    $mappingEntry[$filterKey] = [string]$entryTable[$filterKey]
+                }
+            }
+            if ((Test-MapHasKey -Map $entryTable -Key 'selectors') -and @($entryTable.selectors).Count -gt 0) {
+                $mappingEntry.selectors = @($entryTable.selectors | ForEach-Object { [string]$_ })
             }
 
             $entryPhase = if (Test-MapHasKey -Map $entryTable -Key 'phase') { [string]$entryTable.phase } else { '' }
@@ -1187,12 +1189,12 @@ function Sync-CollectorSkeletonMappingFromContract {
 
     $generatedMapping = [ordered]@{
         schema = 'mapping.dataset-to-sdt'
-        schemaVersion = 1
+        schemaVersion = 2
         techId = $ResolvedTechId
         displayName = "$ResolvedTechId collector blueprint mapping"
         compatibility = [ordered]@{
             contracts = [ordered]@{
-                version = 'v1'
+                version = 'v2'
             }
         }
         strictContracts = [ordered]@{
@@ -1207,6 +1209,14 @@ function Sync-CollectorSkeletonMappingFromContract {
 
     $shapeDashboard = Get-MappingShapeDashboard -Mappings $generatedMappings
     $generatedMapping | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $OutputPath -Encoding UTF8
+    $mappingSchemaPath = Join-Path $ContractsRoot 'standards/mapping.dataset-to-sdt.schema.v2.json'
+    if (-not (Test-Path -LiteralPath $mappingSchemaPath -PathType Leaf)) {
+        throw "Mapping v2 schema not found under synced contracts: $mappingSchemaPath"
+    }
+    $mappingValidation = Test-AssemblerSchemaFile -DocumentPath $OutputPath -SchemaPath $mappingSchemaPath
+    if (-not $mappingValidation.isValid) {
+        throw "Generated mapping v2 failed schema validation: $([string]$mappingValidation.message)"
+    }
     return [ordered]@{
         outputPath = $OutputPath
         shapeDashboard = $shapeDashboard

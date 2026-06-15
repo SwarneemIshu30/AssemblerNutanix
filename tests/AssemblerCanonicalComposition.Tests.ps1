@@ -108,6 +108,56 @@ Describe 'Canonical Direct-v1 dataset catalog and composition' {
         { New-AssemblerDatasetCatalog -BundleRoot $script:bundleRoot } | Should -Throw '*ASB-ASM-CATALOG-LEGACY-LAYOUT*'
     }
 
+    It 'filters identical logical dataset keys by scope and domain' {
+        $paths = @(
+            'datasets/Test.Tech/core/array-a/relationships.json',
+            'datasets/Test.Tech/relationships/pair-a/relationships.json'
+        )
+        foreach ($relativePath in $paths) {
+            $fullPath = Join-Path $script:bundleRoot $relativePath
+            New-Item -ItemType Directory -Path (Split-Path -Parent $fullPath) -Force | Out-Null
+            $objectKey = Split-Path -Leaf (Split-Path -Parent $fullPath)
+            [ordered]@{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ tech_id = 'Test.Tech' }
+                source = @{ target_key = $objectKey }
+                dataset = @{ key = 'relationships'; schema_path = 'tech/Test.Tech/dataset/relationships.schema.json' }
+                item_count = 1
+                items = @([ordered]@{ id = $objectKey })
+            } | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $fullPath -Encoding UTF8
+        }
+        [ordered]@{
+            schemaVersion = 1
+            bundleId = 'bundle-filter'
+            createdUtc = '2026-06-15T00:00:00Z'
+            files = @($paths | ForEach-Object { [ordered]@{ path = $_; bytes = 1; sha256 = 'x' } })
+            results = @()
+        } | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $script:bundleRoot 'manifest.json') -Encoding UTF8
+
+        $catalog = New-AssemblerDatasetCatalog -BundleRoot $script:bundleRoot
+        $composition = New-AssemblerDefaultCompositionMap -DatasetCatalog $catalog -TemplateCatalog @{
+            entries = @([ordered]@{ id = 'test-entry'; techId = 'Test.Tech'; enabled = $true })
+        } -ContractsRoot (Join-Path $script:repoRoot '.deps/contracts')
+        $mappingPath = Join-Path $script:tempRoot 'mapping-filter.json'
+        [ordered]@{
+            schema = 'mapping.dataset-to-sdt'
+            schemaVersion = 2
+            techId = 'Test.Tech'
+            compatibility = @{ contracts = @{ version = '2' } }
+            mappings = @(
+                [ordered]@{ dataset = 'relationships'; scope = 'target'; domain = 'core'; sdtTag = 'TEST.TargetRelationships'; required = $true },
+                [ordered]@{ dataset = 'relationships'; scope = 'targetGroup'; domain = 'relationships'; sdtTag = 'TEST.GroupRelationships'; required = $true }
+            )
+        } | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $mappingPath -Encoding UTF8
+
+        $compiledPath = New-AssemblerCompiledMapping -DatasetCatalog $catalog -CompositionMap $composition -MappingPath $mappingPath -EntryId 'filter-entry' -OutputRoot $script:outputRoot
+        $compiled = Get-Content -LiteralPath $compiledPath -Raw | ConvertFrom-Json -AsHashtable
+        $targetDataset = Get-Content -LiteralPath ([string]$compiled.mappings[0].resolvedDataset) -Raw | ConvertFrom-Json -AsHashtable
+        $groupDataset = Get-Content -LiteralPath ([string]$compiled.mappings[1].resolvedDataset) -Raw | ConvertFrom-Json -AsHashtable
+        @($targetDataset.items.id) | Should -Be @('array-a')
+        @($groupDataset.items.id) | Should -Be @('pair-a')
+    }
+
     It 'renders a canonical multi-target DE fixture through bundle orchestration' {
         $fixtureRoot = Join-Path $script:repoRoot 'tests/fixtures/canonical-de'
         $catalogPath = Join-Path $script:repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json'

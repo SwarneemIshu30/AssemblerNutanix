@@ -117,6 +117,17 @@ function New-AssemblerCompiledMapping {
                 Where-Object {
                     [string]$_.techId -eq [string]$mapping.techId -and
                     [string]$_.datasetKey -eq $datasetKey -and
+                    (
+                        -not $entry.Contains('scope') -or
+                        [string]::IsNullOrWhiteSpace([string]$entry.scope) -or
+                        [string]$entry.scope -eq 'any' -or
+                        [string]$_.scope -eq [string]$entry.scope
+                    ) -and
+                    (
+                        -not $entry.Contains('domain') -or
+                        [string]::IsNullOrWhiteSpace([string]$entry.domain) -or
+                        [string]$_.domain -eq [string]$entry.domain
+                    ) -and
                     $includedObjects.ContainsKey("$([string]$_.scope)|$([string]$_.techId)|$([string]$_.objectKey)")
                 } |
                 Sort-Object scope, objectKey, domain, relativePath
@@ -134,7 +145,14 @@ function New-AssemblerCompiledMapping {
                 $items.Add((Add-AssemblerContextToItem -Item $item -CatalogEntry $match))
             }
         }
-        $compiledDatasetPath = Join-Path $datasetRoot "$datasetKey.json"
+        $compiledDatasetNameParts = [System.Collections.Generic.List[string]]::new()
+        $compiledDatasetNameParts.Add($datasetKey)
+        foreach ($filterKey in @('scope', 'domain')) {
+            if ($entry.Contains($filterKey) -and -not [string]::IsNullOrWhiteSpace([string]$entry[$filterKey]) -and [string]$entry[$filterKey] -ne 'any') {
+                $compiledDatasetNameParts.Add((ConvertTo-AssemblerSafeName -Value ([string]$entry[$filterKey])))
+            }
+        }
+        $compiledDatasetPath = Join-Path $datasetRoot "$($compiledDatasetNameParts -join '.').json"
         [ordered]@{
             schema_version = 'lnv.collector.dataset.v1'
             collector = [ordered]@{ tech_id = [string]$mapping.techId; module = 'LNV.AsBuiltDoc.Assembler'; entry_point = 'composition' }
