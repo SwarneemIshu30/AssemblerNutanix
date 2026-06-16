@@ -5,7 +5,7 @@
   "displayName": "Microsoft.FailoverCluster collector blueprint mapping",
   "compatibility": {
     "contracts": {
-      "version": "v1"
+      "version": "v2"
     }
   },
   "strictContracts": {
@@ -15,5 +15,214 @@
   "generatedFromContract": {
     "path": "tech/Microsoft.FailoverCluster/mapping.dataset-to-sdt.v1.yaml"
   },
-  "mappings": []
+  "mappings": [
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Summary",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Summary"
+      },
+      "dataset": "cluster",
+      "required": true
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Capabilities",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Capabilities"
+      },
+      "dataset": "capabilities",
+      "required": true
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Nodes",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Nodes"
+      },
+      "dataset": "nodes",
+      "required": true
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Networks",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Networks"
+      },
+      "dataset": "networks",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Roles",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Roles"
+      },
+      "dataset": "roles",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Resources",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Resources"
+      },
+      "dataset": "resources",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.ClusterDisks",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.ClusterDisks"
+      },
+      "dataset": "cluster-disks",
+      "required": true
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.ClusterSharedVolumes",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.ClusterSharedVolumes"
+      },
+      "dataset": "cluster-shared-volumes",
+      "required": true
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Volumes",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Volumes"
+      },
+      "dataset": "volumes",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.StoragePools",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.StoragePools"
+      },
+      "dataset": "storage-pools",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.PhysicalDisks",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.PhysicalDisks"
+      },
+      "dataset": "physical-disks",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.VirtualDisks",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.VirtualDisks"
+      },
+      "dataset": "virtual-disks",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.StorageTiers",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.StorageTiers"
+      },
+      "dataset": "storage-tiers",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.FaultDomains",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.FaultDomains"
+      },
+      "dataset": "fault-domains",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.StorageJobs",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.StorageJobs"
+      },
+      "dataset": "storage-jobs",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.StorageHealth",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.StorageHealth"
+      },
+      "dataset": "storage-health",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.HyperVHosts",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.HyperVHosts"
+      },
+      "dataset": "hyperv-hosts",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.VirtualMachines",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.VirtualMachines"
+      },
+      "dataset": "virtual-machines",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.VirtualSwitches",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.VirtualSwitches"
+      },
+      "dataset": "virtual-switches",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.VmNetworkAdapters",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.VmNetworkAdapters"
+      },
+      "dataset": "vm-network-adapters",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.LiveMigration",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.LiveMigration"
+      },
+      "dataset": "live-migration",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Replica",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Replica"
+      },
+      "dataset": "replica",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.ActiveDirectoryIntegration",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.ActiveDirectoryIntegration"
+      },
+      "dataset": "ad-integration",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Relationships",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Cluster[<ClusterKey>].Tables.Relationships"
+      },
+      "dataset": "relationships",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Collection[<ClusterKey>].Tables.Sources",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Collection[<ClusterKey>].Tables.Sources"
+      },
+      "dataset": "collection-sources",
+      "required": false
+    },
+    {
+      "sdtTag": "LNV.Microsoft.FailoverCluster.Collection[<ClusterKey>].Tables.Coverage",
+      "target": {
+        "sdtTag": "LNV.Microsoft.FailoverCluster.Collection[<ClusterKey>].Tables.Coverage"
+      },
+      "dataset": "coverage",
+      "required": false
+    }
+  ]
 }

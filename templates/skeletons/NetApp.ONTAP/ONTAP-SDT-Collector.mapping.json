@@ -5,7 +5,7 @@
   "displayName": "NetApp.ONTAP collector blueprint mapping",
   "compatibility": {
     "contracts": {
-      "version": "v1"
+      "version": "v2"
     }
   },
   "strictContracts": {
@@ -15,5 +15,262 @@
   "generatedFromContract": {
     "path": "tech/NetApp.ONTAP/mapping.dataset-to-sdt.v1.yaml"
   },
-  "mappings": []
+  "mappings": [
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Summary",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Summary"
+      },
+      "renderHint": {
+        "renderAs": "scalar"
+      },
+      "selectors": [
+        "items.0"
+      ],
+      "required": true,
+      "dataset": "cluster"
+    },
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.Nodes",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.Nodes"
+      },
+      "renderHint": {
+        "renderAs": "table"
+      },
+      "selectors": [
+        "items"
+      ],
+      "required": false,
+      "dataset": "nodes"
+    },
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.SVMs",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.SVMs"
+      },
+      "renderHint": {
+        "renderAs": "table"
+      },
+      "selectors": [
+        "items"
+      ],
+      "required": false,
+      "dataset": "svms"
+    },
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.Aggregates",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.Aggregates"
+      },
+      "renderHint": {
+        "renderAs": "table"
+      },
+      "selectors": [
+        "items"
+      ],
+      "required": false,
+      "dataset": "aggregates"
+    },
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.Volumes",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.Volumes"
+      },
+      "renderHint": {
+        "renderAs": "table"
+      },
+      "selectors": [
+        "items"
+      ],
+      "required": false,
+      "dataset": "volumes"
+    },
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.NetworkInterfaces",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.NetworkInterfaces"
+      },
+      "renderHint": {
+        "renderAs": "table"
+      },
+      "selectors": [
+        "items"
+      ],
+      "required": false,
+      "dataset": "network-interfaces"
+    },
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.Licenses",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.Licenses"
+      },
+      "renderHint": {
+        "renderAs": "table"
+      },
+      "selectors": [
+        "items"
+      ],
+      "required": false,
+      "dataset": "licenses"
+    },
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.ClusterMediators",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.ClusterMediators"
+      },
+      "renderHint": {
+        "renderAs": "table"
+      },
+      "selectors": [
+        "items"
+      ],
+      "required": false,
+      "dataset": "cluster-mediators"
+    },
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.MultiAdminApprovalGroups",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.MultiAdminApprovalGroups"
+      },
+      "renderHint": {
+        "renderAs": "table"
+      },
+      "selectors": [
+        "items"
+      ],
+      "required": false,
+      "dataset": "multi-admin-approval-groups"
+    },
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.MultiAdminApprovalRules",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.MultiAdminApprovalRules"
+      },
+      "renderHint": {
+        "renderAs": "table"
+      },
+      "selectors": [
+        "items"
+      ],
+      "required": false,
+      "dataset": "multi-admin-approval-rules"
+    },
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.ConsistencyGroups",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.ConsistencyGroups"
+      },
+      "renderHint": {
+        "renderAs": "table"
+      },
+      "selectors": [
+        "items"
+      ],
+      "required": false,
+      "dataset": "consistency-groups"
+    },
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.S3Services",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.S3Services"
+      },
+      "renderHint": {
+        "renderAs": "table"
+      },
+      "selectors": [
+        "items"
+      ],
+      "required": false,
+      "dataset": "s3-services"
+    },
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.S3Buckets",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.S3Buckets"
+      },
+      "renderHint": {
+        "renderAs": "table"
+      },
+      "selectors": [
+        "items"
+      ],
+      "required": false,
+      "dataset": "s3-buckets"
+    },
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.ToolkitBaseline",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Tables.ToolkitBaseline"
+      },
+      "renderHint": {
+        "renderAs": "table"
+      },
+      "selectors": [
+        "items"
+      ],
+      "required": true,
+      "dataset": "toolkit-baseline"
+    },
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Diagrams.ClusterGraph",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Diagrams.ClusterGraph"
+      },
+      "renderHint": {
+        "renderAs": "diagram",
+        "renderMode": "diagram"
+      },
+      "selectors": [
+        "items.0"
+      ],
+      "required": false,
+      "dataset": "diagram-cluster-graph"
+    },
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Diagrams.AggregateGraph",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Diagrams.AggregateGraph"
+      },
+      "renderHint": {
+        "renderAs": "diagram",
+        "renderMode": "diagram"
+      },
+      "selectors": [
+        "items.0"
+      ],
+      "required": false,
+      "dataset": "diagram-aggregate-graph"
+    },
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Diagrams.NetworkGraph",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Diagrams.NetworkGraph"
+      },
+      "renderHint": {
+        "renderAs": "diagram",
+        "renderMode": "diagram"
+      },
+      "selectors": [
+        "items.0"
+      ],
+      "required": false,
+      "dataset": "diagram-network-graph"
+    },
+    {
+      "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Diagrams.ReplicationGraph",
+      "target": {
+        "sdtTag": "LNV.NetApp.ONTAP.Cluster[ClusterName].Diagrams.ReplicationGraph"
+      },
+      "renderHint": {
+        "renderAs": "diagram",
+        "renderMode": "diagram"
+      },
+      "selectors": [
+        "items.0"
+      ],
+      "required": false,
+      "dataset": "diagram-replication-graph"
+    }
+  ]
 }
