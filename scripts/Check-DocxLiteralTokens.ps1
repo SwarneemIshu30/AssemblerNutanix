@@ -4,8 +4,22 @@ param(
 )
 
 $base = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$DocxPath = [System.IO.Path]::GetFullPath((Join-Path $base $DocxPath))
-$MappingPath = [System.IO.Path]::GetFullPath((Join-Path $base $MappingPath))
+
+function Resolve-InputPath {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$BasePath
+    )
+
+    if ([System.IO.Path]::IsPathRooted($Path)) {
+        return [System.IO.Path]::GetFullPath($Path)
+    }
+
+    return [System.IO.Path]::GetFullPath((Join-Path $BasePath $Path))
+}
+
+$DocxPath = Resolve-InputPath -Path $DocxPath -BasePath $base
+$MappingPath = Resolve-InputPath -Path $MappingPath -BasePath $base
 
 Import-Module (Join-Path $PSScriptRoot 'internal/AssemblerDocxLiteralTokens.psm1') -Force
 
@@ -23,6 +37,10 @@ function Get-MappingTags {
 }
 
 $tags = @(Get-MappingTags -Path $MappingPath)
+if ($tags.Count -eq 0) {
+    Write-Error "Mapping '$MappingPath' does not contain any SDT tags to check."
+    exit 1
+}
 $diagnostics = @(Get-AssemblerDocxLiteralTokenDiagnostics -DocxPath $DocxPath -Tags $tags)
 $results = @(
     Get-AssemblerDocxLiteralTokenTagSummary -Diagnostics $diagnostics |
