@@ -1,6 +1,6 @@
 {
   "schema": "mapping.dataset-to-sdt",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "techId": "NetApp.ONTAP",
   "displayName": "NetApp.ONTAP collector blueprint mapping",
   "compatibility": {

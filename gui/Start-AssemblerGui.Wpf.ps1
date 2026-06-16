@@ -1084,7 +1084,7 @@ function Get-CurrentWebViewAllowedRoots {
 }
 
 function New-CurrentWebViewMappingStudioState {
-    $resolvedMappingsRoot = Join-Path $outputRootText.Text '.resolved-mappings'
+    $resolvedMappingsRoot = Join-Path $outputRootText.Text '.render-plan/mappings'
     $reportPath = if (-not [string]::IsNullOrWhiteSpace([string]$webViewState.LastReportPath)) {
         [string]$webViewState.LastReportPath
     }
@@ -1475,27 +1475,6 @@ function Get-BundleSnapshotDateDefault {
     $resolvedBundleRoot = Resolve-LoadedBundleRoot -BundleRoot $BundleRoot
     if ([string]::IsNullOrWhiteSpace($resolvedBundleRoot)) {
         return ''
-    }
-
-    $datasetsRoot = Join-Path $resolvedBundleRoot 'datasets'
-    if (Test-Path -LiteralPath $datasetsRoot -PathType Container) {
-        $runSummaryPath = Get-ChildItem -LiteralPath $datasetsRoot -Recurse -Filter 'run_summary.json' -File -ErrorAction SilentlyContinue |
-            Sort-Object -Property FullName |
-            Select-Object -First 1
-        if ($null -ne $runSummaryPath) {
-            try {
-                $runSummary = Get-Content -LiteralPath $runSummaryPath.FullName -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
-                $items = @($runSummary.items)
-                if (@($items).Count -gt 0) {
-                    $displayDate = Convert-BundleTimestampToDisplayDate -Timestamp $items[0].collectedUtc
-                    if (-not [string]::IsNullOrWhiteSpace($displayDate)) {
-                        return $displayDate
-                    }
-                }
-            }
-            catch {
-            }
-        }
     }
 
     $manifestPath = Join-Path $resolvedBundleRoot 'manifest.json'

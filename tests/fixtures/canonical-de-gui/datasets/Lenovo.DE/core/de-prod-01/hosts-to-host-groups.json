@@ -1,0 +1,45 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.DE",
+    "module": "LNV.AsBuiltDoc.Lenovo.DE",
+    "entry_point": "Invoke-LnvAsBuiltDoc.Lenovo.DE"
+  },
+  "source": {
+    "bundle_id": "canonical-de-gui",
+    "file": "datasets/Lenovo.DE/core/de-prod-01/hosts-to-host-groups.json",
+    "domain": "core",
+    "target_key": "de-prod-01"
+  },
+  "dataset": {
+    "key": "hosts-to-host-groups",
+    "schema_path": "tech/Lenovo.DE/dataset/hosts-to-host-groups.schema.json"
+  },
+  "item_count": 2,
+  "items": [
+    {
+      "systemId": "1",
+      "hostId": "840000006D039EA000D9EFC20030016B69B099F5",
+      "hostRef": "840000006D039EA000D9EFC20030016B69B099F5",
+      "hostName": "HostJupiter2",
+      "hostType": "Windows (clustered or non-clustered)",
+      "clusterRef": "850000006D039EA000D9F0180036013769B09A1D",
+      "hostGroupId": "850000006D039EA000D9F0180036013769B09A1D",
+      "hostGroupRef": "850000006D039EA000D9F0180036013769B09A1D",
+      "hostGroupName": "HostClusterGalaxy",
+      "hostGroupKeyType": "clusterRef"
+    },
+    {
+      "systemId": "1",
+      "hostId": "840000006D039EA000D9F0180030013369B099E9",
+      "hostRef": "840000006D039EA000D9F0180030013369B099E9",
+      "hostName": "HostNeptune1",
+      "hostType": "Windows (clustered or non-clustered)",
+      "clusterRef": "850000006D039EA000D9F0180036013769B09A1D",
+      "hostGroupId": "850000006D039EA000D9F0180036013769B09A1D",
+      "hostGroupRef": "850000006D039EA000D9F0180036013769B09A1D",
+      "hostGroupName": "HostClusterGalaxy",
+      "hostGroupKeyType": "clusterRef"
+    }
+  ]
+}

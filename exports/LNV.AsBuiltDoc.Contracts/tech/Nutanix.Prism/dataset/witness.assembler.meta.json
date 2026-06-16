@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "dataset": "witness",
+  "presentationKind": "evidence",
+  "defaultItemRoot": "items",
+  "documentFacing": false,
+  "notes": "Evidence-only until an explicit document projection is contracted."
+}

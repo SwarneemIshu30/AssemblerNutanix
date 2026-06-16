@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "objects": [
+    {
+      "key": "de-prod-01",
+      "kind": "storageArray",
+      "displayName": "DE4200 Rack4"
+    }
+  ]
+}

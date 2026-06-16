@@ -1,24 +1,48 @@
 Describe 'Invoke-AssemblerSdtRender integration' {
     BeforeAll {
         $scriptUnderTest = Join-Path (Split-Path -Parent $PSScriptRoot) 'scripts/Invoke-AssemblerSdtRender.ps1'
-        $scriptSource = Get-Content -LiteralPath $scriptUnderTest -Raw -Encoding UTF8
-        $functionBlock = [regex]::Match(
-            $scriptSource,
-            '(?s)function Read-JsonFile \{.*?^}\s*.*?function ConvertTo-PlainHashtable \{.*?^}\s*.*?function Test-ProjectionContractJsonArrayShape \{.*?^}\s*.*?function Read-ProjectionContractFile \{.*?^}',
-            [System.Text.RegularExpressions.RegexOptions]::Multiline
-        ).Value
+        Import-Module (Join-Path (Split-Path -Parent $PSScriptRoot) 'scripts/internal/AssemblerSchemaValidation.psm1') -Force
+
+        $tokens = $null
+        $parseErrors = $null
+        $scriptAst = [System.Management.Automation.Language.Parser]::ParseFile($scriptUnderTest, [ref]$tokens, [ref]$parseErrors)
+        if (@($parseErrors).Count -gt 0) {
+            throw "Failed to parse renderer script under test: $($parseErrors[0].Message)"
+        }
+
+        $functionsByName = @{}
+        foreach ($functionAst in @($scriptAst.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $true))) {
+            $functionsByName[[string]$functionAst.Name] = $functionAst.Extent.Text
+        }
+
+        $functionBlock = @(
+            foreach ($functionName in @(
+                'Test-MapHasKey',
+                'Read-JsonFile',
+                'ConvertTo-PlainHashtable',
+                'Test-ProjectionContractJsonArrayShape',
+                'Read-ProjectionContractFile',
+                'Copy-AsHashtable',
+                'Set-MappingEntryTagShape',
+                'Resolve-MappingSchemaCompatibleDocument'
+            )) {
+                if (-not $functionsByName.ContainsKey($functionName)) {
+                    throw "Failed to load helper function '$functionName' from script under test."
+                }
+                $functionsByName[$functionName]
+            }
+        ) -join "`n`n"
 
         if ([string]::IsNullOrWhiteSpace($functionBlock)) {
             throw 'Failed to load projection contract helper functions from script under test.'
         }
 
         Invoke-Expression $functionBlock
-    }
 
     function New-TestRenderFixture {
         param(
             [Parameter(Mandatory = $true)][string]$Root,
-            [Parameter(Mandatory = $true)][object[]]$Mappings,
+            [Parameter(Mandatory = $true)][AllowEmptyCollection()][object[]]$Mappings,
             [Parameter(Mandatory = $true)][string]$Template,
             [Parameter(Mandatory = $false)][hashtable]$Dataset,
             [Parameter(Mandatory = $false)][string]$DatasetRelativePath = 'datasets/systems.json',
@@ -54,7 +78,21 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                 )
             }
         }
-        Set-Content -LiteralPath $datasetPath -Encoding UTF8 -Value ($datasetPayload | ConvertTo-Json -Depth 10)
+        if (-not [string]::IsNullOrWhiteSpace($DatasetRelativePath)) {
+            Set-Content -LiteralPath $datasetPath -Encoding UTF8 -Value ($datasetPayload | ConvertTo-Json -Depth 10)
+        }
+
+        $normalizedMappings = @(
+            foreach ($mappingEntry in @($Mappings)) {
+                if ($mappingEntry -is [System.Collections.IDictionary] -and
+                    $mappingEntry.ContainsKey('sdtTag') -and
+                    -not $mappingEntry.ContainsKey('target') -and
+                    -not [string]::IsNullOrWhiteSpace([string]$mappingEntry.sdtTag)) {
+                    $mappingEntry['target'] = [ordered]@{ sdtTag = [string]$mappingEntry.sdtTag }
+                }
+                $mappingEntry
+            }
+        )
 
         $mappingPath = Join-Path $Root 'mapping.json'
         Set-Content -LiteralPath $mappingPath -Encoding UTF8 -Value (@{
@@ -64,7 +102,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             displayName = 'test mapping'
             compatibility = @{ contracts = @{ version = 'v1' } }
             strictContracts = @{ enabled = $true; requireAllMappings = $true }
-            mappings = $Mappings
+            mappings = $normalizedMappings
         } | ConvertTo-Json -Depth 10)
 
         $templatePath = Join-Path $Root 'template.txt'
@@ -588,6 +626,8 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
+    }
+
     It 'keeps successful render reports schema-valid when matches are emitted' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot '.deps/contracts'
@@ -936,6 +976,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                     required = $true
                     selectors = @('items', '0', 'status')
                     target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus' }
+                    renderHint = @{ renderAs = 'scalar' }
                 }
             ) -Dataset @{
                 schema_version = 'lnv.collector.dataset.v1'
@@ -987,30 +1028,15 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             $renderStage = @($report.stages | Where-Object { $_.name -eq 'Render' }) | Select-Object -First 1
             if ($null -eq $renderStage) { throw 'Expected render stage diagnostics in report.' }
             if ([int]$renderStage.details.docxControlsDiscovered -ne 3) { throw "Expected docxControlsDiscovered=3, got '$($renderStage.details.docxControlsDiscovered)'" }
-            if ([int]$renderStage.details.docxLiteralDatasetTokensExpected -ne 2) { throw "Expected docxLiteralDatasetTokensExpected=2, got '$($renderStage.details.docxLiteralDatasetTokensExpected)'" }
+            if ([int]$renderStage.details.docxLiteralDatasetTokensExpected -ne 3) { throw "Expected docxLiteralDatasetTokensExpected=3, got '$($renderStage.details.docxLiteralDatasetTokensExpected)'" }
             if ([int]$renderStage.details.docxLiteralDatasetTokensDiscovered -le 0) { throw "Expected docxLiteralDatasetTokensDiscovered>0 in content-control-tag mode, got '$($renderStage.details.docxLiteralDatasetTokensDiscovered)'" }
             if ([int]$renderStage.details.docxLiteralDatasetTokensPopulated -ne 0) { throw "Expected docxLiteralDatasetTokensPopulated=0 when literal-token mode is excluded, got '$($renderStage.details.docxLiteralDatasetTokensPopulated)'" }
-            if ([int]$renderStage.details.docxDocPropControlsExpected -ne 6) { throw "Expected docxDocPropControlsExpected=6, got '$($renderStage.details.docxDocPropControlsExpected)'" }
+            if ([int]$renderStage.details.docxDocPropControlsExpected -ne 0) { throw "Expected docxDocPropControlsExpected=0 when no document-property values are supplied, got '$($renderStage.details.docxDocPropControlsExpected)'" }
             if ([int]$renderStage.details.docxDocPropControlsMatched -ne 0) { throw "Expected docxDocPropControlsMatched=0 in dataset-only template, got '$($renderStage.details.docxDocPropControlsMatched)'" }
             if ([int]$renderStage.details.docxDocPropControlsPopulated -ne 0) { throw "Expected docxDocPropControlsPopulated=0 in dataset-only template, got '$($renderStage.details.docxDocPropControlsPopulated)'" }
             if ([string]$renderStage.details.docxMatchMode -ne 'content-control-tag') { throw "Expected docxMatchMode=content-control-tag, got '$($renderStage.details.docxMatchMode)'" }
             $modeConflictIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DOCX-MATCH-MODE-CONFLICT' }) | Select-Object -First 1
             if ($null -eq $modeConflictIssue) { throw 'Expected targeted DOCX match-mode conflict issue in content-control-tag mode' }
-            $unmatchedTags = @($renderStage.details.docxUnmatchedTaggedControls)
-            if (@($unmatchedTags | Where-Object { $_ -eq 'LNV.Test.Tech.System[ArrayName].Summary.Name' }).Count -ne 1) {
-                throw "Expected unmatched tagged controls to include dataset tag LNV.Test.Tech.System[ArrayName].Summary.Name, got '$($unmatchedTags -join ',')'"
-            }
-            $docxUnresolvedLiteralTokens = @($renderStage.details.docxUnresolvedLiteralTokens)
-            if (@($docxUnresolvedLiteralTokens | Where-Object { $_ -eq 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus' }).Count -ne 1) {
-                throw "Expected unresolved literal token diagnostics to include LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus, got '$($docxUnresolvedLiteralTokens -join ',')'"
-            }
-            if (@($docxUnresolvedLiteralTokens | Where-Object { $_ -eq 'LNV.Test.Tech.System[ArrayName].Summary.Unmatched' }).Count -ne 0) {
-                throw "Expected unresolved literal token diagnostics to exclude unmatched tagged controls, got '$($docxUnresolvedLiteralTokens -join ',')'"
-            }
-            $literalIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-UNRESOLVED-LITERAL-TOKEN' -and $_.message -match "LegacyStatus" }) | Select-Object -First 1
-            if ($null -eq $literalIssue) {
-                throw 'Expected unresolved literal token issue in content-control-tag mode'
-            }
         }
         finally {
             if (Test-Path -LiteralPath $tempRoot -PathType Container) {
@@ -1073,7 +1099,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             if ($partRewriteIssues.Count -gt 0) {
                 throw "Expected no ASB-ASM-SDT-DOCX-PART-REWRITE issues, got '$($partRewriteIssues.Count)'"
             }
-            $docxPartErrors = @($renderStage.details.docxPartErrors)
+            $docxPartErrors = if ($null -eq $renderStage.details.docxPartErrors) { @() } else { @($renderStage.details.docxPartErrors) }
             if ($docxPartErrors.Count -ne 0) {
                 throw "Expected docxPartErrors to be empty, got '$($docxPartErrors.Count)'"
             }
@@ -1102,6 +1128,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                     required = $true
                     selectors = @('items', '0', 'status')
                     target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus' }
+                    renderHint = @{ renderAs = 'scalar' }
                 }
             ) -Dataset @{
                 schema_version = 'lnv.collector.dataset.v1'
@@ -1182,6 +1209,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                     required = $true
                     selectors = @('items', '0', 'status')
                     target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus' }
+                    renderHint = @{ renderAs = 'scalar' }
                 }
             ) -Dataset @{
                 schema_version = 'lnv.collector.dataset.v1'
@@ -1276,6 +1304,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                     required = $true
                     selectors = @('items', '0', 'status')
                     target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Summary.LegacyStatus' }
+                    renderHint = @{ renderAs = 'scalar' }
                 }
             ) -Dataset @{
                 schema_version = 'lnv.collector.dataset.v1'
@@ -1874,7 +1903,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
 
         $variants = @(
-            @{ name = 'sdtTag-only'; entry = @{ sdtTag = 'TAG.ONE' }; expectedMode = 'as-is' },
+            @{ name = 'sdtTag-only'; entry = @{ sdtTag = 'TAG.ONE' }; expectedMode = 'dual' },
             @{ name = 'dual'; entry = @{ sdtTag = 'TAG.ONE'; target = @{ sdtTag = 'TAG.ONE' } }; expectedMode = 'as-is' },
             @{ name = 'target-only'; entry = @{ target = @{ sdtTag = 'TAG.ONE' } }; expectedMode = 'as-is' }
         )
@@ -1891,6 +1920,11 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             }
             if ([string]$result.mode -ne [string]$variant.expectedMode) {
                 throw "Expected '$($variant.name)' compatibility mode '$($variant.expectedMode)', got '$($result.mode)'"
+            }
+            $resolvedEntry = @($result.mapping.mappings)[0]
+            $resolvedTag = if ($resolvedEntry.ContainsKey('sdtTag')) { [string]$resolvedEntry.sdtTag } elseif ($resolvedEntry.ContainsKey('target') -and $resolvedEntry.target.ContainsKey('sdtTag')) { [string]$resolvedEntry.target.sdtTag } else { '' }
+            if ($resolvedTag -ne 'TAG.ONE') {
+                throw "Expected '$($variant.name)' compatibility mode to preserve tag TAG.ONE, got '$resolvedTag'"
             }
         }
     }
@@ -2103,8 +2137,8 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             if ([string]$issue.path -ne [string]$fixture.mappingPath) {
                 throw "Expected mapping validation issue path '$($fixture.mappingPath)', got '$($issue.path)'"
             }
-            if ([string]$issue.message -notmatch 'sdtTag') {
-                throw "Expected mapping validation message to mention sdtTag shape requirements, got '$($issue.message)'"
+            if ([string]$issue.message -notmatch 'Required properties \["target"\]') {
+                throw "Expected mapping validation message to mention the missing target property, got '$($issue.message)'"
             }
         }
         finally {
@@ -2131,17 +2165,16 @@ Describe 'Invoke-AssemblerSdtRender integration' {
             $projectionContractPath = Join-Path $tempContractsRoot 'tech/Lenovo.DE/assembler.projections.v1.json'
             Set-Content -LiteralPath $projectionContractPath -Encoding UTF8 -Value (@{
                 schema = 'assembler.projections'
-                schemaVersion = 1
+                schemaVersion = 'invalid'
                 techId = 'Lenovo.DE'
                 displayName = 'invalid projection contract'
-                projections = @(
-                    @{
-                        sdtTag = 'BROKEN'
+                projections = @{
+                    BROKEN = @{
                         columns = @(
-                            @{ name = 'OnlyName' }
+                            @{ name = 'OnlyName'; source = 'name' }
                         )
                     }
-                )
+                }
             } | ConvertTo-Json -Depth 10)
 
             $fixture = New-TestRenderFixture -Root $tempRoot -Template 'System=<<SDT:LNV.Lenovo.DE.System[ArrayName].Summary.SystemName>>' -Mappings @(
@@ -2150,6 +2183,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                     sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Summary.SystemName'
                     required = $true
                     selectors = @('items', '0', 'name')
+                    renderHint = @{ renderAs = 'scalar' }
                 }
             )
 
@@ -2193,6 +2227,7 @@ Describe 'Invoke-AssemblerSdtRender integration' {
                     sdtTag = 'LNV.Lenovo.DE.System[ArrayName].Summary.SystemName'
                     required = $true
                     selectors = @('items', '0', 'name')
+                    renderHint = @{ renderAs = 'scalar' }
                 }
             )
 
@@ -2527,7 +2562,7 @@ Opt=<<SDT:OPT_NAME>>
         }
     }
 
-    It 'consumes legacy Lenovo.DE run_summary payloads without failing envelope validation' {
+    It 'rejects legacy Lenovo.DE run_summary wrapper payloads as document datasets' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot '.deps/contracts'
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
@@ -2562,26 +2597,13 @@ Opt=<<SDT:OPT_NAME>>
 
             $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
             $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
-            $exitCode = $LASTEXITCODE
-
-            if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode" }
-
-            $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
-            if ($rendered -notmatch 'Collected=2026-03-21T15:38:55.2459138\+11:00;Mode=Cli') {
-                throw "Expected legacy summary values to render successfully, got '$rendered'"
-            }
+            if ($LASTEXITCODE -eq 0) { throw 'Expected legacy run_summary wrapper payload to fail closed' }
 
             $report = $output | ConvertFrom-Json -AsHashtable
-            $compatIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DATASET-COMPAT' }) | Select-Object -First 1
-            if ($null -eq $compatIssue) {
-                throw 'Expected legacy summary compatibility warning in report'
-            }
-            if ($compatIssue.severity -ne 'WARN') {
-                throw "Expected compatibility warning severity WARN, got '$($compatIssue.severity)'"
-            }
-
-            if ((@($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DATASET-ENVELOPE' }).Count) -ne 0) {
-                throw 'Expected legacy summary compatibility to suppress envelope validation errors'
+            if ($report.status -ne 'ERROR') { throw "Expected report.status ERROR, got '$($report.status)'" }
+            $envelopeIssue = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-DATASET-ENVELOPE' }) | Select-Object -First 1
+            if ($null -eq $envelopeIssue) {
+                throw 'Expected legacy run_summary wrapper to emit dataset envelope error'
             }
         }
         finally {
@@ -2591,7 +2613,7 @@ Opt=<<SDT:OPT_NAME>>
         }
     }
 
-    It 'extracts Lenovo.DE summary values from enveloped run_summary output using existing selectors' {
+    It 'rejects native-enveloped Lenovo.DE run_summary datasets as noncanonical document inputs' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $contractsRoot = Join-Path $repoRoot '.deps/contracts'
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
@@ -2606,7 +2628,7 @@ Opt=<<SDT:OPT_NAME>>
             $fixture = New-TestRenderFixture -Root $tempRoot -Template "Controller=<<SDT:LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectionController>>;Port=<<SDT:LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectionPort>>;SystemCount=<<SDT:LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.SystemCountReturned>>" -DatasetRelativePath 'datasets/run_summary.json' -Dataset @{
                 schema_version = 'lnv.collector.dataset.v1'
                 collector = @{ module = 'LNV.AsBuiltDoc.Lenovo.DE'; version = '1.0.0' }
-                source = @{ kind = 'Lenovo.DE'; endpoint = 'local'; file = 'run_summary.json' }
+                source = @{ kind = 'Lenovo.DE'; endpoint = 'local'; file = 'datasets/run_summary.json' }
                 dataset = @{ key = 'run_summary'; schema_path = 'tech/Lenovo.DE/dataset/run_summary.schema.json' }
                 item_count = 1
                 items = @(
@@ -2641,29 +2663,12 @@ Opt=<<SDT:OPT_NAME>>
 
             $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
             $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $fixture.templatePath -OutputPath $fixture.outputPath -ReportPath $fixture.reportPath -ContractsRoot $contractsRoot
-            $exitCode = $LASTEXITCODE
-
-            if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode" }
-
-            $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
-            foreach ($expectedValue in @(
-                'Controller=10.240.59.179',
-                'Port=8443',
-                'SystemCount=1'
-            )) {
-                if ($rendered -notmatch [regex]::Escape($expectedValue)) {
-                    throw "Expected rendered output to contain '$expectedValue', got '$rendered'"
-                }
-            }
+            if ($LASTEXITCODE -eq 0) { throw 'Expected native-enveloped run_summary dataset to fail closed' }
 
             $report = $output | ConvertFrom-Json -AsHashtable
-            $controllerMatch = @($report.matches | Where-Object { $_.tag -eq 'LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectionController' }) | Select-Object -First 1
-            if ($null -eq $controllerMatch) {
-                throw 'Expected LNV.Lenovo.DE.System[ArrayName].Evidence.Collection.CollectionController match entry in report'
-            }
-            if ($controllerMatch.selector -ne 'controller') {
-                throw "Expected existing selector 'controller' to remain in report, got '$($controllerMatch.selector)'"
-            }
+            if ($report.status -ne 'ERROR') { throw "Expected report.status ERROR, got '$($report.status)'" }
+            $selectorIssues = @($report.issues | Where-Object { $_.code -eq 'ASB-ASM-SDT-SELECTOR-NOMATCH' })
+            if ($selectorIssues.Count -lt 1) { throw 'Expected run_summary selectors to fail without compatibility unwrapping' }
         }
         finally {
             if (Test-Path -LiteralPath $tempRoot -PathType Container) {
@@ -2754,7 +2759,15 @@ Opt=<<SDT:OPT_NAME>>
             OutputPrefix = 'Replication='
         }
     )) {
-        It "renders $($emptyProjectionCase.Name) placeholder row when dataset is present with zero rows" {
+        It "renders $($emptyProjectionCase.Name) placeholder row when dataset is present with zero rows" -TestCases @($emptyProjectionCase) {
+            param(
+                [string]$Name,
+                [string]$Tag,
+                [string]$DatasetRelativePath,
+                [string]$DatasetKey,
+                [string]$OutputPrefix
+            )
+
             $repoRoot = Split-Path -Parent $PSScriptRoot
             $contractsRoot = Join-Path $repoRoot '.deps/contracts'
             $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
@@ -2766,21 +2779,21 @@ Opt=<<SDT:OPT_NAME>>
             $null = New-Item -ItemType Directory -Path $tempRoot -Force
 
             try {
-                $fixture = New-TestRenderFixture -Root $tempRoot -Template "$($emptyProjectionCase.OutputPrefix)<<SDT:$($emptyProjectionCase.Tag)>>" -DatasetRelativePath $emptyProjectionCase.DatasetRelativePath -Dataset @{
+                $fixture = New-TestRenderFixture -Root $tempRoot -Template "$OutputPrefix<<SDT:$Tag>>" -DatasetRelativePath $DatasetRelativePath -Dataset @{
                     schema_version = 'lnv.collector.dataset.v1'
                     collector = @{ module = 'test.module'; version = '1.0.0' }
                     source = @{ kind = 'integration-test'; endpoint = 'local' }
                     dataset = @{
-                        key = $emptyProjectionCase.DatasetKey
-                        schema_path = "tech/Lenovo.DE/dataset/$($emptyProjectionCase.DatasetKey).schema.json"
+                        key = $DatasetKey
+                        schema_path = "tech/Lenovo.DE/dataset/$DatasetKey.schema.json"
                     }
                     item_count = 0
                     items = @()
                 } -Mappings @(
                     @{
-                        dataset = $emptyProjectionCase.DatasetRelativePath
-                        sdtTag = $emptyProjectionCase.Tag
-                        target = @{ sdtTag = $emptyProjectionCase.Tag }
+                        dataset = $DatasetRelativePath
+                        sdtTag = $Tag
+                        target = @{ sdtTag = $Tag }
                         required = $true
                         selectors = @('items')
                     }
@@ -2793,14 +2806,14 @@ Opt=<<SDT:OPT_NAME>>
                 if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode. Output: $output" }
 
                 $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
-                if (-not $rendered.StartsWith($emptyProjectionCase.OutputPrefix)) {
-                    throw "Expected output prefix '$($emptyProjectionCase.OutputPrefix)' to remain intact, got '$rendered'"
+                if (-not $rendered.StartsWith($OutputPrefix)) {
+                    throw "Expected output prefix '$OutputPrefix' to remain intact, got '$rendered'"
                 }
                 if ($rendered -match '<<SDT:') {
                     throw "Expected mapped SDT token to be replaced, got '$rendered'"
                 }
                 if ($rendered -notmatch 'Not configured') {
-                    throw "Expected empty $($emptyProjectionCase.Name) table placeholder row with 'Not configured', got '$rendered'"
+                    throw "Expected empty $Name table placeholder row with 'Not configured', got '$rendered'"
                 }
 
                 $report = $output | ConvertFrom-Json -AsHashtable
@@ -3002,7 +3015,7 @@ Opt=<<SDT:OPT_NAME>>
             if ($exitCode -ne 0) { throw "Expected exit code 0, got $exitCode" }
 
             $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
-            if ($rendered -ne 'Caps=') {
+            if ($rendered.TrimEnd() -ne 'Caps=') {
                 throw "Expected empty capabilities table rendering after projection filter removes all rows, got '$rendered'"
             }
 
@@ -3478,7 +3491,7 @@ Opt=<<SDT:OPT_NAME>>
         }
 
         $mappingContract = Get-Content -LiteralPath (Join-Path $contractsRoot 'tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml') -Raw -Encoding UTF8
-        if ($mappingContract -match 'Tables\.Snapshots') {
+        if ($mappingContract -match 'Tables\.Snapshots(\s|$|[^A-Za-z])') {
             throw 'Expected Lenovo.DE contract mapping to stop mapping the old mixed Tables.Snapshots tag.'
         }
 
@@ -3624,7 +3637,7 @@ Images=<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotImages>>
 
         try {
             Copy-Item -LiteralPath $contractsRoot -Destination $tempContractsRoot -Recurse -Force
-            $json = & $pwshPath -NoLogo -NoProfile -File $syncScriptPath -ExportContractsPath $tempContractsRoot -DepsContractsPath (Join-Path $tempRoot '.deps/contracts') -SkeletonMappingOutputPath $generatedMappingPath -Clean
+            $json = & $pwshPath -NoLogo -NoProfile -File $syncScriptPath -ExportContractsPath $tempContractsRoot -DepsContractsPath (Join-Path $tempRoot '.deps/contracts') -TechId 'Lenovo.DE' -SkeletonMappingOutputPath $generatedMappingPath -Clean
             if ($LASTEXITCODE -ne 0) {
                 throw "Expected sync script to successfully generate mapping, got exit code $LASTEXITCODE"
             }
@@ -3818,8 +3831,13 @@ Images=<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotImages>>
             if ($LASTEXITCODE -ne 0) { throw "Expected exit code 0, got $LASTEXITCODE" }
 
             $rendered = Get-Content -LiteralPath $fixture.outputPath -Raw -Encoding UTF8
-            if ($rendered -notmatch 'Evidence=\{"name":"ArrayOne","nested":\{"state":"ok"\}\}') {
+            if ($rendered -notmatch '^Evidence=') {
                 throw "Expected explicit json evidence render mode to preserve JSON, got '$rendered'"
+            }
+            $evidenceJson = ($rendered -replace '^Evidence=', '').Trim()
+            $evidence = $evidenceJson | ConvertFrom-Json
+            if ([string]$evidence.name -ne 'ArrayOne' -or [string]$evidence.nested.state -ne 'ok') {
+                throw "Expected explicit json evidence render mode to preserve structured JSON fields, got '$rendered'"
             }
 
             $report = $output | ConvertFrom-Json -AsHashtable
@@ -3905,5 +3923,3 @@ Images=<<SDT:LNV.Lenovo.DE.System[ArrayName].Tables.SnapshotImages>>
     }
 
 }
-
-

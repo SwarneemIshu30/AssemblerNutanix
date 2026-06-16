@@ -1,0 +1,45 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.DE",
+    "module": "LNV.AsBuiltDoc.Lenovo.DE",
+    "entry_point": "Invoke-LnvAsBuiltDoc.Lenovo.DE"
+  },
+  "source": {
+    "bundle_id": "canonical-de-gui",
+    "file": "datasets/Lenovo.DE/core/de-prod-01/system-dns.json",
+    "domain": "core",
+    "target_key": "de-prod-01"
+  },
+  "dataset": {
+    "key": "system-dns",
+    "schema_path": "tech/Lenovo.DE/dataset/system-dns.schema.json"
+  },
+  "item_count": 2,
+  "items": [
+    {
+      "systemId": "1",
+      "controllerRef": "070000000000000000000001",
+      "controllerLabel": "A",
+      "controllerSlot": 1,
+      "dnsAcquisitionType": "dhcp",
+      "dnsServers": [],
+      "dhcpAcquiredServers": [
+        "10.240.2.27",
+        "10.240.2.21"
+      ]
+    },
+    {
+      "systemId": "1",
+      "controllerRef": "070000000000000000000002",
+      "controllerLabel": "B",
+      "controllerSlot": 2,
+      "dnsAcquisitionType": "dhcp",
+      "dnsServers": [],
+      "dhcpAcquiredServers": [
+        "10.240.2.27",
+        "10.240.2.21"
+      ]
+    }
+  ]
+}

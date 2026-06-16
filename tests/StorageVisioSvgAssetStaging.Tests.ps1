@@ -3,10 +3,36 @@ Describe 'Storage Visio SVG asset staging' {
         $script:repoRoot = Split-Path -Parent $PSScriptRoot
         $script:scriptPath = Join-Path $script:repoRoot 'scripts/Build-StorageVisioSvgAssetStaging.ps1'
         $script:generatedRoot = Join-Path $script:repoRoot '.diagramKB/generated/storage-visio-svg'
+
+        function New-StorageSvgExportFixture {
+            param(
+                [Parameter(Mandatory = $true)][string]$Root
+            )
+
+            foreach ($family in @('DE','DM','DG','DS')) {
+                $familyRoot = Join-Path $Root $family
+                $null = New-Item -Path $familyRoot -ItemType Directory -Force
+
+                $generatedIndex = Join-Path $script:generatedRoot (Join-Path $family ("_visio-master-export-index-$($family.ToLowerInvariant()).csv"))
+                Copy-Item -LiteralPath $generatedIndex -Destination (Join-Path $familyRoot '_visio-master-export-index.csv') -Force
+
+                foreach ($row in @(Import-Csv -LiteralPath $generatedIndex)) {
+                    if ([string]::IsNullOrWhiteSpace([string]$row.AssetFile) -or [string]$row.AssetFile -notmatch '\.svg$') { continue }
+                    $svgPath = Join-Path $familyRoot ([string]$row.AssetFile)
+                    if (-not (Test-Path -LiteralPath $svgPath -PathType Leaf)) {
+                        Set-Content -LiteralPath $svgPath -Encoding UTF8 -Value '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"></svg>'
+                    }
+                }
+            }
+        }
     }
 
     It 'generates manifests for every storage family without rerunning Visio' {
-        $json = & pwsh -NoProfile -ExecutionPolicy Bypass -Command "& '$script:scriptPath' -Families @('DE','DM','DG','DS')"
+        $exportRoot = Join-Path $TestDrive 'exports'
+        $outputRoot = Join-Path $TestDrive 'generated'
+        New-StorageSvgExportFixture -Root $exportRoot
+
+        $json = & pwsh -NoProfile -ExecutionPolicy Bypass -Command "& '$script:scriptPath' -Families @('DE','DM','DG','DS') -ExportRoot '$($exportRoot.Replace("'", "''"))' -OutputRoot '$($outputRoot.Replace("'", "''"))'"
         $result = $json | ConvertFrom-Json
 
         @($result).Count | Should -Be 4

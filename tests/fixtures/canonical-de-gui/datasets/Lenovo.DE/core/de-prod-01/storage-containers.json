@@ -1,0 +1,72 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.DE",
+    "module": "LNV.AsBuiltDoc.Lenovo.DE",
+    "entry_point": "Invoke-LnvAsBuiltDoc.Lenovo.DE"
+  },
+  "source": {
+    "bundle_id": "canonical-de-gui",
+    "file": "datasets/Lenovo.DE/core/de-prod-01/storage-containers.json",
+    "domain": "core",
+    "target_key": "de-prod-01"
+  },
+  "dataset": {
+    "key": "storage-containers",
+    "schema_path": "tech/Lenovo.DE/dataset/storage-containers.schema.json"
+  },
+  "item_count": 3,
+  "items": [
+    {
+      "systemId": "1",
+      "id": "040000006D039EA000D9F0180000012769894EB2",
+      "name": "SampleVG_1",
+      "containerType": "VolumeGroup",
+      "diskPool": false,
+      "raidLevel": "raid6",
+      "driveMediaType": "ssd",
+      "drivePhysicalType": "sas",
+      "state": "complete",
+      "status": "optimal",
+      "totalBytes": 23009099251712,
+      "usedBytes": 23009099251712,
+      "freeBytes": 0,
+      "securityType": "none",
+      "protectionType": null
+    },
+    {
+      "systemId": "1",
+      "id": "040000006D039EA000D9EFC20000014069894EDC",
+      "name": "SampleVG_2",
+      "containerType": "VolumeGroup",
+      "diskPool": false,
+      "raidLevel": "raid6",
+      "driveMediaType": "ssd",
+      "drivePhysicalType": "sas",
+      "state": "complete",
+      "status": "optimal",
+      "totalBytes": 11486866456576,
+      "usedBytes": 10737418240000,
+      "freeBytes": 749448216576,
+      "securityType": "none",
+      "protectionType": null
+    },
+    {
+      "systemId": "1",
+      "id": "040000006D039EA000D9F0180000012869894ED2",
+      "name": "SampleVG_3",
+      "containerType": "VolumeGroup",
+      "diskPool": false,
+      "raidLevel": "raid6",
+      "driveMediaType": "hdd",
+      "drivePhysicalType": "sas",
+      "state": "complete",
+      "status": "optimal",
+      "totalBytes": 14367425839104,
+      "usedBytes": 12884901888000,
+      "freeBytes": 1482523951104,
+      "securityType": "none",
+      "protectionType": null
+    }
+  ]
+}

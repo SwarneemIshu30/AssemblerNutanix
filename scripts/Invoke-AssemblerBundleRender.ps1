@@ -11,6 +11,7 @@ param(
     [Parameter(Mandatory = $false)][string[]]$TechId,
     [Parameter(Mandatory = $false)][string[]]$EntryId,
     [Parameter(Mandatory = $false)][ValidateSet('docx','text')][string[]]$OutputType,
+    [Parameter(Mandatory = $false)][string]$CompositionMapPath,
     [Parameter(Mandatory = $false)][string]$DocTitle,
     [Parameter(Mandatory = $false)][string]$DocCustomer,
     [Parameter(Mandatory = $false)][string]$DocCustomerAbbr,
@@ -34,6 +35,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 Import-Module (Join-Path $PSScriptRoot 'internal/AssemblerSchemaValidation.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'internal/AssemblerDatasetCatalog.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'internal/AssemblerComposition.psm1') -Force
 
 function Get-UtcTimestamp { (Get-Date).ToUniversalTime().ToString('o') }
 
@@ -462,6 +465,7 @@ $runs = [System.Collections.Generic.List[hashtable]]::new()
 $requestedTechIds = @()
 $requestedEntryIds = @()
 $requestedOutputTypes = @()
+$resolvedCompositionMapPath = $null
 
 function Get-BundleEntryFailureMessage {
     param(
@@ -547,6 +551,8 @@ try {
     Start-BundleStage -Stage $stageMap.Load
     $effectiveContractsRoot = Resolve-AssemblerContractsRoot -ContractsRoot $ContractsRoot -RepoRoot $repoRoot
     $catalogSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards/assembler') 'assembler.template-catalog.schema.v1.json'
+    $compositionSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards/assembler') 'assembler.composition-map.schema.v1.json'
+    $compositionPolicySchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards/assembler') 'assembler.composition-policy.schema.v1.json'
     $aggregateReportSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards/assembler') 'assembler.bundle-render-report.schema.v1.json'
 
     $catalog = Read-JsonFile -Path $CatalogPath
@@ -554,6 +560,7 @@ try {
     $bundleResolution = Resolve-BundleRoot -BundleRoot $BundleRoot
     $effectiveBundleRoot = [string]$bundleResolution.bundleRoot
     $objectIndex = Read-JsonFile -Path ([string]$bundleResolution.objectIndexPath)
+    $datasetCatalog = New-AssemblerDatasetCatalog -BundleRoot $effectiveBundleRoot
     if ($bundleResolution.autoSelected) {
         $issues.Add([ordered]@{
             code = 'ASB-ASM-BUNDLE-AUTOSELECTED'
@@ -571,13 +578,39 @@ try {
         Complete-BundleStage -Stage $stageMap.Validate -Status 'ERROR'
         throw 'Template catalog schema validation failed.'
     }
+    Ensure-Directory -Path $OutputRoot
+    $resolvedCompositionMapPath = if (-not [string]::IsNullOrWhiteSpace($CompositionMapPath)) {
+        (Resolve-Path -LiteralPath $CompositionMapPath -ErrorAction Stop).Path
+    }
+    else {
+        Join-Path $OutputRoot 'assembler.composition-map.json'
+    }
+    if (-not [string]::IsNullOrWhiteSpace($CompositionMapPath)) {
+        $compositionMap = Read-JsonFile -Path $resolvedCompositionMapPath
+    }
+    else {
+        $compositionMap = New-AssemblerDefaultCompositionMap -DatasetCatalog $datasetCatalog -TemplateCatalog $catalog -ContractsRoot $effectiveContractsRoot
+        $compositionMap | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $resolvedCompositionMapPath -Encoding UTF8
+    }
+    $compositionValidation = Test-AssemblerSchemaFile -DocumentPath $resolvedCompositionMapPath -SchemaPath $compositionSchemaPath
+    if (-not $compositionValidation.isValid) {
+        Add-BundleSchemaIssue -Code 'ASB-ASM-SCHEMA-COMPOSITION-INVALID' -Message ([string]$compositionValidation.message) -PathValue $resolvedCompositionMapPath
+        Complete-BundleStage -Stage $stageMap.Validate -Status 'ERROR'
+        throw 'Composition map schema validation failed.'
+    }
+    $resolvedCompositionPolicyPath = Join-Path $OutputRoot 'assembler.composition-policy.json'
+    $compositionMap.policy | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $resolvedCompositionPolicyPath -Encoding UTF8
+    $compositionPolicyValidation = Test-AssemblerSchemaFile -DocumentPath $resolvedCompositionPolicyPath -SchemaPath $compositionPolicySchemaPath
+    if (-not $compositionPolicyValidation.isValid) {
+        Add-BundleSchemaIssue -Code 'ASB-ASM-SCHEMA-COMPOSITION-POLICY-INVALID' -Message ([string]$compositionPolicyValidation.message) -PathValue $resolvedCompositionPolicyPath
+        Complete-BundleStage -Stage $stageMap.Validate -Status 'ERROR'
+        throw 'Composition policy schema validation failed.'
+    }
     Complete-BundleStage -Stage $stageMap.Validate -Status 'OK'
 
     Start-BundleStage -Stage $stageMap.Transform
     $detectedTechIds = @($objectIndex.objects | ForEach-Object { [string]$_.techId } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
     $requestedTechIds = if ($TechId -and @($TechId).Count -gt 0) { @($TechId) } else { $detectedTechIds }
-
-    Ensure-Directory -Path $OutputRoot
 
     $catalogBase = Split-Path -Parent (Resolve-Path -LiteralPath $CatalogPath).Path
     $supportRegionSidecarPath = Resolve-SupportRegionSidecarPath -CatalogPath $CatalogPath -CatalogBase $catalogBase
@@ -646,19 +679,17 @@ try {
             Complete-BundleStage -Stage $runStageMap.Validate -Status 'OK'
 
             Start-BundleStage -Stage $runStageMap.Transform
-            $mappingVariants = Resolve-MappingVariantsForBundle -BundleRoot $effectiveBundleRoot -MappingPath $mappingPath -TechId ([string]$entry.techId) -OutputRoot $OutputRoot -EntryId ([string]$entry.id) -CatalogEntry $entry
-            $selectionReason = if (@($mappingVariants).Count -gt 0) { [string]$mappingVariants[0].targetSelectionReason } else { $null }
-            $selectedTarget = if (@($mappingVariants).Count -gt 0) { [string]$mappingVariants[0].selectedTarget } else { $null }
-            $selectedTargetRoot = if (@($mappingVariants).Count -gt 0) { [string]$mappingVariants[0].selectedTargetRoot } else { $null }
-            if ($selectionReason -eq 'lexical-fallback') {
-                $issues.Add([ordered]@{
-                    code = 'ASB-ASM-TARGET-AUTOSELECTED'
-                    severity = 'WARN'
-                    message = "Entry '$($entry.id)' selected target '$selectedTarget' via lexical fallback. Configure catalog target metadata or solution.plan targetKeys to avoid fallback."
-                    path = if ([string]::IsNullOrWhiteSpace($selectedTargetRoot)) { Join-Path (Join-Path (Join-Path $effectiveBundleRoot 'datasets') ([string]$entry.techId)) 'collector-out' } else { $selectedTargetRoot }
-                })
-            }
-            Complete-BundleStage -Stage $runStageMap.Transform -Status 'OK' -Details ([ordered]@{ variantCount = @($mappingVariants).Count; selectedTarget = $selectedTarget; selectedTargetRoot = $selectedTargetRoot; targetSelectionReason = $selectionReason })
+            $compiledMappingPath = New-AssemblerCompiledMapping -DatasetCatalog $datasetCatalog -CompositionMap $compositionMap -MappingPath $mappingPath -EntryId ([string]$entry.id) -OutputRoot $OutputRoot
+            $mappingVariants = @([pscustomobject]@{
+                mappingPath = $compiledMappingPath
+                variantName = 'composition'
+                selectedTarget = $null
+                selectedTargetRoot = $null
+                targetSelectionReason = 'composition-map'
+                targetCandidates = @($compositionMap.objects | Where-Object { $_.included -ne $false } | ForEach-Object { [string]$_.objectKey })
+                targetCandidateRoots = @()
+            })
+            Complete-BundleStage -Stage $runStageMap.Transform -Status 'OK' -Details ([ordered]@{ variantCount = 1; compositionMapPath = $resolvedCompositionMapPath; compiledMappingPath = $compiledMappingPath })
 
             Start-BundleStage -Stage $runStageMap.Render
             foreach ($variant in @($mappingVariants)) {
@@ -809,6 +840,7 @@ $report = [ordered]@{
     bundleRoot = $effectiveBundleRoot
     catalogPath = $CatalogPath
     outputRoot = $OutputRoot
+    compositionMapPath = $resolvedCompositionMapPath
     filters = [ordered]@{
         techId = @($requestedTechIds)
         entryId = @($requestedEntryIds)

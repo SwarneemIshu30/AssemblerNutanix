@@ -1,0 +1,39 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.DE",
+    "module": "LNV.AsBuiltDoc.Lenovo.DE",
+    "entry_point": "Invoke-LnvAsBuiltDoc.Lenovo.DE"
+  },
+  "source": {
+    "bundle_id": "canonical-de-gui",
+    "file": "datasets/Lenovo.DE/core/de-prod-01/system-asup.json",
+    "domain": "core",
+    "target_key": "de-prod-01"
+  },
+  "dataset": {
+    "key": "system-asup",
+    "schema_path": "tech/Lenovo.DE/dataset/system-asup.schema.json"
+  },
+  "item_count": 1,
+  "items": [
+    {
+      "systemId": "1",
+      "asupCapable": true,
+      "onDemandCapable": true,
+      "asupEnabled": true,
+      "onDemandEnabled": true,
+      "remoteDiagsEnabled": true,
+      "deliveryMethod": "https",
+      "routingType": "direct",
+      "proxyHost": null,
+      "proxyPort": null,
+      "proxyScript": null,
+      "mailRelayServer": null,
+      "mailSenderAddress": null,
+      "destinationAddressList": [],
+      "maxSizeLimitHttps": 52428800,
+      "maxSizeLimitSmtp": 5242880
+    }
+  ]
+}

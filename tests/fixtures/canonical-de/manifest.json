@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "bundleId": "canonical-de-test",
+  "createdUtc": "2026-06-15T00:00:00Z",
+  "files": [
+    { "path": "config/solution.plan.json", "bytes": 1, "sha256": "fixture" },
+    { "path": "objectIndex.json", "bytes": 1, "sha256": "fixture" },
+    { "path": "datasets/Lenovo.DE/core/de-a/systems.json", "bytes": 1, "sha256": "fixture" },
+    { "path": "datasets/Lenovo.DE/core/de-b/systems.json", "bytes": 1, "sha256": "fixture" }
+  ],
+  "results": [
+    { "techId": "Lenovo.DE", "status": "OK", "startedUtc": "2026-06-15T00:00:00Z", "completedUtc": "2026-06-15T00:00:00Z", "errors": [], "warnings": [] }
+  ]
+}

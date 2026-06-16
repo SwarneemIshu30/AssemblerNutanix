@@ -363,6 +363,32 @@ function Get-FileSha256Hex {
     }
 }
 
+function Read-FileBytesShared {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path
+    )
+
+    $stream = [System.IO.File]::Open(
+        $Path,
+        [System.IO.FileMode]::Open,
+        [System.IO.FileAccess]::Read,
+        [System.IO.FileShare]::ReadWrite -bor [System.IO.FileShare]::Delete
+    )
+    try {
+        $buffer = [byte[]]::new($stream.Length)
+        $offset = 0
+        while ($offset -lt $buffer.Length) {
+            $read = $stream.Read($buffer, $offset, $buffer.Length - $offset)
+            if ($read -le 0) { break }
+            $offset += $read
+        }
+        return $buffer
+    }
+    finally {
+        $stream.Dispose()
+    }
+}
+
 function Resolve-AssemblerContractsRoot {
     param(
         [Parameter(Mandatory = $false)][string]$ContractsRoot,
@@ -430,11 +456,19 @@ function Resolve-Selector {
         break
     }
 
+    $isEmptyArray = ($resolved -and $current -is [System.Collections.IList] -and $current.Count -eq 0)
+    if ($isEmptyArray) {
+        $selectedValue = [object]([object[]]@())
+    }
+    else {
+        $selectedValue = $current
+    }
+
     return [ordered]@{
         found = $resolved
-        value = $current
+        value = $selectedValue
         valueIsNull = ($resolved -and $null -eq $current)
-        valueIsEmptyArray = ($resolved -and $current -is [System.Array] -and $current.Length -eq 0)
+        valueIsEmptyArray = $isEmptyArray
     }
 }
 
@@ -446,7 +480,12 @@ function Resolve-DatasetFilePath {
         [Parameter(Mandatory = $false)][string]$TechId
     )
 
-    $exactPath = Join-Path $BundleRoot $DatasetRelativePath
+    $exactPath = if ([System.IO.Path]::IsPathRooted($DatasetRelativePath)) {
+        $DatasetRelativePath
+    }
+    else {
+        Join-Path $BundleRoot $DatasetRelativePath
+    }
     return [ordered]@{ path = $exactPath; autoResolved = $false; reason = $null }
 }
 
@@ -515,25 +554,6 @@ function Test-DatasetEnvelope {
     return @($errors.ToArray())
 }
 
-function Test-LegacySummaryCompatibilityDataset {
-    param(
-        [Parameter(Mandatory = $true)][hashtable]$Dataset,
-        [Parameter(Mandatory = $true)][string]$DatasetPath
-    )
-
-    if ([string]::IsNullOrWhiteSpace($DatasetPath)) { return $false }
-    if ([System.IO.Path]::GetFileName($DatasetPath) -ne 'run_summary.json') { return $false }
-    if ($Dataset.ContainsKey('schema_version') -or $Dataset.ContainsKey('items')) { return $false }
-
-    foreach ($requiredField in @('collectedUtc', 'mode', 'controller', 'port', 'systemCount')) {
-        if (-not $Dataset.ContainsKey($requiredField)) {
-            return $false
-        }
-    }
-
-    return $true
-}
-
 function Resolve-SelectorWithSummaryCompatibility {
     param(
         [Parameter(Mandatory = $true)][hashtable]$Dataset,
@@ -545,34 +565,20 @@ function Resolve-SelectorWithSummaryCompatibility {
     foreach ($selector in $Selectors) {
         $resolution = Resolve-Selector -InputObject $resolved -Selector ([string]$selector)
         if (-not $resolution.found) {
-            $summaryItem = $null
-            if (
-                [System.IO.Path]::GetFileName($DatasetPath) -eq 'run_summary.json' -and
-                $Dataset.ContainsKey('items') -and
-                $Dataset.items -is [System.Collections.IList] -and
-                @($Dataset.items).Count -eq 1 -and
-                $Dataset.items[0] -is [hashtable] -and
-                -not [string]::IsNullOrWhiteSpace([string]$selector) -and
-                -not ([string]$selector).StartsWith('items.', [System.StringComparison]::Ordinal)
-            ) {
-                $summaryItem = $Dataset.items[0]
-            }
-
-            if ($null -ne $summaryItem) {
-                $resolution = Resolve-Selector -InputObject $summaryItem -Selector ([string]$selector)
-            }
-
-            if (-not $resolution.found) {
-                return [ordered]@{
-                    value = $null
-                    selectorFailed = $true
-                    valueIsNull = $false
-                    valueIsEmptyArray = $false
-                }
+            return [ordered]@{
+                value = $null
+                selectorFailed = $true
+                valueIsNull = $false
+                valueIsEmptyArray = $false
             }
         }
 
-        $resolved = $resolution.value
+        if ([bool]$resolution.valueIsEmptyArray) {
+            $resolved = [object]([object[]]@())
+        }
+        else {
+            $resolved = $resolution.value
+        }
     }
 
     return [ordered]@{
@@ -3348,7 +3354,7 @@ function Get-MappingRenderHint {
         switch ($presentationKind) {
             'table' { $hint.renderAs = 'table' }
             'relationshipTable' { $hint.renderAs = 'table' }
-            'evidence' { $hint.renderMode = 'json-evidence' }
+            'evidence' { }
             'summary' { }
         }
 
@@ -3391,10 +3397,6 @@ function Get-EffectiveRenderMode {
         [Parameter(Mandatory = $false)][string]$Tag
     )
 
-    if ($null -ne $ProjectionDefinition -and (Test-MapHasKey -Map $ProjectionDefinition -Key 'renderMode') -and -not [string]::IsNullOrWhiteSpace([string]$ProjectionDefinition['renderMode'])) {
-        return [string]$ProjectionDefinition['renderMode']
-    }
-
     if ($null -ne $RenderHint) {
         if ((Test-MapHasKey -Map $RenderHint -Key 'renderMode') -and -not [string]::IsNullOrWhiteSpace([string]$RenderHint['renderMode'])) {
             return [string]$RenderHint['renderMode']
@@ -3403,6 +3405,10 @@ function Get-EffectiveRenderMode {
         if ((Test-MapHasKey -Map $RenderHint -Key 'renderAs') -and -not [string]::IsNullOrWhiteSpace([string]$RenderHint['renderAs'])) {
             return [string]$RenderHint['renderAs']
         }
+    }
+
+    if ($null -ne $ProjectionDefinition -and (Test-MapHasKey -Map $ProjectionDefinition -Key 'renderMode') -and -not [string]::IsNullOrWhiteSpace([string]$ProjectionDefinition['renderMode'])) {
+        return [string]$ProjectionDefinition['renderMode']
     }
 
     if (-not [string]::IsNullOrWhiteSpace($Tag) -and $Tag.EndsWith('_TABLE_JSON')) {
@@ -5219,7 +5225,11 @@ function Convert-ValueToString {
     $renderModeExplicit = Test-RenderModeWasExplicitlyDeclared -RenderHint $RenderHint -ProjectionDefinition $projectionDefinition
     $hasProjection = ($null -ne $projectionDefinition)
 
-    if ($renderMode -eq 'table' -or $hasProjection) {
+    if ($Value -is [System.Collections.IList] -and $Value.Count -eq 0 -and -not ($renderMode -eq 'table' -and $hasProjection)) {
+        return '[]'
+    }
+
+    if ($renderMode -eq 'table') {
         if (-not $hasProjection) {
             $policy = Get-StructuredValuePolicy -RenderHint $RenderHint -ProjectionDefinition $projectionDefinition -RenderMode $renderMode
             Add-RenderIssue -Code 'ASB-ASM-SDT-TABLE-PROJECTION-MISSING' -Severity 'WARN' -Message "Tag '$Tag' declared renderMode '$renderMode' but no projection definition was found. Structured values will not be serialized as raw JSON." -PathValue $script:currentDatasetPath
@@ -5323,14 +5333,16 @@ try {
 
     Start-RenderStage -Stage $stageMap.Load
     $mapping = Read-JsonFile -Path $MappingPath
+    $mappingSchemaVersion = if ($mapping.ContainsKey('schemaVersion')) { [int]$mapping.schemaVersion } else { 1 }
+    $mappingSchemaPath = Join-Path (Join-Path $effectiveContractsRoot 'standards') "mapping.dataset-to-sdt.schema.v$mappingSchemaVersion.json"
     $projectionContractPath = Resolve-ProjectionContractPath -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
     $projectionContract = Read-ProjectionContractFile -Path $projectionContractPath
-    $projectionDefinitions = Get-ProjectionDefinitions -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
-    $projectionAliases = Get-ProjectionAliases -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
+    $projectionDefinitions = @{}
+    $projectionAliases = @{}
     $diagramContractPath = Resolve-DiagramContractPath -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
     $diagramContract = if ([string]::IsNullOrWhiteSpace($diagramContractPath)) { $null } else { Read-DiagramContractFile -Path $diagramContractPath }
-    $diagramDefinitions = Get-DiagramDefinitions -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
-    $diagramAliases = Get-DiagramAliases -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
+    $diagramDefinitions = @{}
+    $diagramAliases = @{}
     $mappingSchema = Read-JsonFile -Path $mappingSchemaPath
     $templateExtension = [string]([System.IO.Path]::GetExtension($TemplatePath)).ToLowerInvariant()
     $isDocxTemplate = ($templateExtension -eq '.docx')
@@ -5415,6 +5427,10 @@ try {
             throw 'Diagram schema validation failed.'
         }
     }
+    $projectionDefinitions = Get-ProjectionDefinitions -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
+    $projectionAliases = Get-ProjectionAliases -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
+    $diagramDefinitions = Get-DiagramDefinitions -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
+    $diagramAliases = Get-DiagramAliases -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
     Complete-RenderStage -Stage $stageMap.Validate -Status 'OK' -Details ([ordered]@{ mappingCount = @($mapping.mappings).Count; projectionCount = @($projectionDefinitions.Keys).Count; diagramCount = @($diagramDefinitions.Keys).Count })
 
     Start-RenderStage -Stage $stageMap.Transform
@@ -5432,7 +5448,13 @@ try {
             continue
         }
 
-        $datasetResolution = Resolve-DatasetFilePath -BundleRoot $BundleRoot -DatasetRelativePath ([string]$entry.dataset) -TechId ([string]$mapping.techId)
+        $datasetReference = if ((Test-MapHasKey -Map $entry -Key 'resolvedDataset') -and -not [string]::IsNullOrWhiteSpace([string]$entry.resolvedDataset)) {
+            [string]$entry.resolvedDataset
+        }
+        else {
+            [string]$entry.dataset
+        }
+        $datasetResolution = Resolve-DatasetFilePath -BundleRoot $BundleRoot -DatasetRelativePath $datasetReference -TechId ([string]$mapping.techId)
         $datasetPath = [string]$datasetResolution.path
         $currentDatasetPath = $datasetPath
         if (-not (Test-Path -LiteralPath $datasetPath -PathType Leaf)) {
@@ -5448,22 +5470,12 @@ try {
         $dataset = Read-JsonFile -Path $datasetPath
         $envelopeErrors = @(Test-DatasetEnvelope -Dataset $dataset -DatasetPath $datasetPath)
         if (@($envelopeErrors).Count -gt 0) {
-            if (Test-LegacySummaryCompatibilityDataset -Dataset $dataset -DatasetPath $datasetPath) {
-                $issues.Add([ordered]@{
-                    code = 'ASB-ASM-SDT-DATASET-COMPAT'
-                    severity = 'WARN'
-                    message = "Dataset '$($entry.dataset)' uses legacy run_summary.json compatibility for tag '$tag'; update the collector/Core output to emit a full lnv.collector.dataset.v1 envelope."
-                    path = $datasetPath
-                })
+            $severity = if ($entry.required) { 'ERROR' } else { 'WARN' }
+            foreach ($envelopeError in $envelopeErrors) {
+                $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-DATASET-ENVELOPE'; severity = $severity; message = "Dataset '$($entry.dataset)' failed envelope validation for tag '$tag': $envelopeError"; path = $datasetPath })
             }
-            else {
-                $severity = if ($entry.required) { 'ERROR' } else { 'WARN' }
-                foreach ($envelopeError in $envelopeErrors) {
-                    $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-DATASET-ENVELOPE'; severity = $severity; message = "Dataset '$($entry.dataset)' failed envelope validation for tag '$tag': $envelopeError"; path = $datasetPath })
-                }
-                if ($severity -eq 'ERROR') { $status = 'ERROR' }
-                continue
-            }
+            if ($severity -eq 'ERROR') { $status = 'ERROR' }
+            continue
         }
 
         $resolved = $null
@@ -5503,7 +5515,13 @@ try {
         $currentSelectorChain = if (@($selectors).Count -gt 0) { (($selectors | ForEach-Object { [string]$_ }) -join ' -> ') } else { '' }
         if (@($selectors).Count -gt 0) {
             $selectorResult = Resolve-SelectorWithSummaryCompatibility -Dataset $dataset -Selectors @($selectors | ForEach-Object { [string]$_ }) -DatasetPath $datasetPath
-            $resolved = $selectorResult.value
+            $resolvedIsEmptyArray = [bool]$selectorResult.valueIsEmptyArray
+            if ([bool]$selectorResult.valueIsEmptyArray) {
+                $resolved = [object]([object[]]@())
+            }
+            else {
+                $resolved = $selectorResult.value
+            }
             $selectorFailed = [bool]$selectorResult.selectorFailed
 
             if ($selectorFailed) {
@@ -5515,21 +5533,28 @@ try {
             }
         }
         else {
+            $resolvedIsEmptyArray = $false
             $resolved = $dataset
         }
 
-        if ($null -eq $resolved -and $entry.required) {
+        if ($null -eq $resolved -and -not $resolvedIsEmptyArray -and $entry.required) {
             $issues.Add([ordered]@{ code = 'ASB-ASM-SDT-SELECTOR-NOMATCH'; severity = 'ERROR'; message = "No selector match found for required tag '$tag'"; path = $datasetPath })
             $status = 'ERROR'
             continue
         }
 
-        $resolvedText = [string](Convert-ValueToString -Value $resolved -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases -DatasetPath $datasetPath -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId))
+        if ($resolvedIsEmptyArray) {
+            $valueForRender = [object]([object[]]@())
+        }
+        else {
+            $valueForRender = $resolved
+        }
+        $resolvedText = [string](Convert-ValueToString -Value $valueForRender -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases -DatasetPath $datasetPath -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId))
         $replaceByTag[$tag] = $resolvedText
         if ($isDocxTemplate) {
             $projectionDefinition = Get-ProjectionDefinitionForMapping -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases
             $renderMode = Get-EffectiveRenderMode -RenderHint $renderHint -ProjectionDefinition $projectionDefinition -Tag $tag
-            if ($null -ne $projectionDefinition) {
+            if ($renderMode -eq 'table' -and $null -ne $projectionDefinition) {
                 $tableModel = Convert-ValueToTableModel -Value $resolved -Tag $tag -RenderHint $renderHint -ProjectionDefinitions $projectionDefinitions -ProjectionAliases $projectionAliases -DatasetPath $datasetPath -ContractsRoot $effectiveContractsRoot -TechId ([string]$mapping.techId)
                 if ($null -ne $tableModel) {
                     $docxTableByTag[$tag] = $tableModel
@@ -5558,7 +5583,7 @@ try {
     if ($isDocxTemplate) {
         $resolvedTemplatePath = (Resolve-Path -LiteralPath $TemplatePath).Path
         $templateItem = Get-Item -LiteralPath $resolvedTemplatePath
-        $templateBytes = [System.IO.File]::ReadAllBytes($resolvedTemplatePath)
+        $templateBytes = Read-FileBytesShared -Path $resolvedTemplatePath
         $templateByteHashSha256 = Get-FileSha256Hex -Bytes $templateBytes
         $templateMetadata = [ordered]@{
             path = $resolvedTemplatePath
@@ -5754,11 +5779,15 @@ try {
         tags = @()
     }
     $requiredTagLookup = @{}
+    $optionalTagLookup = @{}
     foreach ($entry in @($mapping.mappings)) {
         $requiredTag = if (Test-MapHasKey -Map $entry -Key 'sdtTag') { [string]$entry['sdtTag'] } elseif ((Test-MapHasKey -Map $entry -Key 'target') -and $entry['target'] -is [System.Collections.IDictionary] -and (Test-MapHasKey -Map $entry['target'] -Key 'sdtTag')) { [string]$entry['target']['sdtTag'] } else { '' }
         if ([string]::IsNullOrWhiteSpace($requiredTag)) { continue }
         if ((Test-MapHasKey -Map $entry -Key 'required') -and [bool]$entry.required) {
             $requiredTagLookup[$requiredTag] = $true
+        }
+        else {
+            $optionalTagLookup[$requiredTag] = $true
         }
     }
 
@@ -5767,7 +5796,7 @@ try {
         $sampleLocations = @($occurrence.locations | Select-Object -First 3 | ForEach-Object { "L$($_.line):C$($_.column)" })
         $sampleLocationsText = if (@($sampleLocations).Count -gt 0) { $sampleLocations -join ', ' } else { 'n/a' }
         $isRequiredTag = Test-MapHasKey -Map $requiredTagLookup -Key $tag
-        $isKnownOptionalTag = (-not $isRequiredTag) -and (Test-MapHasKey -Map $replaceByTag -Key $tag)
+        $isKnownOptionalTag = (-not $isRequiredTag) -and ((Test-MapHasKey -Map $replaceByTag -Key $tag) -or (Test-MapHasKey -Map $optionalTagLookup -Key $tag))
         $severity = if ($isKnownOptionalTag) { 'WARN' } else { 'ERROR' }
         if ($severity -eq 'ERROR') {
             $status = 'ERROR'

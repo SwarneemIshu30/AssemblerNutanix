@@ -41,6 +41,7 @@ function New-AssemblerGuiRenderInvocation {
         [Parameter(Mandatory = $false)][string[]]$TechId,
         [Parameter(Mandatory = $false)][string[]]$EntryId,
         [Parameter(Mandatory = $false)][string[]]$OutputType,
+        [Parameter(Mandatory = $false)][string]$CompositionMapPath,
         [Parameter(Mandatory = $false)][string]$DocTitle,
         [Parameter(Mandatory = $false)][string]$DocCustomer,
         [Parameter(Mandatory = $false)][string]$DocCustomerAbbr,
@@ -91,6 +92,7 @@ function New-AssemblerGuiRenderInvocation {
     Add-ArgumentValue -Arguments $arguments -Name '-TechId' -Value $TechId
     Add-ArgumentValue -Arguments $arguments -Name '-EntryId' -Value $EntryId
     Add-ArgumentValue -Arguments $arguments -Name '-OutputType' -Value $OutputType
+    Add-ArgumentValue -Arguments $arguments -Name '-CompositionMapPath' -Value $CompositionMapPath
     Add-ArgumentValue -Arguments $arguments -Name '-DocTitle' -Value $DocTitle
     Add-ArgumentValue -Arguments $arguments -Name '-DocCustomer' -Value $DocCustomer
     Add-ArgumentValue -Arguments $arguments -Name '-DocCustomerAbbr' -Value $DocCustomerAbbr

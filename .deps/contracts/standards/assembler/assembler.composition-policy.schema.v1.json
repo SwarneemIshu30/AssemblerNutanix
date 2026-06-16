@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv.asbuiltdoc/contracts/standards/assembler/assembler.composition-policy.schema.v1.json",
+  "title": "Assembler Composition Policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schemaVersion", "aggregation", "provenance"],
+  "properties": {
+    "schema": { "const": "assembler.composition-policy" },
+    "schemaVersion": { "const": 1 },
+    "aggregation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["strategy", "orderBy"],
+      "properties": {
+        "strategy": { "const": "append" },
+        "orderBy": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "enum": ["scope", "techId", "objectKey", "domain", "relativePath"] }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["property", "fields"],
+      "properties": {
+        "property": { "const": "_assembler" },
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "enum": ["techId", "domain", "scope", "objectKey", "objectKind", "displayName", "tags"] }
+        }
+      }
+    }
+  }
+}

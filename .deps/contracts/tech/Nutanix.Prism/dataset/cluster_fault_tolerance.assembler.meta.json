@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "dataset": "cluster_fault_tolerance",
+  "presentationKind": "evidence",
+  "defaultItemRoot": "items",
+  "documentFacing": false,
+  "notes": "Evidence-only until an explicit document projection is contracted."
+}

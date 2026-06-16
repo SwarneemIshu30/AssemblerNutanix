@@ -1,0 +1,43 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.DE",
+    "module": "LNV.AsBuiltDoc.Lenovo.DE",
+    "entry_point": "Invoke-LnvAsBuiltDoc.Lenovo.DE"
+  },
+  "source": {
+    "bundle_id": "canonical-de-gui",
+    "file": "datasets/Lenovo.DE/core/de-prod-01/host-groups-to-volumes.json",
+    "domain": "core",
+    "target_key": "de-prod-01"
+  },
+  "dataset": {
+    "key": "host-groups-to-volumes",
+    "schema_path": "tech/Lenovo.DE/dataset/host-groups-to-volumes.schema.json"
+  },
+  "item_count": 2,
+  "items": [
+    {
+      "systemId": "1",
+      "hostGroupId": "850000006D039EA000D9F0180036013769B09A1D",
+      "hostGroupRef": "850000006D039EA000D9F0180036013769B09A1D",
+      "hostGroupName": "HostClusterGalaxy",
+      "volumeId": "020000006D039EA000D9F0180000012969894FD3",
+      "volumeRef": "020000006D039EA000D9F0180000012969894FD3",
+      "volumeName": "Hyper-V_Vol01",
+      "lun": 2,
+      "mappingRef": "8800000001000000000000000000000000000000"
+    },
+    {
+      "systemId": "1",
+      "hostGroupId": "850000006D039EA000D9F0180036013769B09A1D",
+      "hostGroupRef": "850000006D039EA000D9F0180036013769B09A1D",
+      "hostGroupName": "HostClusterGalaxy",
+      "volumeId": "020000006D039EA000D9EFC20000014469894FF0",
+      "volumeRef": "020000006D039EA000D9EFC20000014469894FF0",
+      "volumeName": "Hyper-V_Vol02",
+      "lun": 1,
+      "mappingRef": "8800000000000000000000000000000000000000"
+    }
+  ]
+}

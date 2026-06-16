@@ -1,0 +1,81 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.DE",
+    "module": "LNV.AsBuiltDoc.Lenovo.DE",
+    "entry_point": "Invoke-LnvAsBuiltDoc.Lenovo.DE"
+  },
+  "source": {
+    "bundle_id": "canonical-de-gui",
+    "file": "datasets/Lenovo.DE/core/de-prod-01/roles.json",
+    "domain": "core",
+    "target_key": "de-prod-01"
+  },
+  "dataset": {
+    "key": "roles",
+    "schema_path": "tech/Lenovo.DE/dataset/roles.schema.json"
+  },
+  "item_count": 5,
+  "items": [
+    {
+      "rowKey": "1|admin|security.admin, storage.admin, storage.monitor, support.admin, root.admin|Local",
+      "systemId": "1",
+      "principalName": "admin",
+      "principalType": "User",
+      "authSource": "Local",
+      "roleName": "security.admin, storage.admin, storage.monitor, support.admin, root.admin",
+      "groupName": "",
+      "enabled": null,
+      "locked": null,
+      "notes": ""
+    },
+    {
+      "rowKey": "1|monitor|storage.monitor|Local",
+      "systemId": "1",
+      "principalName": "monitor",
+      "principalType": "User",
+      "authSource": "Local",
+      "roleName": "storage.monitor",
+      "groupName": "",
+      "enabled": null,
+      "locked": null,
+      "notes": ""
+    },
+    {
+      "rowKey": "1|security|security.admin, storage.monitor|Local",
+      "systemId": "1",
+      "principalName": "security",
+      "principalType": "User",
+      "authSource": "Local",
+      "roleName": "security.admin, storage.monitor",
+      "groupName": "",
+      "enabled": null,
+      "locked": null,
+      "notes": ""
+    },
+    {
+      "rowKey": "1|storage|storage.admin, support.admin, storage.monitor|Local",
+      "systemId": "1",
+      "principalName": "storage",
+      "principalType": "User",
+      "authSource": "Local",
+      "roleName": "storage.admin, support.admin, storage.monitor",
+      "groupName": "",
+      "enabled": null,
+      "locked": null,
+      "notes": ""
+    },
+    {
+      "rowKey": "1|support|support.admin, storage.monitor|Local",
+      "systemId": "1",
+      "principalName": "support",
+      "principalType": "User",
+      "authSource": "Local",
+      "roleName": "support.admin, storage.monitor",
+      "groupName": "",
+      "enabled": null,
+      "locked": null,
+      "notes": ""
+    }
+  ]
+}

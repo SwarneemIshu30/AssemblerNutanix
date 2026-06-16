@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "collectedUtc": "2026-06-15T00:00:00Z",
+  "objects": [
+    { "techId": "Lenovo.DE", "kind": "Lenovo.DE", "key": "de-a", "displayName": "DE Array A" },
+    { "techId": "Lenovo.DE", "kind": "Lenovo.DE", "key": "de-b", "displayName": "DE Array B" }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "bundleId": "canonical-de-gui",
+  "createdUtc": "2026-06-15T00:00:00Z",
+  "files": [
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/alerts.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/capabilities-normalized.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/certificates.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/drives.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/host-groups-to-volumes.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/host-groups.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/host-ports.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/host-types.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/hosts-to-host-groups.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/hosts-to-volumes.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/hosts.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/identity-sources.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/management-interfaces.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/replication.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/roles.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/snapshots.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/storage-containers.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/system-asup.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/system-controllers.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/system-dns.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/system-time.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/systems.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/transport.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/trays.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/volume-mappings.json"
+    },
+    {
+      "path": "datasets/Lenovo.DE/core/de-prod-01/volumes.json"
+    }
+  ]
+}

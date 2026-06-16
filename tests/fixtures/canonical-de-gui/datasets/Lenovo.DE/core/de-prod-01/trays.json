@@ -1,0 +1,41 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.DE",
+    "module": "LNV.AsBuiltDoc.Lenovo.DE",
+    "entry_point": "Invoke-LnvAsBuiltDoc.Lenovo.DE"
+  },
+  "source": {
+    "bundle_id": "canonical-de-gui",
+    "file": "datasets/Lenovo.DE/core/de-prod-01/trays.json",
+    "domain": "core",
+    "target_key": "de-prod-01"
+  },
+  "dataset": {
+    "key": "trays",
+    "schema_path": "tech/Lenovo.DE/dataset/trays.schema.json"
+  },
+  "item_count": 1,
+  "items": [
+    {
+      "systemId": "1",
+      "trayId": 99,
+      "trayType": "de224c",
+      "trayRole": "controller-tray",
+      "controllerModelName": null,
+      "status": null,
+      "serialNumber": "J7024YT4",
+      "partNumber": "7DCQCTO1WW",
+      "vendorName": "NETAPP",
+      "manufacturer": null,
+      "manufacturerDate": null,
+      "numControllerSlots": 2,
+      "numDriveSlots": 24,
+      "driveTechnologies": [
+        "sas"
+      ],
+      "hasConfigurableTrayId": true,
+      "hasTrayIdentityIndicator": true
+    }
+  ]
+}

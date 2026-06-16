@@ -8,28 +8,11 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
     function Resolve-TestBundleRoot {
         param([Parameter(Mandatory = $true)][string]$RepoRoot)
 
-        $stagingRoot = Join-Path $RepoRoot 'bundle'
-        if (-not (Test-Path -LiteralPath $stagingRoot -PathType Container)) {
-            throw "Expected bundle staging root '$stagingRoot'"
+        $bundleRoot = Join-Path $RepoRoot 'tests/fixtures/canonical-de-gui'
+        if (-not (Test-Path -LiteralPath (Join-Path $bundleRoot 'datasets/Lenovo.DE/core/de-prod-01/systems.json') -PathType Leaf)) {
+            throw "Expected canonical Lenovo.DE fixture under '$bundleRoot'"
         }
-
-        $preferredBundle = Join-Path $stagingRoot 'b0c8360d-800e-4cab-a84f-d1bc53c8646f'
-        if (Test-Path -LiteralPath (Join-Path $preferredBundle 'datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json') -PathType Leaf) {
-            return $preferredBundle
-        }
-
-        $validBundles = @(Get-ChildItem -LiteralPath $stagingRoot -Directory | Where-Object {
-                (Test-Path -LiteralPath (Join-Path $_.FullName 'datasets/Lenovo.DE/collector-out/de-prod-01/target_de-prod-01/systems.json') -PathType Leaf) -and
-                ((Test-Path -LiteralPath (Join-Path $_.FullName 'manifest.json') -PathType Leaf) -or
-                    (Test-Path -LiteralPath (Join-Path $_.FullName 'objectIndex.json') -PathType Leaf) -or
-                    (Test-Path -LiteralPath (Join-Path $_.FullName 'config/solution.plan.json') -PathType Leaf))
-            } | Sort-Object Name)
-
-        if ($validBundles.Count -eq 0) {
-            throw "Expected at least one Lenovo.DE bundle fixture under '$stagingRoot'"
-        }
-
-        return [string]$validBundles[0].FullName
+        return $bundleRoot
     }
 
     $script:bundleRoot = Resolve-TestBundleRoot -RepoRoot $script:repoRoot
@@ -183,11 +166,16 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
             Remove-Item -LiteralPath $headingMapPath -Force
         }
 
+        $bundleRoot = $script:bundleRoot
         if ($BreakSystemsExamplePath) {
-            $systemsMetadataPath = Join-Path $contractsDestination 'dataset/systems.assembler.meta.json'
-            $systemsMetadata = Get-Content -LiteralPath $systemsMetadataPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
-            $systemsMetadata.datasetPath.template = 'datasets/__TECH_ID__/missing/__DATASET__.json'
-            $systemsMetadata | ConvertTo-Json -Depth 40 | Set-Content -LiteralPath $systemsMetadataPath -Encoding UTF8
+            $bundleRoot = Join-Path $tempRoot 'bundle'
+            Copy-Item -LiteralPath $script:bundleRoot -Destination $bundleRoot -Recurse -Force
+            $systemsRelativePath = 'datasets/Lenovo.DE/core/de-prod-01/systems.json'
+            Remove-Item -LiteralPath (Join-Path $bundleRoot $systemsRelativePath) -Force
+            $manifestPath = Join-Path $bundleRoot 'manifest.json'
+            $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            $manifest.files = @($manifest.files | Where-Object { [string]$_.path -ne $systemsRelativePath })
+            $manifest | ConvertTo-Json -Depth 40 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
         }
 
         $contractPath = Join-Path $contractsDestination 'mapping.dataset-to-sdt.v1.yaml'
@@ -200,7 +188,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
             RepoRoot = $tempRoot
             CatalogPath = Join-Path $skeletonDestination 'DE-SDT-Collector.catalog.json'
             ContractsRoot = Join-Path $tempRoot '.deps/contracts'
-            BundleRoot = $script:bundleRoot
+            BundleRoot = $bundleRoot
             ContractPath = $contractPath
             ExportMirrorPath = Join-Path $exportDestination 'mapping.dataset-to-sdt.v1.yaml'
             ProjectionContractPath = Join-Path $contractsDestination 'assembler.projections.v1.json'
@@ -508,7 +496,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
         if ((@($snapshotPolicyPreview.SchemaFieldCandidates) -join ',') -notmatch 'state') {
             throw "Expected snapshot preview to include schema field candidates such as state, got '$((@($snapshotPolicyPreview.SchemaFieldCandidates) -join ', '))'"
         }
-        if ((@($snapshotPolicyPreview.ColumnNames) -join ',') -notmatch 'Policy,State,Retention Policy') {
+        if ((@($snapshotPolicyPreview.ColumnNames) -join ',') -notmatch 'Policy,State,RetentionPolicy') {
             throw "Expected snapshot policy preview columns, got '$((@($snapshotPolicyPreview.ColumnNames) -join ', '))'"
         }
     }
@@ -619,7 +607,7 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
             }
 
             Import-Module $script:modulePath -Force
-            $workbench = Get-LenovoWorkbench -ResolvedRepoRoot $tempRepo.RepoRoot -ResolvedCatalogPath $tempRepo.CatalogPath -ResolvedContractsRoot $tempRepo.ContractsRoot
+            $workbench = Get-LenovoWorkbench -ResolvedRepoRoot $tempRepo.RepoRoot -ResolvedCatalogPath $tempRepo.CatalogPath -ResolvedContractsRoot $tempRepo.ContractsRoot -ResolvedBundleRoot $tempRepo.BundleRoot
             $duplicateRow = @($workbench.ConnectionRows | Where-Object {
                     [string]$_.TargetPath -eq 'LNV.Lenovo.DE.System[ArrayName].Tables.ManagementInterfaces'
                 } | Select-Object -First 1)[0]
@@ -648,12 +636,12 @@ Describe 'Start-AssemblerGui Mapping Studio module' {
     It 'marks preview as unavailable when example bundle data is missing' {
         $tempRepo = New-MappingStudioTempRepo -Name 'missing-example-data' -BreakSystemsExamplePath
         try {
-            $workbench = Get-LenovoWorkbench -ResolvedRepoRoot $tempRepo.RepoRoot -ResolvedCatalogPath $tempRepo.CatalogPath -ResolvedContractsRoot $tempRepo.ContractsRoot
+            $workbench = Get-LenovoWorkbench -ResolvedRepoRoot $tempRepo.RepoRoot -ResolvedCatalogPath $tempRepo.CatalogPath -ResolvedContractsRoot $tempRepo.ContractsRoot -ResolvedBundleRoot $tempRepo.BundleRoot
             $systems = $workbench.DatasetById['systems']
             $preview = Get-MappingStudioPreview -Workbench $workbench -DatasetId 'systems' -RenderAs 'scalar' -Selector 'items.0.name' -ProjectionRef '' -View ''
 
             if ([bool]$systems.HasExampleData) {
-                throw 'Expected systems dataset to lose live example data after overriding datasetPath.template'
+                throw 'Expected systems dataset to lose live example data when it is absent from the canonical manifest'
             }
             if ([string]$preview.Status -ne 'missing-example') {
                 throw "Expected missing-example preview state, got '$($preview.Status)'"

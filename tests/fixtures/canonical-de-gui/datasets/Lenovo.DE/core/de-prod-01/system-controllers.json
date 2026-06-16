@@ -1,0 +1,49 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.DE",
+    "module": "LNV.AsBuiltDoc.Lenovo.DE",
+    "entry_point": "Invoke-LnvAsBuiltDoc.Lenovo.DE"
+  },
+  "source": {
+    "bundle_id": "canonical-de-gui",
+    "file": "datasets/Lenovo.DE/core/de-prod-01/system-controllers.json",
+    "domain": "core",
+    "target_key": "de-prod-01"
+  },
+  "dataset": {
+    "key": "system-controllers",
+    "schema_path": "tech/Lenovo.DE/dataset/system-controllers.schema.json"
+  },
+  "item_count": 2,
+  "items": [
+    {
+      "systemId": "1",
+      "controllerRef": "070000000000000000000001",
+      "controllerLabel": "A",
+      "controllerSlot": 1,
+      "status": "optimal",
+      "appVersion": "08.90.09.00",
+      "bootVersion": "08.90.09.00",
+      "bootTime": "2026-01-02T18:40:41",
+      "serialNumber": "952529000086",
+      "manufacturerDate": "2025-11-20",
+      "trayId": 99,
+      "modelName": "DE4200"
+    },
+    {
+      "systemId": "1",
+      "controllerRef": "070000000000000000000002",
+      "controllerLabel": "B",
+      "controllerSlot": 2,
+      "status": "optimal",
+      "appVersion": "08.90.09.00",
+      "bootVersion": "08.90.09.00",
+      "bootTime": "2026-02-06T20:12:31",
+      "serialNumber": "952529000077",
+      "manufacturerDate": "2025-11-20",
+      "trayId": 99,
+      "modelName": "DE4200"
+    }
+  ]
+}

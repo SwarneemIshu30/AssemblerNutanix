@@ -6,12 +6,17 @@ Describe 'Assembler GUI render process module' {
     }
 
     It 'builds a wrapper invocation with safe argument list and sidecar paths' {
+        $bundleRoot = Join-Path $TestDrive 'bundle root'
+        $catalogPath = Join-Path (Join-Path $TestDrive 'catalogs') 'collector.catalog.json'
+        $outputRoot = Join-Path $TestDrive 'out root'
+        $contractsRoot = Join-Path $TestDrive 'contracts'
+
         $invocation = New-AssemblerGuiRenderInvocation `
             -RepoRoot $script:repoRoot `
-            -BundleRoot 'C:\bundle root' `
-            -CatalogPath 'C:\catalogs\collector.catalog.json' `
-            -OutputRoot 'C:\out root' `
-            -ContractsRoot 'C:\contracts' `
+            -BundleRoot $bundleRoot `
+            -CatalogPath $catalogPath `
+            -OutputRoot $outputRoot `
+            -ContractsRoot $contractsRoot `
             -TechId @('Lenovo.DE') `
             -EntryId @('collector') `
             -OutputType @('docx') `
@@ -30,10 +35,10 @@ Describe 'Assembler GUI render process module' {
         if (@($invocation.Arguments) -notcontains '-ProgressPath') {
             throw 'Expected invocation to pass progress path.'
         }
-        if ([string]$invocation.ProgressPath -ne 'C:\out root\progress.jsonl') {
+        if ([string]$invocation.ProgressPath -ne (Join-Path $outputRoot 'progress.jsonl')) {
             throw "Unexpected progress path: $($invocation.ProgressPath)"
         }
-        if ([string]$invocation.ReportPath -ne 'C:\out root\render-report.json') {
+        if ([string]$invocation.ReportPath -ne (Join-Path $outputRoot 'render-report.json')) {
             throw "Unexpected report path: $($invocation.ReportPath)"
         }
         if (@($invocation.Arguments) -notcontains '-DocSupportRegion' -or @($invocation.Arguments) -notcontains 'AU') {
@@ -45,12 +50,17 @@ Describe 'Assembler GUI render process module' {
     }
 
     It 'passes archive selections as BundleArchivePath without BundleRoot' {
+        $archivePath = Join-Path (Join-Path $TestDrive 'captures') 'capture.lnvbundle.zip'
+        $catalogPath = Join-Path (Join-Path $TestDrive 'catalogs') 'collector.catalog.json'
+        $outputRoot = Join-Path $TestDrive 'out root'
+        $contractsRoot = Join-Path $TestDrive 'contracts'
+
         $invocation = New-AssemblerGuiRenderInvocation `
             -RepoRoot $script:repoRoot `
-            -BundleArchivePath 'C:\captures\capture.lnvbundle.zip' `
-            -CatalogPath 'C:\catalogs\collector.catalog.json' `
-            -OutputRoot 'C:\out root' `
-            -ContractsRoot 'C:\contracts'
+            -BundleArchivePath $archivePath `
+            -CatalogPath $catalogPath `
+            -OutputRoot $outputRoot `
+            -ContractsRoot $contractsRoot
 
         if (@($invocation.Arguments) -notcontains '-BundleArchivePath') {
             throw 'Expected invocation to pass -BundleArchivePath.'
@@ -58,18 +68,23 @@ Describe 'Assembler GUI render process module' {
         if (@($invocation.Arguments) -contains '-BundleRoot') {
             throw 'Archive invocation should not pass -BundleRoot.'
         }
-        if (@($invocation.Arguments) -notcontains 'C:\captures\capture.lnvbundle.zip') {
+        if (@($invocation.Arguments) -notcontains $archivePath) {
             throw 'Expected invocation to include archive path.'
         }
     }
 
     It 'keeps folder selections passed as BundleRoot without BundleArchivePath' {
+        $bundleRoot = Join-Path $TestDrive 'bundle root'
+        $catalogPath = Join-Path (Join-Path $TestDrive 'catalogs') 'collector.catalog.json'
+        $outputRoot = Join-Path $TestDrive 'out root'
+        $contractsRoot = Join-Path $TestDrive 'contracts'
+
         $invocation = New-AssemblerGuiRenderInvocation `
             -RepoRoot $script:repoRoot `
-            -BundleRoot 'C:\bundle root' `
-            -CatalogPath 'C:\catalogs\collector.catalog.json' `
-            -OutputRoot 'C:\out root' `
-            -ContractsRoot 'C:\contracts'
+            -BundleRoot $bundleRoot `
+            -CatalogPath $catalogPath `
+            -OutputRoot $outputRoot `
+            -ContractsRoot $contractsRoot
 
         if (@($invocation.Arguments) -notcontains '-BundleRoot') {
             throw 'Expected invocation to pass -BundleRoot.'
@@ -77,7 +92,7 @@ Describe 'Assembler GUI render process module' {
         if (@($invocation.Arguments) -contains '-BundleArchivePath') {
             throw 'Folder invocation should not pass -BundleArchivePath.'
         }
-        if (@($invocation.Arguments) -notcontains 'C:\bundle root') {
+        if (@($invocation.Arguments) -notcontains $bundleRoot) {
             throw 'Expected invocation to include folder bundle path.'
         }
     }

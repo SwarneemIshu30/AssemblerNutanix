@@ -473,6 +473,43 @@ function Resolve-MappingStudioTechDatasetContext {
         [Parameter(Mandatory = $false)][System.Collections.IDictionary]$CatalogEntry
     )
 
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+    Import-Module (Join-Path $repoRoot 'scripts/internal/AssemblerDatasetCatalog.psm1') -Force
+    $datasetCatalog = New-AssemblerDatasetCatalog -BundleRoot $BundleRoot
+    $techEntries = @($datasetCatalog.entries | Where-Object { [string]$_.techId -eq $TechId } | Sort-Object scope, objectKey, domain, datasetKey)
+    if ($techEntries.Count -eq 0) {
+        throw "No canonical datasets found for technology '$TechId'."
+    }
+
+    $selectedObjectKey = ''
+    if ($null -ne $CatalogEntry) {
+        foreach ($keyField in @('targetKey', 'target', 'selectedTargetKey')) {
+            if ((Test-MapHasKey -Map $CatalogEntry -Key $keyField) -and -not [string]::IsNullOrWhiteSpace([string]$CatalogEntry[$keyField])) {
+                $selectedObjectKey = ([string]$CatalogEntry[$keyField]).Trim()
+                break
+            }
+        }
+    }
+    if ([string]::IsNullOrWhiteSpace($selectedObjectKey) -or $selectedObjectKey -notin @($techEntries.objectKey)) {
+        $selectedObjectKey = [string]$techEntries[0].objectKey
+    }
+    $selectedEntries = @($techEntries | Where-Object { [string]$_.objectKey -eq $selectedObjectKey })
+    $selectedRoot = Split-Path -Parent ([string]$selectedEntries[0].path)
+
+    return [ordered]@{
+        target = $selectedObjectKey
+        targetKey = $selectedObjectKey
+        targetRoot = $selectedRoot
+        targetRelativePrefix = "datasets/$TechId/$([string]$selectedEntries[0].domain)/$selectedObjectKey"
+        targetContainer = [string]$selectedEntries[0].domain
+        systems = @()
+        selectedSystem = $null
+        selectionReason = 'canonical-catalog'
+        candidateTargets = @($techEntries.objectKey | Sort-Object -Unique)
+        candidateTargetRoots = @($techEntries | ForEach-Object { Split-Path -Parent ([string]$_.path) } | Sort-Object -Unique)
+        entries = $techEntries
+    }
+
     $collectorOutRoot = Join-Path (Join-Path (Join-Path $BundleRoot 'datasets') $TechId) 'collector-out'
     $targets = @(
         Get-CollectorTargetRoots -CollectorOutRoot $collectorOutRoot |
@@ -978,29 +1015,14 @@ function Resolve-DatasetExamplePath {
         [Parameter(Mandatory = $true)][hashtable]$DatasetContext
     )
 
-    if ($null -eq $DatasetMetadata -or [string]::IsNullOrWhiteSpace([string]$DatasetMetadata.PathTemplate)) {
-        return $null
-    }
-
-    $resolvedRelative = [string]$DatasetMetadata.PathTemplate
-    $resolvedRelative = $resolvedRelative.Replace('__TECH_ID__', $TechId)
-    $resolvedRelative = $resolvedRelative.Replace('__DATASET__', $DatasetId)
-    $resolvedRelative = $resolvedRelative.Replace('__TARGET__', [string]$DatasetContext.targetRelativePrefix)
-
-    if ($resolvedRelative -match '__SYSTEM__') {
-        $systemName = if (-not [string]::IsNullOrWhiteSpace([string]$DatasetContext.selectedSystem)) { [string]$DatasetContext.selectedSystem } else { '' }
-        if ([string]::IsNullOrWhiteSpace($systemName)) {
-            return $null
-        }
-        $resolvedRelative = $resolvedRelative.Replace('__SYSTEM__', $systemName)
-    }
-
-    $resolvedPath = Join-Path $BundleRoot $resolvedRelative
-    if (Test-Path -LiteralPath $resolvedPath -PathType Leaf) {
-        return $resolvedPath
-    }
-
-    return $null
+    $example = @(
+        $DatasetContext.entries |
+            Where-Object { [string]$_.techId -eq $TechId -and [string]$_.datasetKey -eq $DatasetId } |
+            Sort-Object scope, objectKey, domain, relativePath |
+            Select-Object -First 1
+    )
+    if ($example.Count -eq 0) { return $null }
+    return [string]$example[0].path
 }
 
 function Read-DatasetExample {
