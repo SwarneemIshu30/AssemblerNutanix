@@ -9,7 +9,7 @@ dataset must use:
 
 Each file must be an `lnv.collector.dataset.v1` native envelope. `<ObjectKey>`
 must resolve to a target, target group, or solution in the solution plan.
-Assembler rejects `collector-out`, `target_*`, `system_*`, unresolved
+Assembler rejects `collector-out`, `datasets/raw`, `target_*`, `system_*`, unresolved
 placeholders, duplicate identities, missing files, and malformed envelopes.
 
 Raw evidence belongs under `evidence/<TechId>/<ObjectKey>/...`. Findings and coverage artifacts
@@ -49,6 +49,7 @@ manifest entries rather than collector folder conventions.
 
 - Legacy collector discovery and placeholder expansion are unsupported.
 - `run_summary.json` has no special rendering or discovery behavior.
+- `collector-out`, `datasets/raw`, `target_*`, and `system_*` layouts are rejected.
 - Runtime skeleton mappings must use logical schema-v2 dataset keys.
 - Missing required canonical inputs fail closed.
 - Structured document-facing content must use scalar, list, table, or diagram

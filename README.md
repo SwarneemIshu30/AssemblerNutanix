@@ -47,9 +47,9 @@ The current assembler direction is to keep rendering behavior declarative and co
 - tech projection contracts declare aliases, filters, ordering, columns, and output behavior
 - dataset presentation sidecars under `tech/<techId>/dataset/*.assembler.meta.json` describe document intent such as `summary`, `table`, `relationshipTable`, or `evidence`
 - document-facing SDTs should resolve through explicit projection/view metadata rather than ad hoc technology-specific renderer logic
-- raw JSON output is reserved for evidence/debug use cases, not as the preferred fallback for document-facing tables
-- current runtime execution still uses legacy-compatible mode precedence: projection `renderMode`, then mapping `renderMode`, then mapping `renderAs`
-- current projection execution supports aliases, `filter`, `sortBy`, `columns`, supported column formats, and partial `emptyBehavior` handling; `renderAs`-first precedence, `list`, `rowOrder`, `identityKeys`, `formatProfiles`, and full `emptyBehavior` remain target semantics rather than fully implemented runtime behavior
+- raw JSON output is reserved for explicitly declared `json-evidence` or equivalent debug/evidence intent, not as the preferred fallback for document-facing tables
+- current runtime execution gives explicit mapping `renderMode` / `renderAs` precedence over projection default `renderMode`
+- current projection execution supports aliases, `filter`, one-item filter preservation, `sortBy`, `columns`, supported column formats, empty array selector resolution, required/optional selector severity, and partial `emptyBehavior` handling; `list`, `rowOrder`, `identityKeys`, `formatProfiles`, and full `emptyBehavior` remain target semantics rather than fully implemented runtime behavior
 
 For Lenovo.DE specifically, the authoritative mapping and projection intent now lives in the contracts snapshot under:
 - `.deps/contracts/tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml`

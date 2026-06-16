@@ -136,6 +136,8 @@ Exit codes:
 
 Archive import failures return exit code `2` with wrapper issue code `ASB-ASM-WRAPPER-ARCHIVE-IMPORT-FAILED`.
 
+Canonical DE smoke validation parses the bundle render report and verifies the reported output artifact exists. Backend `PARTIAL` is not automatically a wrapper failure unless the report status is `ERROR`; unresolved optional mappings remain warnings, while required misses remain errors.
+
 Wrapper artifact layout:
 - `<OutputRoot>/progress.jsonl`
 - `<OutputRoot>/render-report.json`
@@ -175,14 +177,14 @@ Assembler documentation and runtime behavior should align to these rules:
 - `tech/<techId>/assembler.projections.v1.json` is where projection/view behavior belongs, including aliases, ordering, empty-state behavior, and table shaping.
 - `tech/<techId>/dataset/*.assembler.meta.json` carries dataset presentation intent so collectors can inform assembler how normalized data should be treated without pushing more tech logic into invoke scripts.
 - `tech/<techId>/dataset/*.assembler.meta.json` also owns dataset path templates for skeleton mapping generation via `datasetPath.template` (for example `datasets/__TECH_ID__/__TARGET__/__SYSTEM__/__DATASET__.json`). Supported placeholders are `__TECH_ID__` and `__DATASET__` (expanded during sync) plus `__TARGET__`, `__SYSTEM__`, and similar runtime placeholders (passed through for bundle-time expansion). Missing templates now fail mapping generation.
-- document-facing table outputs should be driven by explicit view/projection metadata; raw JSON output should be limited to declared evidence/debug scenarios.
+- document-facing table outputs should be driven by explicit view/projection metadata; raw JSON output should be limited to explicitly declared `json-evidence` or equivalent debug/evidence scenarios.
 
 Current runtime subset versus target semantics:
 - Direct-v1 contracts already use `renderAs`, `projectionRef`, `view`, projection contracts, and dataset presentation sidecars.
 - Sync already consumes `renderAs` and `syncPolicy` when generating runtime-facing mapping copies.
-- The renderer still executes with legacy-compatible precedence: projection `renderMode`, then mapping `renderMode`, then mapping `renderAs`.
-- Current projection execution supports aliases, `filter`, `sortBy`, `columns`, supported column formats, and partial `emptyBehavior` handling.
-- `renderAs`-first precedence, `renderAs`/`renderMode` mismatch validation, `list`, `rowOrder`, `identityKeys`, `formatProfiles`, and full `emptyBehavior` remain target semantics until the renderer catches up.
+- The renderer gives explicit mapping `renderMode` / `renderAs` precedence over projection default `renderMode`.
+- Current projection execution supports aliases, `filter`, one-item filter preservation, `sortBy`, `columns`, supported column formats, empty array selector resolution, required/optional selector severity, and partial `emptyBehavior` handling.
+- `renderAs`/`renderMode` mismatch validation, `list`, `rowOrder`, `identityKeys`, `formatProfiles`, and full `emptyBehavior` remain target semantics until the renderer catches up.
 
 For Lenovo.DE, the authoritative contract mapping source is `.deps/contracts/tech/Lenovo.DE/mapping.dataset-to-sdt.v1.yaml`; `templates/skeletons/Lenovo.DE/DE-SDT-Collector.mapping.json` is the runtime-facing/generated copy that must stay aligned with it.
 

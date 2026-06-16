@@ -120,21 +120,23 @@ Current supported runtime behavior:
 - Mapping contracts already declare `renderHint.renderAs`, `projectionRef`, and `view`.
 - Sync already consumes `renderAs` and `syncPolicy.collectorSkeletonMapping`.
 - Projection lookup already supports direct tag lookup, alias lookup, `projectionRef`, and `view`.
-- Current projection execution supports aliases, `filter`, legacy `sortBy`, `columns`, and column formats `bytesHuman` and `join`.
+- Current projection execution supports aliases, `filter`, one-item filter preservation, legacy `sortBy`, `columns`, and column formats `bytesHuman` and `join`.
+- Empty array selector values are successful resolved values.
+- Required selector misses are errors; optional selector misses are warnings and may produce a `PARTIAL` report.
+- Raw JSON rendering requires explicit `json-evidence` or equivalent debug/evidence render intent.
 - Current table empty-state handling is partial: `emptyBehavior=placeholder` can synthesize a placeholder row, but the full `emptyBehavior` model is not yet enforced.
 - Diagram lookup supports direct tag lookup, alias lookup, and `diagramRef`.
 - Current diagram execution supports `diagrammer.core` topology diagrams with dataset inputs, simple field/template expansion, equality filters, node groups, and edges.
 - DOCX diagram output embeds a PNG image; text output renders a placeholder such as `[diagram: ...]`.
 
-Current runtime mode precedence:
-- projection `renderMode`
-- mapping `renderMode`
-- mapping `renderAs`
+Current runtime mode resolution:
+- explicit mapping `renderMode`
+- explicit mapping `renderAs`
+- projection default `renderMode`
 - `_TABLE_JSON` suffix heuristic
 - fallback `scalar`
 
 Current unsupported or partial areas:
-- `renderAs` is not yet authoritative
 - `list` is not yet a distinct runtime rendering mode
 - `rowOrder`, `identityKeys`, and `formatProfiles` are defined in contracts but not yet executed by the renderer
 - `renderAs`/`renderMode` disagreement is not yet enforced as a contract error
@@ -142,31 +144,24 @@ Current unsupported or partial areas:
 - Diagram expressions are intentionally minimal and do not execute arbitrary script.
 - Physical front-view drive diagrams are not implemented in this pass.
 
-## Why `renderAs` does not win today
+## Current render intent precedence
 
-`renderAs` is the more mature Direct-v1 contract form, but it cannot be described as authoritative today because the runtime dependency chain is still mixed:
-
-- The contract layer already uses `renderAs` heavily in Lenovo.DE mappings.
-- Sync depends on `renderAs` today through `allowedRenderAs` and `selectors.defaultByRenderAs`.
-- The renderer still depends on legacy `renderMode` precedence because the execution engine and validation rules have not yet caught up to the richer projection contract surface.
-- Lenovo.DE currently works because mappings and projections mostly duplicate intent safely, with `renderAs`, `projectionRef`, `view`, and projection `renderMode` aligned instead of conflicting.
+`renderAs` is now a runtime execution signal when it is explicitly declared on the mapping. Mapping-owned render intent wins over projection defaults because mappings bind the SDT destination and know whether the target is scalar, table, list, diagram, or evidence/debug.
 
 Mode differences in the current repo:
-- `renderMode`: legacy runtime execution switch still consumed first by the renderer.
-- `renderAs`: newer declarative contract intent already used by mappings and sync.
+- `renderMode`: explicit runtime execution switch when present on the mapping; projection `renderMode` is a fallback/default.
+- `renderAs`: declarative mapping intent consumed by sync and runtime mode resolution.
 - `projectionRef`: explicit projection identity for shaping rows/values.
 - `diagramRef`: explicit diagram identity for shaping graph/topology image output.
-- `view`: named projection/view selector used during projection lookup.
+- `view`: named projection/view selector.
 
 ## Target semantics and backlog
 
 The intended Direct-v1 end state is still:
-- `renderAs` becomes canonical and wins over legacy `renderMode`.
-- `renderAs`/`renderMode` disagreement becomes a contract error.
+- contract validation rejects `renderAs`/`renderMode` disagreement instead of relying on author discipline.
 - Projection execution grows to support `list`, `rowOrder`, `identityKeys`, `formatProfiles`, and complete `emptyBehavior`.
 
 Dependencies before that transition should be described as backlog items, not implied as current behavior:
-- update runtime mode resolution
 - update explicitness and mismatch validation
 - extend projection execution semantics
 - add focused regression tests before changing precedence
@@ -187,7 +182,7 @@ When a rendered table is not converging or raw JSON leaks into output:
 ## Lenovo.DE alignment
 
 For Lenovo.DE, the intended model is:
-- collector emits normalized, document-facing datasets plus raw evidence datasets
+- collector emits normalized, document-facing datasets and raw evidence files under `evidence/<TechId>/<ObjectKey>/...`, outside dataset discovery
 - mapping entries declare which SDTs are document-facing tables and which projection/view they use
 - projection contracts define the actual table shapes
 - evidence/debug JSON output remains explicit rather than accidental
