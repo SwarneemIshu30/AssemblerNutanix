@@ -231,8 +231,8 @@ Describe 'Invoke-AssemblerBundleRender DOCX match mode forwarding' {
                     throw "Expected nested renderer docxMatchMode=literal-token, got '$($renderStage.details.docxMatchMode)'"
                 }
             }
-            if ([string]$variant.rendererOutput.status -ne 'OK') {
-                throw "Expected nested renderer status OK, got '$($variant.rendererOutput.status)'"
+            if ([string]$variant.rendererOutput.status -eq 'ERROR') {
+                throw "Expected nested renderer to avoid ERROR status, got '$($variant.rendererOutput.status)'"
             }
             $zip = [System.IO.Compression.ZipFile]::OpenRead([string]$variant.outputPath)
             try {

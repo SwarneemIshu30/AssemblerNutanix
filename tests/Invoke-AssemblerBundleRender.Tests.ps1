@@ -2,6 +2,7 @@ BeforeAll {
     $script:repoRoot = Split-Path -Parent $PSScriptRoot
     $script:canonicalBundleRoot = Join-Path $script:repoRoot 'tests/fixtures/canonical-de'
     $script:catalogPath = Join-Path $script:repoRoot 'templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json'
+    $script:pwshPath = (Get-Command pwsh -ErrorAction Stop).Source
 }
 
 Describe 'Invoke-AssemblerBundleRender canonical orchestration' {
@@ -15,7 +16,7 @@ Describe 'Invoke-AssemblerBundleRender canonical orchestration' {
     }
 
     It 'renders one composition from all canonical targets' {
-        $json = & (Join-Path $script:repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1') `
+        $json = & $script:pwshPath -NoLogo -NoProfile -File (Join-Path $script:repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1') `
             -BundleRoot $script:canonicalBundleRoot `
             -CatalogPath $script:catalogPath `
             -OutputRoot $script:outputRoot `
@@ -37,7 +38,7 @@ Describe 'Invoke-AssemblerBundleRender canonical orchestration' {
         Copy-Item -LiteralPath $script:canonicalBundleRoot -Destination $bundleCopy -Recurse
         Remove-Item -LiteralPath (Join-Path $bundleCopy 'datasets/Lenovo.DE/core/de-a/systems.json') -Force
 
-        $json = & (Join-Path $script:repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1') `
+        $json = & $script:pwshPath -NoLogo -NoProfile -File (Join-Path $script:repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1') `
             -BundleRoot $bundleCopy `
             -CatalogPath $script:catalogPath `
             -OutputRoot $script:outputRoot `
@@ -55,7 +56,7 @@ Describe 'Invoke-AssemblerBundleRender canonical orchestration' {
         Copy-Item -LiteralPath $script:canonicalBundleRoot -Destination (Join-Path $stagingRoot 'bundle-a') -Recurse
         Copy-Item -LiteralPath $script:canonicalBundleRoot -Destination (Join-Path $stagingRoot 'bundle-b') -Recurse
 
-        $json = & (Join-Path $script:repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1') `
+        $json = & $script:pwshPath -NoLogo -NoProfile -File (Join-Path $script:repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1') `
             -BundleRoot $stagingRoot `
             -CatalogPath $script:catalogPath `
             -OutputRoot $script:outputRoot `
@@ -67,8 +68,7 @@ Describe 'Invoke-AssemblerBundleRender canonical orchestration' {
     }
 
     It 'forwards annotate-resolved-tags to text rendering' {
-        $pwsh = (Get-Command pwsh -ErrorAction Stop).Source
-        $json = & $pwsh -NoLogo -NoProfile -File (Join-Path $script:repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1') `
+        $json = & $script:pwshPath -NoLogo -NoProfile -File (Join-Path $script:repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1') `
             -BundleRoot $script:canonicalBundleRoot `
             -CatalogPath $script:catalogPath `
             -OutputRoot $script:outputRoot `
