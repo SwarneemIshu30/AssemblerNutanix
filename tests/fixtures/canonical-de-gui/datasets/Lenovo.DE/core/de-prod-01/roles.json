@@ -6,9 +6,8 @@
     "entry_point": "Invoke-LnvAsBuiltDoc.Lenovo.DE"
   },
   "source": {
-    "bundle_id": "target_de-prod-01",
-    "bundle_root": "C:\\Github\\LNV.AsBuiltDoc.Core\\out\\b844bba2-c02f-4139-a656-21a1a511d95f\\datasets\\Lenovo.DE\\collector-out\\de-prod-01\\target_de-prod-01",
-    "file": "system_1_DE4200_Rack4/roles.json",
+    "bundle_id": "canonical-de-gui",
+    "file": "datasets/Lenovo.DE/core/de-prod-01/roles.json",
     "domain": "core",
     "target_key": "de-prod-01"
   },

@@ -1,12 +1,30 @@
 Describe 'Invoke-AssemblerSdtRender selectors helpers' {
     BeforeAll {
         $scriptUnderTest = Join-Path (Split-Path -Parent $PSScriptRoot) 'scripts/Invoke-AssemblerSdtRender.ps1'
-        $scriptSource = Get-Content -LiteralPath $scriptUnderTest -Raw -Encoding UTF8
-        $functionBlock = [regex]::Match(
-            $scriptSource,
-            '(?s)function Test-MapHasKey \{.*?^}\s*.*?function Get-EffectiveSelectorsForMapping \{.*?^}\s*.*?function ConvertTo-ObjectArray \{.*?^}',
-            [System.Text.RegularExpressions.RegexOptions]::Multiline
-        ).Value
+        $tokens = $null
+        $parseErrors = $null
+        $scriptAst = [System.Management.Automation.Language.Parser]::ParseFile($scriptUnderTest, [ref]$tokens, [ref]$parseErrors)
+        if (@($parseErrors).Count -gt 0) {
+            throw "Failed to parse renderer script under test: $($parseErrors[0].Message)"
+        }
+
+        $functionsByName = @{}
+        foreach ($functionAst in @($scriptAst.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $true))) {
+            $functionsByName[[string]$functionAst.Name] = $functionAst.Extent.Text
+        }
+
+        $functionBlock = @(
+            foreach ($functionName in @(
+                'Test-MapHasKey',
+                'ConvertTo-ObjectArray',
+                'Get-EffectiveSelectorsForMapping'
+            )) {
+                if (-not $functionsByName.ContainsKey($functionName)) {
+                    throw "Failed to load helper function '$functionName' from script under test."
+                }
+                $functionsByName[$functionName]
+            }
+        ) -join "`n`n"
 
         if ([string]::IsNullOrWhiteSpace($functionBlock)) {
             throw 'Failed to load selector helper functions from script under test.'

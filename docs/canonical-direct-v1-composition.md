@@ -12,7 +12,7 @@ must resolve to a target, target group, or solution in the solution plan.
 Assembler rejects `collector-out`, `target_*`, `system_*`, unresolved
 placeholders, duplicate identities, missing files, and malformed envelopes.
 
-Raw evidence belongs under `datasets/raw/...`. Findings and coverage artifacts
+Raw evidence belongs under `evidence/<TechId>/<ObjectKey>/...`. Findings and coverage artifacts
 remain evidence and are not projected as document datasets.
 
 ## Mapping v2
@@ -58,7 +58,7 @@ manifest entries rather than collector folder conventions.
 
 1. Write native envelopes directly to the Core-provided canonical object root.
 2. Preserve stable object identity in envelope provenance and dataset items.
-3. Put raw captures under `datasets/raw`, outside document dataset discovery.
+3. Put raw captures under `evidence/<TechId>/<ObjectKey>`, outside document dataset discovery.
 4. Define dataset schemas and presentation sidecars in the contracts repo.
 5. Define logical mappings, projections, and any composition policy in contracts.
 6. Add canonical multi-target fixtures and packaged-runtime smoke coverage.

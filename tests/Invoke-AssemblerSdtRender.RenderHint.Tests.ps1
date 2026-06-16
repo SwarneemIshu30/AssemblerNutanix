@@ -1,12 +1,34 @@
 Describe 'Invoke-AssemblerSdtRender render hint helpers' {
     BeforeAll {
         $scriptUnderTest = Join-Path (Split-Path -Parent $PSScriptRoot) 'scripts/Invoke-AssemblerSdtRender.ps1'
-        $scriptSource = Get-Content -LiteralPath $scriptUnderTest -Raw -Encoding UTF8
-        $functionBlock = [regex]::Match(
-            $scriptSource,
-            '(?s)function Test-MapHasKey \{.*?^}\s*.*?function Resolve-PreferredProjectionFromMetadata \{.*?^}\s*.*?function Get-MappingRenderHint \{.*?^}\s*.*?function Get-EffectiveRenderMode \{.*?^}\s*.*?function Get-ProjectionDefinitionForMapping \{.*?^}\s*.*?function Get-ProjectionDefinitionForTag \{.*?^}',
-            [System.Text.RegularExpressions.RegexOptions]::Multiline
-        ).Value
+        $tokens = $null
+        $parseErrors = $null
+        $scriptAst = [System.Management.Automation.Language.Parser]::ParseFile($scriptUnderTest, [ref]$tokens, [ref]$parseErrors)
+        if (@($parseErrors).Count -gt 0) {
+            throw "Failed to parse renderer script under test: $($parseErrors[0].Message)"
+        }
+
+        $functionsByName = @{}
+        foreach ($functionAst in @($scriptAst.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $true))) {
+            $functionsByName[[string]$functionAst.Name] = $functionAst.Extent.Text
+        }
+
+        $functionBlock = @(
+            foreach ($functionName in @(
+                'Test-MapHasKey',
+                'ConvertTo-ObjectArray',
+                'Resolve-PreferredProjectionFromMetadata',
+                'Get-MappingRenderHint',
+                'Get-EffectiveRenderMode',
+                'Get-ProjectionDefinitionForMapping',
+                'Get-ProjectionDefinitionForTag'
+            )) {
+                if (-not $functionsByName.ContainsKey($functionName)) {
+                    throw "Failed to load helper function '$functionName' from script under test."
+                }
+                $functionsByName[$functionName]
+            }
+        ) -join "`n`n"
 
         if ([string]::IsNullOrWhiteSpace($functionBlock)) {
             throw 'Failed to load render hint helper functions from script under test.'
@@ -64,15 +86,15 @@ Describe 'Invoke-AssemblerSdtRender render hint helpers' {
         $hint.view | Should -Be 'Summary'
     }
 
-    It 'resolves render mode from OrderedDictionary render hints and projection fragments' {
+    It 'lets explicit render hints override projection fragments and uses projection mode as fallback' {
         $renderHint = [ordered]@{}
-        $renderHint['renderAs'] = 'table'
+        $renderHint['renderMode'] = 'json-evidence'
 
         $projection = [ordered]@{}
-        $projection['renderMode'] = 'json-evidence'
+        $projection['renderMode'] = 'table'
 
         (Get-EffectiveRenderMode -RenderHint $renderHint -ProjectionDefinition $projection -Tag 'Sample.Tag') | Should -Be 'json-evidence'
-        (Get-EffectiveRenderMode -RenderHint $renderHint -ProjectionDefinition $null -Tag 'Sample.Tag') | Should -Be 'table'
+        (Get-EffectiveRenderMode -RenderHint $null -ProjectionDefinition $projection -Tag 'Sample.Tag') | Should -Be 'table'
     }
 
     It 'resolves projection definitions from Hashtable and OrderedDictionary inputs' {

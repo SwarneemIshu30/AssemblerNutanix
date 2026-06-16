@@ -7,8 +7,8 @@ Describe 'Lenovo.DE physical model contract mirror' {
         Test-Path -LiteralPath $runtimePath -PathType Leaf | Should -BeTrue
         Test-Path -LiteralPath $exportPath -PathType Leaf | Should -BeTrue
 
-        $runtime = Get-Content -LiteralPath $runtimePath -Raw -Encoding UTF8
-        $export = Get-Content -LiteralPath $exportPath -Raw -Encoding UTF8
+        $runtime = (Get-Content -LiteralPath $runtimePath -Raw -Encoding UTF8) -replace "`r`n", "`n"
+        $export = (Get-Content -LiteralPath $exportPath -Raw -Encoding UTF8) -replace "`r`n", "`n"
         $export | Should -Be $runtime
     }
 
