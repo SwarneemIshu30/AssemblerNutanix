@@ -32,7 +32,7 @@ jobs:
           $failed = 0
           foreach ($file in @(Get-ChildItem ./tests -Filter '*.Tests.ps1' -File | Sort-Object Name)) {
             $resultJson = & pwsh -NoLogo -NoProfile -Command @"
-          `$result = Invoke-Pester -Path '$($file.FullName.Replace("'", "''"))' -PassThru -Output None
+          `$result = Invoke-Pester -Path '$($file.FullName.Replace("'", "''"))' -PassThru -Output Detailed
           [ordered]@{ Total = `$result.TotalCount; Passed = `$result.PassedCount; Failed = `$result.FailedCount } | ConvertTo-Json -Compress
           if (`$result.FailedCount -gt 0) { exit 1 }
           "@
