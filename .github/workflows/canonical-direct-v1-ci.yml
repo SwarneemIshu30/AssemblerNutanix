@@ -60,9 +60,22 @@ jobs:
         shell: pwsh
         run: |
           $output = Join-Path $env:RUNNER_TEMP 'assembler-de-smoke'
-          ./scripts/Invoke-AssemblerBundleRender.ps1 `
+          $json = & pwsh -NoLogo -NoProfile -File ./scripts/Invoke-AssemblerBundleRender.ps1 `
             -BundleRoot ./tests/fixtures/canonical-de `
             -CatalogPath ./templates/skeletons/Lenovo.DE/DE-SDT-Dummy.catalog.json `
             -ContractsRoot ./.deps/contracts `
             -OutputRoot $output
-          if ($LASTEXITCODE -ne 0) { throw 'Canonical DE runtime smoke failed.' }
+          $report = $json | ConvertFrom-Json
+          if ([string]$report.status -eq 'ERROR') {
+            throw "Canonical DE runtime smoke failed with ERROR report status. Output: $json"
+          }
+          $outputPath = [string]$report.outputPath
+          if ([string]::IsNullOrWhiteSpace($outputPath) -and @($report.runs).Count -gt 0) {
+            $outputPath = [string]@($report.runs)[0].outputPath
+          }
+          if ([string]::IsNullOrWhiteSpace($outputPath) -and @($report.runs).Count -gt 0 -and @(@($report.runs)[0].variants).Count -gt 0) {
+            $outputPath = [string]@(@($report.runs)[0].variants)[0].outputPath
+          }
+          if ([string]::IsNullOrWhiteSpace($outputPath) -or -not (Test-Path -LiteralPath $outputPath -PathType Leaf)) {
+            throw "Canonical DE runtime smoke did not produce the reported output file. Output: $json"
+          }
