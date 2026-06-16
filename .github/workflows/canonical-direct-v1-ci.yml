@@ -31,15 +31,18 @@ jobs:
           $passed = 0
           $failed = 0
           foreach ($file in @(Get-ChildItem ./tests -Filter '*.Tests.ps1' -File | Sort-Object Name)) {
+            Write-Host "::group::$($file.Name)"
             $resultJson = & pwsh -NoLogo -NoProfile -Command @"
           `$result = Invoke-Pester -Path '$($file.FullName.Replace("'", "''"))' -PassThru -Output Detailed
           [ordered]@{ Total = `$result.TotalCount; Passed = `$result.PassedCount; Failed = `$result.FailedCount } | ConvertTo-Json -Compress
           if (`$result.FailedCount -gt 0) { exit 1 }
           "@
+            $resultJson | ForEach-Object { Write-Host $_ }
             $result = $resultJson | Select-Object -Last 1 | ConvertFrom-Json
             $total += $result.Total
             $passed += $result.Passed
             $failed += $result.Failed
+            Write-Host "::endgroup::"
           }
           Write-Host "Pester total=$total passed=$passed failed=$failed"
           if ($failed -gt 0) { throw "$failed Pester tests failed." }
