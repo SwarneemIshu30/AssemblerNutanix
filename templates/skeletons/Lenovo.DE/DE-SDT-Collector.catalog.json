@@ -9,7 +9,7 @@
       "displayName": "Lenovo DE Collector Blueprint Skeleton (DOCX)",
       "docType": "collector-blueprint",
       "mappingPath": "DE-SDT-Collector.mapping.json",
-      "templatePath": "SK_Lenovo_DE_DRAFT_v0.1.docx",
+      "templatePath": "SK_Lenovo_DE_DRAFT_v0.2.docx",
       "outputFileName": "DE-SDT-Collector.rendered.docx",
       "enabled": true,
       "priority": 20
