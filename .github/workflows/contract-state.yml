@@ -17,6 +17,6 @@ permissions:
 
 jobs:
   publish:
-    uses: LNV-AsBuiltDoc/LNV.AsBuiltDoc.KnowledgeContracts/.github/workflows/publish-contract-state.yml@v1
+    uses: LNV-AsBuiltDoc/LNV.AsBuiltDoc.KnowledgeContracts/.github/workflows/publish-contract-state.yml@v2
     with:
       role: assembler

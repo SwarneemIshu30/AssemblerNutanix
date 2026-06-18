@@ -1,3 +1,4 @@
+version: 2
 repository:
   owner: LNV-AsBuiltDoc
   name: LNV.AsBuiltDoc.Assembler
