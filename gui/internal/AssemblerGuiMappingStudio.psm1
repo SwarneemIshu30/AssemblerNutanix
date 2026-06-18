@@ -877,6 +877,7 @@ function Resolve-CollectorTargetTag {
     foreach ($sourceToken in @($TagPolicy.tokenRewrites.Keys)) {
         $normalized = $normalized.Replace([string]$sourceToken, [string]$TagPolicy.tokenRewrites[$sourceToken])
     }
+    $normalized = Normalize-MappingStudioTargetPath -TargetPath $normalized
 
     if (Test-MapHasKey -Map $TagPolicy.tagAliases -Key $normalized) {
         return [string]$TagPolicy.tagAliases[$normalized]
@@ -1244,19 +1245,25 @@ function Add-UniqueString {
     }
 }
 
-function Get-TargetOwnedProjectionRef {
+function Normalize-MappingStudioTargetPath {
     param([Parameter(Mandatory = $false)][string]$TargetPath)
 
     if ([string]::IsNullOrWhiteSpace($TargetPath)) {
         return ''
     }
 
-    $normalized = [string]$TargetPath
-    if ($normalized.EndsWith('>>')) {
-        $normalized = $normalized.Substring(0, $normalized.Length - 2)
-    }
+    $normalized = ([string]$TargetPath).Trim()
+    $normalized = $normalized -replace '^<<\s*SDT:\s*', ''
+    $normalized = $normalized -replace '^`|`$', ''
+    $normalized = $normalized -replace '>>$', ''
+    $normalized = $normalized -replace '<$', ''
+    return $normalized.Trim()
+}
 
-    return $normalized
+function Get-TargetOwnedProjectionRef {
+    param([Parameter(Mandatory = $false)][string]$TargetPath)
+
+    return (Normalize-MappingStudioTargetPath -TargetPath $TargetPath)
 }
 
 function New-ProjectionColumnDraft {
@@ -1702,7 +1709,7 @@ function Get-TargetTagsFromText {
     $matches = [regex]::Matches($Text, 'LNV(?:\.[A-Za-z0-9-]+(?:\[[^\]\r\n<>]+\])?)+')
     $tags = [System.Collections.Generic.List[string]]::new()
     foreach ($match in @($matches)) {
-        $value = [string]$match.Value
+        $value = Normalize-MappingStudioTargetPath -TargetPath ([string]$match.Value)
         if (-not [string]::IsNullOrWhiteSpace($value) -and -not $tags.Contains($value)) {
             $tags.Add($value) | Out-Null
         }
@@ -1774,6 +1781,13 @@ function Get-PlacementEvidence {
         $tokenAuditPath = Join-Path $mappingDirectory $tokenAuditFileName
     }
     $headingMapPath = if ([string]::IsNullOrWhiteSpace($templatePath)) { $null } else { [System.IO.Path]::ChangeExtension($templatePath, '.heading-tag-map.md') }
+    if ($null -ne $headingMapPath -and -not (Test-Path -LiteralPath $headingMapPath -PathType Leaf)) {
+        $templateDirectory = Split-Path -Parent $templatePath
+        $headingMapCandidates = @(Get-ChildItem -LiteralPath $templateDirectory -Filter '*.heading-tag-map.md' -File -ErrorAction SilentlyContinue | Sort-Object Name)
+        if ($headingMapCandidates.Count -eq 1) {
+            $headingMapPath = $headingMapCandidates[0].FullName
+        }
+    }
     $tokenAuditText = if ($null -ne $tokenAuditPath) { Get-FileTextIfExists -Path $tokenAuditPath } else { $null }
     $headingMapText = if ($null -ne $headingMapPath) { Get-FileTextIfExists -Path $headingMapPath } else { $null }
 
@@ -2427,8 +2441,9 @@ function Get-MappingStudioWorkbench {
 
     $knownTargetPaths = [System.Collections.Generic.List[string]]::new()
     foreach ($tag in @($placementEvidence.placedTags + $placementEvidence.stageOnlyTags + $projectionSurface.AllRefs + ($mappingViews | ForEach-Object { $_.TargetPath }))) {
-        if (-not [string]::IsNullOrWhiteSpace([string]$tag) -and -not $knownTargetPaths.Contains([string]$tag)) {
-            $knownTargetPaths.Add([string]$tag) | Out-Null
+        $targetPath = Normalize-MappingStudioTargetPath -TargetPath ([string]$tag)
+        if (-not [string]::IsNullOrWhiteSpace($targetPath) -and -not $knownTargetPaths.Contains($targetPath)) {
+            $knownTargetPaths.Add($targetPath) | Out-Null
         }
     }
 
