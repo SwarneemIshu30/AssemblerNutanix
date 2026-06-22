@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "dataset": "cluster_summary",
+  "presentationKind": "table",
+  "documentFacing": true,
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    {
+      "name": "Default",
+      "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.ClusterSummary"
+    }
+  ]
+}

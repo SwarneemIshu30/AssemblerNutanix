@@ -1,0 +1,18 @@
+{
+  "schema": "assembler.template-catalog",
+  "schemaVersion": 1,
+  "displayName": "Nutanix Prism as-built catalog",
+  "entries": [
+    {
+      "id": "nutanix-prism-as-built-text",
+      "techId": "Nutanix.Prism",
+      "displayName": "Nutanix Prism As-Built Text Preview",
+      "docType": "as-built",
+      "mappingPath": "Prism-SDT-Collector.mapping.json",
+      "templatePath": "Prism-AsBuilt.template.txt",
+      "outputFileName": "Nutanix-Prism-AsBuilt.rendered.txt",
+      "enabled": true,
+      "priority": 10
+    }
+  ]
+}

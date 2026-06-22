@@ -23,22 +23,30 @@ spec:
     v4Gated: true
   datasets:
     - cluster
+    - cluster_summary
     - cluster_fault_tolerance
     - vms
+    - vm_inventory
     - categories
     - policies
     - alerts
     - tasks
     - cvms
     - hosts
+    - host_inventory
     - host_nics
+    - host_network_interfaces
     - networks
     - virtual_switches
     - storage_containers
+    - storage_container_inventory
     - datastores
     - storage_pools
+    - storage_pool_inventory
     - disks
+    - disk_inventory
     - volume_groups
+    - volume_group_inventory
     - protection_domains
     - remote_sites
     - images
@@ -53,6 +61,7 @@ spec:
     - witness
     - snapshots
     - virtual_disks
+    - virtual_disk_inventory
     - pd_replications
     - dr_snapshots
     - unprotected_vms

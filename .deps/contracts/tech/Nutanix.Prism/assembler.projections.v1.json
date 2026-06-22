@@ -627,6 +627,407 @@
       "rowOrder": [
         "_assembler.objectKey"
       ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.ClusterSummary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Target",
+          "source": "targetName"
+        },
+        {
+          "name": "Endpoint",
+          "source": "endpointKind"
+        },
+        {
+          "name": "Cluster",
+          "source": "clusterName"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "Version",
+          "source": "version"
+        },
+        {
+          "name": "Hosts",
+          "source": "hostCount"
+        },
+        {
+          "name": "VMs",
+          "source": "vmCount"
+        },
+        {
+          "name": "CVMs",
+          "source": "cvmCount"
+        },
+        {
+          "name": "Networks",
+          "source": "networkCount"
+        },
+        {
+          "name": "Containers",
+          "source": "storageContainerCount"
+        },
+        {
+          "name": "Alerts",
+          "source": "alertCount"
+        }
+      ],
+      "rowOrder": [
+        "targetName",
+        "clusterName"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.HostInventory": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Target",
+          "source": "targetName"
+        },
+        {
+          "name": "Host",
+          "source": "hostName"
+        },
+        {
+          "name": "Serial",
+          "source": "serial"
+        },
+        {
+          "name": "Model",
+          "source": "model"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "Maintenance",
+          "source": "maintenanceState"
+        },
+        {
+          "name": "Hypervisor",
+          "source": "hypervisor"
+        },
+        {
+          "name": "CPU Cores",
+          "source": "cpuCores"
+        },
+        {
+          "name": "Memory",
+          "source": "memoryBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "CVM IP",
+          "source": "cvmIp"
+        }
+      ],
+      "rowOrder": [
+        "targetName",
+        "hostName"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.HostNetworkInterfaces": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Target",
+          "source": "targetName"
+        },
+        {
+          "name": "Host",
+          "source": "hostName"
+        },
+        {
+          "name": "NIC",
+          "source": "nicName"
+        },
+        {
+          "name": "MAC",
+          "source": "macAddress"
+        },
+        {
+          "name": "Status",
+          "source": "interfaceStatus"
+        },
+        {
+          "name": "Speed Kbps",
+          "source": "linkSpeedKbps"
+        },
+        {
+          "name": "MTU",
+          "source": "mtuBytes"
+        },
+        {
+          "name": "Virtual Switch",
+          "source": "virtualSwitch"
+        },
+        {
+          "name": "Switch Port",
+          "source": "switchInterface"
+        },
+        {
+          "name": "Switch Mgmt IP",
+          "source": "switchManagementIp"
+        }
+      ],
+      "rowOrder": [
+        "targetName",
+        "hostName",
+        "nicName"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VMInventory": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Target",
+          "source": "targetName"
+        },
+        {
+          "name": "VM",
+          "source": "vmName"
+        },
+        {
+          "name": "Power",
+          "source": "powerState"
+        },
+        {
+          "name": "Host",
+          "source": "hostName"
+        },
+        {
+          "name": "vCPU",
+          "source": "cpuCount"
+        },
+        {
+          "name": "Memory",
+          "source": "memoryBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "IPs",
+          "source": "ipAddresses"
+        },
+        {
+          "name": "NICs",
+          "source": "nicCount"
+        },
+        {
+          "name": "Protection",
+          "source": "protectionType"
+        },
+        {
+          "name": "Protection Domain",
+          "source": "protectionDomainName"
+        }
+      ],
+      "rowOrder": [
+        "targetName",
+        "hostName",
+        "vmName"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.StorageContainers": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Target",
+          "source": "targetName"
+        },
+        {
+          "name": "Container",
+          "source": "containerName"
+        },
+        {
+          "name": "Max Capacity",
+          "source": "maxCapacityBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "RF",
+          "source": "replicationFactor"
+        },
+        {
+          "name": "Compression",
+          "source": "compressionEnabled"
+        },
+        {
+          "name": "Dedup",
+          "source": "deduplicationEnabled"
+        },
+        {
+          "name": "Shared",
+          "source": "shared"
+        },
+        {
+          "name": "Internal",
+          "source": "internal"
+        }
+      ],
+      "rowOrder": [
+        "targetName",
+        "containerName"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.StoragePools": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Target",
+          "source": "targetName"
+        },
+        {
+          "name": "Storage Pool",
+          "source": "storagePoolName"
+        },
+        {
+          "name": "Capacity",
+          "source": "capacityBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "Disks",
+          "source": "diskCount"
+        },
+        {
+          "name": "Marked For Removal",
+          "source": "markedForRemoval"
+        }
+      ],
+      "rowOrder": [
+        "targetName",
+        "storagePoolName"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.Disks": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Target",
+          "source": "targetName"
+        },
+        {
+          "name": "Host",
+          "source": "hostName"
+        },
+        {
+          "name": "Disk",
+          "source": "diskName"
+        },
+        {
+          "name": "Serial",
+          "source": "serial"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "Size",
+          "source": "sizeBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "Tier",
+          "source": "storageTier"
+        }
+      ],
+      "rowOrder": [
+        "targetName",
+        "hostName",
+        "diskName"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VirtualDisks": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Target",
+          "source": "targetName"
+        },
+        {
+          "name": "VM",
+          "source": "vmName"
+        },
+        {
+          "name": "Virtual Disk",
+          "source": "virtualDiskName"
+        },
+        {
+          "name": "Capacity",
+          "source": "capacityBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "Container",
+          "source": "containerName"
+        },
+        {
+          "name": "Bus",
+          "source": "deviceBus"
+        }
+      ],
+      "rowOrder": [
+        "targetName",
+        "vmName",
+        "virtualDiskName"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VolumeGroups": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Target",
+          "source": "targetName"
+        },
+        {
+          "name": "Volume Group",
+          "source": "volumeGroupName"
+        },
+        {
+          "name": "Attached Target",
+          "source": "attachedTarget"
+        },
+        {
+          "name": "Usage Type",
+          "source": "usageType"
+        },
+        {
+          "name": "Sharing",
+          "source": "sharingStatus"
+        },
+        {
+          "name": "Hidden",
+          "source": "hidden"
+        }
+      ],
+      "rowOrder": [
+        "targetName",
+        "volumeGroupName"
+      ]
     }
   }
 }

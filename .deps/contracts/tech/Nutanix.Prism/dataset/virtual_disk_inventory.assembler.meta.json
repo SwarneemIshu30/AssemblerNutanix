@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "dataset": "virtual_disk_inventory",
+  "presentationKind": "table",
+  "documentFacing": true,
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    {
+      "name": "Default",
+      "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VirtualDisks"
+    }
+  ]
+}
