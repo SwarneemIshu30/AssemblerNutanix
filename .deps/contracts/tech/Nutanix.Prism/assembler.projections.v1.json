@@ -18,16 +18,16 @@
           "source": "name"
         },
         {
-          "name": "UUID",
-          "source": "uuid"
+          "name": "Native UUID",
+          "source": "nativeUuid"
         },
         {
           "name": "External ID",
           "source": "extId"
         },
         {
-          "name": "Status",
-          "source": "status"
+          "name": "VM Count",
+          "source": "vmCount"
         }
       ],
       "rowOrder": [
@@ -45,15 +45,19 @@
         },
         {
           "name": "Host",
-          "source": "name"
+          "source": "hostName"
         },
         {
-          "name": "UUID",
-          "source": "uuid"
+          "name": "Native UUID",
+          "source": "nativeUuid"
         },
         {
           "name": "Serial",
-          "source": "serialNumber"
+          "source": "nodeSerial"
+        },
+        {
+          "name": "Status",
+          "source": "nodeStatus"
         }
       ],
       "rowOrder": [
@@ -89,7 +93,7 @@
       "columns": [
         {
           "name": "CVM",
-          "source": "name"
+          "source": "vmName"
         },
         {
           "name": "UUID",
@@ -98,6 +102,10 @@
         {
           "name": "Host",
           "source": "hostName"
+        },
+        {
+          "name": "Power State",
+          "source": "powerState"
         }
       ],
       "rowOrder": [
@@ -137,19 +145,19 @@
       "columns": [
         {
           "name": "VM",
-          "source": "vmName"
+          "source": "vm_name"
         },
         {
-          "name": "NIC",
-          "source": "name"
+          "name": "NIC UUID",
+          "source": "nic_uuid"
         },
         {
           "name": "MAC",
-          "source": "macAddress"
+          "source": "mac_address"
         },
         {
-          "name": "Network",
-          "source": "networkName"
+          "name": "Network UUID",
+          "source": "network_uuid"
         }
       ],
       "rowOrder": [
@@ -210,12 +218,17 @@
           "source": "name"
         },
         {
-          "name": "UUID",
-          "source": "uuid"
+          "name": "Native UUID",
+          "source": "nativeUuid"
         },
         {
-          "name": "External ID",
-          "source": "extId"
+          "name": "Container ID",
+          "source": "containerExtId"
+        },
+        {
+          "name": "Max Capacity",
+          "source": "maxCapacityBytes",
+          "format": "bytesHuman"
         }
       ],
       "rowOrder": [
@@ -233,7 +246,11 @@
         },
         {
           "name": "UUID",
-          "source": "uuid"
+          "source": "storagePoolUuid"
+        },
+        {
+          "name": "ID",
+          "source": "id"
         }
       ],
       "rowOrder": [
@@ -250,12 +267,21 @@
           "source": "id"
         },
         {
-          "name": "Serial",
-          "source": "serial"
+          "name": "UUID",
+          "source": "disk_uuid"
         },
         {
           "name": "Host",
-          "source": "hostName"
+          "source": "host_name"
+        },
+        {
+          "name": "Status",
+          "source": "disk_status"
+        },
+        {
+          "name": "Size",
+          "source": "disk_size",
+          "format": "bytesHuman"
         }
       ],
       "rowOrder": [
@@ -272,12 +298,14 @@
           "source": "name"
         },
         {
-          "name": "UUID",
-          "source": "uuid"
+          "name": "Active",
+          "source": "active"
         },
         {
-          "name": "Status",
-          "source": "status"
+          "name": "Remote Sites",
+          "source": "remote_site_names",
+          "format": "join",
+          "delimiter": ", "
         }
       ],
       "rowOrder": [
@@ -298,8 +326,12 @@
           "source": "severity"
         },
         {
-          "name": "Status",
-          "source": "status"
+          "name": "Resolved",
+          "source": "isResolved"
+        },
+        {
+          "name": "Acknowledged",
+          "source": "isAcknowledged"
         }
       ],
       "rowOrder": [
@@ -335,15 +367,19 @@
       "columns": [
         {
           "name": "Template",
-          "source": "name"
-        },
-        {
-          "name": "Description",
-          "source": "description"
+          "source": "templateName"
         },
         {
           "name": "External ID",
           "source": "extId"
+        },
+        {
+          "name": "Created By",
+          "source": "createdBy"
+        },
+        {
+          "name": "Created",
+          "source": "createTime"
         }
       ],
       "rowOrder": [
@@ -422,6 +458,170 @@
         {
           "name": "Correlation",
           "source": "correlationStatus"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.Licenses": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "License",
+          "source": "name"
+        },
+        {
+          "name": "Type",
+          "source": "type"
+        },
+        {
+          "name": "Category",
+          "source": "category"
+        },
+        {
+          "name": "Subcategory",
+          "source": "subCategory"
+        },
+        {
+          "name": "Scope",
+          "source": "scope"
+        },
+        {
+          "name": "Quantity",
+          "source": "quantity"
+        },
+        {
+          "name": "Expiry",
+          "source": "expiryDate"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.Images": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Image",
+          "source": "name"
+        },
+        {
+          "name": "Type",
+          "source": "type"
+        },
+        {
+          "name": "Size",
+          "source": "sizeBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "Owner",
+          "source": "ownerName"
+        },
+        {
+          "name": "Created",
+          "source": "createTime"
+        },
+        {
+          "name": "Updated",
+          "source": "lastUpdateTime"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.UnprotectedVMs": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "VM",
+          "source": "vm_name"
+        },
+        {
+          "name": "UUID",
+          "source": "uuid"
+        },
+        {
+          "name": "Host",
+          "source": "host_name"
+        },
+        {
+          "name": "Power State",
+          "source": "power_state"
+        },
+        {
+          "name": "Protection Domain",
+          "source": "protection_domain_name"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.VirtualDisks": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Virtual Disk",
+          "source": "virtualDiskId"
+        },
+        {
+          "name": "UUID",
+          "source": "uuid"
+        },
+        {
+          "name": "Attached VM",
+          "source": "attachedVMName"
+        },
+        {
+          "name": "Container UUID",
+          "source": "containerUuid"
+        },
+        {
+          "name": "Capacity",
+          "source": "diskCapacityInBytes",
+          "format": "bytesHuman"
+        }
+      ],
+      "rowOrder": [
+        "_assembler.objectKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Tables.VolumeGroups": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Volume Group",
+          "source": "name"
+        },
+        {
+          "name": "External ID",
+          "source": "extId"
+        },
+        {
+          "name": "Target",
+          "source": "targetName"
+        },
+        {
+          "name": "Usage Type",
+          "source": "usageType"
+        },
+        {
+          "name": "Sharing Status",
+          "source": "sharingStatus"
         }
       ],
       "rowOrder": [

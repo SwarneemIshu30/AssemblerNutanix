@@ -14,9 +14,9 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             Expand-Archive -LiteralPath $bundleArchivePath -DestinationPath $bundleRoot -Force
 
             $mapping = Get-Content -LiteralPath $prismMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
-            @($mapping.mappings).Count | Should -Be 18
+            @($mapping.mappings).Count | Should -Be 23
             $documentMappings = @($mapping.mappings | Where-Object { [string]$_.scope -ne 'targetGroup' })
-            $documentMappings.Count | Should -Be 17
+            $documentMappings.Count | Should -Be 22
 
             $catalogPath = Join-Path $tempRoot 'Prism-SDT-Collector.catalog.json'
             $runtimeMappingPath = Join-Path $tempRoot 'Prism-SDT-Collector.mapping.json'

@@ -287,6 +287,96 @@
       ]
     },
     {
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Licenses",
+      "required": false,
+      "dataset": "license",
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Licenses"
+      },
+      "scope": "target",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Licenses"
+      },
+      "domain": "cluster",
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Images",
+      "required": false,
+      "dataset": "images",
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Images"
+      },
+      "scope": "target",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Images"
+      },
+      "domain": "cluster",
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.UnprotectedVMs",
+      "required": false,
+      "dataset": "unprotected_vms",
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.UnprotectedVMs"
+      },
+      "scope": "target",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.UnprotectedVMs"
+      },
+      "domain": "cluster",
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VirtualDisks",
+      "required": false,
+      "dataset": "virtual_disks",
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VirtualDisks"
+      },
+      "scope": "target",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VirtualDisks"
+      },
+      "domain": "cluster",
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VolumeGroups",
+      "required": false,
+      "dataset": "volume_groups",
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VolumeGroups"
+      },
+      "scope": "target",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VolumeGroups"
+      },
+      "domain": "cluster",
+      "selectors": [
+        "items"
+      ]
+    },
+    {
       "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.CollectionSources",
       "required": false,
       "dataset": "collection_sources",

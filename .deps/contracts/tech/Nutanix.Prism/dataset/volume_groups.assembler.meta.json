@@ -1,8 +1,12 @@
 {
   "schemaVersion": 1,
   "dataset": "volume_groups",
-  "presentationKind": "evidence",
+  "presentationKind": "table",
   "defaultItemRoot": "items",
-  "documentFacing": false,
-  "notes": "Evidence-only until an explicit document projection is contracted."
+  "preferredProjectionViews": [
+    {
+      "name": "Default",
+      "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VolumeGroups"
+    }
+  ]
 }
