@@ -199,3 +199,168 @@ mappings:
     renderMode: table
     structuredValuePolicy: blank
     missingProjectionPolicy: blank
+- dataset: bios
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.Bios
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.Bios
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: secure-boot
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.SecureBoot
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.SecureBoot
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: pcie-devices
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.PcieDevices
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.PcieDevices
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: pcie-functions
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.PcieFunctions
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.PcieFunctions
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: manager-network-protocol
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerNetworkProtocol
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerNetworkProtocol
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: manager-ethernet-interfaces
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerEthernetInterfaces
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerEthernetInterfaces
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: manager-host-interfaces
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerHostInterfaces
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerHostInterfaces
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: manager-serial-interfaces
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerSerialInterfaces
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerSerialInterfaces
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: virtual-media
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.VirtualMedia
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.VirtualMedia
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: chassis-sensors
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisSensors
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisSensors
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: chassis-network-adapters
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisNetworkAdapters
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisNetworkAdapters
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: chassis-pcie-slots
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPcieSlots
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPcieSlots
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: chassis-environment
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisEnvironment
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisEnvironment
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: chassis-power-subsystem
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPowerSubsystem
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPowerSubsystem
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: chassis-thermal-subsystem
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisThermalSubsystem
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisThermalSubsystem
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank

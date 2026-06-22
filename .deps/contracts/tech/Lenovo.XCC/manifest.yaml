@@ -32,3 +32,18 @@ spec:
     - event-log
     - security
     - users-summary
+    - bios
+    - secure-boot
+    - pcie-devices
+    - pcie-functions
+    - manager-network-protocol
+    - manager-ethernet-interfaces
+    - manager-host-interfaces
+    - manager-serial-interfaces
+    - virtual-media
+    - chassis-sensors
+    - chassis-network-adapters
+    - chassis-pcie-slots
+    - chassis-environment
+    - chassis-power-subsystem
+    - chassis-thermal-subsystem
