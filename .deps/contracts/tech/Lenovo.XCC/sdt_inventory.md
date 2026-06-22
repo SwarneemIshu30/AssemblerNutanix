@@ -24,6 +24,21 @@ Target scope uses `TargetName`, resolved from the selected Core target folder.
 - `LNV.Lenovo.XCC.Target[TargetName].Tables.EventLog`
 - `LNV.Lenovo.XCC.Target[TargetName].Tables.Security`
 - `LNV.Lenovo.XCC.Target[TargetName].Tables.Users`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.Bios`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.SecureBoot`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.PcieDevices`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.PcieFunctions`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerNetworkProtocol`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerEthernetInterfaces`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerHostInterfaces`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerSerialInterfaces`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.VirtualMedia`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisSensors`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisNetworkAdapters`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPcieSlots`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisEnvironment`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPowerSubsystem`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisThermalSubsystem`
 
 `network-interfaces` remains a compatibility/evidence dataset. The document-facing
 network tag uses `ethernet-interfaces` to avoid duplicate rendered content.

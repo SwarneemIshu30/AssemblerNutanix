@@ -1,5 +1,5 @@
 {
-  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.XCC/dataset/users-summary.schema.json",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.XCC/dataset/chassis-pcie-slots.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": true,
   "properties": {
@@ -13,7 +13,7 @@
       "type": "object"
     },
     "dataset": {
-      "const": "users-summary"
+      "const": "chassis-pcie-slots"
     },
     "item_count": {
       "minimum": 0,
@@ -23,24 +23,6 @@
       "items": {
         "additionalProperties": true,
         "properties": {
-          "accountId": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "accountName": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "accountTypes": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
           "collectedUtc": {
             "format": "date-time",
             "type": "string"
@@ -71,15 +53,9 @@
               "null"
             ]
           },
-          "displayName": {
+          "description": {
             "type": [
               "string",
-              "null"
-            ]
-          },
-          "enabled": {
-            "type": [
-              "boolean",
               "null"
             ]
           },
@@ -89,21 +65,27 @@
               "null"
             ]
           },
-          "hostBootstrapAccount": {
-            "type": [
-              "boolean",
-              "null"
-            ]
-          },
           "hostName": {
             "type": [
               "string",
               "null"
             ]
           },
-          "locked": {
+          "interfaceEnabled": {
             "type": [
               "boolean",
+              "null"
+            ]
+          },
+          "linkStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "macAddress": {
+            "type": [
+              "string",
               "null"
             ]
           },
@@ -125,15 +107,15 @@
               "null"
             ]
           },
-          "roleId": {
+          "serialNumber": {
             "type": [
               "string",
               "null"
             ]
           },
-          "serialNumber": {
+          "serviceEnabled": {
             "type": [
-              "string",
+              "boolean",
               "null"
             ]
           },
@@ -146,6 +128,12 @@
           "sourcePath": {
             "type": [
               "string",
+              "null"
+            ]
+          },
+          "speedMbps": {
+            "type": [
+              "number",
               "null"
             ]
           },
@@ -202,6 +190,6 @@
     "item_count",
     "items"
   ],
-  "title": "Lenovo.XCC users-summary dataset",
+  "title": "Lenovo.XCC chassis-pcie-slots dataset",
   "type": "object"
 }

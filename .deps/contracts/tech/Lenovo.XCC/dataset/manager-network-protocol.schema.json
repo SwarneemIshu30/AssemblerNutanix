@@ -1,5 +1,5 @@
 {
-  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.XCC/dataset/users-summary.schema.json",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.XCC/dataset/manager-network-protocol.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": true,
   "properties": {
@@ -13,7 +13,7 @@
       "type": "object"
     },
     "dataset": {
-      "const": "users-summary"
+      "const": "manager-network-protocol"
     },
     "item_count": {
       "minimum": 0,
@@ -23,24 +23,6 @@
       "items": {
         "additionalProperties": true,
         "properties": {
-          "accountId": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "accountName": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "accountTypes": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
           "collectedUtc": {
             "format": "date-time",
             "type": "string"
@@ -71,27 +53,9 @@
               "null"
             ]
           },
-          "displayName": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "enabled": {
-            "type": [
-              "boolean",
-              "null"
-            ]
-          },
           "health": {
             "type": [
               "string",
-              "null"
-            ]
-          },
-          "hostBootstrapAccount": {
-            "type": [
-              "boolean",
               "null"
             ]
           },
@@ -101,9 +65,51 @@
               "null"
             ]
           },
-          "locked": {
+          "HTTPEnabled": {
             "type": [
               "boolean",
+              "null"
+            ]
+          },
+          "HTTPPort": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "HTTPSEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "HTTPSPort": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "IPMIEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "IPMIPort": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "KVMIPEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "KVMIPPort": {
+            "type": [
+              "integer",
               "null"
             ]
           },
@@ -125,15 +131,21 @@
               "null"
             ]
           },
-          "roleId": {
+          "serialNumber": {
             "type": [
               "string",
               "null"
             ]
           },
-          "serialNumber": {
+          "SNMPEnabled": {
             "type": [
-              "string",
+              "boolean",
+              "null"
+            ]
+          },
+          "SNMPPort": {
+            "type": [
+              "integer",
               "null"
             ]
           },
@@ -146,6 +158,18 @@
           "sourcePath": {
             "type": [
               "string",
+              "null"
+            ]
+          },
+          "SSHEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "SSHPort": {
+            "type": [
+              "integer",
               "null"
             ]
           },
@@ -170,6 +194,18 @@
           "targetKey": {
             "minLength": 1,
             "type": "string"
+          },
+          "VirtualMediaEnabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "VirtualMediaPort": {
+            "type": [
+              "integer",
+              "null"
+            ]
           },
           "xccAddress": {
             "type": [
@@ -202,6 +238,6 @@
     "item_count",
     "items"
   ],
-  "title": "Lenovo.XCC users-summary dataset",
+  "title": "Lenovo.XCC manager-network-protocol dataset",
   "type": "object"
 }

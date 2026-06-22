@@ -42,6 +42,39 @@
         "targetKey"
       ]
     },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.Bios": {
+      "columns": [
+        {
+          "name": "BIOS",
+          "source": "componentName"
+        },
+        {
+          "name": "Attribute Registry",
+          "source": "attributeRegistry"
+        },
+        {
+          "name": "Attributes",
+          "source": "attributesConfigured"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Health",
+          "source": "health"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
     "LNV.Lenovo.XCC.Target[TargetName].Tables.Chassis": {
       "columns": [
         {
@@ -62,6 +95,216 @@
         }
       ],
       "emptyBehavior": "error",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisEnvironment": {
+      "columns": [
+        {
+          "name": "Metric",
+          "source": "componentName"
+        },
+        {
+          "name": "Reading",
+          "source": "reading"
+        },
+        {
+          "name": "Units",
+          "source": "readingUnits"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Health",
+          "source": "health"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisNetworkAdapters": {
+      "columns": [
+        {
+          "name": "Adapter",
+          "source": "componentName"
+        },
+        {
+          "name": "MAC Address",
+          "source": "macAddress"
+        },
+        {
+          "name": "Link",
+          "source": "linkStatus"
+        },
+        {
+          "name": "Speed Mbps",
+          "source": "speedMbps"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Health",
+          "source": "health"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPcieSlots": {
+      "columns": [
+        {
+          "name": "Slot",
+          "source": "componentName"
+        },
+        {
+          "name": "Enabled",
+          "source": "serviceEnabled"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Health",
+          "source": "health"
+        },
+        {
+          "name": "Description",
+          "source": "description"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPowerSubsystem": {
+      "columns": [
+        {
+          "name": "Subsystem",
+          "source": "componentName"
+        },
+        {
+          "name": "Service Enabled",
+          "source": "serviceEnabled"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Health",
+          "source": "health"
+        },
+        {
+          "name": "Description",
+          "source": "description"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisSensors": {
+      "columns": [
+        {
+          "name": "Sensor",
+          "source": "componentName"
+        },
+        {
+          "name": "Type",
+          "source": "sensorType"
+        },
+        {
+          "name": "Reading",
+          "source": "reading"
+        },
+        {
+          "name": "Units",
+          "source": "readingUnits"
+        },
+        {
+          "name": "Physical Context",
+          "source": "physicalContext"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Health",
+          "source": "health"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisThermalSubsystem": {
+      "columns": [
+        {
+          "name": "Subsystem",
+          "source": "componentName"
+        },
+        {
+          "name": "Service Enabled",
+          "source": "serviceEnabled"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Health",
+          "source": "health"
+        },
+        {
+          "name": "Description",
+          "source": "description"
+        }
+      ],
+      "emptyBehavior": "placeholder",
       "identityKeys": [
         "targetKey"
       ],
@@ -170,6 +413,113 @@
         "targetKey"
       ]
     },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerEthernetInterfaces": {
+      "columns": [
+        {
+          "name": "Interface",
+          "source": "componentName"
+        },
+        {
+          "name": "MAC Address",
+          "source": "macAddress"
+        },
+        {
+          "name": "Link",
+          "source": "linkStatus"
+        },
+        {
+          "name": "Speed Mbps",
+          "source": "speedMbps"
+        },
+        {
+          "name": "Enabled",
+          "source": "interfaceEnabled"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerHostInterfaces": {
+      "columns": [
+        {
+          "name": "Interface",
+          "source": "componentName"
+        },
+        {
+          "name": "Enabled",
+          "source": "interfaceEnabled"
+        },
+        {
+          "name": "Service Enabled",
+          "source": "serviceEnabled"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Health",
+          "source": "health"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerNetworkProtocol": {
+      "columns": [
+        {
+          "name": "Manager",
+          "source": "managerId"
+        },
+        {
+          "name": "HTTP",
+          "source": "HTTPEnabled"
+        },
+        {
+          "name": "HTTPS",
+          "source": "HTTPSEnabled"
+        },
+        {
+          "name": "SSH",
+          "source": "SSHEnabled"
+        },
+        {
+          "name": "SNMP",
+          "source": "SNMPEnabled"
+        },
+        {
+          "name": "IPMI",
+          "source": "IPMIEnabled"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
     "LNV.Lenovo.XCC.Target[TargetName].Tables.Managers": {
       "columns": [
         {
@@ -198,6 +548,39 @@
         }
       ],
       "emptyBehavior": "error",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerSerialInterfaces": {
+      "columns": [
+        {
+          "name": "Interface",
+          "source": "componentName"
+        },
+        {
+          "name": "Enabled",
+          "source": "interfaceEnabled"
+        },
+        {
+          "name": "Service Enabled",
+          "source": "serviceEnabled"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Health",
+          "source": "health"
+        }
+      ],
+      "emptyBehavior": "placeholder",
       "identityKeys": [
         "targetKey"
       ],
@@ -236,10 +619,6 @@
         {
           "name": "Health",
           "source": "health"
-        },
-        {
-          "name": "State",
-          "source": "state"
         }
       ],
       "emptyBehavior": "placeholder",
@@ -273,6 +652,84 @@
         {
           "name": "Health",
           "source": "health"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.PcieDevices": {
+      "columns": [
+        {
+          "name": "Device",
+          "source": "componentName"
+        },
+        {
+          "name": "Type",
+          "source": "deviceType"
+        },
+        {
+          "name": "Model",
+          "source": "model"
+        },
+        {
+          "name": "Manufacturer",
+          "source": "manufacturer"
+        },
+        {
+          "name": "Firmware",
+          "source": "firmwareVersion"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Health",
+          "source": "health"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.PcieFunctions": {
+      "columns": [
+        {
+          "name": "Function",
+          "source": "componentName"
+        },
+        {
+          "name": "Class",
+          "source": "deviceClass"
+        },
+        {
+          "name": "Device ID",
+          "source": "deviceId"
+        },
+        {
+          "name": "Vendor ID",
+          "source": "vendorId"
+        },
+        {
+          "name": "Subsystem ID",
+          "source": "subsystemId"
         },
         {
           "name": "State",
@@ -355,6 +812,39 @@
         {
           "name": "Health",
           "source": "health"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.SecureBoot": {
+      "columns": [
+        {
+          "name": "Secure Boot",
+          "source": "componentName"
+        },
+        {
+          "name": "Enabled",
+          "source": "secureBootEnable"
+        },
+        {
+          "name": "Current Boot",
+          "source": "secureBootCurrentBoot"
+        },
+        {
+          "name": "Mode",
+          "source": "secureBootMode"
+        },
+        {
+          "name": "State",
+          "source": "state"
         }
       ],
       "emptyBehavior": "placeholder",
@@ -587,300 +1077,7 @@
         "targetKey"
       ]
     },
-    "LNV.Lenovo.XCC.Target[TargetName].Tables.Bios": {
-      "rowOrder": [
-        "targetKey"
-      ],
-      "emptyBehavior": "placeholder",
-      "renderMode": "table",
-      "identityKeys": [
-        "targetKey"
-      ],
-      "renderAs": "table",
-      "columns": [
-        {
-          "name": "BIOS",
-          "source": "componentName"
-        },
-        {
-          "name": "Attribute Registry",
-          "source": "attributeRegistry"
-        },
-        {
-          "name": "Attributes",
-          "source": "attributesConfigured"
-        },
-        {
-          "name": "State",
-          "source": "state"
-        },
-        {
-          "name": "Health",
-          "source": "health"
-        }
-      ]
-    },
-    "LNV.Lenovo.XCC.Target[TargetName].Tables.SecureBoot": {
-      "rowOrder": [
-        "targetKey"
-      ],
-      "emptyBehavior": "placeholder",
-      "renderMode": "table",
-      "identityKeys": [
-        "targetKey"
-      ],
-      "renderAs": "table",
-      "columns": [
-        {
-          "name": "Secure Boot",
-          "source": "componentName"
-        },
-        {
-          "name": "Enabled",
-          "source": "secureBootEnable"
-        },
-        {
-          "name": "Current Boot",
-          "source": "secureBootCurrentBoot"
-        },
-        {
-          "name": "Mode",
-          "source": "secureBootMode"
-        },
-        {
-          "name": "State",
-          "source": "state"
-        }
-      ]
-    },
-    "LNV.Lenovo.XCC.Target[TargetName].Tables.PcieDevices": {
-      "rowOrder": [
-        "targetKey"
-      ],
-      "emptyBehavior": "placeholder",
-      "renderMode": "table",
-      "identityKeys": [
-        "targetKey"
-      ],
-      "renderAs": "table",
-      "columns": [
-        {
-          "name": "Device",
-          "source": "componentName"
-        },
-        {
-          "name": "Type",
-          "source": "deviceType"
-        },
-        {
-          "name": "Model",
-          "source": "model"
-        },
-        {
-          "name": "Manufacturer",
-          "source": "manufacturer"
-        },
-        {
-          "name": "Firmware",
-          "source": "firmwareVersion"
-        },
-        {
-          "name": "State",
-          "source": "state"
-        },
-        {
-          "name": "Health",
-          "source": "health"
-        }
-      ]
-    },
-    "LNV.Lenovo.XCC.Target[TargetName].Tables.PcieFunctions": {
-      "rowOrder": [
-        "targetKey"
-      ],
-      "emptyBehavior": "placeholder",
-      "renderMode": "table",
-      "identityKeys": [
-        "targetKey"
-      ],
-      "renderAs": "table",
-      "columns": [
-        {
-          "name": "Function",
-          "source": "componentName"
-        },
-        {
-          "name": "Class",
-          "source": "deviceClass"
-        },
-        {
-          "name": "Device ID",
-          "source": "deviceId"
-        },
-        {
-          "name": "Vendor ID",
-          "source": "vendorId"
-        },
-        {
-          "name": "Subsystem ID",
-          "source": "subsystemId"
-        },
-        {
-          "name": "State",
-          "source": "state"
-        }
-      ]
-    },
-    "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerNetworkProtocol": {
-      "rowOrder": [
-        "targetKey"
-      ],
-      "emptyBehavior": "placeholder",
-      "renderMode": "table",
-      "identityKeys": [
-        "targetKey"
-      ],
-      "renderAs": "table",
-      "columns": [
-        {
-          "name": "Manager",
-          "source": "managerId"
-        },
-        {
-          "name": "HTTP",
-          "source": "HTTPEnabled"
-        },
-        {
-          "name": "HTTPS",
-          "source": "HTTPSEnabled"
-        },
-        {
-          "name": "SSH",
-          "source": "SSHEnabled"
-        },
-        {
-          "name": "SNMP",
-          "source": "SNMPEnabled"
-        },
-        {
-          "name": "IPMI",
-          "source": "IPMIEnabled"
-        }
-      ]
-    },
-    "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerEthernetInterfaces": {
-      "rowOrder": [
-        "targetKey"
-      ],
-      "emptyBehavior": "placeholder",
-      "renderMode": "table",
-      "identityKeys": [
-        "targetKey"
-      ],
-      "renderAs": "table",
-      "columns": [
-        {
-          "name": "Interface",
-          "source": "componentName"
-        },
-        {
-          "name": "MAC Address",
-          "source": "macAddress"
-        },
-        {
-          "name": "Link",
-          "source": "linkStatus"
-        },
-        {
-          "name": "Speed Mbps",
-          "source": "speedMbps"
-        },
-        {
-          "name": "Enabled",
-          "source": "interfaceEnabled"
-        },
-        {
-          "name": "State",
-          "source": "state"
-        }
-      ]
-    },
-    "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerHostInterfaces": {
-      "rowOrder": [
-        "targetKey"
-      ],
-      "emptyBehavior": "placeholder",
-      "renderMode": "table",
-      "identityKeys": [
-        "targetKey"
-      ],
-      "renderAs": "table",
-      "columns": [
-        {
-          "name": "Interface",
-          "source": "componentName"
-        },
-        {
-          "name": "Enabled",
-          "source": "interfaceEnabled"
-        },
-        {
-          "name": "Service Enabled",
-          "source": "serviceEnabled"
-        },
-        {
-          "name": "State",
-          "source": "state"
-        },
-        {
-          "name": "Health",
-          "source": "health"
-        }
-      ]
-    },
-    "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerSerialInterfaces": {
-      "rowOrder": [
-        "targetKey"
-      ],
-      "emptyBehavior": "placeholder",
-      "renderMode": "table",
-      "identityKeys": [
-        "targetKey"
-      ],
-      "renderAs": "table",
-      "columns": [
-        {
-          "name": "Interface",
-          "source": "componentName"
-        },
-        {
-          "name": "Enabled",
-          "source": "interfaceEnabled"
-        },
-        {
-          "name": "Service Enabled",
-          "source": "serviceEnabled"
-        },
-        {
-          "name": "State",
-          "source": "state"
-        },
-        {
-          "name": "Health",
-          "source": "health"
-        }
-      ]
-    },
     "LNV.Lenovo.XCC.Target[TargetName].Tables.VirtualMedia": {
-      "rowOrder": [
-        "targetKey"
-      ],
-      "emptyBehavior": "placeholder",
-      "renderMode": "table",
-      "identityKeys": [
-        "targetKey"
-      ],
-      "renderAs": "table",
       "columns": [
         {
           "name": "Media",
@@ -906,216 +1103,15 @@
           "name": "Write Protected",
           "source": "writeProtected"
         }
-      ]
-    },
-    "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisSensors": {
-      "rowOrder": [
-        "targetKey"
       ],
       "emptyBehavior": "placeholder",
-      "renderMode": "table",
       "identityKeys": [
         "targetKey"
       ],
       "renderAs": "table",
-      "columns": [
-        {
-          "name": "Sensor",
-          "source": "componentName"
-        },
-        {
-          "name": "Type",
-          "source": "sensorType"
-        },
-        {
-          "name": "Reading",
-          "source": "reading"
-        },
-        {
-          "name": "Units",
-          "source": "readingUnits"
-        },
-        {
-          "name": "Physical Context",
-          "source": "physicalContext"
-        },
-        {
-          "name": "State",
-          "source": "state"
-        },
-        {
-          "name": "Health",
-          "source": "health"
-        }
-      ]
-    },
-    "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisNetworkAdapters": {
+      "renderMode": "table",
       "rowOrder": [
         "targetKey"
-      ],
-      "emptyBehavior": "placeholder",
-      "renderMode": "table",
-      "identityKeys": [
-        "targetKey"
-      ],
-      "renderAs": "table",
-      "columns": [
-        {
-          "name": "Adapter",
-          "source": "componentName"
-        },
-        {
-          "name": "MAC Address",
-          "source": "macAddress"
-        },
-        {
-          "name": "Link",
-          "source": "linkStatus"
-        },
-        {
-          "name": "Speed Mbps",
-          "source": "speedMbps"
-        },
-        {
-          "name": "State",
-          "source": "state"
-        },
-        {
-          "name": "Health",
-          "source": "health"
-        }
-      ]
-    },
-    "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPcieSlots": {
-      "rowOrder": [
-        "targetKey"
-      ],
-      "emptyBehavior": "placeholder",
-      "renderMode": "table",
-      "identityKeys": [
-        "targetKey"
-      ],
-      "renderAs": "table",
-      "columns": [
-        {
-          "name": "Slot",
-          "source": "componentName"
-        },
-        {
-          "name": "Enabled",
-          "source": "serviceEnabled"
-        },
-        {
-          "name": "State",
-          "source": "state"
-        },
-        {
-          "name": "Health",
-          "source": "health"
-        },
-        {
-          "name": "Description",
-          "source": "description"
-        }
-      ]
-    },
-    "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisEnvironment": {
-      "rowOrder": [
-        "targetKey"
-      ],
-      "emptyBehavior": "placeholder",
-      "renderMode": "table",
-      "identityKeys": [
-        "targetKey"
-      ],
-      "renderAs": "table",
-      "columns": [
-        {
-          "name": "Metric",
-          "source": "componentName"
-        },
-        {
-          "name": "Reading",
-          "source": "reading"
-        },
-        {
-          "name": "Units",
-          "source": "readingUnits"
-        },
-        {
-          "name": "State",
-          "source": "state"
-        },
-        {
-          "name": "Health",
-          "source": "health"
-        }
-      ]
-    },
-    "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPowerSubsystem": {
-      "rowOrder": [
-        "targetKey"
-      ],
-      "emptyBehavior": "placeholder",
-      "renderMode": "table",
-      "identityKeys": [
-        "targetKey"
-      ],
-      "renderAs": "table",
-      "columns": [
-        {
-          "name": "Subsystem",
-          "source": "componentName"
-        },
-        {
-          "name": "Service Enabled",
-          "source": "serviceEnabled"
-        },
-        {
-          "name": "State",
-          "source": "state"
-        },
-        {
-          "name": "Health",
-          "source": "health"
-        },
-        {
-          "name": "Description",
-          "source": "description"
-        }
-      ]
-    },
-    "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisThermalSubsystem": {
-      "rowOrder": [
-        "targetKey"
-      ],
-      "emptyBehavior": "placeholder",
-      "renderMode": "table",
-      "identityKeys": [
-        "targetKey"
-      ],
-      "renderAs": "table",
-      "columns": [
-        {
-          "name": "Subsystem",
-          "source": "componentName"
-        },
-        {
-          "name": "Service Enabled",
-          "source": "serviceEnabled"
-        },
-        {
-          "name": "State",
-          "source": "state"
-        },
-        {
-          "name": "Health",
-          "source": "health"
-        },
-        {
-          "name": "Description",
-          "source": "description"
-        }
       ]
     }
   },

@@ -1,5 +1,5 @@
 {
-  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.XCC/dataset/users-summary.schema.json",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.XCC/dataset/secure-boot.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": true,
   "properties": {
@@ -13,7 +13,7 @@
       "type": "object"
     },
     "dataset": {
-      "const": "users-summary"
+      "const": "secure-boot"
     },
     "item_count": {
       "minimum": 0,
@@ -23,24 +23,6 @@
       "items": {
         "additionalProperties": true,
         "properties": {
-          "accountId": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "accountName": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "accountTypes": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
           "collectedUtc": {
             "format": "date-time",
             "type": "string"
@@ -71,39 +53,15 @@
               "null"
             ]
           },
-          "displayName": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "enabled": {
-            "type": [
-              "boolean",
-              "null"
-            ]
-          },
           "health": {
             "type": [
               "string",
               "null"
             ]
           },
-          "hostBootstrapAccount": {
-            "type": [
-              "boolean",
-              "null"
-            ]
-          },
           "hostName": {
             "type": [
               "string",
-              "null"
-            ]
-          },
-          "locked": {
-            "type": [
-              "boolean",
               "null"
             ]
           },
@@ -125,7 +83,19 @@
               "null"
             ]
           },
-          "roleId": {
+          "secureBootCurrentBoot": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "secureBootEnable": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "secureBootMode": {
             "type": [
               "string",
               "null"
@@ -202,6 +172,6 @@
     "item_count",
     "items"
   ],
-  "title": "Lenovo.XCC users-summary dataset",
+  "title": "Lenovo.XCC secure-boot dataset",
   "type": "object"
 }

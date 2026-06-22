@@ -1,0 +1,21 @@
+{
+  "dataset": "bios",
+  "datasetPath": {
+    "placeholders": [
+      "__TECH_ID__",
+      "__TARGET__",
+      "__DATASET__"
+    ],
+    "scope": "target",
+    "template": "datasets/__TECH_ID__/__TARGET__/__DATASET__.json"
+  },
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    {
+      "name": "Default",
+      "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Bios"
+    }
+  ],
+  "presentationKind": "table",
+  "schemaVersion": 1
+}

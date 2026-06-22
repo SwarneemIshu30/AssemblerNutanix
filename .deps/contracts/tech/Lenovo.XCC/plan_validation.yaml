@@ -6,4 +6,5 @@ spec:
   targetKind: lenovo.xcc
   collectorKind: lenovo.xcc
   requiresHttps: true
-  requiresAuthRef: true
+  requiresAuthRef: false
+  supportsRuntimeCredentials: true

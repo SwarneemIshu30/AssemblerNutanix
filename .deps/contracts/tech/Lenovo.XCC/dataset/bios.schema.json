@@ -1,5 +1,5 @@
 {
-  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.XCC/dataset/users-summary.schema.json",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.XCC/dataset/bios.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": true,
   "properties": {
@@ -13,7 +13,7 @@
       "type": "object"
     },
     "dataset": {
-      "const": "users-summary"
+      "const": "bios"
     },
     "item_count": {
       "minimum": 0,
@@ -23,21 +23,15 @@
       "items": {
         "additionalProperties": true,
         "properties": {
-          "accountId": {
+          "attributeRegistry": {
             "type": [
               "string",
               "null"
             ]
           },
-          "accountName": {
+          "attributesConfigured": {
             "type": [
-              "string",
-              "null"
-            ]
-          },
-          "accountTypes": {
-            "type": [
-              "string",
+              "integer",
               "null"
             ]
           },
@@ -71,39 +65,15 @@
               "null"
             ]
           },
-          "displayName": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "enabled": {
-            "type": [
-              "boolean",
-              "null"
-            ]
-          },
           "health": {
             "type": [
               "string",
               "null"
             ]
           },
-          "hostBootstrapAccount": {
-            "type": [
-              "boolean",
-              "null"
-            ]
-          },
           "hostName": {
             "type": [
               "string",
-              "null"
-            ]
-          },
-          "locked": {
-            "type": [
-              "boolean",
               "null"
             ]
           },
@@ -120,12 +90,6 @@
             ]
           },
           "model": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "roleId": {
             "type": [
               "string",
               "null"
@@ -202,6 +166,6 @@
     "item_count",
     "items"
   ],
-  "title": "Lenovo.XCC users-summary dataset",
+  "title": "Lenovo.XCC bios dataset",
   "type": "object"
 }
