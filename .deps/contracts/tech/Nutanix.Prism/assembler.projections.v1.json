@@ -1028,6 +1028,320 @@
         "targetName",
         "volumeGroupName"
       ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterInventory": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Estate",
+          "source": "groupKey"
+        },
+        {
+          "name": "Cluster",
+          "source": "clusterName"
+        },
+        {
+          "name": "Cluster Target",
+          "source": "clusterTarget"
+        },
+        {
+          "name": "Management Plane",
+          "source": "managementPlaneTarget"
+        },
+        {
+          "name": "Observed From",
+          "source": "observedFrom"
+        },
+        {
+          "name": "Hosts",
+          "source": "hostCount"
+        },
+        {
+          "name": "VMs",
+          "source": "vmCount"
+        },
+        {
+          "name": "Containers",
+          "source": "storageContainerCount"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "Version",
+          "source": "version"
+        }
+      ],
+      "rowOrder": [
+        "groupKey",
+        "clusterName",
+        "clusterTarget"
+      ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostInventory": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Estate",
+          "source": "groupKey"
+        },
+        {
+          "name": "Cluster",
+          "source": "clusterName"
+        },
+        {
+          "name": "Host",
+          "source": "hostName"
+        },
+        {
+          "name": "Serial",
+          "source": "serial"
+        },
+        {
+          "name": "Model",
+          "source": "model"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "Hypervisor",
+          "source": "hypervisor"
+        },
+        {
+          "name": "CPU Cores",
+          "source": "cpuCores"
+        },
+        {
+          "name": "Memory",
+          "source": "memoryBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "Cluster Target",
+          "source": "clusterTarget"
+        },
+        {
+          "name": "Management Plane",
+          "source": "managementPlaneTarget"
+        },
+        {
+          "name": "Source",
+          "source": "sourcePreference"
+        },
+        {
+          "name": "Correlation",
+          "source": "correlationStatus"
+        },
+        {
+          "name": "Observed From",
+          "source": "observedFrom"
+        }
+      ],
+      "rowOrder": [
+        "groupKey",
+        "clusterName",
+        "hostName"
+      ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VMInventory": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Estate",
+          "source": "groupKey"
+        },
+        {
+          "name": "Cluster",
+          "source": "clusterName"
+        },
+        {
+          "name": "VM",
+          "source": "vmName"
+        },
+        {
+          "name": "Power",
+          "source": "powerState"
+        },
+        {
+          "name": "Host",
+          "source": "hostName"
+        },
+        {
+          "name": "vCPU",
+          "source": "cpuCount"
+        },
+        {
+          "name": "Memory",
+          "source": "memoryBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "IPs",
+          "source": "ipAddresses"
+        },
+        {
+          "name": "NICs",
+          "source": "nicCount"
+        },
+        {
+          "name": "Protection",
+          "source": "protectionType"
+        },
+        {
+          "name": "Cluster Target",
+          "source": "clusterTarget"
+        },
+        {
+          "name": "Management Plane",
+          "source": "managementPlaneTarget"
+        },
+        {
+          "name": "Source",
+          "source": "sourcePreference"
+        },
+        {
+          "name": "Correlation",
+          "source": "correlationStatus"
+        },
+        {
+          "name": "Observed From",
+          "source": "observedFrom"
+        }
+      ],
+      "rowOrder": [
+        "groupKey",
+        "clusterName",
+        "hostName",
+        "vmName"
+      ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageInventory": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Estate",
+          "source": "groupKey"
+        },
+        {
+          "name": "Cluster",
+          "source": "clusterName"
+        },
+        {
+          "name": "Type",
+          "source": "itemType"
+        },
+        {
+          "name": "Name",
+          "source": "name"
+        },
+        {
+          "name": "Capacity",
+          "source": "capacityBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "Detail",
+          "source": "detail"
+        },
+        {
+          "name": "Cluster Target",
+          "source": "clusterTarget"
+        },
+        {
+          "name": "Management Plane",
+          "source": "managementPlaneTarget"
+        },
+        {
+          "name": "Source",
+          "source": "sourcePreference"
+        },
+        {
+          "name": "Correlation",
+          "source": "correlationStatus"
+        },
+        {
+          "name": "Observed From",
+          "source": "observedFrom"
+        }
+      ],
+      "rowOrder": [
+        "groupKey",
+        "clusterName",
+        "itemType",
+        "name"
+      ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionInventory": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Estate",
+          "source": "groupKey"
+        },
+        {
+          "name": "Cluster",
+          "source": "clusterName"
+        },
+        {
+          "name": "Protection",
+          "source": "protectionName"
+        },
+        {
+          "name": "Type",
+          "source": "protectionType"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "Scope",
+          "source": "scope"
+        },
+        {
+          "name": "Cluster Target",
+          "source": "clusterTarget"
+        },
+        {
+          "name": "Management Plane",
+          "source": "managementPlaneTarget"
+        },
+        {
+          "name": "Source",
+          "source": "sourcePreference"
+        },
+        {
+          "name": "Correlation",
+          "source": "correlationStatus"
+        },
+        {
+          "name": "Observed From",
+          "source": "observedFrom"
+        }
+      ],
+      "rowOrder": [
+        "groupKey",
+        "clusterName",
+        "protectionType",
+        "protectionName"
+      ]
     }
   }
 }

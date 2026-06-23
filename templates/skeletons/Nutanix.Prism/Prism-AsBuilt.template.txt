@@ -1,43 +1,22 @@
 Nutanix Prism As-Built
 
-Executive Summary
-<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.ClusterSummary>>
+Estate Summary
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterInventory>>
 
-Prism Targets and Clusters
-<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Summary>>
+Management Plane and Managed Clusters
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterInventory>>
 
 Hosts
-<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.HostInventory>>
-
-Host Networking
-<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.HostNetworkInterfaces>>
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostInventory>>
 
 Virtual Machines
-<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VMInventory>>
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VMInventory>>
 
-Unprotected Virtual Machines
-<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Tables.UnprotectedVMs>>
+Storage
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageInventory>>
 
-Storage Containers
-<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.StorageContainers>>
-
-Storage Pools
-<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.StoragePools>>
-
-Disks
-<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.Disks>>
-
-Virtual Disks
-<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VirtualDisks>>
-
-Volume Groups
-<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VolumeGroups>>
-
-Protection Domains
-<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Tables.ProtectionDomains>>
-
-Licenses
-<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Tables.Licenses>>
+Protection
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionInventory>>
 
 Operational Appendix - Alerts
 <<SDT:LNV.Nutanix.Prism.Target[TargetKey].Tables.Alerts>>
@@ -47,6 +26,42 @@ Operational Appendix - Tasks
 
 Operational Appendix - Collection Sources
 <<SDT:LNV.Nutanix.Prism.Target[TargetKey].Tables.CollectionSources>>
+
+Operational Appendix - Target Cluster Summary
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.ClusterSummary>>
+
+Operational Appendix - Target Host Inventory
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.HostInventory>>
+
+Operational Appendix - Target Host Networking
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.HostNetworkInterfaces>>
+
+Operational Appendix - Target VM Inventory
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VMInventory>>
+
+Operational Appendix - Target Unprotected Virtual Machines
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Tables.UnprotectedVMs>>
+
+Operational Appendix - Target Storage Containers
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.StorageContainers>>
+
+Operational Appendix - Target Storage Pools
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.StoragePools>>
+
+Operational Appendix - Target Disks
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.Disks>>
+
+Operational Appendix - Target Virtual Disks
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VirtualDisks>>
+
+Operational Appendix - Target Volume Groups
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VolumeGroups>>
+
+Operational Appendix - Target Protection Domains
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Tables.ProtectionDomains>>
+
+Operational Appendix - Target Licenses
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Tables.Licenses>>
 
 Operational Appendix - Target Relationships
 <<SDT:LNV.Nutanix.Prism.Target[TargetKey].Tables.Relationships>>

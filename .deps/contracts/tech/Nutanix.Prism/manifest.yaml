@@ -69,3 +69,8 @@ spec:
     - license
     - collection_sources
     - relationships
+    - estate_protection_inventory
+    - estate_storage_inventory
+    - estate_vm_inventory
+    - estate_host_inventory
+    - estate_cluster_inventory

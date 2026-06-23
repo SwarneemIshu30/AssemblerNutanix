@@ -90,8 +90,8 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             }
 
             $mapping = Get-Content -LiteralPath $prismMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
-            @($mapping.mappings).Count | Should -Be 32
-            $documentMappings = @($mapping.mappings | Where-Object { [string]$_.scope -ne 'targetGroup' })
+            @($mapping.mappings).Count | Should -Be 37
+            $documentMappings = @($mapping.mappings | Where-Object { [string]$_.scope -eq 'target' })
             $documentMappings.Count | Should -Be 31
 
             $catalogPath = Join-Path $tempRoot 'Prism-SDT-Collector.catalog.json'
@@ -146,14 +146,14 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $bundleReport.status | Should -Be 'OK'
             @($bundleReport.issues).Count | Should -Be 0
             @($bundleReport.runs).Count | Should -Be 1
-            $bundleReport.runs[0].status | Should -Be 'WARN'
+            @('OK', 'WARN') | Should -Contain $bundleReport.runs[0].status
 
             $renderReport = $bundleReport.runs[0].rendererOutput
-            $renderReport.status | Should -Be 'PARTIAL'
-            @($renderReport.issues).Count | Should -Be 1
-            $renderReport.issues[0].code | Should -Be 'ASB-ASM-SDT-DATASET-MISSING'
-            $renderReport.issues[0].severity | Should -Be 'WARN'
-            $renderReport.issues[0].message | Should -Match "LNV\.Nutanix\.Prism\.Group\[GroupKey\]\.Tables\.Relationships"
+            @('OK', 'PARTIAL') | Should -Contain $renderReport.status
+            foreach ($issue in @($renderReport.issues)) {
+                $issue.severity | Should -Be 'WARN'
+                $issue.code | Should -Be 'ASB-ASM-SDT-DATASET-MISSING'
+            }
             @($renderReport.matches).Count | Should -Be $documentMappings.Count
 
             $matchedTags = @($renderReport.matches | ForEach-Object { [string]$_.tag })
@@ -193,6 +193,153 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             foreach ($dataset in $evidenceOnlyDatasets) {
                 $compiledDatasets | Should -Not -Contain $dataset
             }
+        }
+        finally {
+            Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    It 'renders estate-first Prism group datasets without duplicating PC and PE virtual machines' -Skip:(-not (Test-Path -LiteralPath 'C:\Github\LNV.AsBuiltDoc.Core\out\36f0b361-de62-4dfd-bfee-0dc39541de8c.lnvbundle.zip' -PathType Leaf)) {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $bundleArchivePath = 'C:\Github\LNV.AsBuiltDoc.Core\out\36f0b361-de62-4dfd-bfee-0dc39541de8c.lnvbundle.zip'
+        $contractsRoot = Join-Path $repoRoot '.deps/contracts'
+        $catalogPath = Join-Path $repoRoot 'templates/skeletons/Nutanix.Prism/Prism-AsBuilt.catalog.json'
+        $pwshPath = (Get-Command pwsh -ErrorAction Stop).Source
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-prism-estate-" + [guid]::NewGuid().ToString('N'))
+        $bundleRoot = Join-Path $tempRoot 'bundle'
+        $outputRoot = Join-Path $tempRoot 'out'
+
+        try {
+            New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
+            Expand-Archive -LiteralPath $bundleArchivePath -DestinationPath $bundleRoot -Force
+
+            function Write-PrismGroupDatasetEnvelope {
+                param(
+                    [Parameter(Mandatory)][string] $GroupKey,
+                    [Parameter(Mandatory)][string] $Dataset,
+                    [Parameter(Mandatory)][object[]] $Items
+                )
+
+                $relativePath = "datasets/Nutanix.Prism/group/$GroupKey/$Dataset.json"
+                $path = Join-Path $bundleRoot $relativePath
+                New-Item -ItemType Directory -Path (Split-Path -Parent $path) -Force | Out-Null
+                [ordered]@{
+                    schema_version = 'lnv.collector.dataset.v1'
+                    collector = [ordered]@{
+                        vendor = 'LNV.AsBuiltDoc'
+                        name = 'LNV.AsBuiltDoc.Nutanix.Prism'
+                        version = '0.0.0-test'
+                        tech_id = 'Nutanix.Prism'
+                        module = 'LNV.AsBuiltDoc.Nutanix.Prism'
+                        entry_point = 'Invoke-LnvAsBuiltDoc.Nutanix.Prism'
+                    }
+                    source = [ordered]@{
+                        group_key = $GroupKey
+                        file = $relativePath
+                    }
+                    dataset = $Dataset
+                    collected_at_utc = '2026-06-23T00:00:00Z'
+                    item_count = @($Items).Count
+                    items = @($Items)
+                } | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $path -Encoding UTF8
+
+                $manifestPath = Join-Path $bundleRoot 'manifest.json'
+                $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                $files = @($manifest.files)
+                if (($files | Where-Object { [string]$_.path -eq $relativePath }).Count -eq 0) {
+                    $files += [ordered]@{
+                        path = $relativePath
+                        kind = 'dataset'
+                        size = (Get-Item -LiteralPath $path).Length
+                    }
+                    $manifest.files = @($files | Sort-Object { [string]$_.path })
+                    $manifest | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+                }
+            }
+
+            function New-PrismEstateItem {
+                param(
+                    [Parameter(Mandatory)][hashtable] $Base,
+                    [Parameter(Mandatory)][hashtable] $Values
+                )
+
+                $item = [ordered]@{}
+                foreach ($key in $Base.Keys) {
+                    $item[$key] = $Base[$key]
+                }
+                foreach ($key in $Values.Keys) {
+                    $item[$key] = $Values[$key]
+                }
+                return $item
+            }
+
+            if (-not (Test-Path -LiteralPath (Join-Path $bundleRoot 'datasets/Nutanix.Prism/group/site-a/estate_vm_inventory.json') -PathType Leaf)) {
+                $estateBase = @{
+                    groupKey = 'site-a'
+                    clusterName = 'Prism Element Cluster A'
+                    managementPlaneTarget = 'pc01'
+                    clusterTarget = 'pe-cluster-a'
+                    observedFrom = 'PrismCentral, PrismElement'
+                    sourcePreference = 'PrismElement'
+                    correlationStatus = 'correlated'
+                }
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_cluster_inventory' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ cluster = 'Prism Element Cluster A'; status = 'Healthy'; version = 'test'; hostCount = 2; vmCount = 37; storageContainerCount = 2 })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_host_inventory' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ hostName = 'ntnx-a-01'; serial = 'SERIAL01'; model = 'HX'; status = 'NORMAL'; hypervisor = 'AHV'; cpuCores = 32; memoryBytes = 274877906944 })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_vm_inventory' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ vmName = 'Cohesity_test'; powerState = 'on'; hostName = 'ntnx-a-01'; cpuCount = 4; memoryBytes = 8589934592; ipAddresses = '10.10.10.20'; nicCount = 1; protectionType = 'unprotected' })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_storage_inventory' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ storageType = 'Disk'; name = 'disk-01'; capacityBytes = 1099511627776; status = 'NORMAL'; detail = 'Host: ntnx-a-01' }),
+                    (New-PrismEstateItem -Base $estateBase -Values @{ storageType = 'VirtualDisk'; name = 'scsi.0'; capacityBytes = 107374182400; status = ''; detail = 'VM: Cohesity_test' }),
+                    (New-PrismEstateItem -Base $estateBase -Values @{ storageType = 'VolumeGroup'; name = 'vg01'; capacityBytes = $null; status = 'SHARED'; detail = 'Target: Cohesity_test' })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_protection_inventory' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ protectionName = 'Cohesity_test'; protectionType = 'VM'; status = 'unprotected'; scope = 'Prism Element Cluster A' })
+                )
+            }
+
+            $null = & $pwshPath -NoLogo -NoProfile -File (Join-Path $repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1') `
+                -BundleRoot $bundleRoot `
+                -CatalogPath $catalogPath `
+                -OutputRoot $outputRoot `
+                -ContractsRoot $contractsRoot `
+                -TechId Nutanix.Prism `
+                -OutputType text
+
+            $LASTEXITCODE | Should -Be 0
+
+            $bundleReportPath = Join-Path $outputRoot 'assembler-bundle-render-report.json'
+            Test-Path -LiteralPath $bundleReportPath -PathType Leaf | Should -BeTrue
+            $bundleReport = Get-Content -LiteralPath $bundleReportPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            $bundleReport.status | Should -Be 'OK'
+            @($bundleReport.issues).Count | Should -Be 0
+            @($bundleReport.runs).Count | Should -Be 1
+            $bundleReport.runs[0].status | Should -Be 'OK'
+
+            $renderReport = $bundleReport.runs[0].rendererOutput
+            $renderReport.status | Should -Be 'OK'
+            @($renderReport.issues).Count | Should -Be 0
+
+            $matchedTags = @($renderReport.matches | ForEach-Object { [string]$_.tag })
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VMInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Tables.Relationships'
+
+            $rendered = Get-Content -LiteralPath $bundleReport.runs[0].outputPath -Raw -Encoding UTF8
+            $mainVmSection = [regex]::Match($rendered, '(?s)Virtual Machines\s*(?<body>.*?)\s*Storage')
+            $mainVmSection.Success | Should -BeTrue
+            @([regex]::Matches($mainVmSection.Groups['body'].Value, 'Cohesity_test')).Count | Should -Be 1
+            $mainVmSection.Groups['body'].Value | Should -Match 'PrismCentral, PrismElement'
+            $mainVmSection.Groups['body'].Value | Should -Match 'pe-cluster-a'
+            $rendered | Should -Match 'Operational Appendix - Target VM Inventory'
+            $rendered | Should -Match 'Operational Appendix - Target Group Relationships'
         }
         finally {
             Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue

@@ -5201,7 +5201,7 @@ function Convert-ValueToTableString {
 
     $rows = @($tableModel.rows)
     $displayColumns = @($tableModel.displayColumns)
-    return (($rows | Select-Object -Property $displayColumns | Format-Table -AutoSize | Out-String).TrimEnd())
+    return (($rows | Format-Table -Property $displayColumns -AutoSize | Out-String -Width 4096).TrimEnd())
 }
 
 function Convert-ValueToString {
