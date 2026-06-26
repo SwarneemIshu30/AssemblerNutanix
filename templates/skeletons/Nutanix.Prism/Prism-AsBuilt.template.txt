@@ -12,8 +12,11 @@ Hosts
 Virtual Machines
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VMInventory>>
 
-Storage
-<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageInventory>>
+Storage Containers
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageContainers>>
+
+Storage Pools
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StoragePools>>
 
 Protection
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionInventory>>
@@ -26,6 +29,33 @@ Operational Appendix - Tasks
 
 Operational Appendix - Collection Sources
 <<SDT:LNV.Nutanix.Prism.Target[TargetKey].Tables.CollectionSources>>
+
+Operational Appendix - Estate Source Audit - Clusters
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.ClusterInventory>>
+
+Operational Appendix - Estate Source Audit - Hosts
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.HostInventory>>
+
+Operational Appendix - Estate Source Audit - Virtual Machines
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.VMInventory>>
+
+Operational Appendix - Estate Source Audit - Storage
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageInventory>>
+
+Operational Appendix - Estate Source Audit - Protection
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionInventory>>
+
+Operational Appendix - Estate Disks
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.Disks>>
+
+Operational Appendix - Estate Virtual Disks
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VirtualDisks>>
+
+Operational Appendix - Estate Volume Groups
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VolumeGroups>>
+
+Operational Appendix - Estate Combined Storage
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageInventory>>
 
 Operational Appendix - Target Cluster Summary
 <<SDT:LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.ClusterSummary>>

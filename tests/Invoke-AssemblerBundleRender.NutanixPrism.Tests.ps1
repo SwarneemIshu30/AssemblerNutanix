@@ -90,7 +90,7 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             }
 
             $mapping = Get-Content -LiteralPath $prismMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
-            @($mapping.mappings).Count | Should -Be 37
+            @($mapping.mappings).Count | Should -Be 47
             $documentMappings = @($mapping.mappings | Where-Object { [string]$_.scope -eq 'target' })
             $documentMappings.Count | Should -Be 31
 
@@ -293,9 +293,11 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
                     (New-PrismEstateItem -Base $estateBase -Values @{ vmName = 'Cohesity_test'; powerState = 'on'; hostName = 'ntnx-a-01'; cpuCount = 4; memoryBytes = 8589934592; ipAddresses = '10.10.10.20'; nicCount = 1; protectionType = 'unprotected' })
                 )
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_storage_inventory' -Items @(
-                    (New-PrismEstateItem -Base $estateBase -Values @{ storageType = 'Disk'; name = 'disk-01'; capacityBytes = 1099511627776; status = 'NORMAL'; detail = 'Host: ntnx-a-01' }),
-                    (New-PrismEstateItem -Base $estateBase -Values @{ storageType = 'VirtualDisk'; name = 'scsi.0'; capacityBytes = 107374182400; status = ''; detail = 'VM: Cohesity_test' }),
-                    (New-PrismEstateItem -Base $estateBase -Values @{ storageType = 'VolumeGroup'; name = 'vg01'; capacityBytes = $null; status = 'SHARED'; detail = 'Target: Cohesity_test' })
+                    (New-PrismEstateItem -Base $estateBase -Values @{ itemType = 'Container'; name = 'default-container'; capacityBytes = 10995116277760; status = ''; detail = 'RF=2' }),
+                    (New-PrismEstateItem -Base $estateBase -Values @{ itemType = 'Storage Pool'; name = 'sp01'; capacityBytes = 21990232555520; status = ''; detail = 'Disks=8' }),
+                    (New-PrismEstateItem -Base $estateBase -Values @{ itemType = 'Disk'; name = 'disk-01'; capacityBytes = 1099511627776; status = 'NORMAL'; detail = 'Host: ntnx-a-01' }),
+                    (New-PrismEstateItem -Base $estateBase -Values @{ itemType = 'Virtual Disk'; name = 'scsi.0'; capacityBytes = 107374182400; status = ''; detail = 'VM: Cohesity_test' }),
+                    (New-PrismEstateItem -Base $estateBase -Values @{ itemType = 'Volume Group'; name = 'vg01'; capacityBytes = $null; status = 'SHARED'; detail = 'Target: Cohesity_test' })
                 )
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_protection_inventory' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ protectionName = 'Cohesity_test'; protectionType = 'VM'; status = 'unprotected'; scope = 'Prism Element Cluster A' })
@@ -328,16 +330,27 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VMInventory'
-            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageContainers'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StoragePools'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.VMInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Tables.Relationships'
 
             $rendered = Get-Content -LiteralPath $bundleReport.runs[0].outputPath -Raw -Encoding UTF8
             $mainVmSection = [regex]::Match($rendered, '(?s)Virtual Machines\s*(?<body>.*?)\s*Storage')
             $mainVmSection.Success | Should -BeTrue
             @([regex]::Matches($mainVmSection.Groups['body'].Value, 'Cohesity_test')).Count | Should -Be 1
-            $mainVmSection.Groups['body'].Value | Should -Match 'PrismCentral, PrismElement'
-            $mainVmSection.Groups['body'].Value | Should -Match 'pe-cluster-a'
+            $mainVmSection.Groups['body'].Value | Should -Not -Match 'PrismCentral, PrismElement'
+            $mainVmSection.Groups['body'].Value | Should -Not -Match 'pe-cluster-a'
+            $auditVmSection = [regex]::Match($rendered, '(?s)Operational Appendix - Estate Source Audit - Virtual Machines\s*(?<body>.*?)\s*Operational Appendix - Estate Source Audit - Storage')
+            $auditVmSection.Success | Should -BeTrue
+            $auditVmSection.Groups['body'].Value | Should -Match 'PrismCentral, PrismElement'
+            $auditVmSection.Groups['body'].Value | Should -Match 'pe-cluster-a'
+            $storageContainersSection = [regex]::Match($rendered, '(?s)Storage Containers\s*(?<body>.*?)\s*Storage Pools')
+            $storageContainersSection.Success | Should -BeTrue
+            $storageContainersSection.Groups['body'].Value | Should -Match 'default-container'
+            $storageContainersSection.Groups['body'].Value | Should -Not -Match 'disk-01'
             $rendered | Should -Match 'Operational Appendix - Target VM Inventory'
             $rendered | Should -Match 'Operational Appendix - Target Group Relationships'
         }
