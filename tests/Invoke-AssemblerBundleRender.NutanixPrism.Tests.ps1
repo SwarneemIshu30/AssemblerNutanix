@@ -87,12 +87,45 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
                 Write-PrismDatasetEnvelope -TargetKey $targetKey -Dataset 'volume_group_inventory' -Items @(
                     [ordered]@{ targetKey = $targetKey; targetName = $targetName; endpointKind = 'NutanixPrism'; volumeGroupName = 'vg01'; attachedTarget = 'app01'; usageType = 'USER'; sharingStatus = 'SHARED'; hidden = $false }
                 )
+                Write-PrismDatasetEnvelope -TargetKey $targetKey -Dataset 'health_checks' -Items @(
+                    [ordered]@{ name = 'Disk health'; enabled = $true; check_type = 'cluster'; scope = 'cluster'; impact_types = 'availability'; classifications = 'resiliency'; exception_count = 0; message = 'Healthy' }
+                )
+                Write-PrismDatasetEnvelope -TargetKey $targetKey -Dataset 'alerts_configuration' -Items @(
+                    [ordered]@{ isEnabled = $true; isEmailDigestEnabled = $true; hasDefaultNutanixEmail = $false; alertEmailDigestSendTime = '08:00'; enable = $true; enable_email_digest = $true; enable_default_nutanix_email = $false }
+                )
+                Write-PrismDatasetEnvelope -TargetKey $targetKey -Dataset 'smtp_config' -Items @(
+                    [ordered]@{ server_address = 'smtp.example.local'; port = 25; secure_mode = 'STARTTLS'; from_email_address = 'prism@example.local'; email_status = 'configured'; password = 'SECRET-SHOULD-NOT-RENDER' }
+                )
+                Write-PrismDatasetEnvelope -TargetKey $targetKey -Dataset 'snmp' -Items @(
+                    [ordered]@{ enabled = $true; snmp_users = @('monitor'); snmp_traps = @('trap-a'); snmp_transports = @('udp') }
+                )
+                Write-PrismDatasetEnvelope -TargetKey $targetKey -Dataset 'authconfig' -Items @(
+                    [ordered]@{ auth_type_list = @('LOCAL', 'LDAP'); directory_list = @('corp.example.local') }
+                )
+                Write-PrismDatasetEnvelope -TargetKey $targetKey -Dataset 'ssl_certificates' -Items @(
+                    [ordered]@{ parentId = $targetKey; parentDataset = 'cluster'; privateKeyAlgorithm = 'RSA'; publicCertificate = '-----BEGIN CERTIFICATE----- SHOULD-NOT-RENDER'; nativeUuid = "$targetKey-cert" }
+                )
+                Write-PrismDatasetEnvelope -TargetKey $targetKey -Dataset 'snapshots' -Items @(
+                    [ordered]@{ snapshot_name = 'snap-app01'; vm_uuid = 'vm-uuid-01'; created_time = '2026-06-23T00:00:00Z'; deleted = $false; group_uuid = 'group-01' }
+                )
+                Write-PrismDatasetEnvelope -TargetKey $targetKey -Dataset 'pd_replications' -Items @(
+                    [ordered]@{ name = 'replication-a'; protection_domain_name = 'PD-01'; remote_site_name = 'remote-a'; status = 'enabled'; schedule = 'hourly' }
+                )
+                Write-PrismDatasetEnvelope -TargetKey $targetKey -Dataset 'remote_sites' -Items @(
+                    [ordered]@{ name = 'remote-a'; url = 'https://remote.example.local'; status = 'connected'; cluster_name = 'remote-cluster'; capabilities = 'replication' }
+                )
+                Write-PrismDatasetEnvelope -TargetKey $targetKey -Dataset 'categories' -Items @(
+                    [ordered]@{ key = 'Environment'; value = 'Production'; type = 'SYSTEM'; description = 'Environment category' }
+                )
+                Write-PrismDatasetEnvelope -TargetKey $targetKey -Dataset 'policies' -Items @(
+                    [ordered]@{ name = 'Protection Policy A'; type = 'protection'; status = 'active'; nativeUuid = 'policy-01' }
+                )
             }
 
             $mapping = Get-Content -LiteralPath $prismMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
-            @($mapping.mappings).Count | Should -Be 47
+            @($mapping.mappings).Count | Should -Be 65
             $documentMappings = @($mapping.mappings | Where-Object { [string]$_.scope -eq 'target' })
-            $documentMappings.Count | Should -Be 31
+            $documentMappings.Count | Should -Be 42
 
             $catalogPath = Join-Path $tempRoot 'Prism-SDT-Collector.catalog.json'
             $runtimeMappingPath = Join-Path $tempRoot 'Prism-SDT-Collector.mapping.json'
@@ -166,6 +199,9 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $rendered | Should -Match 'ntnx-a-01'
             $rendered | Should -Match 'eth0'
             $rendered | Should -Match 'default-container'
+            $rendered | Should -Match 'smtp.example.local'
+            $rendered | Should -Not -Match 'SECRET-SHOULD-NOT-RENDER'
+            $rendered | Should -Not -Match 'BEGIN CERTIFICATE'
             foreach ($entry in $documentMappings) {
                 $tag = [regex]::Escape([string]$entry.sdtTag)
                 $sectionMatch = [regex]::Match($rendered, "(?s)BEGIN:$tag\s*(?<body>.*?)\s*END:$tag")
@@ -191,7 +227,15 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $evidenceOnlyDatasets.Count | Should -BeGreaterThan 0
 
             foreach ($dataset in $evidenceOnlyDatasets) {
-                $compiledDatasets | Should -Not -Contain $dataset
+                $compiledEntries = @($compiledMapping.mappings | Where-Object { [string]$_.dataset -eq $dataset })
+                if ($compiledEntries.Count -eq 0) {
+                    $compiledDatasets | Should -Not -Contain $dataset
+                    continue
+                }
+
+                foreach ($compiledEntry in $compiledEntries) {
+                    [string]$compiledEntry.sdtTag | Should -Match '\.Audit\.'
+                }
             }
         }
         finally {
@@ -302,6 +346,18 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_protection_inventory' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ protectionName = 'Cohesity_test'; protectionType = 'VM'; status = 'unprotected'; scope = 'Prism Element Cluster A' })
                 )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_resiliency_summary' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ faultToleranceDomains = 4; faultToleranceStatus = 'OK'; underReplicatedBytes = 0; nonFaultTolerantEntries = 0; healthCheckCount = 935; enabledHealthChecks = 900; disabledHealthChecks = 35; healthExceptions = 0 })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_operations_config' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ alertingEnabled = $true; emailDigestEnabled = $true; defaultNutanixEmailEnabled = $false; smtpServer = 'smtp.example.local'; smtpPort = 25; smtpSecureMode = 'STARTTLS'; snmpEnabled = $true; snmpUsers = 1; snmpTraps = 1; authTypes = 'LOCAL, LDAP'; directoryCount = 1; sslCertificateCount = 2 })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_protection_detail' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ protectionDomainCount = 1; snapshotCount = 1; remoteSiteCount = 1; replicationCount = 1; drSnapshotCount = 0; unprotectedVmCount = 1; nfsWhitelistCount = 0 })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_governance_summary' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ categoryCount = 71; policyCount = 1; templateCount = 2; imageCount = 3; licenseCount = 1 })
+                )
             }
 
             $null = & $pwshPath -NoLogo -NoProfile -File (Join-Path $repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1') `
@@ -333,8 +389,12 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageContainers'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StoragePools'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ResiliencySummary'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.OperationsConfig'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionDetail'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.VMInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.GovernanceSummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Tables.Relationships'
 
             $rendered = Get-Content -LiteralPath $bundleReport.runs[0].outputPath -Raw -Encoding UTF8
@@ -351,7 +411,17 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $storageContainersSection.Success | Should -BeTrue
             $storageContainersSection.Groups['body'].Value | Should -Match 'default-container'
             $storageContainersSection.Groups['body'].Value | Should -Not -Match 'disk-01'
+            $resiliencySection = [regex]::Match($rendered, '(?s)Resiliency and Health\s*(?<body>.*?)\s*Operations Configuration')
+            $resiliencySection.Success | Should -BeTrue
+            $resiliencySection.Groups['body'].Value | Should -Match '935'
+            $resiliencySection.Groups['body'].Value | Should -Not -Match 'Disk health'
+            $operationsSection = [regex]::Match($rendered, '(?s)Operations Configuration\s*(?<body>.*?)\s*Operational Appendix - Alerts')
+            $operationsSection.Success | Should -BeTrue
+            $operationsSection.Groups['body'].Value | Should -Match 'smtp.example.local'
+            $operationsSection.Groups['body'].Value | Should -Not -Match 'SECRET-SHOULD-NOT-RENDER'
+            $operationsSection.Groups['body'].Value | Should -Not -Match 'BEGIN CERTIFICATE'
             $rendered | Should -Match 'Operational Appendix - Target VM Inventory'
+            $rendered | Should -Match 'Operational Appendix - Target Health Checks'
             $rendered | Should -Match 'Operational Appendix - Target Group Relationships'
         }
         finally {

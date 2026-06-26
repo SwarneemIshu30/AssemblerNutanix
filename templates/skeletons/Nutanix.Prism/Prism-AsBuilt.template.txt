@@ -18,6 +18,15 @@ Storage Pools
 Protection
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionInventory>>
 
+Protection Detail
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionDetail>>
+
+Resiliency and Health
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ResiliencySummary>>
+
+Operations Configuration
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.OperationsConfig>>
+
 Operational Appendix - Alerts
 <<SDT:LNV.Nutanix.Prism.Target[TargetKey].Tables.Alerts>>
 
@@ -41,6 +50,18 @@ Operational Appendix - Estate Source Audit - Storage
 
 Operational Appendix - Estate Source Audit - Protection
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionInventory>>
+
+Operational Appendix - Estate Source Audit - Resiliency
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.ResiliencySummary>>
+
+Operational Appendix - Estate Source Audit - Operations Configuration
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.OperationsConfig>>
+
+Operational Appendix - Estate Source Audit - Protection Detail
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionDetail>>
+
+Operational Appendix - Estate Governance Summary
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.GovernanceSummary>>
 
 Operational Appendix - Estate Disks
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.Disks>>
@@ -86,6 +107,39 @@ Operational Appendix - Target Volume Groups
 
 Operational Appendix - Target Protection Domains
 <<SDT:LNV.Nutanix.Prism.Target[TargetKey].Tables.ProtectionDomains>>
+
+Operational Appendix - Target Health Checks
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Audit.HealthChecks>>
+
+Operational Appendix - Target Alerting Configuration
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Audit.AlertingConfiguration>>
+
+Operational Appendix - Target SMTP Configuration
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Audit.SmtpConfiguration>>
+
+Operational Appendix - Target SNMP Configuration
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Audit.SnmpConfiguration>>
+
+Operational Appendix - Target Authentication Configuration
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Audit.AuthenticationConfiguration>>
+
+Operational Appendix - Target SSL Certificates
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Audit.SslCertificates>>
+
+Operational Appendix - Target Snapshots
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Audit.Snapshots>>
+
+Operational Appendix - Target Protection Replications
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Audit.ProtectionReplications>>
+
+Operational Appendix - Target Remote Sites
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Audit.RemoteSites>>
+
+Operational Appendix - Target Categories
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Audit.Categories>>
+
+Operational Appendix - Target Policies
+<<SDT:LNV.Nutanix.Prism.Target[TargetKey].Audit.Policies>>
 
 Operational Appendix - Target Licenses
 <<SDT:LNV.Nutanix.Prism.Target[TargetKey].Tables.Licenses>>

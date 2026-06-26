@@ -70,7 +70,11 @@ spec:
     - collection_sources
     - relationships
     - estate_protection_inventory
+    - estate_protection_detail
     - estate_storage_inventory
+    - estate_resiliency_summary
+    - estate_operations_config
+    - estate_governance_summary
     - estate_vm_inventory
     - estate_host_inventory
     - estate_cluster_inventory

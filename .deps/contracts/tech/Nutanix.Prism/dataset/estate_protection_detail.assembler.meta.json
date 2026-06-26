@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "dataset": "estate_protection_detail",
+  "presentationKind": "table",
+  "documentFacing": true,
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    {
+      "name": "Default",
+      "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionDetail"
+    }
+  ]
+}
+

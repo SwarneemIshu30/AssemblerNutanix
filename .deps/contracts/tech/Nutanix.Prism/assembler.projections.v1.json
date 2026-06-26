@@ -1715,6 +1715,778 @@
         "protectionType",
         "protectionName"
       ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ResiliencySummary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Cluster",
+          "source": "clusterName"
+        },
+        {
+          "name": "FT Domains",
+          "source": "faultToleranceDomains"
+        },
+        {
+          "name": "FT Status",
+          "source": "faultToleranceStatus"
+        },
+        {
+          "name": "Under Replicated",
+          "source": "underReplicatedBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "Non-FT Entries",
+          "source": "nonFaultTolerantEntries"
+        },
+        {
+          "name": "Health Checks",
+          "source": "healthCheckCount"
+        },
+        {
+          "name": "Enabled",
+          "source": "enabledHealthChecks"
+        },
+        {
+          "name": "Disabled",
+          "source": "disabledHealthChecks"
+        },
+        {
+          "name": "Exceptions",
+          "source": "healthExceptions"
+        }
+      ],
+      "rowOrder": [
+        "clusterName"
+      ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.OperationsConfig": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Cluster",
+          "source": "clusterName"
+        },
+        {
+          "name": "Alerting",
+          "source": "alertingEnabled"
+        },
+        {
+          "name": "Email Digest",
+          "source": "emailDigestEnabled"
+        },
+        {
+          "name": "SMTP Server",
+          "source": "smtpServer"
+        },
+        {
+          "name": "SMTP Port",
+          "source": "smtpPort"
+        },
+        {
+          "name": "SMTP Secure",
+          "source": "smtpSecureMode"
+        },
+        {
+          "name": "SNMP",
+          "source": "snmpEnabled"
+        },
+        {
+          "name": "SNMP Users",
+          "source": "snmpUsers"
+        },
+        {
+          "name": "SNMP Traps",
+          "source": "snmpTraps"
+        },
+        {
+          "name": "Auth Types",
+          "source": "authTypes"
+        },
+        {
+          "name": "Directories",
+          "source": "directoryCount"
+        },
+        {
+          "name": "SSL Certs",
+          "source": "sslCertificateCount"
+        }
+      ],
+      "rowOrder": [
+        "clusterName"
+      ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionDetail": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Cluster",
+          "source": "clusterName"
+        },
+        {
+          "name": "Protection Domains",
+          "source": "protectionDomainCount"
+        },
+        {
+          "name": "Snapshots",
+          "source": "snapshotCount"
+        },
+        {
+          "name": "Remote Sites",
+          "source": "remoteSiteCount"
+        },
+        {
+          "name": "Replications",
+          "source": "replicationCount"
+        },
+        {
+          "name": "DR Snapshots",
+          "source": "drSnapshotCount"
+        },
+        {
+          "name": "Unprotected VMs",
+          "source": "unprotectedVmCount"
+        },
+        {
+          "name": "NFS Whitelist",
+          "source": "nfsWhitelistCount"
+        }
+      ],
+      "rowOrder": [
+        "clusterName"
+      ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.ResiliencySummary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Site/Landscape",
+          "source": "groupKey"
+        },
+        {
+          "name": "Cluster",
+          "source": "clusterName"
+        },
+        {
+          "name": "Cluster Target",
+          "source": "clusterTarget"
+        },
+        {
+          "name": "Management Plane",
+          "source": "managementPlaneTarget"
+        },
+        {
+          "name": "Source",
+          "source": "sourcePreference"
+        },
+        {
+          "name": "Correlation",
+          "source": "correlationStatus"
+        },
+        {
+          "name": "Observed From",
+          "source": "observedFrom"
+        },
+        {
+          "name": "FT Domains",
+          "source": "faultToleranceDomains"
+        },
+        {
+          "name": "FT Status",
+          "source": "faultToleranceStatus"
+        },
+        {
+          "name": "Under Replicated",
+          "source": "underReplicatedBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "Non-FT Entries",
+          "source": "nonFaultTolerantEntries"
+        },
+        {
+          "name": "Health Checks",
+          "source": "healthCheckCount"
+        },
+        {
+          "name": "Enabled",
+          "source": "enabledHealthChecks"
+        },
+        {
+          "name": "Disabled",
+          "source": "disabledHealthChecks"
+        },
+        {
+          "name": "Exceptions",
+          "source": "healthExceptions"
+        }
+      ],
+      "rowOrder": [
+        "groupKey",
+        "clusterName",
+        "clusterTarget"
+      ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.OperationsConfig": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Site/Landscape",
+          "source": "groupKey"
+        },
+        {
+          "name": "Cluster",
+          "source": "clusterName"
+        },
+        {
+          "name": "Cluster Target",
+          "source": "clusterTarget"
+        },
+        {
+          "name": "Management Plane",
+          "source": "managementPlaneTarget"
+        },
+        {
+          "name": "Source",
+          "source": "sourcePreference"
+        },
+        {
+          "name": "Correlation",
+          "source": "correlationStatus"
+        },
+        {
+          "name": "Observed From",
+          "source": "observedFrom"
+        },
+        {
+          "name": "Alerting",
+          "source": "alertingEnabled"
+        },
+        {
+          "name": "Email Digest",
+          "source": "emailDigestEnabled"
+        },
+        {
+          "name": "Default Nutanix Email",
+          "source": "defaultNutanixEmailEnabled"
+        },
+        {
+          "name": "SMTP Server",
+          "source": "smtpServer"
+        },
+        {
+          "name": "SMTP Port",
+          "source": "smtpPort"
+        },
+        {
+          "name": "SMTP Secure",
+          "source": "smtpSecureMode"
+        },
+        {
+          "name": "SNMP",
+          "source": "snmpEnabled"
+        },
+        {
+          "name": "SNMP Users",
+          "source": "snmpUsers"
+        },
+        {
+          "name": "SNMP Traps",
+          "source": "snmpTraps"
+        },
+        {
+          "name": "Auth Types",
+          "source": "authTypes"
+        },
+        {
+          "name": "Directories",
+          "source": "directoryCount"
+        },
+        {
+          "name": "SSL Certs",
+          "source": "sslCertificateCount"
+        }
+      ],
+      "rowOrder": [
+        "groupKey",
+        "clusterName",
+        "clusterTarget"
+      ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionDetail": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Site/Landscape",
+          "source": "groupKey"
+        },
+        {
+          "name": "Cluster",
+          "source": "clusterName"
+        },
+        {
+          "name": "Cluster Target",
+          "source": "clusterTarget"
+        },
+        {
+          "name": "Management Plane",
+          "source": "managementPlaneTarget"
+        },
+        {
+          "name": "Source",
+          "source": "sourcePreference"
+        },
+        {
+          "name": "Correlation",
+          "source": "correlationStatus"
+        },
+        {
+          "name": "Observed From",
+          "source": "observedFrom"
+        },
+        {
+          "name": "Protection Domains",
+          "source": "protectionDomainCount"
+        },
+        {
+          "name": "Snapshots",
+          "source": "snapshotCount"
+        },
+        {
+          "name": "Remote Sites",
+          "source": "remoteSiteCount"
+        },
+        {
+          "name": "Replications",
+          "source": "replicationCount"
+        },
+        {
+          "name": "DR Snapshots",
+          "source": "drSnapshotCount"
+        },
+        {
+          "name": "Unprotected VMs",
+          "source": "unprotectedVmCount"
+        },
+        {
+          "name": "NFS Whitelist",
+          "source": "nfsWhitelistCount"
+        }
+      ],
+      "rowOrder": [
+        "groupKey",
+        "clusterName",
+        "clusterTarget"
+      ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.GovernanceSummary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Site/Landscape",
+          "source": "groupKey"
+        },
+        {
+          "name": "Cluster",
+          "source": "clusterName"
+        },
+        {
+          "name": "Cluster Target",
+          "source": "clusterTarget"
+        },
+        {
+          "name": "Management Plane",
+          "source": "managementPlaneTarget"
+        },
+        {
+          "name": "Source",
+          "source": "sourcePreference"
+        },
+        {
+          "name": "Correlation",
+          "source": "correlationStatus"
+        },
+        {
+          "name": "Observed From",
+          "source": "observedFrom"
+        },
+        {
+          "name": "Categories",
+          "source": "categoryCount"
+        },
+        {
+          "name": "Policies",
+          "source": "policyCount"
+        },
+        {
+          "name": "Templates",
+          "source": "templateCount"
+        },
+        {
+          "name": "Images",
+          "source": "imageCount"
+        },
+        {
+          "name": "Licenses",
+          "source": "licenseCount"
+        }
+      ],
+      "rowOrder": [
+        "groupKey",
+        "clusterName",
+        "clusterTarget"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Audit.HealthChecks": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Check",
+          "source": "name"
+        },
+        {
+          "name": "Enabled",
+          "source": "enabled"
+        },
+        {
+          "name": "Type",
+          "source": "check_type"
+        },
+        {
+          "name": "Scope",
+          "source": "scope"
+        },
+        {
+          "name": "Impact",
+          "source": "impact_types"
+        },
+        {
+          "name": "Classifications",
+          "source": "classifications"
+        },
+        {
+          "name": "Exceptions",
+          "source": "exception_count"
+        },
+        {
+          "name": "Message",
+          "source": "message"
+        }
+      ],
+      "rowOrder": [
+        "name"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Audit.AlertingConfiguration": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Alerting",
+          "source": "isEnabled"
+        },
+        {
+          "name": "Alerting Legacy",
+          "source": "enable"
+        },
+        {
+          "name": "Email Digest",
+          "source": "isEmailDigestEnabled"
+        },
+        {
+          "name": "Email Digest Legacy",
+          "source": "enable_email_digest"
+        },
+        {
+          "name": "Default Nutanix Email",
+          "source": "hasDefaultNutanixEmail"
+        },
+        {
+          "name": "Default Nutanix Email Legacy",
+          "source": "enable_default_nutanix_email"
+        },
+        {
+          "name": "Digest Time",
+          "source": "alertEmailDigestSendTime"
+        },
+        {
+          "name": "Digest Time Legacy",
+          "source": "alert_email_digest_send_time"
+        }
+      ],
+      "rowOrder": [
+        "sourceTargetKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Audit.SmtpConfiguration": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Server",
+          "source": "server_address"
+        },
+        {
+          "name": "Address",
+          "source": "address"
+        },
+        {
+          "name": "Port",
+          "source": "port"
+        },
+        {
+          "name": "Secure Mode",
+          "source": "secure_mode"
+        },
+        {
+          "name": "From Address",
+          "source": "from_email_address"
+        },
+        {
+          "name": "Status",
+          "source": "email_status"
+        }
+      ],
+      "rowOrder": [
+        "server_address",
+        "address"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Audit.SnmpConfiguration": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Enabled",
+          "source": "enabled"
+        },
+        {
+          "name": "Users",
+          "source": "snmp_users"
+        },
+        {
+          "name": "Traps",
+          "source": "snmp_traps"
+        },
+        {
+          "name": "Transports",
+          "source": "snmp_transports"
+        }
+      ],
+      "rowOrder": [
+        "enabled"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Audit.AuthenticationConfiguration": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Auth Types",
+          "source": "auth_type_list"
+        },
+        {
+          "name": "Directories",
+          "source": "directory_list"
+        }
+      ],
+      "rowOrder": [
+        "sourceTargetKey"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Audit.SslCertificates": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Parent",
+          "source": "parentId"
+        },
+        {
+          "name": "Parent Dataset",
+          "source": "parentDataset"
+        },
+        {
+          "name": "Private Key Algorithm",
+          "source": "privateKeyAlgorithm"
+        },
+        {
+          "name": "Certificate Id",
+          "source": "nativeUuid"
+        }
+      ],
+      "rowOrder": [
+        "parentDataset",
+        "parentId"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Audit.Snapshots": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Snapshot",
+          "source": "snapshot_name"
+        },
+        {
+          "name": "VM UUID",
+          "source": "vm_uuid"
+        },
+        {
+          "name": "Created",
+          "source": "created_time"
+        },
+        {
+          "name": "Deleted",
+          "source": "deleted"
+        },
+        {
+          "name": "Group UUID",
+          "source": "group_uuid"
+        }
+      ],
+      "rowOrder": [
+        "snapshot_name",
+        "created_time"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Audit.ProtectionReplications": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Replication",
+          "source": "name"
+        },
+        {
+          "name": "Protection Domain",
+          "source": "protection_domain_name"
+        },
+        {
+          "name": "Remote Site",
+          "source": "remote_site_name"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "Schedule",
+          "source": "schedule"
+        }
+      ],
+      "rowOrder": [
+        "protection_domain_name",
+        "remote_site_name"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Audit.RemoteSites": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Remote Site",
+          "source": "name"
+        },
+        {
+          "name": "URL",
+          "source": "url"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "Cluster",
+          "source": "cluster_name"
+        },
+        {
+          "name": "Capabilities",
+          "source": "capabilities"
+        }
+      ],
+      "rowOrder": [
+        "name"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Audit.Categories": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Key",
+          "source": "key"
+        },
+        {
+          "name": "Value",
+          "source": "value"
+        },
+        {
+          "name": "Type",
+          "source": "type"
+        },
+        {
+          "name": "Description",
+          "source": "description"
+        }
+      ],
+      "rowOrder": [
+        "key",
+        "value"
+      ]
+    },
+    "LNV.Nutanix.Prism.Target[TargetKey].Audit.Policies": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Policy",
+          "source": "name"
+        },
+        {
+          "name": "Type",
+          "source": "type"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "UUID",
+          "source": "nativeUuid"
+        }
+      ],
+      "rowOrder": [
+        "name",
+        "nativeUuid"
+      ]
     }
   }
 }
