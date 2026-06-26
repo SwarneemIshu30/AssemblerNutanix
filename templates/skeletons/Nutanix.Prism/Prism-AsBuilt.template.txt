@@ -1,8 +1,5 @@
 Nutanix Prism As-Built
 
-Estate Summary
-<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterInventory>>
-
 Management Plane and Managed Clusters
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterInventory>>
 
