@@ -123,7 +123,7 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             }
 
             $mapping = Get-Content -LiteralPath $prismMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
-            @($mapping.mappings).Count | Should -Be 65
+            @($mapping.mappings).Count | Should -Be 70
             $documentMappings = @($mapping.mappings | Where-Object { [string]$_.scope -eq 'target' })
             $documentMappings.Count | Should -Be 42
 
@@ -333,8 +333,17 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_host_inventory' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ hostName = 'ntnx-a-01'; serial = 'SERIAL01'; model = 'HX'; status = 'NORMAL'; hypervisor = 'AHV'; cpuCores = 32; memoryBytes = 274877906944 })
                 )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_host_network_interfaces' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ hostName = 'ntnx-a-01'; nicName = 'eth0'; macAddress = '00:11:22:33:44:55'; interfaceStatus = 'UP'; linkSpeedKbps = 10000000; mtuBytes = 9000; virtualSwitch = 'vs0'; switchInterface = 'Eth1/1'; switchVendor = 'Lenovo'; switchManagementIp = '10.0.1.1' })
+                )
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_vm_inventory' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ vmName = 'Cohesity_test'; powerState = 'on'; hostName = 'ntnx-a-01'; cpuCount = 4; memoryBytes = 8589934592; ipAddresses = '10.10.10.20'; nicCount = 1; protectionType = 'unprotected' })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_network_inventory' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ networkName = 'prod-net'; networkType = 'VLAN'; vlanId = 1616; virtualSwitch = 'vs0'; mtuBytes = 9000; ipamEnabled = $true; dhcpEnabled = $false; subnet = '10.10.10.0/24' })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_vm_network_interfaces' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ vmName = 'Cohesity_test'; nicName = 'eth0'; macAddress = 'AA:BB:CC:DD:EE:FF'; networkName = 'prod-net'; networkUuid = 'net-uuid-01'; ipAddresses = '10.10.10.20'; connected = $true })
                 )
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_storage_inventory' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ itemType = 'Container'; name = 'default-container'; capacityBytes = 10995116277760; status = ''; detail = 'RF=2' }),
@@ -385,28 +394,55 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $matchedTags = @($renderReport.matches | ForEach-Object { [string]$_.tag })
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostNetworkInterfaces'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VMInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.NetworkInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageContainers'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StoragePools'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ResiliencySummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.OperationsConfig'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionDetail'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.HostNetworkInterfaces'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.VMInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.VMNetworkInterfaces'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.NetworkInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.GovernanceSummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Tables.Relationships'
 
             $rendered = Get-Content -LiteralPath $bundleReport.runs[0].outputPath -Raw -Encoding UTF8
+            $mainHostNetworkingSection = [regex]::Match($rendered, '(?s)Host Networking\s*(?<body>.*?)\s*Virtual Machines')
+            $mainHostNetworkingSection.Success | Should -BeTrue
+            $mainHostNetworkingSection.Groups['body'].Value | Should -Match 'ntnx-a-01'
+            $mainHostNetworkingSection.Groups['body'].Value | Should -Match 'eth0'
+            $mainHostNetworkingSection.Groups['body'].Value | Should -Match 'vs0'
+            $mainHostNetworkingSection.Groups['body'].Value | Should -Match '10.0.1.1'
+            $mainHostNetworkingSection.Groups['body'].Value | Should -Not -Match 'PrismCentral, PrismElement'
+            $mainHostNetworkingSection.Groups['body'].Value | Should -Not -Match 'pe-cluster-a'
             $mainVmSection = [regex]::Match($rendered, '(?s)Virtual Machines\s*(?<body>.*?)\s*Storage')
             $mainVmSection.Success | Should -BeTrue
             @([regex]::Matches($mainVmSection.Groups['body'].Value, 'Cohesity_test')).Count | Should -Be 1
             $mainVmSection.Groups['body'].Value | Should -Not -Match 'PrismCentral, PrismElement'
             $mainVmSection.Groups['body'].Value | Should -Not -Match 'pe-cluster-a'
+            $networkSection = [regex]::Match($rendered, '(?s)Network Inventory\s*(?<body>.*?)\s*Storage Containers')
+            $networkSection.Success | Should -BeTrue
+            $networkSection.Groups['body'].Value | Should -Match 'prod-net'
+            $networkSection.Groups['body'].Value | Should -Match '1616'
+            $networkSection.Groups['body'].Value | Should -Match '10.10.10.0/24'
+            $networkSection.Groups['body'].Value | Should -Not -Match 'PrismCentral, PrismElement'
+            $auditHostNetworkingSection = [regex]::Match($rendered, '(?s)Operational Appendix - Estate Source Audit - Host Networking\s*(?<body>.*?)\s*Operational Appendix - Estate Source Audit - Virtual Machines')
+            $auditHostNetworkingSection.Success | Should -BeTrue
+            $auditHostNetworkingSection.Groups['body'].Value | Should -Match 'PrismCentral, PrismElement'
+            $auditHostNetworkingSection.Groups['body'].Value | Should -Match 'pe-cluster-a'
             $auditVmSection = [regex]::Match($rendered, '(?s)Operational Appendix - Estate Source Audit - Virtual Machines\s*(?<body>.*?)\s*Operational Appendix - Estate Source Audit - Storage')
             $auditVmSection.Success | Should -BeTrue
             $auditVmSection.Groups['body'].Value | Should -Match 'PrismCentral, PrismElement'
             $auditVmSection.Groups['body'].Value | Should -Match 'pe-cluster-a'
+            $auditVmNicSection = [regex]::Match($rendered, '(?s)Operational Appendix - Estate VM Network Interfaces\s*(?<body>.*?)\s*Operational Appendix - Estate Source Audit - Network Inventory')
+            $auditVmNicSection.Success | Should -BeTrue
+            $auditVmNicSection.Groups['body'].Value | Should -Match 'AA:BB:CC:DD:EE:FF'
+            $auditVmNicSection.Groups['body'].Value | Should -Match 'prod-net'
             $storageContainersSection = [regex]::Match($rendered, '(?s)Storage Containers\s*(?<body>.*?)\s*Storage Pools')
             $storageContainersSection.Success | Should -BeTrue
             $storageContainersSection.Groups['body'].Value | Should -Match 'default-container'

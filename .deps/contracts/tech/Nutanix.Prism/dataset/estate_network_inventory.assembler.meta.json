@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "dataset": "estate_network_inventory",
+  "presentationKind": "table",
+  "documentFacing": true,
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    {
+      "name": "Default",
+      "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.NetworkInventory"
+    },
+    {
+      "name": "Audit",
+      "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.NetworkInventory"
+    }
+  ]
+}

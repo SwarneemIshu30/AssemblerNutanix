@@ -6,8 +6,14 @@ Management Plane and Managed Clusters
 Hosts
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostInventory>>
 
+Host Networking
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostNetworkInterfaces>>
+
 Virtual Machines
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VMInventory>>
+
+Network Inventory
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.NetworkInventory>>
 
 Storage Containers
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageContainers>>
@@ -42,8 +48,17 @@ Operational Appendix - Estate Source Audit - Clusters
 Operational Appendix - Estate Source Audit - Hosts
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.HostInventory>>
 
+Operational Appendix - Estate Source Audit - Host Networking
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.HostNetworkInterfaces>>
+
 Operational Appendix - Estate Source Audit - Virtual Machines
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.VMInventory>>
+
+Operational Appendix - Estate VM Network Interfaces
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.VMNetworkInterfaces>>
+
+Operational Appendix - Estate Source Audit - Network Inventory
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.NetworkInventory>>
 
 Operational Appendix - Estate Source Audit - Storage
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageInventory>>

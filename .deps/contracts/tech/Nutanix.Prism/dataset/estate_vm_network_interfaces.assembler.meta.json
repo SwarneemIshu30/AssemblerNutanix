@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "dataset": "estate_vm_network_interfaces",
+  "presentationKind": "table",
+  "documentFacing": true,
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    {
+      "name": "Audit",
+      "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.VMNetworkInterfaces"
+    }
+  ]
+}
