@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "dataset": "estate_alert_summary",
+  "presentationKind": "table",
+  "documentFacing": true,
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    {
+      "name": "Default",
+      "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.AlertSummary"
+    },
+    {
+      "name": "Audit",
+      "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.AlertSummary"
+    }
+  ]
+}

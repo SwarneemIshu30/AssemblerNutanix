@@ -123,7 +123,7 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             }
 
             $mapping = Get-Content -LiteralPath $prismMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
-            @($mapping.mappings).Count | Should -Be 81
+            @($mapping.mappings).Count | Should -Be 87
             $documentMappings = @($mapping.mappings | Where-Object { [string]$_.scope -eq 'target' })
             $documentMappings.Count | Should -Be 42
 
@@ -358,6 +358,15 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_resiliency_summary' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ faultToleranceDomains = 4; faultToleranceStatus = 'OK'; underReplicatedBytes = 0; nonFaultTolerantEntries = 0; healthCheckCount = 935; enabledHealthChecks = 900; disabledHealthChecks = 35; healthExceptions = 0 })
                 )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_health_findings' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ findingName = 'Disk health'; scope = 'cluster'; severity = 'availability'; enabled = $true; exceptionCount = 2; affectedEntities = 'disk'; message = 'Disk health exceptions detected' })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_alert_summary' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ alertTitle = 'CVM memory pressure'; severity = 'CRITICAL'; status = 'Active'; createdAt = '2026-06-23T00:00:00Z'; updatedAt = '2026-06-23T00:30:00Z'; acknowledged = $false; message = 'Controller VM memory pressure detected' })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_task_summary' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ taskName = 'Upgrade NCC'; status = 'RUNNING'; progress = 42; startedAt = '2026-06-23T00:00:00Z'; updatedAt = '2026-06-23T00:20:00Z'; completedAt = ''; owner = 'admin' })
+                )
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_operations_config' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ alertingEnabled = $true; emailDigestEnabled = $true; defaultNutanixEmailEnabled = $false; smtpServer = 'smtp.example.local'; smtpPort = 25; smtpSecureMode = 'STARTTLS'; snmpEnabled = $true; snmpUsers = 1; snmpTraps = 1; authTypes = 'LOCAL, LDAP'; directoryCount = 1; sslCertificateCount = 2 })
                 )
@@ -425,6 +434,9 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ReplicationTopology'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.SnapshotSummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.UnprotectedWorkloads'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HealthFindings'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.AlertSummary'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TaskSummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.GovernanceSummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ImageInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TemplateInventory'
@@ -437,6 +449,9 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.ReplicationTopology'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.SnapshotSummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.UnprotectedWorkloads'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.HealthFindings'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.AlertSummary'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.TaskSummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.GovernanceSummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Tables.Relationships'
 
@@ -490,10 +505,22 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $unprotectedSection.Success | Should -BeTrue
             $unprotectedSection.Groups['body'].Value | Should -Match 'unprotected-app01'
             $unprotectedSection.Groups['body'].Value | Should -Not -Match 'pe-cluster-a'
-            $resiliencySection = [regex]::Match($rendered, '(?s)Resiliency and Health\s*(?<body>.*?)\s*Operations Configuration')
+            $resiliencySection = [regex]::Match($rendered, '(?s)Resiliency and Health\s*(?<body>.*?)\s*Health Findings')
             $resiliencySection.Success | Should -BeTrue
             $resiliencySection.Groups['body'].Value | Should -Match '935'
             $resiliencySection.Groups['body'].Value | Should -Not -Match 'Disk health'
+            $healthFindingsSection = [regex]::Match($rendered, '(?s)Health Findings\s*(?<body>.*?)\s*Active Alerts')
+            $healthFindingsSection.Success | Should -BeTrue
+            $healthFindingsSection.Groups['body'].Value | Should -Match 'Disk health'
+            $healthFindingsSection.Groups['body'].Value | Should -Match 'Disk health exceptions detected'
+            $alertSection = [regex]::Match($rendered, '(?s)Active Alerts\s*(?<body>.*?)\s*Recent Failed or Running Tasks')
+            $alertSection.Success | Should -BeTrue
+            $alertSection.Groups['body'].Value | Should -Match 'CVM memory pressure'
+            $alertSection.Groups['body'].Value | Should -Match 'CRITICAL'
+            $taskSection = [regex]::Match($rendered, '(?s)Recent Failed or Running Tasks\s*(?<body>.*?)\s*Operations Configuration')
+            $taskSection.Success | Should -BeTrue
+            $taskSection.Groups['body'].Value | Should -Match 'Upgrade NCC'
+            $taskSection.Groups['body'].Value | Should -Match 'RUNNING'
             $operationsSection = [regex]::Match($rendered, '(?s)Operations Configuration\s*(?<body>.*?)\s*Governance Summary')
             $operationsSection.Success | Should -BeTrue
             $operationsSection.Groups['body'].Value | Should -Match 'smtp.example.local'

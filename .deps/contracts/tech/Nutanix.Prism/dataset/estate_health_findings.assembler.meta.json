@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "dataset": "estate_health_findings",
+  "presentationKind": "table",
+  "documentFacing": true,
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    {
+      "name": "Default",
+      "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HealthFindings"
+    },
+    {
+      "name": "Audit",
+      "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HealthFindings"
+    }
+  ]
+}

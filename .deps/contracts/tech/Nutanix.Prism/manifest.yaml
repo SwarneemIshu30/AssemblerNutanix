@@ -82,6 +82,9 @@ spec:
     - estate_unprotected_workloads
     - estate_storage_inventory
     - estate_resiliency_summary
+    - estate_health_findings
+    - estate_alert_summary
+    - estate_task_summary
     - estate_operations_config
     - estate_governance_summary
     - estate_vm_inventory

@@ -42,6 +42,15 @@ Unprotected Workloads
 Resiliency and Health
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ResiliencySummary>>
 
+Health Findings
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HealthFindings>>
+
+Active Alerts
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.AlertSummary>>
+
+Recent Failed or Running Tasks
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TaskSummary>>
+
 Operations Configuration
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.OperationsConfig>>
 
@@ -89,6 +98,15 @@ Operational Appendix - Estate Source Audit - Protection
 
 Operational Appendix - Estate Source Audit - Resiliency
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.ResiliencySummary>>
+
+Operational Appendix - Estate Source Audit - Health Findings
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.HealthFindings>>
+
+Operational Appendix - Estate Source Audit - Alerts
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.AlertSummary>>
+
+Operational Appendix - Estate Source Audit - Tasks
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.TaskSummary>>
 
 Operational Appendix - Estate Source Audit - Operations Configuration
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.OperationsConfig>>

@@ -2058,6 +2058,54 @@
         "clusterName"
       ]
     },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HealthFindings": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Finding", "source": "findingName" },
+        { "name": "Scope", "source": "scope" },
+        { "name": "Severity", "source": "severity" },
+        { "name": "Enabled", "source": "enabled" },
+        { "name": "Exceptions", "source": "exceptionCount" },
+        { "name": "Affected", "source": "affectedEntities" },
+        { "name": "Message", "source": "message" }
+      ],
+      "rowOrder": [ "clusterName", "severity", "findingName" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.AlertSummary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Alert", "source": "alertTitle" },
+        { "name": "Severity", "source": "severity" },
+        { "name": "Status", "source": "status" },
+        { "name": "Created", "source": "createdAt" },
+        { "name": "Updated", "source": "updatedAt" },
+        { "name": "Acknowledged", "source": "acknowledged" },
+        { "name": "Message", "source": "message" }
+      ],
+      "rowOrder": [ "clusterName", "severity", "alertTitle" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TaskSummary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Task", "source": "taskName" },
+        { "name": "Status", "source": "status" },
+        { "name": "Progress", "source": "progress" },
+        { "name": "Started", "source": "startedAt" },
+        { "name": "Updated", "source": "updatedAt" },
+        { "name": "Completed", "source": "completedAt" },
+        { "name": "Owner", "source": "owner" }
+      ],
+      "rowOrder": [ "clusterName", "status", "taskName" ]
+    },
     "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.OperationsConfig": {
       "renderAs": "table",
       "renderMode": "table",
@@ -2436,6 +2484,72 @@
         "clusterName",
         "clusterTarget"
       ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.HealthFindings": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "groupKey" },
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Cluster Target", "source": "clusterTarget" },
+        { "name": "Management Plane", "source": "managementPlaneTarget" },
+        { "name": "Source", "source": "sourcePreference" },
+        { "name": "Correlation", "source": "correlationStatus" },
+        { "name": "Observed From", "source": "observedFrom" },
+        { "name": "Finding", "source": "findingName" },
+        { "name": "Scope", "source": "scope" },
+        { "name": "Severity", "source": "severity" },
+        { "name": "Enabled", "source": "enabled" },
+        { "name": "Exceptions", "source": "exceptionCount" },
+        { "name": "Affected", "source": "affectedEntities" },
+        { "name": "Message", "source": "message" }
+      ],
+      "rowOrder": [ "groupKey", "clusterName", "severity", "findingName" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.AlertSummary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "groupKey" },
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Cluster Target", "source": "clusterTarget" },
+        { "name": "Management Plane", "source": "managementPlaneTarget" },
+        { "name": "Source", "source": "sourcePreference" },
+        { "name": "Correlation", "source": "correlationStatus" },
+        { "name": "Observed From", "source": "observedFrom" },
+        { "name": "Alert", "source": "alertTitle" },
+        { "name": "Severity", "source": "severity" },
+        { "name": "Status", "source": "status" },
+        { "name": "Created", "source": "createdAt" },
+        { "name": "Updated", "source": "updatedAt" },
+        { "name": "Acknowledged", "source": "acknowledged" },
+        { "name": "Message", "source": "message" }
+      ],
+      "rowOrder": [ "groupKey", "clusterName", "severity", "alertTitle" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.TaskSummary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "groupKey" },
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Cluster Target", "source": "clusterTarget" },
+        { "name": "Management Plane", "source": "managementPlaneTarget" },
+        { "name": "Source", "source": "sourcePreference" },
+        { "name": "Correlation", "source": "correlationStatus" },
+        { "name": "Observed From", "source": "observedFrom" },
+        { "name": "Task", "source": "taskName" },
+        { "name": "Status", "source": "status" },
+        { "name": "Progress", "source": "progress" },
+        { "name": "Started", "source": "startedAt" },
+        { "name": "Updated", "source": "updatedAt" },
+        { "name": "Completed", "source": "completedAt" },
+        { "name": "Owner", "source": "owner" }
+      ],
+      "rowOrder": [ "groupKey", "clusterName", "status", "taskName" ]
     },
     "LNV.Nutanix.Prism.Group[GroupKey].Audit.OperationsConfig": {
       "renderAs": "table",
