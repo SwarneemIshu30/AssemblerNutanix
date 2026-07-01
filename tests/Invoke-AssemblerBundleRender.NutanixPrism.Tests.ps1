@@ -123,7 +123,7 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             }
 
             $mapping = Get-Content -LiteralPath $prismMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
-            @($mapping.mappings).Count | Should -Be 95
+            @($mapping.mappings).Count | Should -Be 99
             $documentMappings = @($mapping.mappings | Where-Object { [string]$_.scope -eq 'target' })
             $documentMappings.Count | Should -Be 42
 
@@ -337,6 +337,13 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_host_capacity' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ hostName = 'ntnx-a-01'; model = 'HX'; serial = 'SERIAL01'; status = 'NORMAL'; hypervisor = 'AHV'; cpuCores = 32; cpuThreads = 64; memoryBytes = 274877906944 })
                 )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_cvm_inventory' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ cvmName = 'ntnx-a-01-cvm'; hostName = 'ntnx-a-01'; powerState = 'on'; ipAddresses = '172.30.30.171, 192.168.5.2'; cpuCount = 12; memoryBytes = 34359738368; nicCount = 3; role = 'Controller VM' })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_cluster_services' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ serviceName = 'Controller VM'; state = '3 CVMs'; owner = 'Prism Element'; detail = 'Cluster-local controller VM layer' }),
+                    (New-PrismEstateItem -Base $estateBase -Values @{ serviceName = 'SMTP'; state = 'Configured'; owner = 'PrismCentral'; detail = 'Email notification configuration' })
+                )
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_host_network_interfaces' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ hostName = 'ntnx-a-01'; nicName = 'eth0'; macAddress = '00:11:22:33:44:55'; interfaceStatus = 'UP'; linkSpeedKbps = 10000000; mtuBytes = 9000; virtualSwitch = 'vs0'; switchInterface = 'Eth1/1'; switchVendor = 'Lenovo'; switchManagementIp = '10.0.1.1' })
                 )
@@ -470,10 +477,14 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TemplateInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.CapacitySummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostCapacity'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.CvmInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterServices'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VmSizingSummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageCapacity'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.CapacitySummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.HostCapacity'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.CvmInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.ClusterServices'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.VmSizingSummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageCapacity'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.HostNetworkInterfaces'
@@ -501,6 +512,17 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $hostCapacitySection.Groups['body'].Value | Should -Match 'ntnx-a-01'
             $hostCapacitySection.Groups['body'].Value | Should -Match '64'
             $hostCapacitySection.Groups['body'].Value | Should -Not -Match 'pe-cluster-a'
+            $cvmSection = [regex]::Match($rendered, '(?s)\r?\nController VMs\r?\n(?<body>.*?)\r?\nCluster Services\r?\n')
+            $cvmSection.Success | Should -BeTrue
+            $cvmSection.Groups['body'].Value | Should -Match 'ntnx-a-01-cvm'
+            $cvmSection.Groups['body'].Value | Should -Match '172.30.30.171'
+            $cvmSection.Groups['body'].Value | Should -Match 'Controller VM'
+            $cvmSection.Groups['body'].Value | Should -Not -Match 'pe-cluster-a'
+            $clusterServicesSection = [regex]::Match($rendered, '(?s)\r?\nCluster Services\r?\n(?<body>.*?)\r?\nHost Networking\r?\n')
+            $clusterServicesSection.Success | Should -BeTrue
+            $clusterServicesSection.Groups['body'].Value | Should -Match 'SMTP'
+            $clusterServicesSection.Groups['body'].Value | Should -Match 'Configured'
+            $clusterServicesSection.Groups['body'].Value | Should -Not -Match 'pe-cluster-a'
             $mainHostNetworkingSection = [regex]::Match($rendered, '(?s)Host Networking\s*(?<body>.*?)\s*Virtual Machines')
             $mainHostNetworkingSection.Success | Should -BeTrue
             $mainHostNetworkingSection.Groups['body'].Value | Should -Match 'ntnx-a-01'

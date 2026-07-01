@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "techId": "Nutanix.Prism",
+  "dataset": "estate_cvm_inventory",
+  "presentationKind": "table",
+  "documentFacing": true,
+  "defaultSection": "Controller VMs",
+  "primarySdt": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.CvmInventory",
+  "auditSdt": "LNV.Nutanix.Prism.Group[GroupKey].Audit.CvmInventory",
+  "notes": "Estate-first CVM inventory derived from Prism Element controller VM records."
+}

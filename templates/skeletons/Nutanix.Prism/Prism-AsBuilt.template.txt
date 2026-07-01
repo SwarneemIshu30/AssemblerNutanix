@@ -12,6 +12,12 @@ Hosts
 Host Capacity
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostCapacity>>
 
+Controller VMs
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.CvmInventory>>
+
+Cluster Services
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterServices>>
+
 Host Networking
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostNetworkInterfaces>>
 
@@ -95,6 +101,12 @@ Operational Appendix - Estate Source Audit - Hosts
 
 Operational Appendix - Estate Source Audit - Host Capacity
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.HostCapacity>>
+
+Operational Appendix - Estate Source Audit - Controller VMs
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.CvmInventory>>
+
+Operational Appendix - Estate Source Audit - Cluster Services
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.ClusterServices>>
 
 Operational Appendix - Estate Source Audit - Host Networking
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.HostNetworkInterfaces>>

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "techId": "Nutanix.Prism",
+  "dataset": "estate_cluster_services",
+  "presentationKind": "table",
+  "documentFacing": true,
+  "defaultSection": "Cluster Services",
+  "primarySdt": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterServices",
+  "auditSdt": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ClusterServices",
+  "notes": "Estate-first service/configuration summary derived from collected Prism cluster, health, alerting, protection, and operations datasets."
+}

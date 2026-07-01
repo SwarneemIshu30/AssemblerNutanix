@@ -1132,6 +1132,36 @@
       ],
       "rowOrder": [ "clusterName", "hostName" ]
     },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.CvmInventory": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "CVM", "source": "cvmName" },
+        { "name": "Host", "source": "hostName" },
+        { "name": "Power", "source": "powerState" },
+        { "name": "IPs", "source": "ipAddresses" },
+        { "name": "vCPU", "source": "cpuCount" },
+        { "name": "Memory", "source": "memoryBytes", "format": "bytesHuman" },
+        { "name": "NICs", "source": "nicCount" },
+        { "name": "Role", "source": "role" }
+      ],
+      "rowOrder": [ "clusterName", "hostName", "cvmName" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterServices": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Service", "source": "serviceName" },
+        { "name": "State", "source": "state" },
+        { "name": "Owner/Scope", "source": "owner" },
+        { "name": "Detail", "source": "detail" }
+      ],
+      "rowOrder": [ "clusterName", "serviceName" ]
+    },
     "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostNetworkInterfaces": {
       "renderAs": "table",
       "renderMode": "table",
@@ -1787,6 +1817,47 @@
         { "name": "Memory", "source": "memoryBytes", "format": "bytesHuman" }
       ],
       "rowOrder": [ "groupKey", "clusterName", "hostName" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.CvmInventory": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "groupKey" },
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Cluster Target", "source": "clusterTarget" },
+        { "name": "Management Plane", "source": "managementPlaneTarget" },
+        { "name": "Source", "source": "sourcePreference" },
+        { "name": "Correlation", "source": "correlationStatus" },
+        { "name": "Observed From", "source": "observedFrom" },
+        { "name": "CVM", "source": "cvmName" },
+        { "name": "Host", "source": "hostName" },
+        { "name": "Power", "source": "powerState" },
+        { "name": "IPs", "source": "ipAddresses" },
+        { "name": "vCPU", "source": "cpuCount" },
+        { "name": "Memory", "source": "memoryBytes", "format": "bytesHuman" },
+        { "name": "NICs", "source": "nicCount" }
+      ],
+      "rowOrder": [ "groupKey", "clusterName", "hostName", "cvmName" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.ClusterServices": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "groupKey" },
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Cluster Target", "source": "clusterTarget" },
+        { "name": "Management Plane", "source": "managementPlaneTarget" },
+        { "name": "Source", "source": "sourcePreference" },
+        { "name": "Correlation", "source": "correlationStatus" },
+        { "name": "Observed From", "source": "observedFrom" },
+        { "name": "Service", "source": "serviceName" },
+        { "name": "State", "source": "state" },
+        { "name": "Owner/Scope", "source": "owner" },
+        { "name": "Detail", "source": "detail" }
+      ],
+      "rowOrder": [ "groupKey", "clusterName", "serviceName" ]
     },
     "LNV.Nutanix.Prism.Group[GroupKey].Audit.VMInventory": {
       "renderAs": "table",

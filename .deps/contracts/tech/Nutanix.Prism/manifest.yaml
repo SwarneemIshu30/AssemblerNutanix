@@ -83,6 +83,8 @@ spec:
     - estate_storage_inventory
     - estate_capacity_summary
     - estate_host_capacity
+    - estate_cvm_inventory
+    - estate_cluster_services
     - estate_storage_capacity
     - estate_vm_sizing_summary
     - estate_resiliency_summary

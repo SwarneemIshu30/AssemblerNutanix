@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Nutanix.Prism/schemas/estate_cluster_services.schema.v1.json",
+  "title": "Nutanix.Prism dataset contract: estate_cluster_services",
+  "type": "object",
+  "required": [ "schema_version", "collector", "source", "dataset", "item_count", "items" ],
+  "properties": {
+    "schema_version": { "const": "lnv.collector.dataset.v1" },
+    "collector": { "type": "object", "additionalProperties": true },
+    "source": { "type": "object", "additionalProperties": true },
+    "dataset": { "const": "estate_cluster_services" },
+    "item_count": { "type": "integer", "minimum": 0 },
+    "items": {
+      "type": "array",
+      "items": { "type": "object", "additionalProperties": true }
+    }
+  },
+  "additionalProperties": true
+}
