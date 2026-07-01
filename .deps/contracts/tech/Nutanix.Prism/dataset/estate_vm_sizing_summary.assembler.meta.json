@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "dataset": "estate_vm_sizing_summary",
+  "presentationKind": "table",
+  "documentFacing": true,
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    { "name": "Default", "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VmSizingSummary" },
+    { "name": "Audit", "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.VmSizingSummary" }
+  ]
+}

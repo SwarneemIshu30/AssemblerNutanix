@@ -3,8 +3,14 @@ Nutanix Prism As-Built
 Management Plane and Managed Clusters
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterInventory>>
 
+Capacity Summary
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.CapacitySummary>>
+
 Hosts
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostInventory>>
+
+Host Capacity
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostCapacity>>
 
 Host Networking
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostNetworkInterfaces>>
@@ -12,8 +18,14 @@ Host Networking
 Virtual Machines
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VMInventory>>
 
+VM Allocation Summary
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VmSizingSummary>>
+
 Network Inventory
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.NetworkInventory>>
+
+Storage Capacity
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageCapacity>>
 
 Storage Containers
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageContainers>>
@@ -75,8 +87,14 @@ Operational Appendix - Collection Sources
 Operational Appendix - Estate Source Audit - Clusters
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.ClusterInventory>>
 
+Operational Appendix - Estate Source Audit - Capacity Summary
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.CapacitySummary>>
+
 Operational Appendix - Estate Source Audit - Hosts
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.HostInventory>>
+
+Operational Appendix - Estate Source Audit - Host Capacity
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.HostCapacity>>
 
 Operational Appendix - Estate Source Audit - Host Networking
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.HostNetworkInterfaces>>
@@ -87,11 +105,17 @@ Operational Appendix - Estate Source Audit - Virtual Machines
 Operational Appendix - Estate VM Network Interfaces
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.VMNetworkInterfaces>>
 
+Operational Appendix - Estate Source Audit - VM Allocation Summary
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.VmSizingSummary>>
+
 Operational Appendix - Estate Source Audit - Network Inventory
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.NetworkInventory>>
 
 Operational Appendix - Estate Source Audit - Storage
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageInventory>>
+
+Operational Appendix - Estate Source Audit - Storage Capacity
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageCapacity>>
 
 Operational Appendix - Estate Source Audit - Protection
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionInventory>>

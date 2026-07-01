@@ -123,7 +123,7 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             }
 
             $mapping = Get-Content -LiteralPath $prismMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
-            @($mapping.mappings).Count | Should -Be 87
+            @($mapping.mappings).Count | Should -Be 95
             $documentMappings = @($mapping.mappings | Where-Object { [string]$_.scope -eq 'target' })
             $documentMappings.Count | Should -Be 42
 
@@ -317,27 +317,37 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
                 return $item
             }
 
+            $estateBase = @{
+                groupKey = 'site-a'
+                clusterName = 'Prism Element Cluster A'
+                managementPlaneTarget = 'pc01'
+                clusterTarget = 'pe-cluster-a'
+                observedFrom = 'PrismCentral, PrismElement'
+                sourcePreference = 'PrismElement'
+                correlationStatus = 'correlated'
+            }
+
             if (-not (Test-Path -LiteralPath (Join-Path $bundleRoot 'datasets/Nutanix.Prism/group/site-a/estate_vm_inventory.json') -PathType Leaf)) {
-                $estateBase = @{
-                    groupKey = 'site-a'
-                    clusterName = 'Prism Element Cluster A'
-                    managementPlaneTarget = 'pc01'
-                    clusterTarget = 'pe-cluster-a'
-                    observedFrom = 'PrismCentral, PrismElement'
-                    sourcePreference = 'PrismElement'
-                    correlationStatus = 'correlated'
-                }
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_cluster_inventory' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ cluster = 'Prism Element Cluster A'; status = 'Healthy'; version = 'test'; hostCount = 2; vmCount = 37; storageContainerCount = 2 })
                 )
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_host_inventory' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ hostName = 'ntnx-a-01'; serial = 'SERIAL01'; model = 'HX'; status = 'NORMAL'; hypervisor = 'AHV'; cpuCores = 32; memoryBytes = 274877906944 })
                 )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_host_capacity' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ hostName = 'ntnx-a-01'; model = 'HX'; serial = 'SERIAL01'; status = 'NORMAL'; hypervisor = 'AHV'; cpuCores = 32; cpuThreads = 64; memoryBytes = 274877906944 })
+                )
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_host_network_interfaces' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ hostName = 'ntnx-a-01'; nicName = 'eth0'; macAddress = '00:11:22:33:44:55'; interfaceStatus = 'UP'; linkSpeedKbps = 10000000; mtuBytes = 9000; virtualSwitch = 'vs0'; switchInterface = 'Eth1/1'; switchVendor = 'Lenovo'; switchManagementIp = '10.0.1.1' })
                 )
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_vm_inventory' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ vmName = 'Cohesity_test'; powerState = 'on'; hostName = 'ntnx-a-01'; cpuCount = 4; memoryBytes = 8589934592; ipAddresses = '10.10.10.20'; nicCount = 1; protectionType = 'unprotected' })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_capacity_summary' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ hostCount = 1; vmCount = 1; cpuCores = 32; memoryBytes = 274877906944; vmCpuCount = 4; vmMemoryBytes = 8589934592; storageContainerCapacityBytes = 10995116277760; storagePoolCapacityBytes = 21990232555520; diskCapacityBytes = 1099511627776 })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_vm_sizing_summary' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ vmCount = 1; poweredOnCount = 1; poweredOffCount = 0; totalVcpu = 4; allocatedMemoryBytes = 8589934592; nicCount = 1 })
                 )
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_network_inventory' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ networkName = 'prod-net'; networkType = 'VLAN'; vlanId = 1616; virtualSwitch = 'vs0'; mtuBytes = 9000; ipamEnabled = $true; dhcpEnabled = $false; subnet = '10.10.10.0/24' })
@@ -351,6 +361,10 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
                     (New-PrismEstateItem -Base $estateBase -Values @{ itemType = 'Disk'; name = 'disk-01'; capacityBytes = 1099511627776; status = 'NORMAL'; detail = 'Host: ntnx-a-01' }),
                     (New-PrismEstateItem -Base $estateBase -Values @{ itemType = 'Virtual Disk'; name = 'scsi.0'; capacityBytes = 107374182400; status = ''; detail = 'VM: Cohesity_test' }),
                     (New-PrismEstateItem -Base $estateBase -Values @{ itemType = 'Volume Group'; name = 'vg01'; capacityBytes = $null; status = 'SHARED'; detail = 'Target: Cohesity_test' })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_storage_capacity' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ itemType = 'Container'; name = 'default-container'; capacityBytes = 10995116277760; diskCount = $null; replicationFactor = 2; detail = 'Compression=True; Dedup=False' }),
+                    (New-PrismEstateItem -Base $estateBase -Values @{ itemType = 'Storage Pool'; name = 'sp01'; capacityBytes = 21990232555520; diskCount = 8; replicationFactor = $null; detail = 'MarkedForRemoval=False' })
                 )
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_protection_inventory' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ protectionName = 'Cohesity_test'; protectionType = 'VM'; status = 'unprotected'; scope = 'Prism Element Cluster A' })
@@ -396,6 +410,20 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
                 )
             }
 
+            Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_capacity_summary' -Items @(
+                (New-PrismEstateItem -Base $estateBase -Values @{ hostCount = 1; vmCount = 1; cpuCores = 32; memoryBytes = 274877906944; vmCpuCount = 4; vmMemoryBytes = 8589934592; storageContainerCapacityBytes = 10995116277760; storagePoolCapacityBytes = 21990232555520; diskCapacityBytes = 1099511627776 })
+            )
+            Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_host_capacity' -Items @(
+                (New-PrismEstateItem -Base $estateBase -Values @{ hostName = 'ntnx-a-01'; model = 'HX'; serial = 'SERIAL01'; status = 'NORMAL'; hypervisor = 'AHV'; cpuCores = 32; cpuThreads = 64; memoryBytes = 274877906944 })
+            )
+            Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_vm_sizing_summary' -Items @(
+                (New-PrismEstateItem -Base $estateBase -Values @{ vmCount = 1; poweredOnCount = 1; poweredOffCount = 0; totalVcpu = 4; allocatedMemoryBytes = 8589934592; nicCount = 1 })
+            )
+            Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_storage_capacity' -Items @(
+                (New-PrismEstateItem -Base $estateBase -Values @{ itemType = 'Container'; name = 'default-container'; capacityBytes = 10995116277760; diskCount = $null; replicationFactor = 2; detail = 'Compression=True; Dedup=False' }),
+                (New-PrismEstateItem -Base $estateBase -Values @{ itemType = 'Storage Pool'; name = 'sp01'; capacityBytes = 21990232555520; diskCount = 8; replicationFactor = $null; detail = 'MarkedForRemoval=False' })
+            )
+
             $null = & $pwshPath -NoLogo -NoProfile -File (Join-Path $repoRoot 'scripts/Invoke-AssemblerBundleRender.ps1') `
                 -BundleRoot $bundleRoot `
                 -CatalogPath $catalogPath `
@@ -440,6 +468,14 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.GovernanceSummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ImageInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TemplateInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.CapacitySummary'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostCapacity'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VmSizingSummary'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageCapacity'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.CapacitySummary'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.HostCapacity'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.VmSizingSummary'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageCapacity'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.HostNetworkInterfaces'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.VMInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.VMNetworkInterfaces'
@@ -456,6 +492,15 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Tables.Relationships'
 
             $rendered = Get-Content -LiteralPath $bundleReport.runs[0].outputPath -Raw -Encoding UTF8
+            $capacitySection = [regex]::Match($rendered, '(?s)\r?\nCapacity Summary\r?\n(?<body>.*?)\r?\nHosts\r?\n')
+            $capacitySection.Success | Should -BeTrue
+            $capacitySection.Groups['body'].Value | Should -Match '32'
+            $capacitySection.Groups['body'].Value | Should -Not -Match 'pe-cluster-a'
+            $hostCapacitySection = [regex]::Match($rendered, '(?s)\r?\nHost Capacity\r?\n(?<body>.*?)\r?\nHost Networking\r?\n')
+            $hostCapacitySection.Success | Should -BeTrue
+            $hostCapacitySection.Groups['body'].Value | Should -Match 'ntnx-a-01'
+            $hostCapacitySection.Groups['body'].Value | Should -Match '64'
+            $hostCapacitySection.Groups['body'].Value | Should -Not -Match 'pe-cluster-a'
             $mainHostNetworkingSection = [regex]::Match($rendered, '(?s)Host Networking\s*(?<body>.*?)\s*Virtual Machines')
             $mainHostNetworkingSection.Success | Should -BeTrue
             $mainHostNetworkingSection.Groups['body'].Value | Should -Match 'ntnx-a-01'
@@ -469,12 +514,21 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             @([regex]::Matches($mainVmSection.Groups['body'].Value, 'Cohesity_test')).Count | Should -Be 1
             $mainVmSection.Groups['body'].Value | Should -Not -Match 'PrismCentral, PrismElement'
             $mainVmSection.Groups['body'].Value | Should -Not -Match 'pe-cluster-a'
+            $vmSizingSection = [regex]::Match($rendered, '(?s)\r?\nVM Allocation Summary\r?\n(?<body>.*?)\r?\nNetwork Inventory\r?\n')
+            $vmSizingSection.Success | Should -BeTrue
+            $vmSizingSection.Groups['body'].Value | Should -Match '4'
+            $vmSizingSection.Groups['body'].Value | Should -Not -Match 'pe-cluster-a'
             $networkSection = [regex]::Match($rendered, '(?s)Network Inventory\s*(?<body>.*?)\s*Storage Containers')
             $networkSection.Success | Should -BeTrue
             $networkSection.Groups['body'].Value | Should -Match 'prod-net'
             $networkSection.Groups['body'].Value | Should -Match '1616'
             $networkSection.Groups['body'].Value | Should -Match '10.10.10.0/24'
             $networkSection.Groups['body'].Value | Should -Not -Match 'PrismCentral, PrismElement'
+            $storageCapacitySection = [regex]::Match($rendered, '(?s)\r?\nStorage Capacity\r?\n(?<body>.*?)\r?\nStorage Containers\r?\n')
+            $storageCapacitySection.Success | Should -BeTrue
+            $storageCapacitySection.Groups['body'].Value | Should -Match 'default-container'
+            $storageCapacitySection.Groups['body'].Value | Should -Match 'sp01'
+            $storageCapacitySection.Groups['body'].Value | Should -Not -Match 'disk-01'
             $auditHostNetworkingSection = [regex]::Match($rendered, '(?s)Operational Appendix - Estate Source Audit - Host Networking\s*(?<body>.*?)\s*Operational Appendix - Estate Source Audit - Virtual Machines')
             $auditHostNetworkingSection.Success | Should -BeTrue
             $auditHostNetworkingSection.Groups['body'].Value | Should -Match 'PrismCentral, PrismElement'

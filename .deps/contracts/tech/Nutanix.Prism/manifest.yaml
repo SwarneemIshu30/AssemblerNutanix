@@ -81,6 +81,10 @@ spec:
     - estate_snapshot_summary
     - estate_unprotected_workloads
     - estate_storage_inventory
+    - estate_capacity_summary
+    - estate_host_capacity
+    - estate_storage_capacity
+    - estate_vm_sizing_summary
     - estate_resiliency_summary
     - estate_health_findings
     - estate_alert_summary

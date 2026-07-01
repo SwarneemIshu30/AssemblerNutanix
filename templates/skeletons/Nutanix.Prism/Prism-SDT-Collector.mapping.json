@@ -17,1570 +17,1714 @@
   },
   "mappings": [
     {
+      "domain": "cluster",
+      "dataset": "cluster",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Summary"
+      },
       "required": true,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Summary",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Summary"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Summary",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Summary"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "cluster"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "cluster_summary",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.ClusterSummary"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.ClusterSummary",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.ClusterSummary"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.ClusterSummary",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.ClusterSummary"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "cluster_summary"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "hosts",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Hosts"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Hosts",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Hosts"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Hosts",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Hosts"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "hosts"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "host_network_interfaces",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.HostNetworkInterfaces"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.HostNetworkInterfaces",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.HostNetworkInterfaces"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.HostNetworkInterfaces",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.HostNetworkInterfaces"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "host_network_interfaces"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "host_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.HostInventory"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.HostInventory",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.HostInventory"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.HostInventory",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.HostInventory"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "host_inventory"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "host_nics",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.HostNics"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.HostNics",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.HostNics"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.HostNics",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.HostNics"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "host_nics"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "cvms",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.CVMs"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.CVMs",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.CVMs"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.CVMs",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.CVMs"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "cvms"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "vms",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VMs"
+      },
       "required": true,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VMs",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VMs"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VMs",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VMs"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "vms"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "vm_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VMInventory"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VMInventory",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VMInventory"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VMInventory",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VMInventory"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "vm_inventory"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "vm_nics",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VMNics"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VMNics",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VMNics"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VMNics",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VMNics"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "vm_nics"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "networks",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Networks"
+      },
       "required": true,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Networks",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Networks"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Networks",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Networks"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "networks"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "virtual_switches",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VirtualSwitches"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VirtualSwitches",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VirtualSwitches"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VirtualSwitches",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VirtualSwitches"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "virtual_switches"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "storage_containers",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.StorageContainers"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.StorageContainers",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.StorageContainers"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.StorageContainers",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.StorageContainers"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "storage_containers"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "storage_container_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.StorageContainers"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.StorageContainers",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.StorageContainers"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.StorageContainers",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.StorageContainers"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "storage_container_inventory"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "storage_pools",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.StoragePools"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.StoragePools",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.StoragePools"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.StoragePools",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.StoragePools"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "storage_pools"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "storage_pool_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.StoragePools"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.StoragePools",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.StoragePools"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.StoragePools",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.StoragePools"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "storage_pool_inventory"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "disks",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Disks"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Disks",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Disks"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Disks",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Disks"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "disks"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "disk_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.Disks"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.Disks",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.Disks"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.Disks",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.Disks"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "disk_inventory"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "protection_domains",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.ProtectionDomains"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.ProtectionDomains",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.ProtectionDomains"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.ProtectionDomains",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.ProtectionDomains"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "protection_domains"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "alerts",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Alerts"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Alerts",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Alerts"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Alerts",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Alerts"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "alerts"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "tasks",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Tasks"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Tasks",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Tasks"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Tasks",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Tasks"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "tasks"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "templates",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Templates"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Templates",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Templates"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Templates",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Templates"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "templates"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "license",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Licenses"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Licenses",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Licenses"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Licenses",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Licenses"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "license"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "images",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Images"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Images",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Images"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Images",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Images"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "images"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "unprotected_vms",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.UnprotectedVMs"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.UnprotectedVMs",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.UnprotectedVMs"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.UnprotectedVMs",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.UnprotectedVMs"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "unprotected_vms"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "virtual_disks",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VirtualDisks"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VirtualDisks",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VirtualDisks"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VirtualDisks",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VirtualDisks"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "virtual_disks"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "virtual_disk_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VirtualDisks"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VirtualDisks",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VirtualDisks"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VirtualDisks",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VirtualDisks"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "virtual_disk_inventory"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "volume_groups",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VolumeGroups"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VolumeGroups",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VolumeGroups"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VolumeGroups",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.VolumeGroups"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "volume_groups"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "volume_group_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VolumeGroups"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VolumeGroups",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VolumeGroups"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VolumeGroups",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].AsBuilt.VolumeGroups"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "volume_group_inventory"
+      ]
     },
     {
+      "domain": "core",
+      "dataset": "collection_sources",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.CollectionSources"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.CollectionSources",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.CollectionSources"
       },
-      "domain": "core",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.CollectionSources",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.CollectionSources"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "collection_sources"
+      ]
     },
     {
+      "domain": "core",
+      "dataset": "relationships",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Relationships"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Relationships",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Relationships"
       },
-      "domain": "core",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Relationships",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Relationships"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "relationships"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_cluster_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterInventory"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterInventory",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterInventory"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterInventory",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterInventory"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_cluster_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_host_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostInventory"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostInventory",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostInventory"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostInventory",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostInventory"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_host_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_host_capacity",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostCapacity"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostCapacity",
+      "scope": "targetGroup",
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostCapacity"
+      },
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "domain": "group",
+      "dataset": "estate_host_network_interfaces",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostNetworkInterfaces"
+      },
+      "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostNetworkInterfaces",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostNetworkInterfaces"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostNetworkInterfaces",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostNetworkInterfaces"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_host_network_interfaces"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_vm_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VMInventory"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VMInventory",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VMInventory"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VMInventory",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VMInventory"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_vm_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_vm_sizing_summary",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VmSizingSummary"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VmSizingSummary",
+      "scope": "targetGroup",
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VmSizingSummary"
+      },
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "domain": "group",
+      "dataset": "estate_network_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.NetworkInventory"
+      },
+      "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.NetworkInventory",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.NetworkInventory"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.NetworkInventory",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.NetworkInventory"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_network_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_capacity_summary",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.CapacitySummary"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.CapacitySummary",
+      "scope": "targetGroup",
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.CapacitySummary"
+      },
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "domain": "group",
+      "dataset": "estate_storage_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageInventory"
+      },
+      "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageInventory",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageInventory"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageInventory",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageInventory"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_storage_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_storage_capacity",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageCapacity"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageCapacity",
+      "scope": "targetGroup",
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageCapacity"
+      },
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "domain": "group",
+      "dataset": "estate_storage_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageContainers"
+      },
+      "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageContainers",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageContainers"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageContainers",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageContainers"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_storage_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_storage_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StoragePools"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StoragePools",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StoragePools"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StoragePools",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StoragePools"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_storage_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_storage_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.Disks"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.Disks",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.Disks"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.Disks",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.Disks"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_storage_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_storage_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VirtualDisks"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VirtualDisks",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VirtualDisks"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VirtualDisks",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VirtualDisks"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_storage_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_storage_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VolumeGroups"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VolumeGroups",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VolumeGroups"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VolumeGroups",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VolumeGroups"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_storage_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_protection_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionInventory"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionInventory",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionInventory"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionInventory",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionInventory"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_protection_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_resiliency_summary",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ResiliencySummary"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ResiliencySummary",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ResiliencySummary"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ResiliencySummary",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ResiliencySummary"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_resiliency_summary"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_health_findings",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HealthFindings"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HealthFindings",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HealthFindings"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HealthFindings",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HealthFindings"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_health_findings"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_alert_summary",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.AlertSummary"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.AlertSummary",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.AlertSummary"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.AlertSummary",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.AlertSummary"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_alert_summary"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_task_summary",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TaskSummary"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TaskSummary",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TaskSummary"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TaskSummary",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TaskSummary"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_task_summary"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_operations_config",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.OperationsConfig"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.OperationsConfig",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.OperationsConfig"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.OperationsConfig",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.OperationsConfig"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_operations_config"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_protection_detail",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionDetail"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionDetail",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionDetail"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionDetail",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionDetail"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_protection_detail"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_protection_policy_summary",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionPolicySummary"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionPolicySummary",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionPolicySummary"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionPolicySummary",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionPolicySummary"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_protection_policy_summary"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_replication_topology",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ReplicationTopology"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ReplicationTopology",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ReplicationTopology"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ReplicationTopology",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ReplicationTopology"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_replication_topology"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_snapshot_summary",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.SnapshotSummary"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.SnapshotSummary",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.SnapshotSummary"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.SnapshotSummary",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.SnapshotSummary"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_snapshot_summary"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_unprotected_workloads",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.UnprotectedWorkloads"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.UnprotectedWorkloads",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.UnprotectedWorkloads"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.UnprotectedWorkloads",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.UnprotectedWorkloads"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_unprotected_workloads"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_governance_summary",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.GovernanceSummary"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.GovernanceSummary",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.GovernanceSummary"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.GovernanceSummary",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.GovernanceSummary"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_governance_summary"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_image_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ImageInventory"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ImageInventory",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ImageInventory"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ImageInventory",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ImageInventory"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_image_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_template_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TemplateInventory"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TemplateInventory",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TemplateInventory"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TemplateInventory",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TemplateInventory"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_template_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_cluster_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ClusterInventory"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ClusterInventory",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ClusterInventory"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ClusterInventory",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ClusterInventory"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_cluster_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_host_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HostInventory"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HostInventory",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HostInventory"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HostInventory",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HostInventory"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_host_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_host_capacity",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HostCapacity"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HostCapacity",
+      "scope": "targetGroup",
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HostCapacity"
+      },
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "domain": "group",
+      "dataset": "estate_host_network_interfaces",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HostNetworkInterfaces"
+      },
+      "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HostNetworkInterfaces",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HostNetworkInterfaces"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HostNetworkInterfaces",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HostNetworkInterfaces"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_host_network_interfaces"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_vm_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.VMInventory"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.VMInventory",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.VMInventory"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.VMInventory",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.VMInventory"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_vm_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_vm_sizing_summary",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.VmSizingSummary"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.VmSizingSummary",
+      "scope": "targetGroup",
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.VmSizingSummary"
+      },
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "domain": "group",
+      "dataset": "estate_vm_network_interfaces",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.VMNetworkInterfaces"
+      },
+      "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.VMNetworkInterfaces",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.VMNetworkInterfaces"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.VMNetworkInterfaces",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.VMNetworkInterfaces"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_vm_network_interfaces"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_network_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.NetworkInventory"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.NetworkInventory",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.NetworkInventory"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.NetworkInventory",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.NetworkInventory"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_network_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_capacity_summary",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.CapacitySummary"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.CapacitySummary",
+      "scope": "targetGroup",
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.CapacitySummary"
+      },
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "domain": "group",
+      "dataset": "estate_storage_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageInventory"
+      },
+      "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageInventory",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageInventory"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageInventory",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageInventory"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_storage_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_storage_capacity",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageCapacity"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageCapacity",
+      "scope": "targetGroup",
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageCapacity"
+      },
+      "selectors": [
+        "items"
+      ]
+    },
+    {
+      "domain": "group",
+      "dataset": "estate_protection_inventory",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionInventory"
+      },
+      "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionInventory",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionInventory"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionInventory",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionInventory"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_protection_inventory"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_resiliency_summary",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ResiliencySummary"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ResiliencySummary",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ResiliencySummary"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ResiliencySummary",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ResiliencySummary"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_resiliency_summary"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_health_findings",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HealthFindings"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HealthFindings",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HealthFindings"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HealthFindings",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HealthFindings"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_health_findings"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_alert_summary",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.AlertSummary"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.AlertSummary",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.AlertSummary"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.AlertSummary",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.AlertSummary"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_alert_summary"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_task_summary",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.TaskSummary"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.TaskSummary",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.TaskSummary"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.TaskSummary",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.TaskSummary"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_task_summary"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_operations_config",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.OperationsConfig"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.OperationsConfig",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.OperationsConfig"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.OperationsConfig",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.OperationsConfig"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_operations_config"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_protection_detail",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionDetail"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionDetail",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionDetail"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionDetail",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionDetail"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_protection_detail"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_protection_policy_summary",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionPolicySummary"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionPolicySummary",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionPolicySummary"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionPolicySummary",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionPolicySummary"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_protection_policy_summary"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_replication_topology",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ReplicationTopology"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ReplicationTopology",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ReplicationTopology"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ReplicationTopology",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ReplicationTopology"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_replication_topology"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_snapshot_summary",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.SnapshotSummary"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.SnapshotSummary",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.SnapshotSummary"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.SnapshotSummary",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.SnapshotSummary"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_snapshot_summary"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_unprotected_workloads",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.UnprotectedWorkloads"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.UnprotectedWorkloads",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.UnprotectedWorkloads"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.UnprotectedWorkloads",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.UnprotectedWorkloads"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_unprotected_workloads"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "estate_governance_summary",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.GovernanceSummary"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.GovernanceSummary",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.GovernanceSummary"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.GovernanceSummary",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Audit.GovernanceSummary"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "estate_governance_summary"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "health_checks",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.HealthChecks"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.HealthChecks",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Audit.HealthChecks"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.HealthChecks",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.HealthChecks"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "health_checks"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "alerts_configuration",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.AlertingConfiguration"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.AlertingConfiguration",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Audit.AlertingConfiguration"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.AlertingConfiguration",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.AlertingConfiguration"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "alerts_configuration"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "smtp_config",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.SmtpConfiguration"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.SmtpConfiguration",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Audit.SmtpConfiguration"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.SmtpConfiguration",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.SmtpConfiguration"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "smtp_config"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "snmp",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.SnmpConfiguration"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.SnmpConfiguration",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Audit.SnmpConfiguration"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.SnmpConfiguration",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.SnmpConfiguration"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "snmp"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "authconfig",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.AuthenticationConfiguration"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.AuthenticationConfiguration",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Audit.AuthenticationConfiguration"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.AuthenticationConfiguration",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.AuthenticationConfiguration"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "authconfig"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "ssl_certificates",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.SslCertificates"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.SslCertificates",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Audit.SslCertificates"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.SslCertificates",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.SslCertificates"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "ssl_certificates"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "snapshots",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.Snapshots"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.Snapshots",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Audit.Snapshots"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.Snapshots",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.Snapshots"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "snapshots"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "pd_replications",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.ProtectionReplications"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.ProtectionReplications",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Audit.ProtectionReplications"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.ProtectionReplications",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.ProtectionReplications"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "pd_replications"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "remote_sites",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.RemoteSites"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.RemoteSites",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Audit.RemoteSites"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.RemoteSites",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.RemoteSites"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "remote_sites"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "categories",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.Categories"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.Categories",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Audit.Categories"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.Categories",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.Categories"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "categories"
+      ]
     },
     {
+      "domain": "cluster",
+      "dataset": "policies",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.Policies"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.Policies",
+      "scope": "target",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Audit.Policies"
       },
-      "domain": "cluster",
-      "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.Policies",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Target[TargetKey].Audit.Policies"
-      },
-      "scope": "target",
       "selectors": [
         "items"
-      ],
-      "dataset": "policies"
+      ]
     },
     {
+      "domain": "group",
+      "dataset": "relationships",
+      "target": {
+        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Tables.Relationships"
+      },
       "required": false,
+      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Tables.Relationships",
+      "scope": "targetGroup",
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Tables.Relationships"
       },
-      "domain": "group",
-      "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Tables.Relationships",
-      "target": {
-        "sdtTag": "LNV.Nutanix.Prism.Group[GroupKey].Tables.Relationships"
-      },
-      "scope": "targetGroup",
       "selectors": [
         "items"
-      ],
-      "dataset": "relationships"
+      ]
     }
   ]
 }

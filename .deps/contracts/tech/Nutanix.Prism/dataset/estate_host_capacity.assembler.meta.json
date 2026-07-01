@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "dataset": "estate_host_capacity",
+  "presentationKind": "table",
+  "documentFacing": true,
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    { "name": "Default", "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostCapacity" },
+    { "name": "Audit", "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.HostCapacity" }
+  ]
+}

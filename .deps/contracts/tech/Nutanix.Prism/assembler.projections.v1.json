@@ -1116,6 +1116,22 @@
         "hostName"
       ]
     },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostCapacity": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Host", "source": "hostName" },
+        { "name": "Model", "source": "model" },
+        { "name": "Status", "source": "status" },
+        { "name": "Hypervisor", "source": "hypervisor" },
+        { "name": "CPU Cores", "source": "cpuCores" },
+        { "name": "CPU Threads", "source": "cpuThreads" },
+        { "name": "Memory", "source": "memoryBytes", "format": "bytesHuman" }
+      ],
+      "rowOrder": [ "clusterName", "hostName" ]
+    },
     "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostNetworkInterfaces": {
       "renderAs": "table",
       "renderMode": "table",
@@ -1217,6 +1233,21 @@
         "vmName"
       ]
     },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VmSizingSummary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "VMs", "source": "vmCount" },
+        { "name": "Powered On", "source": "poweredOnCount" },
+        { "name": "Powered Off", "source": "poweredOffCount" },
+        { "name": "Allocated vCPU", "source": "totalVcpu" },
+        { "name": "Allocated Memory", "source": "allocatedMemoryBytes", "format": "bytesHuman" },
+        { "name": "NICs", "source": "nicCount" }
+      ],
+      "rowOrder": [ "clusterName" ]
+    },
     "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.NetworkInventory": {
       "renderAs": "table",
       "renderMode": "table",
@@ -1301,6 +1332,39 @@
         "itemType",
         "name"
       ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.CapacitySummary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Hosts", "source": "hostCount" },
+        { "name": "VMs", "source": "vmCount" },
+        { "name": "CPU Cores", "source": "cpuCores" },
+        { "name": "Installed Memory", "source": "memoryBytes", "format": "bytesHuman" },
+        { "name": "Allocated vCPU", "source": "vmCpuCount" },
+        { "name": "Allocated VM Memory", "source": "vmMemoryBytes", "format": "bytesHuman" },
+        { "name": "Container Capacity", "source": "storageContainerCapacityBytes", "format": "bytesHuman" },
+        { "name": "Pool Capacity", "source": "storagePoolCapacityBytes", "format": "bytesHuman" },
+        { "name": "Disk Capacity", "source": "diskCapacityBytes", "format": "bytesHuman" }
+      ],
+      "rowOrder": [ "clusterName" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.StorageCapacity": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Type", "source": "itemType" },
+        { "name": "Name", "source": "name" },
+        { "name": "Capacity", "source": "capacityBytes", "format": "bytesHuman" },
+        { "name": "Disks", "source": "diskCount" },
+        { "name": "RF", "source": "replicationFactor" },
+        { "name": "Detail", "source": "detail" }
+      ],
+      "rowOrder": [ "clusterName", "itemType", "name" ]
     },
     "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionInventory": {
       "renderAs": "table",
@@ -1705,6 +1769,25 @@
         "nicName"
       ]
     },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.HostCapacity": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "groupKey" },
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Cluster Target", "source": "clusterTarget" },
+        { "name": "Management Plane", "source": "managementPlaneTarget" },
+        { "name": "Source", "source": "sourcePreference" },
+        { "name": "Correlation", "source": "correlationStatus" },
+        { "name": "Observed From", "source": "observedFrom" },
+        { "name": "Host", "source": "hostName" },
+        { "name": "CPU Cores", "source": "cpuCores" },
+        { "name": "CPU Threads", "source": "cpuThreads" },
+        { "name": "Memory", "source": "memoryBytes", "format": "bytesHuman" }
+      ],
+      "rowOrder": [ "groupKey", "clusterName", "hostName" ]
+    },
     "LNV.Nutanix.Prism.Group[GroupKey].Audit.VMInventory": {
       "renderAs": "table",
       "renderMode": "table",
@@ -1831,6 +1914,27 @@
         "nicName"
       ]
     },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.VmSizingSummary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "groupKey" },
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Cluster Target", "source": "clusterTarget" },
+        { "name": "Management Plane", "source": "managementPlaneTarget" },
+        { "name": "Source", "source": "sourcePreference" },
+        { "name": "Correlation", "source": "correlationStatus" },
+        { "name": "Observed From", "source": "observedFrom" },
+        { "name": "VMs", "source": "vmCount" },
+        { "name": "Powered On", "source": "poweredOnCount" },
+        { "name": "Powered Off", "source": "poweredOffCount" },
+        { "name": "Allocated vCPU", "source": "totalVcpu" },
+        { "name": "Allocated Memory", "source": "allocatedMemoryBytes", "format": "bytesHuman" },
+        { "name": "NICs", "source": "nicCount" }
+      ],
+      "rowOrder": [ "groupKey", "clusterName" ]
+    },
     "LNV.Nutanix.Prism.Group[GroupKey].Audit.NetworkInventory": {
       "renderAs": "table",
       "renderMode": "table",
@@ -1891,6 +1995,30 @@
         "networkType",
         "networkName"
       ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.CapacitySummary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "groupKey" },
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Cluster Target", "source": "clusterTarget" },
+        { "name": "Management Plane", "source": "managementPlaneTarget" },
+        { "name": "Source", "source": "sourcePreference" },
+        { "name": "Correlation", "source": "correlationStatus" },
+        { "name": "Observed From", "source": "observedFrom" },
+        { "name": "Hosts", "source": "hostCount" },
+        { "name": "VMs", "source": "vmCount" },
+        { "name": "CPU Cores", "source": "cpuCores" },
+        { "name": "Installed Memory", "source": "memoryBytes", "format": "bytesHuman" },
+        { "name": "Allocated vCPU", "source": "vmCpuCount" },
+        { "name": "Allocated VM Memory", "source": "vmMemoryBytes", "format": "bytesHuman" },
+        { "name": "Container Capacity", "source": "storageContainerCapacityBytes", "format": "bytesHuman" },
+        { "name": "Pool Capacity", "source": "storagePoolCapacityBytes", "format": "bytesHuman" },
+        { "name": "Disk Capacity", "source": "diskCapacityBytes", "format": "bytesHuman" }
+      ],
+      "rowOrder": [ "groupKey", "clusterName" ]
     },
     "LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageInventory": {
       "renderAs": "table",
@@ -1953,6 +2081,27 @@
         "itemType",
         "name"
       ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageCapacity": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "groupKey" },
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Cluster Target", "source": "clusterTarget" },
+        { "name": "Management Plane", "source": "managementPlaneTarget" },
+        { "name": "Source", "source": "sourcePreference" },
+        { "name": "Correlation", "source": "correlationStatus" },
+        { "name": "Observed From", "source": "observedFrom" },
+        { "name": "Type", "source": "itemType" },
+        { "name": "Name", "source": "name" },
+        { "name": "Capacity", "source": "capacityBytes", "format": "bytesHuman" },
+        { "name": "Disks", "source": "diskCount" },
+        { "name": "RF", "source": "replicationFactor" },
+        { "name": "Detail", "source": "detail" }
+      ],
+      "rowOrder": [ "groupKey", "clusterName", "itemType", "name" ]
     },
     "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionInventory": {
       "renderAs": "table",

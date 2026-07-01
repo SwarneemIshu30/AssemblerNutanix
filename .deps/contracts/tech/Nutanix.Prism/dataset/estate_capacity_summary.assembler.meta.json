@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "dataset": "estate_capacity_summary",
+  "presentationKind": "table",
+  "documentFacing": true,
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    { "name": "Default", "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.CapacitySummary" },
+    { "name": "Audit", "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.CapacitySummary" }
+  ]
+}
