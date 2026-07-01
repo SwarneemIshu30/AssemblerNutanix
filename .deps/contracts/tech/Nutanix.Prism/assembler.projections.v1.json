@@ -2158,6 +2158,71 @@
         "clusterName"
       ]
     },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionPolicySummary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Protection/Policy", "source": "protectionName" },
+        { "name": "Type", "source": "protectionType" },
+        { "name": "Status", "source": "status" },
+        { "name": "Protected VMs", "source": "protectedVmCount" },
+        { "name": "Remote Sites", "source": "remoteSites" },
+        { "name": "Replications", "source": "replicationCount" },
+        { "name": "Next Snapshot", "source": "nextSnapshot" },
+        { "name": "Schedules Suspended", "source": "schedulesSuspended" }
+      ],
+      "rowOrder": [ "clusterName", "protectionType", "protectionName" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ReplicationTopology": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Protection Domain", "source": "protectionName" },
+        { "name": "Remote Site", "source": "remoteSite" },
+        { "name": "Direction/Mode", "source": "direction" },
+        { "name": "Status", "source": "status" },
+        { "name": "Pending", "source": "pending" },
+        { "name": "Ongoing", "source": "ongoing" },
+        { "name": "Schedule", "source": "schedule" }
+      ],
+      "rowOrder": [ "clusterName", "protectionName", "remoteSite" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.SnapshotSummary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Snapshot/Group", "source": "snapshotName" },
+        { "name": "Group", "source": "groupName" },
+        { "name": "VM", "source": "vmName" },
+        { "name": "Created", "source": "createdAt" },
+        { "name": "Deleted", "source": "deleted" },
+        { "name": "Logical Timestamp", "source": "logicalTimestamp" }
+      ],
+      "rowOrder": [ "clusterName", "createdAt", "snapshotName" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.UnprotectedWorkloads": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "VM", "source": "vmName" },
+        { "name": "Power", "source": "powerState" },
+        { "name": "Host", "source": "hostName" },
+        { "name": "vCPU", "source": "cpuCount" },
+        { "name": "Memory", "source": "memoryBytes", "format": "bytesHuman" },
+        { "name": "IPs", "source": "ipAddresses" },
+        { "name": "Protection", "source": "protectionType" },
+        { "name": "Protection Domain", "source": "protectionDomainName" }
+      ],
+      "rowOrder": [ "clusterName", "hostName", "vmName" ]
+    },
     "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.GovernanceSummary": {
       "renderAs": "table",
       "renderMode": "table",
@@ -2527,6 +2592,95 @@
         "clusterName",
         "clusterTarget"
       ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionPolicySummary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "groupKey" },
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Cluster Target", "source": "clusterTarget" },
+        { "name": "Management Plane", "source": "managementPlaneTarget" },
+        { "name": "Source", "source": "sourcePreference" },
+        { "name": "Correlation", "source": "correlationStatus" },
+        { "name": "Observed From", "source": "observedFrom" },
+        { "name": "Protection/Policy", "source": "protectionName" },
+        { "name": "Type", "source": "protectionType" },
+        { "name": "Status", "source": "status" },
+        { "name": "Protected VMs", "source": "protectedVmCount" },
+        { "name": "Remote Sites", "source": "remoteSites" },
+        { "name": "Replications", "source": "replicationCount" },
+        { "name": "Next Snapshot", "source": "nextSnapshot" },
+        { "name": "Schedules Suspended", "source": "schedulesSuspended" }
+      ],
+      "rowOrder": [ "groupKey", "clusterName", "protectionType", "protectionName" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.ReplicationTopology": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "groupKey" },
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Cluster Target", "source": "clusterTarget" },
+        { "name": "Management Plane", "source": "managementPlaneTarget" },
+        { "name": "Source", "source": "sourcePreference" },
+        { "name": "Correlation", "source": "correlationStatus" },
+        { "name": "Observed From", "source": "observedFrom" },
+        { "name": "Protection Domain", "source": "protectionName" },
+        { "name": "Remote Site", "source": "remoteSite" },
+        { "name": "Direction/Mode", "source": "direction" },
+        { "name": "Status", "source": "status" },
+        { "name": "Pending", "source": "pending" },
+        { "name": "Ongoing", "source": "ongoing" },
+        { "name": "Schedule", "source": "schedule" }
+      ],
+      "rowOrder": [ "groupKey", "clusterName", "protectionName", "remoteSite" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.SnapshotSummary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "groupKey" },
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Cluster Target", "source": "clusterTarget" },
+        { "name": "Management Plane", "source": "managementPlaneTarget" },
+        { "name": "Source", "source": "sourcePreference" },
+        { "name": "Correlation", "source": "correlationStatus" },
+        { "name": "Observed From", "source": "observedFrom" },
+        { "name": "Snapshot/Group", "source": "snapshotName" },
+        { "name": "Group", "source": "groupName" },
+        { "name": "VM", "source": "vmName" },
+        { "name": "Created", "source": "createdAt" },
+        { "name": "Deleted", "source": "deleted" },
+        { "name": "Logical Timestamp", "source": "logicalTimestamp" }
+      ],
+      "rowOrder": [ "groupKey", "clusterName", "createdAt", "snapshotName" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.UnprotectedWorkloads": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "groupKey" },
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Cluster Target", "source": "clusterTarget" },
+        { "name": "Management Plane", "source": "managementPlaneTarget" },
+        { "name": "Source", "source": "sourcePreference" },
+        { "name": "Correlation", "source": "correlationStatus" },
+        { "name": "Observed From", "source": "observedFrom" },
+        { "name": "VM", "source": "vmName" },
+        { "name": "Power", "source": "powerState" },
+        { "name": "Host", "source": "hostName" },
+        { "name": "vCPU", "source": "cpuCount" },
+        { "name": "Memory", "source": "memoryBytes", "format": "bytesHuman" },
+        { "name": "IPs", "source": "ipAddresses" },
+        { "name": "Protection", "source": "protectionType" },
+        { "name": "Protection Domain", "source": "protectionDomainName" }
+      ],
+      "rowOrder": [ "groupKey", "clusterName", "hostName", "vmName" ]
     },
     "LNV.Nutanix.Prism.Group[GroupKey].Audit.GovernanceSummary": {
       "renderAs": "table",

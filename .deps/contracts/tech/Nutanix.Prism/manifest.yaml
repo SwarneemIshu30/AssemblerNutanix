@@ -76,6 +76,10 @@ spec:
     - relationships
     - estate_protection_inventory
     - estate_protection_detail
+    - estate_protection_policy_summary
+    - estate_replication_topology
+    - estate_snapshot_summary
+    - estate_unprotected_workloads
     - estate_storage_inventory
     - estate_resiliency_summary
     - estate_operations_config

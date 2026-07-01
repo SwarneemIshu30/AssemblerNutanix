@@ -27,6 +27,18 @@ Protection
 Protection Detail
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionDetail>>
 
+Protection Policies and Domains
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionPolicySummary>>
+
+Replication and Remote Sites
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ReplicationTopology>>
+
+Snapshot Summary
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.SnapshotSummary>>
+
+Unprotected Workloads
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.UnprotectedWorkloads>>
+
 Resiliency and Health
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ResiliencySummary>>
 
@@ -83,6 +95,18 @@ Operational Appendix - Estate Source Audit - Operations Configuration
 
 Operational Appendix - Estate Source Audit - Protection Detail
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionDetail>>
+
+Operational Appendix - Estate Source Audit - Protection Policies
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionPolicySummary>>
+
+Operational Appendix - Estate Source Audit - Replication Topology
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.ReplicationTopology>>
+
+Operational Appendix - Estate Source Audit - Snapshot Summary
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.SnapshotSummary>>
+
+Operational Appendix - Estate Source Audit - Unprotected Workloads
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.UnprotectedWorkloads>>
 
 Operational Appendix - Estate Governance Summary
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.GovernanceSummary>>

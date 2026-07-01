@@ -123,7 +123,7 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             }
 
             $mapping = Get-Content -LiteralPath $prismMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
-            @($mapping.mappings).Count | Should -Be 73
+            @($mapping.mappings).Count | Should -Be 81
             $documentMappings = @($mapping.mappings | Where-Object { [string]$_.scope -eq 'target' })
             $documentMappings.Count | Should -Be 42
 
@@ -364,6 +364,18 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_protection_detail' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ protectionDomainCount = 1; snapshotCount = 1; remoteSiteCount = 1; replicationCount = 1; drSnapshotCount = 0; unprotectedVmCount = 1; nfsWhitelistCount = 0 })
                 )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_protection_policy_summary' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ protectionName = 'PD-01'; protectionType = 'Protection Domain'; status = 'active'; protectedVmCount = 3; remoteSites = 'remote-a'; replicationCount = 1; nextSnapshot = '2026-06-23T01:00:00Z'; schedulesSuspended = $false })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_replication_topology' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ protectionName = 'PD-01'; remoteSite = 'remote-a'; direction = 'outbound'; status = 'enabled'; pending = 0; ongoing = 1; schedule = 'hourly' })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_snapshot_summary' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ snapshotName = 'snap-app01'; groupName = 'group-01'; vmName = 'Cohesity_test'; createdAt = '2026-06-23T00:00:00Z'; deleted = $false; logicalTimestamp = 12345 })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_unprotected_workloads' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ vmName = 'unprotected-app01'; powerState = 'on'; hostName = 'ntnx-a-01'; cpuCount = 2; memoryBytes = 4294967296; ipAddresses = '10.10.10.30'; protectionType = 'unprotected'; protectionDomainName = '' })
+                )
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_governance_summary' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ categoryCount = 71; policyCount = 1; templateCount = 2; imageCount = 3; licenseCount = 1; licenseEdition = 'Ultimate'; licenseState = 'Compliant' })
                 )
@@ -409,6 +421,10 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ResiliencySummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.OperationsConfig'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionDetail'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionPolicySummary'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ReplicationTopology'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.SnapshotSummary'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.UnprotectedWorkloads'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.GovernanceSummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ImageInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TemplateInventory'
@@ -417,6 +433,10 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.VMNetworkInterfaces'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.NetworkInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.ProtectionPolicySummary'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.ReplicationTopology'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.SnapshotSummary'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.UnprotectedWorkloads'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.GovernanceSummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Tables.Relationships'
 
@@ -456,6 +476,20 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $storageContainersSection.Success | Should -BeTrue
             $storageContainersSection.Groups['body'].Value | Should -Match 'default-container'
             $storageContainersSection.Groups['body'].Value | Should -Not -Match 'disk-01'
+            $policySection = [regex]::Match($rendered, '(?s)Protection Policies and Domains\s*(?<body>.*?)\s*Replication and Remote Sites')
+            $policySection.Success | Should -BeTrue
+            $policySection.Groups['body'].Value | Should -Match 'PD-01'
+            $policySection.Groups['body'].Value | Should -Match 'remote-a'
+            $replicationSection = [regex]::Match($rendered, '(?s)Replication and Remote Sites\s*(?<body>.*?)\s*Snapshot Summary')
+            $replicationSection.Success | Should -BeTrue
+            $replicationSection.Groups['body'].Value | Should -Match 'hourly'
+            $snapshotSection = [regex]::Match($rendered, '(?s)Snapshot Summary\s*(?<body>.*?)\s*Unprotected Workloads')
+            $snapshotSection.Success | Should -BeTrue
+            $snapshotSection.Groups['body'].Value | Should -Match 'snap-app01'
+            $unprotectedSection = [regex]::Match($rendered, '(?s)Unprotected Workloads\s*(?<body>.*?)\s*Resiliency and Health')
+            $unprotectedSection.Success | Should -BeTrue
+            $unprotectedSection.Groups['body'].Value | Should -Match 'unprotected-app01'
+            $unprotectedSection.Groups['body'].Value | Should -Not -Match 'pe-cluster-a'
             $resiliencySection = [regex]::Match($rendered, '(?s)Resiliency and Health\s*(?<body>.*?)\s*Operations Configuration')
             $resiliencySection.Success | Should -BeTrue
             $resiliencySection.Groups['body'].Value | Should -Match '935'

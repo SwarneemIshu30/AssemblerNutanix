@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "dataset": "estate_replication_topology",
+  "presentationKind": "table",
+  "documentFacing": true,
+  "defaultItemRoot": "items",
+  "preferredProjectionViews": [
+    {
+      "name": "Default",
+      "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ReplicationTopology"
+    },
+    {
+      "name": "Audit",
+      "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ReplicationTopology"
+    }
+  ]
+}
