@@ -123,7 +123,7 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             }
 
             $mapping = Get-Content -LiteralPath $prismMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
-            @($mapping.mappings).Count | Should -Be 70
+            @($mapping.mappings).Count | Should -Be 73
             $documentMappings = @($mapping.mappings | Where-Object { [string]$_.scope -eq 'target' })
             $documentMappings.Count | Should -Be 42
 
@@ -365,7 +365,13 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
                     (New-PrismEstateItem -Base $estateBase -Values @{ protectionDomainCount = 1; snapshotCount = 1; remoteSiteCount = 1; replicationCount = 1; drSnapshotCount = 0; unprotectedVmCount = 1; nfsWhitelistCount = 0 })
                 )
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_governance_summary' -Items @(
-                    (New-PrismEstateItem -Base $estateBase -Values @{ categoryCount = 71; policyCount = 1; templateCount = 2; imageCount = 3; licenseCount = 1 })
+                    (New-PrismEstateItem -Base $estateBase -Values @{ categoryCount = 71; policyCount = 1; templateCount = 2; imageCount = 3; licenseCount = 1; licenseEdition = 'Ultimate'; licenseState = 'Compliant' })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_image_inventory' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ imageName = 'ubuntu-2204-cloud'; imageType = 'DISK_IMAGE'; status = 'ACTIVE'; sizeBytes = 5368709120; createdAt = '2026-06-20T00:00:00Z'; updatedAt = '2026-06-21T00:00:00Z'; source = 'library' })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_template_inventory' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ templateName = 'win2022-standard'; templateType = 'VM_TEMPLATE'; status = 'ACTIVE'; sizeBytes = 42949672960; createdAt = '2026-06-18T00:00:00Z'; updatedAt = '2026-06-22T00:00:00Z'; owner = 'admin' })
                 )
             }
 
@@ -403,6 +409,9 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ResiliencySummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.OperationsConfig'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ProtectionDetail'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.GovernanceSummary'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ImageInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TemplateInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.HostNetworkInterfaces'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.VMInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.VMNetworkInterfaces'
@@ -451,13 +460,29 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $resiliencySection.Success | Should -BeTrue
             $resiliencySection.Groups['body'].Value | Should -Match '935'
             $resiliencySection.Groups['body'].Value | Should -Not -Match 'Disk health'
-            $operationsSection = [regex]::Match($rendered, '(?s)Operations Configuration\s*(?<body>.*?)\s*Operational Appendix - Alerts')
+            $operationsSection = [regex]::Match($rendered, '(?s)Operations Configuration\s*(?<body>.*?)\s*Governance Summary')
             $operationsSection.Success | Should -BeTrue
             $operationsSection.Groups['body'].Value | Should -Match 'smtp.example.local'
             $operationsSection.Groups['body'].Value | Should -Not -Match 'SECRET-SHOULD-NOT-RENDER'
             $operationsSection.Groups['body'].Value | Should -Not -Match 'BEGIN CERTIFICATE'
+            $governanceSection = [regex]::Match($rendered, '(?s)Governance Summary\s*(?<body>.*?)\r?\nImages\r?\n')
+            $governanceSection.Success | Should -BeTrue
+            $governanceSection.Groups['body'].Value | Should -Match '71'
+            $governanceSection.Groups['body'].Value | Should -Match 'Ultimate'
+            $governanceSection.Groups['body'].Value | Should -Match 'Compliant'
+            $governanceSection.Groups['body'].Value | Should -Not -Match 'Environment'
+            $imageSection = [regex]::Match($rendered, '(?s)\r?\nImages\r?\n(?<body>.*?)\r?\nTemplates\r?\n')
+            $imageSection.Success | Should -BeTrue
+            $imageSection.Groups['body'].Value | Should -Match 'ubuntu-2204-cloud'
+            $imageSection.Groups['body'].Value | Should -Match 'DISK_IMAGE'
+            $templateSection = [regex]::Match($rendered, '(?s)\r?\nTemplates\r?\n(?<body>.*?)\r?\nOperational Appendix - Alerts')
+            $templateSection.Success | Should -BeTrue
+            $templateSection.Groups['body'].Value | Should -Match 'win2022-standard'
+            $templateSection.Groups['body'].Value | Should -Match 'VM_TEMPLATE'
             $rendered | Should -Match 'Operational Appendix - Target VM Inventory'
             $rendered | Should -Match 'Operational Appendix - Target Health Checks'
+            $rendered | Should -Match 'Operational Appendix - Target Categories'
+            $rendered | Should -Match 'Operational Appendix - Target Policies'
             $rendered | Should -Match 'Operational Appendix - Target Group Relationships'
         }
         finally {

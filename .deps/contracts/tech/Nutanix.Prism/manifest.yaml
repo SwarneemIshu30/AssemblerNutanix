@@ -52,7 +52,9 @@ spec:
     - protection_domains
     - remote_sites
     - images
+    - estate_image_inventory
     - templates
+    - estate_template_inventory
     - health_checks
     - alerts_configuration
     - smtp_config

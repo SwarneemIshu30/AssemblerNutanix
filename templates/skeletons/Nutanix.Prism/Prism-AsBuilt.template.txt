@@ -33,6 +33,15 @@ Resiliency and Health
 Operations Configuration
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.OperationsConfig>>
 
+Governance Summary
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.GovernanceSummary>>
+
+Images
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ImageInventory>>
+
+Templates
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TemplateInventory>>
+
 Operational Appendix - Alerts
 <<SDT:LNV.Nutanix.Prism.Target[TargetKey].Tables.Alerts>>
 

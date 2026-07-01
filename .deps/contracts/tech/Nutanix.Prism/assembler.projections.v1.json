@@ -2158,6 +2158,147 @@
         "clusterName"
       ]
     },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.GovernanceSummary": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Management Plane",
+          "source": "managementPlaneTarget"
+        },
+        {
+          "name": "Cluster",
+          "source": "clusterName"
+        },
+        {
+          "name": "Categories",
+          "source": "categoryCount"
+        },
+        {
+          "name": "Policies",
+          "source": "policyCount"
+        },
+        {
+          "name": "Images",
+          "source": "imageCount"
+        },
+        {
+          "name": "Templates",
+          "source": "templateCount"
+        },
+        {
+          "name": "License Edition",
+          "source": "licenseEdition"
+        },
+        {
+          "name": "License State",
+          "source": "licenseState"
+        }
+      ],
+      "rowOrder": [
+        "managementPlaneTarget",
+        "clusterName"
+      ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ImageInventory": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Management Plane",
+          "source": "managementPlaneTarget"
+        },
+        {
+          "name": "Cluster",
+          "source": "clusterName"
+        },
+        {
+          "name": "Image",
+          "source": "imageName"
+        },
+        {
+          "name": "Type",
+          "source": "imageType"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "Size",
+          "source": "sizeBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "Created",
+          "source": "createdAt"
+        },
+        {
+          "name": "Updated",
+          "source": "updatedAt"
+        },
+        {
+          "name": "Source",
+          "source": "source"
+        }
+      ],
+      "rowOrder": [
+        "managementPlaneTarget",
+        "clusterName",
+        "imageName"
+      ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.TemplateInventory": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        {
+          "name": "Management Plane",
+          "source": "managementPlaneTarget"
+        },
+        {
+          "name": "Cluster",
+          "source": "clusterName"
+        },
+        {
+          "name": "Template",
+          "source": "templateName"
+        },
+        {
+          "name": "Type",
+          "source": "templateType"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "Size",
+          "source": "sizeBytes",
+          "format": "bytesHuman"
+        },
+        {
+          "name": "Created",
+          "source": "createdAt"
+        },
+        {
+          "name": "Updated",
+          "source": "updatedAt"
+        },
+        {
+          "name": "Owner",
+          "source": "owner"
+        }
+      ],
+      "rowOrder": [
+        "managementPlaneTarget",
+        "clusterName",
+        "templateName"
+      ]
+    },
     "LNV.Nutanix.Prism.Group[GroupKey].Audit.ResiliencySummary": {
       "renderAs": "table",
       "renderMode": "table",

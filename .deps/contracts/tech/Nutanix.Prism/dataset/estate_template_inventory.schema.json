@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Nutanix.Prism/schemas/estate_template_inventory.schema.v1.json",
+  "title": "Nutanix.Prism dataset contract: estate_template_inventory",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "lnv.collector.dataset.v1"
+    },
+    "collector": {
+      "type": "object",
+      "required": [
+        "vendor",
+        "name",
+        "version",
+        "tech_id",
+        "module",
+        "entry_point"
+      ],
+      "properties": {
+        "vendor": {
+          "const": "LNV.AsBuiltDoc"
+        },
+        "name": {
+          "const": "LNV.AsBuiltDoc.Nutanix.Prism"
+        },
+        "version": {
+          "type": "string"
+        },
+        "tech_id": {
+          "const": "Nutanix.Prism"
+        },
+        "module": {
+          "const": "LNV.AsBuiltDoc.Nutanix.Prism"
+        },
+        "entry_point": {
+          "const": "Invoke-LnvAsBuiltDoc.Nutanix.Prism"
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "target_key",
+        "file"
+      ],
+      "properties": {
+        "target_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "file": {
+          "type": "string",
+          "pattern": "^datasets/Nutanix\\.Prism/[^/]+/[^/]+/[^/]+\\.json$"
+        }
+      }
+    },
+    "dataset": {
+      "const": "estate_template_inventory"
+    },
+    "collected_at_utc": {
+      "type": "string"
+    },
+    "item_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "items": {
+      "type": "array"
+    }
+  },
+  "additionalProperties": true
+}

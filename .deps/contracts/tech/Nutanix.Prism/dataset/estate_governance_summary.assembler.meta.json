@@ -7,6 +7,10 @@
   "preferredProjectionViews": [
     {
       "name": "Default",
+      "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.GovernanceSummary"
+    },
+    {
+      "name": "Audit",
       "projectionRef": "LNV.Nutanix.Prism.Group[GroupKey].Audit.GovernanceSummary"
     }
   ]
