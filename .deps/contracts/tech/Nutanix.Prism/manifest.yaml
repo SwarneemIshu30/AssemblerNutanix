@@ -96,3 +96,6 @@ spec:
     - estate_vm_inventory
     - estate_host_inventory
     - estate_cluster_inventory
+    - estate_management_topology
+    - estate_endpoint_inventory
+    - estate_collection_scope

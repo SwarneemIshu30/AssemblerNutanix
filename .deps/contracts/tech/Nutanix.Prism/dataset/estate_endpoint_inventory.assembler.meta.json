@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "techId": "Nutanix.Prism",
+  "dataset": "estate_endpoint_inventory",
+  "presentationKind": "table",
+  "documentFacing": true,
+  "defaultSection": "Prism Endpoints",
+  "primarySdt": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.EndpointInventory",
+  "auditSdt": "LNV.Nutanix.Prism.Group[GroupKey].Audit.EndpointInventory",
+  "notes": "Estate-first inventory of Prism Central and Prism Element collection endpoints."
+}

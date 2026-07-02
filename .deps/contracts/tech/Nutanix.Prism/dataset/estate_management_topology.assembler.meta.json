@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "techId": "Nutanix.Prism",
+  "dataset": "estate_management_topology",
+  "presentationKind": "table",
+  "documentFacing": true,
+  "defaultSection": "Management Topology",
+  "primarySdt": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ManagementTopology",
+  "auditSdt": "LNV.Nutanix.Prism.Group[GroupKey].Audit.ManagementTopology",
+  "notes": "Estate-first Prism Central to Prism Element management relationship summary derived from target group relationships."
+}

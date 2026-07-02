@@ -3,6 +3,15 @@ Nutanix Prism As-Built
 Management Plane and Managed Clusters
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterInventory>>
 
+Management Topology
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ManagementTopology>>
+
+Prism Endpoints
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.EndpointInventory>>
+
+Collection Scope
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.CollectionScope>>
+
 Capacity Summary
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.CapacitySummary>>
 
@@ -92,6 +101,15 @@ Operational Appendix - Collection Sources
 
 Operational Appendix - Estate Source Audit - Clusters
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.ClusterInventory>>
+
+Operational Appendix - Estate Source Audit - Management Topology
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.ManagementTopology>>
+
+Operational Appendix - Estate Source Audit - Prism Endpoints
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.EndpointInventory>>
+
+Operational Appendix - Estate Source Audit - Collection Scope
+<<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.CollectionScope>>
 
 Operational Appendix - Estate Source Audit - Capacity Summary
 <<SDT:LNV.Nutanix.Prism.Group[GroupKey].Audit.CapacitySummary>>

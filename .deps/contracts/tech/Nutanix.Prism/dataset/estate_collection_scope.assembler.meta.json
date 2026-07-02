@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "techId": "Nutanix.Prism",
+  "dataset": "estate_collection_scope",
+  "presentationKind": "table",
+  "documentFacing": true,
+  "defaultSection": "Collection Scope",
+  "primarySdt": "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.CollectionScope",
+  "auditSdt": "LNV.Nutanix.Prism.Group[GroupKey].Audit.CollectionScope",
+  "notes": "Estate-first summary of configured targets, collected targets, and relationship resolution posture for the target group."
+}

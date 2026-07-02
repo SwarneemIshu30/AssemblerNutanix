@@ -123,7 +123,7 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             }
 
             $mapping = Get-Content -LiteralPath $prismMappingPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
-            @($mapping.mappings).Count | Should -Be 99
+            @($mapping.mappings).Count | Should -Be 105
             $documentMappings = @($mapping.mappings | Where-Object { [string]$_.scope -eq 'target' })
             $documentMappings.Count | Should -Be 42
 
@@ -331,6 +331,16 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_cluster_inventory' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ cluster = 'Prism Element Cluster A'; status = 'Healthy'; version = 'test'; hostCount = 2; vmCount = 37; storageContainerCount = 2 })
                 )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_management_topology' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ managementPlaneName = 'Prism Central 01'; managedClusterName = 'Prism Element Cluster A'; managementEndpointKind = 'PrismCentral'; clusterEndpointKind = 'PrismElement'; relationshipType = 'prismCentralManagesCluster'; correlatedTargets = 'pe-cluster-a' })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_endpoint_inventory' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ endpointKey = 'pc01'; endpointName = 'Prism Central 01'; endpointRole = 'PrismCentral'; clusterName = 'Prism Element Cluster A'; managedBy = 'pc01'; memberOf = 'site-a'; status = 'Healthy'; version = 'test'; hostCount = 0; vmCount = 37; cvmCount = 0 }),
+                    (New-PrismEstateItem -Base $estateBase -Values @{ endpointKey = 'pe-cluster-a'; endpointName = 'Prism Element Cluster A'; endpointRole = 'PrismElement'; clusterName = 'Prism Element Cluster A'; managedBy = 'pc01'; memberOf = 'site-a'; status = 'Healthy'; version = 'test'; hostCount = 2; vmCount = 37; cvmCount = 3 })
+                )
+                Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_collection_scope' -Items @(
+                    (New-PrismEstateItem -Base $estateBase -Values @{ configuredTargets = 2; collectedTargets = 2; prismCentralTargets = 1; prismElementTargets = 1; relationshipCount = 1; resolvedRelationships = 1; unresolvedRelationships = 0; missingTargets = ''; status = 'Complete' })
+                )
                 Write-PrismGroupDatasetEnvelope -GroupKey site-a -Dataset 'estate_host_inventory' -Items @(
                     (New-PrismEstateItem -Base $estateBase -Values @{ hostName = 'ntnx-a-01'; serial = 'SERIAL01'; model = 'HX'; status = 'NORMAL'; hypervisor = 'AHV'; cpuCores = 32; memoryBytes = 274877906944 })
                 )
@@ -455,6 +465,9 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
 
             $matchedTags = @($renderReport.matches | ForEach-Object { [string]$_.tag })
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ClusterInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ManagementTopology'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.EndpointInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.CollectionScope'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostNetworkInterfaces'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.VMInventory'
@@ -487,6 +500,9 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.ClusterServices'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.VmSizingSummary'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.StorageCapacity'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.ManagementTopology'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.EndpointInventory'
+            $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.CollectionScope'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.HostNetworkInterfaces'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.VMInventory'
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Audit.VMNetworkInterfaces'
@@ -503,6 +519,20 @@ Describe 'Invoke-AssemblerBundleRender Nutanix Prism contract mapping' {
             $matchedTags | Should -Contain 'LNV.Nutanix.Prism.Group[GroupKey].Tables.Relationships'
 
             $rendered = Get-Content -LiteralPath $bundleReport.runs[0].outputPath -Raw -Encoding UTF8
+            $managementTopologySection = [regex]::Match($rendered, '(?s)\r?\nManagement Topology\r?\n(?<body>.*?)\r?\nPrism Endpoints\r?\n')
+            $managementTopologySection.Success | Should -BeTrue
+            $managementTopologySection.Groups['body'].Value | Should -Match 'Prism Central 01'
+            $managementTopologySection.Groups['body'].Value | Should -Match 'Prism Element Cluster A'
+            $managementTopologySection.Groups['body'].Value | Should -Not -Match 'pe-cluster-a'
+            $endpointSection = [regex]::Match($rendered, '(?s)\r?\nPrism Endpoints\r?\n(?<body>.*?)\r?\nCollection Scope\r?\n')
+            $endpointSection.Success | Should -BeTrue
+            $endpointSection.Groups['body'].Value | Should -Match 'PrismCentral'
+            $endpointSection.Groups['body'].Value | Should -Match 'PrismElement'
+            $endpointSection.Groups['body'].Value | Should -Not -Match 'pe-cluster-a'
+            $collectionScopeSection = [regex]::Match($rendered, '(?s)\r?\nCollection Scope\r?\n(?<body>.*?)\r?\nCapacity Summary\r?\n')
+            $collectionScopeSection.Success | Should -BeTrue
+            $collectionScopeSection.Groups['body'].Value | Should -Match 'Complete'
+            $collectionScopeSection.Groups['body'].Value | Should -Match '2'
             $capacitySection = [regex]::Match($rendered, '(?s)\r?\nCapacity Summary\r?\n(?<body>.*?)\r?\nHosts\r?\n')
             $capacitySection.Success | Should -BeTrue
             $capacitySection.Groups['body'].Value | Should -Match '32'

@@ -1072,6 +1072,51 @@
         "clusterName"
       ]
     },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.ManagementTopology": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "groupKey" },
+        { "name": "Management Plane", "source": "managementPlaneName" },
+        { "name": "Managed Cluster", "source": "managedClusterName" },
+        { "name": "Management Role", "source": "managementEndpointKind" },
+        { "name": "Cluster Role", "source": "clusterEndpointKind" },
+        { "name": "Correlation", "source": "correlationStatus" }
+      ],
+      "rowOrder": [ "groupKey", "managementPlaneName", "managedClusterName" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.EndpointInventory": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "memberOf" },
+        { "name": "Endpoint", "source": "endpointName" },
+        { "name": "Role", "source": "endpointRole" },
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Managed By", "source": "managedBy" },
+        { "name": "Status", "source": "status" },
+        { "name": "Version", "source": "version" }
+      ],
+      "rowOrder": [ "memberOf", "endpointRole", "endpointName" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.CollectionScope": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "groupKey" },
+        { "name": "Configured Targets", "source": "configuredTargets" },
+        { "name": "Collected Targets", "source": "collectedTargets" },
+        { "name": "Prism Central", "source": "prismCentralTargets" },
+        { "name": "Prism Element", "source": "prismElementTargets" },
+        { "name": "Relationships", "source": "relationshipCount" },
+        { "name": "Resolved", "source": "resolvedRelationships" },
+        { "name": "Status", "source": "status" }
+      ],
+      "rowOrder": [ "groupKey" ]
+    },
     "LNV.Nutanix.Prism.Group[GroupKey].AsBuilt.HostInventory": {
       "renderAs": "table",
       "renderMode": "table",
@@ -1677,6 +1722,62 @@
         "clusterName",
         "clusterTarget"
       ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.ManagementTopology": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "groupKey" },
+        { "name": "Management Plane", "source": "managementPlaneName" },
+        { "name": "Management Target", "source": "managementPlaneTarget" },
+        { "name": "Managed Cluster", "source": "managedClusterName" },
+        { "name": "Cluster Target", "source": "managedClusterTarget" },
+        { "name": "Relationship", "source": "relationshipType" },
+        { "name": "Correlation", "source": "correlationStatus" },
+        { "name": "Correlated Targets", "source": "correlatedTargets" },
+        { "name": "Observed From", "source": "observedFrom" }
+      ],
+      "rowOrder": [ "groupKey", "managementPlaneTarget", "managedClusterTarget" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.EndpointInventory": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "memberOf" },
+        { "name": "Endpoint", "source": "endpointName" },
+        { "name": "Endpoint Key", "source": "endpointKey" },
+        { "name": "Role", "source": "endpointRole" },
+        { "name": "Cluster", "source": "clusterName" },
+        { "name": "Cluster Target", "source": "clusterTarget" },
+        { "name": "Management Plane", "source": "managementPlaneTarget" },
+        { "name": "Managed By", "source": "managedBy" },
+        { "name": "Status", "source": "status" },
+        { "name": "Version", "source": "version" },
+        { "name": "Hosts", "source": "hostCount" },
+        { "name": "VMs", "source": "vmCount" },
+        { "name": "CVMs", "source": "cvmCount" }
+      ],
+      "rowOrder": [ "memberOf", "endpointRole", "endpointKey" ]
+    },
+    "LNV.Nutanix.Prism.Group[GroupKey].Audit.CollectionScope": {
+      "renderAs": "table",
+      "renderMode": "table",
+      "emptyBehavior": "placeholder",
+      "columns": [
+        { "name": "Site/Landscape", "source": "groupKey" },
+        { "name": "Configured Targets", "source": "configuredTargets" },
+        { "name": "Collected Targets", "source": "collectedTargets" },
+        { "name": "Prism Central", "source": "prismCentralTargets" },
+        { "name": "Prism Element", "source": "prismElementTargets" },
+        { "name": "Relationships", "source": "relationshipCount" },
+        { "name": "Resolved", "source": "resolvedRelationships" },
+        { "name": "Unresolved", "source": "unresolvedRelationships" },
+        { "name": "Missing Targets", "source": "missingTargets" },
+        { "name": "Status", "source": "status" }
+      ],
+      "rowOrder": [ "groupKey" ]
     },
     "LNV.Nutanix.Prism.Group[GroupKey].Audit.HostInventory": {
       "renderAs": "table",
