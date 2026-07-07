@@ -7,10 +7,12 @@ Create a runtime-oriented assembler package zip from an explicit include list.
 param(
     [string]$OutputDir = 'dist',
     [string]$PackageName = 'LNV.AsBuiltDoc.Assembler-runtime',
-    [string]$PackageVersion = (Get-Date -AsUTC).ToString('yyyy.MM.dd.HHmmss'),
+    [string]$PackageVersion,
     [ValidateSet('release', 'ci', 'dev')]
     [string]$BuildChannel = 'dev',
-    [string]$IncludeFile = '.packaging/assembler-package.include'
+    [string]$IncludeFile = '.packaging/assembler-package.include',
+    [string]$ContractsVersion = $env:LNV_ASBUILTDOC_CONTRACTS_VERSION,
+    [string]$ContractsRoot = $env:LNV_ASBUILTDOC_CONTRACTS_ROOT
 )
 
 Set-StrictMode -Version Latest
@@ -84,6 +86,15 @@ function New-ZipArchiveFromDirectory {
 }
 
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+if ([string]::IsNullOrWhiteSpace($PackageVersion)) {
+    $PackageVersion = if ($env:GITHUB_SHA) {
+        "$((Get-Date -AsUTC).ToString('yyyyMMdd')).$($env:GITHUB_RUN_NUMBER)"
+    }
+    else {
+        "$((Get-Date -AsUTC).ToString('yyyyMMdd')).1"
+    }
+}
+
 $outputRoot = Resolve-RepoRelativePath -RepoRoot $repoRoot -RelativePath $OutputDir -AllowMissing
 $stagingRoot = Resolve-RepoRelativePath -RepoRoot $repoRoot -RelativePath '.packaging/staging' -AllowMissing
 $includeFilePath = Resolve-RepoRelativePath -RepoRoot $repoRoot -RelativePath $IncludeFile
@@ -150,6 +161,25 @@ try {
     $contractsRoot = '.deps/contracts'
     $contractsSnapshotPath = '.deps/contracts/contracts.snapshot.json'
     $contractsSnapshotFullPath = Resolve-RepoRelativePath -RepoRoot $repoRoot -RelativePath $contractsSnapshotPath -AllowMissing
+    $contractStateConfig = Resolve-RepoRelativePath -RepoRoot $repoRoot -RelativePath '.knowledgeCI/contract-state.yaml' -AllowMissing
+    $supportedRange = $null
+    if (Test-Path -LiteralPath $contractStateConfig -PathType Leaf) {
+        $configText = Get-Content -LiteralPath $contractStateConfig -Raw
+        if ($configText -match '(?m)^\s*supported_contracts_range:\s*["'']?([^"''\r\n]+)') {
+            $supportedRange = $Matches[1].Trim()
+        }
+    }
+
+    $contractExportEvidence = @()
+    foreach ($src in $resolvedFiles) {
+        $relative = Get-RepoRelativePath -RepoRoot $repoRoot -Path $src
+        if ($relative.StartsWith('exports/')) {
+            $contractExportEvidence += [ordered]@{
+                path = $relative
+                sha256 = (Get-FileHash -LiteralPath $src -Algorithm SHA256).Hash
+            }
+        }
+    }
 
     $bundledContracts = [ordered]@{
         root = $contractsRoot
@@ -195,6 +225,13 @@ try {
         includeFile = $IncludeFile
         zipPath = Get-RepoRelativePath -RepoRoot $repoRoot -Path $zipPath
         fileCount = $resolvedFiles.Count
+        contracts = [ordered]@{
+            supportedRange = $supportedRange
+            validatedAgainst = if ([string]::IsNullOrWhiteSpace($ContractsVersion)) { $null } else { $ContractsVersion.TrimStart('v') }
+            validationSource = if ([string]::IsNullOrWhiteSpace($ContractsRoot)) { $null } else { $ContractsRoot }
+            agreement = 'declared-compatible'
+            contractExports = @($contractExportEvidence)
+        }
         bundledContracts = $bundledContracts
     }
 

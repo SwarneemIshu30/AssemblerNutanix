@@ -16,3 +16,6 @@ discovery:
   contract_exports:
     - exports/**/manifest.yaml
     - exports/**/*.schema.json
+package_evidence:
+  manifests:
+    - dist/package.manifest.json
