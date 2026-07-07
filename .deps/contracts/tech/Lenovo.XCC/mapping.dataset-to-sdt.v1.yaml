@@ -78,6 +78,72 @@ mappings:
     renderMode: table
     structuredValuePolicy: blank
     missingProjectionPolicy: blank
+- dataset: document-vital-product-data
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentVitalProductData
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentVitalProductData
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: document-firmware-summary
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentFirmwareSummary
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentFirmwareSummary
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: document-hardware-summary
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentHardwareSummary
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentHardwareSummary
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: document-memory-configuration
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentMemoryConfiguration
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentMemoryConfiguration
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: document-storage-configuration
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentStorageConfiguration
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentStorageConfiguration
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: document-memory-exceptions
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentMemoryExceptions
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentMemoryExceptions
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
 - dataset: processors
   sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.Processors
   required: false
@@ -108,6 +174,50 @@ mappings:
   renderHint:
     renderAs: table
     projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkInterfaces
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: system-network-interfaces
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.SystemNetworkInterfaces
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.SystemNetworkInterfaces
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: network-adapter-ports
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkAdapterPorts
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkAdapterPorts
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: network-adapter-network-ports
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkAdapterNetworkPorts
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkAdapterNetworkPorts
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: network-device-functions
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkDeviceFunctions
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkDeviceFunctions
     renderMode: table
     structuredValuePolicy: blank
     missingProjectionPolicy: blank
@@ -361,6 +471,215 @@ mappings:
   renderHint:
     renderAs: table
     projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisThermalSubsystem
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: host-ethernet-ports
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.HostEthernetPorts
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.HostEthernetPorts
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: host-fc-ports
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.HostFcPorts
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.HostFcPorts
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: management-ethernet-ports
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.ManagementEthernetPorts
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.ManagementEthernetPorts
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: server-port-inventory
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Tables.ServerPortInventory
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Tables.ServerPortInventory
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: diagram-server-port-graph
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Diagrams.ServerPortGraph
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Diagrams.ServerPortGraph
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: diagram-storage-connectivity-graph
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Diagrams.StorageConnectivityGraph
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Diagrams.StorageConnectivityGraph
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: host-ethernet-ports
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Appendix.HostEthernetPortEvidence
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Appendix.HostEthernetPortEvidence
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: server-port-inventory
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Appendix.ServerPortInventoryEvidence
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Appendix.ServerPortInventoryEvidence
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: system-network-interfaces
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Appendix.SystemNetworkInterfaceEvidence
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Appendix.SystemNetworkInterfaceEvidence
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: network-device-functions
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Appendix.NetworkDeviceFunctionEvidence
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Appendix.NetworkDeviceFunctionEvidence
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: document-vital-product-data
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Document.VitalProductDataGrouped
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Document.VitalProductDataGrouped
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: document-firmware-baseline
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Document.FirmwareSummary
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Document.FirmwareSummary
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: document-hardware-summary
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Document.HardwareSummary
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Document.HardwareSummary
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: document-memory-configuration
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Document.Memory
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Document.Memory
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: document-storage-configuration
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Document.StorageConfiguration
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Document.StorageConfiguration
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: document-memory-exceptions
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Document.MemoryExceptions
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Document.MemoryExceptions
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: management-ethernet-ports
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Document.ManagementEthernetPorts
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Document.ManagementEthernetPorts
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: host-ethernet-ports
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Document.HostEthernetPorts
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Document.HostEthernetPorts
+    renderMode: table
+    structuredValuePolicy: blank
+    missingProjectionPolicy: blank
+- dataset: host-fc-ports
+  sdtTag: LNV.Lenovo.XCC.Target[TargetName].Document.HostFcPorts
+  required: false
+  selectors:
+    - items
+  renderHint:
+    renderAs: table
+    projectionRef: LNV.Lenovo.XCC.Target[TargetName].Document.HostFcPorts
     renderMode: table
     structuredValuePolicy: blank
     missingProjectionPolicy: blank

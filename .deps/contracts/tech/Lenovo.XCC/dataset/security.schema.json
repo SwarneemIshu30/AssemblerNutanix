@@ -131,9 +131,33 @@
               "null"
             ]
           },
+          "position": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rack": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "remoteRoleMappingCount": {
             "type": [
               "integer",
+              "null"
+            ]
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "row": {
+            "type": [
+              "string",
               "null"
             ]
           },
@@ -143,9 +167,27 @@
               "null"
             ]
           },
+          "serverIdentity": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "serviceEnabled": {
             "type": [
               "boolean",
+              "null"
+            ]
+          },
+          "site": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "siteSort": {
+            "type": [
+              "string",
               "null"
             ]
           },

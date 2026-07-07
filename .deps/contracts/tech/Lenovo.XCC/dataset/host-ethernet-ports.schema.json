@@ -1,0 +1,429 @@
+{
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.XCC/dataset/host-ethernet-ports.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "collected_at_utc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "collector": {
+      "type": "object"
+    },
+    "dataset": {
+      "const": "host-ethernet-ports"
+    },
+    "item_count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "items": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "adapter": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "collectedUtc": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "collectionStatus": {
+            "enum": [
+              "success",
+              "partial",
+              "failed"
+            ],
+            "type": "string"
+          },
+          "componentId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "componentName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "componentType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "health": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hostName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "interfaceDisplayName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "interfaceRole": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "interfaceSourceId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ipAddress": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "iqn": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "linkStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "linkStatusConflict": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "linkStatusEffective": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "linkStatusReported": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "linkStatusSource": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lldpRemotePort": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lldpRemoteSystem": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "macAddress": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "machineType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "managementMode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "managerId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "networkDeviceFunctionPath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "networkPortLinkStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "networkPortPath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pcieDeviceId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pcieDevicePath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pcieFunctionId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pcieFunctionPath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "peerIpAddress": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "permanentMacAddress": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "physicalPortLinkStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "physicalPortPath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "port": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "portLabel": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "position": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rack": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "row": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "serialNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "server": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "serverIdentity": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "site": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "siteSort": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slot": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourceEndpoint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourcePath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "speedMbps": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "switchInterface": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "switchManagementIp": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "switchName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "switchPortDescription": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "systemId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "targetDisplayName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "targetKey": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "transport": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "wwnn": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "wwpn": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "xccAddress": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "targetKey",
+          "collectionStatus",
+          "collectedUtc"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "lnv.collector.dataset.v1"
+    },
+    "source": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
+    "items"
+  ],
+  "title": "Lenovo.XCC host-ethernet-ports dataset",
+  "type": "object"
+}

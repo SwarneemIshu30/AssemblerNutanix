@@ -1,0 +1,51 @@
+{
+  "schema": "assembler.template-catalog",
+  "schemaVersion": 1,
+  "displayName": "Lenovo.XCC collector blueprint catalog",
+  "entries": [
+    {
+      "id": "lenovo-xcc-collector-summary",
+      "techId": "Lenovo.XCC",
+      "displayName": "Lenovo XCC Collector Blueprint Skeleton",
+      "docType": "collector-blueprint",
+      "mappingPath": "XCC-SDT-Collector.mapping.json",
+      "templatePath": "XCC-SDT-Collector.template.txt",
+      "outputFileName": "XCC-SDT-Collector.rendered.txt",
+      "enabled": true,
+      "priority": 10
+    },
+    {
+      "id": "lenovo-xcc-collector-docx",
+      "techId": "Lenovo.XCC",
+      "displayName": "Lenovo XCC Collector Blueprint DOCX Skeleton",
+      "docType": "collector-blueprint",
+      "mappingPath": "XCC-SDT-Collector.mapping.json",
+      "templatePath": "XCC-SDT-Collector.docx",
+      "outputFileName": "XCC-SDT-Collector.rendered.docx",
+      "enabled": true,
+      "priority": 20
+    },
+    {
+      "id": "lenovo-xcc-end-document",
+      "techId": "Lenovo.XCC",
+      "displayName": "Lenovo XCC End Document Skeleton",
+      "docType": "as-built",
+      "mappingPath": "XCC-EndDocument.mapping.json",
+      "templatePath": "XCC-EndDocument.template.txt",
+      "outputFileName": "XCC-EndDocument.rendered.txt",
+      "enabled": true,
+      "priority": 30
+    },
+    {
+      "id": "lenovo-xcc-end-document-docx",
+      "techId": "Lenovo.XCC",
+      "displayName": "Lenovo XCC End Document DOCX Skeleton",
+      "docType": "as-built",
+      "mappingPath": "XCC-EndDocument.mapping.json",
+      "templatePath": "XCC-EndDocument.docx",
+      "outputFileName": "XCC-EndDocument.rendered.docx",
+      "enabled": true,
+      "priority": 40
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.XCC",
+    "module": "LNV.AsBuiltDoc.Lenovo.XCC",
+    "entry_point": "Invoke-AsBuiltDoc.Lenovo.XCC"
+  },
+  "source": {
+    "bundle_id": "0634a81a-4d4d-47f8-9ac6-ad28965741e7",
+    "bundle_root": "C:\\Github\\LNV.AsBuiltDoc.Core\\out\\412f44d4-06fa-4b1b-b1ea-bd0d7ac07ed8",
+    "target_key": "srv01-xcc",
+    "file": "datasets/Lenovo.XCC/core/srv01-xcc/system-network-interfaces.json"
+  },
+  "dataset": "system-network-interfaces",
+  "item_count": 2,
+  "items": [
+    {
+      "targetKey": "srv01-xcc",
+      "targetDisplayName": "SE350 XCC",
+      "systemId": "1",
+      "managerId": "1",
+      "hostName": "XCC-7D1X-J301DX1K",
+      "serialNumber": "J301DX1K",
+      "machineType": "",
+      "model": "ThinkSystem SE350",
+      "xccAddress": "https://192.168.183.199",
+      "componentType": "system-network-interface",
+      "componentId": "1",
+      "componentName": "Network Interface 1",
+      "collectionStatus": "success",
+      "collectedUtc": "2026-07-02T06:30:59.1626024Z",
+      "health": "OK",
+      "state": "Enabled",
+      "sourcePath": "/redfish/v1/Systems/1/NetworkInterfaces/1",
+      "sourceEndpoint": "/redfish/v1/Systems/1/NetworkInterfaces/1",
+      "networkInterfaceId": "1",
+      "networkInterfaceName": "Network Interface 1",
+      "networkAdapterPath": "/redfish/v1/Chassis/1/NetworkAdapters/ob-2",
+      "portsPath": "/redfish/v1/Chassis/1/NetworkAdapters/ob-2/Ports",
+      "networkPortsPath": "/redfish/v1/Chassis/1/NetworkAdapters/ob-2/NetworkPorts",
+      "networkDeviceFunctionsPath": "/redfish/v1/Chassis/1/NetworkAdapters/ob-2/NetworkDeviceFunctions",
+      "serverIdentity": "XCC-7D1X-J301DX1K"
+    },
+    {
+      "targetKey": "srv01-xcc",
+      "targetDisplayName": "SE350 XCC",
+      "systemId": "1",
+      "managerId": "1",
+      "hostName": "XCC-7D1X-J301DX1K",
+      "serialNumber": "J301DX1K",
+      "machineType": "",
+      "model": "ThinkSystem SE350",
+      "xccAddress": "https://192.168.183.199",
+      "componentType": "system-network-interface",
+      "componentId": "2",
+      "componentName": "Network Interface 2",
+      "collectionStatus": "success",
+      "collectedUtc": "2026-07-02T06:30:59.1626024Z",
+      "health": "OK",
+      "state": "Enabled",
+      "sourcePath": "/redfish/v1/Systems/1/NetworkInterfaces/2",
+      "sourceEndpoint": "/redfish/v1/Systems/1/NetworkInterfaces/2",
+      "networkInterfaceId": "2",
+      "networkInterfaceName": "Network Interface 2",
+      "networkAdapterPath": "/redfish/v1/Chassis/1/NetworkAdapters/slot-6",
+      "portsPath": "/redfish/v1/Chassis/1/NetworkAdapters/slot-6/Ports",
+      "networkPortsPath": "/redfish/v1/Chassis/1/NetworkAdapters/slot-6/NetworkPorts",
+      "networkDeviceFunctionsPath": "/redfish/v1/Chassis/1/NetworkAdapters/slot-6/NetworkDeviceFunctions",
+      "serverIdentity": "XCC-7D1X-J301DX1K"
+    }
+  ]
+}

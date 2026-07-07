@@ -7,6 +7,10 @@ on:
         description: Optional package version override for manual builds
         required: false
         type: string
+      contracts_version:
+        description: Contracts baseline version validated by this package
+        required: false
+        type: string
   push:
     branches:
       - main
@@ -22,6 +26,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout Contracts
+        uses: actions/checkout@v4
+        with:
+          repository: LNV-AsBuiltDoc/LNV.AsBuiltDoc.Contracts
+          ref: dev
+          path: dependencies/Contracts
 
       - name: Build package
         shell: pwsh
@@ -31,14 +44,14 @@ jobs:
           $refName = '${{ github.ref_name }}'
           $manualVersion = '${{ inputs.package_version }}'
 
-          $timestamp = (Get-Date -AsUTC).ToString('yyyyMMddHHmmss')
+          $datestamp = (Get-Date -AsUTC).ToString('yyyyMMdd')
           $buildChannel = 'ci'
           $packageVersion = $manualVersion
 
           if ($eventName -eq 'workflow_dispatch') {
             $buildChannel = 'dev'
             if ([string]::IsNullOrWhiteSpace($packageVersion)) {
-              $packageVersion = "0.0.0-dev.$timestamp"
+              $packageVersion = "$datestamp.${{ github.run_number }}"
             }
           }
           elseif ($refType -eq 'tag') {
@@ -47,13 +60,15 @@ jobs:
           }
           else {
             $buildChannel = 'ci'
-            $packageVersion = "0.0.0-ci.$timestamp"
+            $packageVersion = "$datestamp.${{ github.run_number }}"
           }
 
           ./scripts/New-AssemblerPackage.ps1 `
             -OutputDir 'dist' `
             -BuildChannel $buildChannel `
-            -PackageVersion $packageVersion
+            -PackageVersion $packageVersion `
+            -ContractsVersion '${{ inputs.contracts_version }}' `
+            -ContractsRoot '${{ github.workspace }}/dependencies/Contracts'
 
       - name: Read package manifest
         id: pkg

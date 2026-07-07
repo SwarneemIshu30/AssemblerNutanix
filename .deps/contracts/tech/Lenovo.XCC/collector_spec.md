@@ -12,4 +12,16 @@ The exported contract pack is contribution-ready:
 
 `network-interfaces` is retained as compatibility evidence. Its normalized twin,
 `ethernet-interfaces`, is the only network dataset mapped for presentation.
-Raw endpoint output is excluded from presentation contracts.
+The host port datasets preserve MAC, WWPN/WWNN, IQN/IP where available, and
+optional switch hints for later cross-system diagram joins. Raw endpoint output
+is excluded from presentation contracts.
+
+The customer-facing `Document.*` projections are intentionally compact and
+hostname-first. They repeat server identity on port rows so XCC can be joined to
+OS, hypervisor, Prism, DE, DM/ONTAP, Azure, or future topology datasets without
+rendering duplicate raw port inventory in the final document.
+
+Host port link state keeps the reported Redfish value and separately exposes the
+effective document-facing value, source, and conflict flag. Memory keeps raw DIMM
+speed and separately exposes a display value so disabled DIMMs render as disabled
+instead of presenting firmware placeholder speeds as operating speed.

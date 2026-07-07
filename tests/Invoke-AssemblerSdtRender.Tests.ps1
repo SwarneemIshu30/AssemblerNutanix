@@ -858,6 +858,108 @@ Describe 'Invoke-AssemblerSdtRender integration' {
         }
     }
 
+    It 'applies projection table layout hints to DOCX table widths and wrapping' {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+        $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+        if ([string]::IsNullOrWhiteSpace($pwshPath)) {
+            throw 'pwsh is required to execute scripts in this test'
+        }
+
+        $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("assembler-docx-table-layout-test-" + [guid]::NewGuid().ToString())
+        $null = New-Item -ItemType Directory -Path $tempRoot -Force
+
+        try {
+            $contractsRoot = New-MinimalContractsRoot -Root $tempRoot -DatasetName 'ports'
+            $projectionPath = Join-Path $contractsRoot 'tech/Test.Tech/assembler.projections.v1.json'
+            $projection = Get-Content -LiteralPath $projectionPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+            $projection.projections['LNV.Test.Tech.System[ArrayName].Tables.Sample'].tableLayout = @{
+                mode = 'fixed'
+                sizing = 'contract-weighted'
+                density = 'compact'
+            }
+            $projection.projections['LNV.Test.Tech.System[ArrayName].Tables.Sample'].columns = @(
+                @{ name = 'Server'; source = 'server'; widthWeight = 12; wrap = $true },
+                @{ name = 'Adapter'; source = 'adapter'; widthWeight = 24; wrap = $true },
+                @{ name = 'Port'; source = 'port'; widthWeight = 5; nowrap = $true },
+                @{ name = 'Link'; source = 'link'; widthWeight = 5; nowrap = $true }
+            )
+            Set-Content -LiteralPath $projectionPath -Encoding UTF8 -Value ($projection | ConvertTo-Json -Depth 20)
+
+            $fixture = New-TestRenderFixture -Root $tempRoot -Template 'unused' -TechId 'Test.Tech' -DatasetRelativePath 'datasets/ports.json' -Mappings @(
+                @{
+                    dataset = 'datasets/ports.json'
+                    required = $true
+                    selectors = @('items')
+                    target = @{ sdtTag = 'LNV.Test.Tech.System[ArrayName].Tables.Sample' }
+                }
+            ) -Dataset @{
+                schema_version = 'lnv.collector.dataset.v1'
+                collector = @{ module = 'test.module'; version = '1.0.0' }
+                source = @{ kind = 'integration-test'; endpoint = 'local' }
+                dataset = 'ports'
+                item_count = 1
+                items = @(
+                    @{ server = 'server01.example.local'; adapter = 'Embedded switch board Ethernet adapter'; port = 'P1'; link = 'LinkUp' }
+                )
+            }
+
+            $templatePath = Join-Path $tempRoot 'template.docx'
+            New-TestDocxTemplate -Path $templatePath -Tag 'LNV.Test.Tech.System[ArrayName].Tables.Sample'
+            $outputPath = Join-Path $tempRoot 'rendered.docx'
+            $reportPath = Join-Path $tempRoot 'report.json'
+
+            $invokeScript = Join-Path $repoRoot 'scripts/Invoke-AssemblerSdtRender.ps1'
+            $output = & $pwshPath -NoLogo -NoProfile -File $invokeScript -BundleRoot $fixture.bundleRoot -MappingPath $fixture.mappingPath -TemplatePath $templatePath -OutputPath $outputPath -ReportPath $reportPath -ContractsRoot $contractsRoot
+            if ($LASTEXITCODE -ne 0) { throw "Expected successful render exit code, got $LASTEXITCODE. Output: $output" }
+
+            $zip = [System.IO.Compression.ZipFile]::OpenRead($outputPath)
+            try {
+                $entry = $zip.GetEntry('word/document.xml')
+                if ($null -eq $entry) { throw 'Expected rendered DOCX to contain word/document.xml.' }
+                $reader = [System.IO.StreamReader]::new($entry.Open())
+                try {
+                    [xml]$document = $reader.ReadToEnd()
+                }
+                finally {
+                    $reader.Dispose()
+                }
+            }
+            finally {
+                $zip.Dispose()
+            }
+
+            $nsMgr = [System.Xml.XmlNamespaceManager]::new($document.NameTable)
+            $nsMgr.AddNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main')
+            if (-not $document.SelectSingleNode('//w:tblLayout[@w:type="fixed"]', $nsMgr)) {
+                throw 'Expected projection tableLayout.mode=fixed to emit fixed Word table layout.'
+            }
+
+            $gridWidths = @($document.SelectNodes('//w:tblGrid/w:gridCol', $nsMgr) | ForEach-Object {
+                [int]$_.Attributes.GetNamedItem('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main').Value
+            })
+            if (($gridWidths | Measure-Object -Sum).Sum -ne 4783) {
+                throw "Expected hinted grid widths to preserve table width, got '$($gridWidths -join ',')'"
+            }
+            if (-not ($gridWidths[1] -gt $gridWidths[0] -and $gridWidths[0] -gt $gridWidths[2])) {
+                throw "Expected contract width weights to make Adapter wider than Server and Server wider than compact columns, got '$($gridWidths -join ',')'"
+            }
+
+            $nowrapCells = @($document.SelectNodes('//w:tc[w:tcPr/w:noWrap]', $nsMgr) | Where-Object { $_.InnerText -match '^(Port|Link|P1|LinkUp)$' })
+            if ($nowrapCells.Count -lt 4) {
+                throw 'Expected compact hinted Port and Link columns to be marked no-wrap.'
+            }
+            $adapterNoWrapCells = @($document.SelectNodes('//w:tc[w:tcPr/w:noWrap]', $nsMgr) | Where-Object { $_.InnerText -match 'Adapter|Embedded switch board' })
+            if ($adapterNoWrapCells.Count -ne 0) {
+                throw 'Expected wrap=true Adapter column to remain wrappable.'
+            }
+        }
+        finally {
+            if (Test-Path -LiteralPath $tempRoot -PathType Container) {
+                Remove-Item -LiteralPath $tempRoot -Recurse -Force
+            }
+        }
+    }
+
     It 'marks short cell values that include spaces as no-wrap without fixed geometry' {
         $repoRoot = Split-Path -Parent $PSScriptRoot
         $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source

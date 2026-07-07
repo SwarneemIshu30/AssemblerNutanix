@@ -110,6 +110,12 @@
               "null"
             ]
           },
+          "operatingSpeedDisplay": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "operatingSpeedMhz": {
             "type": [
               "number",
@@ -122,13 +128,55 @@
               "null"
             ]
           },
+          "position": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rack": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "rankCount": {
             "type": [
               "integer",
               "null"
             ]
           },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "row": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "serialNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "serverIdentity": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "site": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "siteSort": {
             "type": [
               "string",
               "null"

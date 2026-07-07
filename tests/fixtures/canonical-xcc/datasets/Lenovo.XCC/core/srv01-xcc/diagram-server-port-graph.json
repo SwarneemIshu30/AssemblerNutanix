@@ -1,0 +1,238 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.XCC",
+    "module": "LNV.AsBuiltDoc.Lenovo.XCC",
+    "entry_point": "Invoke-AsBuiltDoc.Lenovo.XCC"
+  },
+  "source": {
+    "bundle_id": "0634a81a-4d4d-47f8-9ac6-ad28965741e7",
+    "bundle_root": "C:\\Github\\LNV.AsBuiltDoc.Core\\out\\412f44d4-06fa-4b1b-b1ea-bd0d7ac07ed8",
+    "target_key": "srv01-xcc",
+    "file": "datasets/Lenovo.XCC/core/srv01-xcc/diagram-server-port-graph.json"
+  },
+  "dataset": "diagram-server-port-graph",
+  "item_count": 1,
+  "items": [
+    {
+      "targetKey": "srv01-xcc",
+      "targetDisplayName": "SE350 XCC",
+      "systemId": "1",
+      "managerId": "1",
+      "hostName": "XCC-7D1X-J301DX1K",
+      "serialNumber": "J301DX1K",
+      "machineType": "",
+      "model": "ThinkSystem SE350",
+      "xccAddress": "https://192.168.183.199",
+      "collectionStatus": "partial",
+      "collectedUtc": "2026-07-02T06:30:59.1626024Z",
+      "health": "",
+      "state": "",
+      "sourcePath": "",
+      "sourceEndpoint": "",
+      "graphKey": "diagram-server-port-graph",
+      "nodeCount": 12,
+      "edgeCount": 11,
+      "groupCount": 1,
+      "nodes": [
+        {
+          "id": "server:srv01-xcc",
+          "label": "XCC-7D1X-J301DX1K",
+          "kind": "server",
+          "targetKey": "srv01-xcc"
+        },
+        {
+          "id": "adapter:srv01-xcc:Host Ethernet Interface",
+          "label": "Host Ethernet Interface",
+          "kind": "adapter",
+          "targetKey": "srv01-xcc"
+        },
+        {
+          "id": "port:srv01-xcc:ethernet:ToManager",
+          "label": "ToManager",
+          "kind": "port",
+          "transport": "ethernet",
+          "linkStatus": "LinkUp",
+          "linkStatusReported": "LinkUp",
+          "linkStatusConflict": false,
+          "macAddress": "0a:3a:88:0c:44:79",
+          "wwpn": null
+        },
+        {
+          "id": "adapter:srv01-xcc:External Ethernet Interface",
+          "label": "External Ethernet Interface",
+          "kind": "adapter",
+          "targetKey": "srv01-xcc"
+        },
+        {
+          "id": "port:srv01-xcc:ethernet:NIC1",
+          "label": "NIC1",
+          "kind": "port",
+          "transport": "ethernet",
+          "linkStatus": "NoLink",
+          "linkStatusReported": "NoLink",
+          "linkStatusConflict": false,
+          "macAddress": "08:3A:88:0C:44:73",
+          "wwpn": null
+        },
+        {
+          "id": "port:srv01-xcc:ethernet:NIC2",
+          "label": "NIC2",
+          "kind": "port",
+          "transport": "ethernet",
+          "linkStatus": "NoLink",
+          "linkStatusReported": "NoLink",
+          "linkStatusConflict": false,
+          "macAddress": "08:3A:88:0C:44:74",
+          "wwpn": null
+        },
+        {
+          "id": "port:srv01-xcc:ethernet:NIC3",
+          "label": "NIC3",
+          "kind": "port",
+          "transport": "ethernet",
+          "linkStatus": "NoLink",
+          "linkStatusReported": "NoLink",
+          "linkStatusConflict": false,
+          "macAddress": "08:3A:88:0C:44:75",
+          "wwpn": null
+        },
+        {
+          "id": "port:srv01-xcc:ethernet:NIC4",
+          "label": "NIC4",
+          "kind": "port",
+          "transport": "ethernet",
+          "linkStatus": "NoLink",
+          "linkStatusReported": "NoLink",
+          "linkStatusConflict": false,
+          "macAddress": "90:E2:BA:BF:2F:0C",
+          "wwpn": null
+        },
+        {
+          "id": "port:srv01-xcc:ethernet:NIC5",
+          "label": "NIC5",
+          "kind": "port",
+          "transport": "ethernet",
+          "linkStatus": "NoLink",
+          "linkStatusReported": "NoLink",
+          "linkStatusConflict": false,
+          "macAddress": "90:E2:BA:BF:2F:0D",
+          "wwpn": null
+        },
+        {
+          "id": "adapter:srv01-xcc:XCC",
+          "label": "XCC",
+          "kind": "adapter",
+          "targetKey": "srv01-xcc"
+        },
+        {
+          "id": "port:srv01-xcc:management:NIC",
+          "label": "NIC",
+          "kind": "port",
+          "transport": "management",
+          "linkStatus": "LinkUp",
+          "linkStatusReported": "LinkUp",
+          "linkStatusConflict": false,
+          "macAddress": "08:3a:88:0c:44:77",
+          "wwpn": null
+        },
+        {
+          "id": "port:srv01-xcc:management:ToHost",
+          "label": "ToHost",
+          "kind": "port",
+          "transport": "management",
+          "linkStatus": "LinkUp",
+          "linkStatusReported": "LinkUp",
+          "linkStatusConflict": false,
+          "macAddress": "08:3a:88:0c:44:78",
+          "wwpn": null
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge:server:srv01-xcc>adapter:srv01-xcc:Host Ethernet Interface",
+          "from": "server:srv01-xcc",
+          "to": "adapter:srv01-xcc:Host Ethernet Interface",
+          "kind": "contains"
+        },
+        {
+          "id": "edge:adapter:srv01-xcc:Host Ethernet Interface>port:srv01-xcc:ethernet:ToManager",
+          "from": "adapter:srv01-xcc:Host Ethernet Interface",
+          "to": "port:srv01-xcc:ethernet:ToManager",
+          "kind": "has-port",
+          "transport": "ethernet"
+        },
+        {
+          "id": "edge:server:srv01-xcc>adapter:srv01-xcc:External Ethernet Interface",
+          "from": "server:srv01-xcc",
+          "to": "adapter:srv01-xcc:External Ethernet Interface",
+          "kind": "contains"
+        },
+        {
+          "id": "edge:adapter:srv01-xcc:External Ethernet Interface>port:srv01-xcc:ethernet:NIC1",
+          "from": "adapter:srv01-xcc:External Ethernet Interface",
+          "to": "port:srv01-xcc:ethernet:NIC1",
+          "kind": "has-port",
+          "transport": "ethernet"
+        },
+        {
+          "id": "edge:adapter:srv01-xcc:External Ethernet Interface>port:srv01-xcc:ethernet:NIC2",
+          "from": "adapter:srv01-xcc:External Ethernet Interface",
+          "to": "port:srv01-xcc:ethernet:NIC2",
+          "kind": "has-port",
+          "transport": "ethernet"
+        },
+        {
+          "id": "edge:adapter:srv01-xcc:External Ethernet Interface>port:srv01-xcc:ethernet:NIC3",
+          "from": "adapter:srv01-xcc:External Ethernet Interface",
+          "to": "port:srv01-xcc:ethernet:NIC3",
+          "kind": "has-port",
+          "transport": "ethernet"
+        },
+        {
+          "id": "edge:adapter:srv01-xcc:External Ethernet Interface>port:srv01-xcc:ethernet:NIC4",
+          "from": "adapter:srv01-xcc:External Ethernet Interface",
+          "to": "port:srv01-xcc:ethernet:NIC4",
+          "kind": "has-port",
+          "transport": "ethernet"
+        },
+        {
+          "id": "edge:adapter:srv01-xcc:External Ethernet Interface>port:srv01-xcc:ethernet:NIC5",
+          "from": "adapter:srv01-xcc:External Ethernet Interface",
+          "to": "port:srv01-xcc:ethernet:NIC5",
+          "kind": "has-port",
+          "transport": "ethernet"
+        },
+        {
+          "id": "edge:server:srv01-xcc>adapter:srv01-xcc:XCC",
+          "from": "server:srv01-xcc",
+          "to": "adapter:srv01-xcc:XCC",
+          "kind": "contains"
+        },
+        {
+          "id": "edge:adapter:srv01-xcc:XCC>port:srv01-xcc:management:NIC",
+          "from": "adapter:srv01-xcc:XCC",
+          "to": "port:srv01-xcc:management:NIC",
+          "kind": "has-port",
+          "transport": "management"
+        },
+        {
+          "id": "edge:adapter:srv01-xcc:XCC>port:srv01-xcc:management:ToHost",
+          "from": "adapter:srv01-xcc:XCC",
+          "to": "port:srv01-xcc:management:ToHost",
+          "kind": "has-port",
+          "transport": "management"
+        }
+      ],
+      "groups": [
+        {
+          "id": "group:srv01-xcc",
+          "label": "SE350 XCC",
+          "kind": "server"
+        }
+      ],
+      "collectedFrom": "diagram-server-port-graph",
+      "serverIdentity": "XCC-7D1X-J301DX1K"
+    }
+  ]
+}

@@ -33,6 +33,8 @@ function New-AssemblerDefaultCompositionMap {
                     displayName = [string]$entry.displayName
                     domain = @($_.Group.domain | Sort-Object -Unique)
                     tags = $entry.tags
+                    params = $entry.params
+                    location = $entry.location
                     included = $true
                 }
             }
@@ -81,6 +83,16 @@ function Add-AssemblerContextToItem {
         objectKind = [string]$CatalogEntry.objectKind
         displayName = [string]$CatalogEntry.displayName
         tags = $CatalogEntry.tags
+        params = $CatalogEntry.params
+        location = $CatalogEntry.location
+        target = [ordered]@{
+            key = [string]$CatalogEntry.objectKey
+            kind = [string]$CatalogEntry.objectKind
+            displayName = [string]$CatalogEntry.displayName
+            tags = $CatalogEntry.tags
+            params = $CatalogEntry.params
+            location = $CatalogEntry.location
+        }
     }
     return $copy
 }

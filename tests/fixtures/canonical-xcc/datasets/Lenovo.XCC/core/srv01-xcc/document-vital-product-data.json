@@ -1,0 +1,44 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.XCC",
+    "module": "LNV.AsBuiltDoc.Lenovo.XCC",
+    "entry_point": "Invoke-AsBuiltDoc.Lenovo.XCC"
+  },
+  "source": {
+    "bundle_id": "0634a81a-4d4d-47f8-9ac6-ad28965741e7",
+    "bundle_root": "C:\\Github\\LNV.AsBuiltDoc.Core\\out\\412f44d4-06fa-4b1b-b1ea-bd0d7ac07ed8",
+    "target_key": "srv01-xcc",
+    "file": "datasets/Lenovo.XCC/core/srv01-xcc/document-vital-product-data.json"
+  },
+  "dataset": "document-vital-product-data",
+  "item_count": 1,
+  "items": [
+    {
+      "targetKey": "srv01-xcc",
+      "targetDisplayName": "SE350 XCC",
+      "systemId": "1",
+      "managerId": null,
+      "hostName": "XCC-7D1X-J301DX1K",
+      "serialNumber": "J301DX1K",
+      "serverIdentity": "XCC-7D1X-J301DX1K",
+      "machineType": "",
+      "model": "ThinkSystem SE350",
+      "xccAddress": "https://192.168.183.199",
+      "collectionStatus": "success",
+      "collectedUtc": "2026-07-02T06:30:59.1626024Z",
+      "site": "Lab",
+      "siteSort": "50:Lab",
+      "rack": null,
+      "role": "Compute",
+      "health": "Critical",
+      "state": "Enabled",
+      "sourcePath": "/redfish/v1/Systems/1",
+      "sourceEndpoint": "/redfish/v1/Systems/1",
+      "component": "Server",
+      "name": "XCC-7D1X-J301DX1K",
+      "description": "ThinkSystem SE350",
+      "rackLocation": null
+    }
+  ]
+}

@@ -1,0 +1,252 @@
+{
+  "schemaVersion": 1,
+  "bundleId": "canonical-xcc-se350-test",
+  "createdUtc": "2026-07-02T00:00:00Z",
+  "files": [
+    {
+      "path": "objectIndex.json",
+      "bytes": 236,
+      "sha256": "fixture"
+    },
+    {
+      "path": "config/config_used.json",
+      "bytes": 26,
+      "sha256": "fixture"
+    },
+    {
+      "path": "config/solution.plan.json",
+      "bytes": 2056,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/bios.json",
+      "bytes": 1331,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/chassis-environment.json",
+      "bytes": 1572,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/chassis-network-adapters.json",
+      "bytes": 2802,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/chassis-pcie-slots.json",
+      "bytes": 558,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/chassis-power-subsystem.json",
+      "bytes": 1640,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/chassis-sensors.json",
+      "bytes": 95343,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/chassis-thermal-subsystem.json",
+      "bytes": 1658,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/chassis.json",
+      "bytes": 1146,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/collection-summary.json",
+      "bytes": 12464,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/diagram-server-port-graph.json",
+      "bytes": 8113,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/diagram-storage-connectivity-graph.json",
+      "bytes": 8149,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/document-firmware-summary.json",
+      "bytes": 1414,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/document-hardware-summary.json",
+      "bytes": 1498,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/document-memory-exceptions.json",
+      "bytes": 1677,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/document-vital-product-data.json",
+      "bytes": 1430,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/ethernet-interfaces.json",
+      "bytes": 7138,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/event-log.json",
+      "bytes": 540,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/firmware-inventory.json",
+      "bytes": 16277,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/host-ethernet-ports.json",
+      "bytes": 13084,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/host-fc-ports.json",
+      "bytes": 548,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/management-ethernet-ports.json",
+      "bytes": 4255,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/manager-ethernet-interfaces.json",
+      "bytes": 2684,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/manager-host-interfaces.json",
+      "bytes": 1647,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/manager-network-protocol.json",
+      "bytes": 1742,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/manager-serial-interfaces.json",
+      "bytes": 1594,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/managers.json",
+      "bytes": 1191,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/memory.json",
+      "bytes": 4934,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/network-adapter-network-ports.json",
+      "bytes": 6875,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/network-adapter-ports.json",
+      "bytes": 6869,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/network-device-functions.json",
+      "bytes": 7971,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/network-interfaces.json",
+      "bytes": 7136,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/pcie-devices.json",
+      "bytes": 4270,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/pcie-functions.json",
+      "bytes": 7821,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/power.json",
+      "bytes": 7214,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/processors.json",
+      "bytes": 1647,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/secure-boot.json",
+      "bytes": 1397,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/security.json",
+      "bytes": 1636,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/server-port-inventory.json",
+      "bytes": 16812,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/storage-controllers.json",
+      "bytes": 1568,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/storage-drives.json",
+      "bytes": 2745,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/storage-volumes.json",
+      "bytes": 1566,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/system-network-interfaces.json",
+      "bytes": 2985,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/systems.json",
+      "bytes": 1320,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/thermal.json",
+      "bytes": 6166,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/users-summary.json",
+      "bytes": 13058,
+      "sha256": "fixture"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/virtual-media.json",
+      "bytes": 18976,
+      "sha256": "fixture"
+    }
+  ]
+}

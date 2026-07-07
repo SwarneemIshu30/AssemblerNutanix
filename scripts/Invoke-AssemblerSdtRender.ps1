@@ -1232,11 +1232,24 @@ function Test-WordTableNoWrapColumn {
 function Get-WordTableNoWrapLookup {
     param(
         [Parameter(Mandatory = $true)][string[]]$DisplayColumns,
-        [Parameter(Mandatory = $true)][object[]]$Rows
+        [Parameter(Mandatory = $true)][object[]]$Rows,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$ColumnLayout
     )
 
     $lookup = @{}
     foreach ($columnName in @($DisplayColumns)) {
+        $layout = if ($null -ne $ColumnLayout -and $ColumnLayout.ContainsKey([string]$columnName)) { $ColumnLayout[[string]$columnName] } else { $null }
+        if ($layout -is [System.Collections.IDictionary]) {
+            if ((Test-MapHasKey -Map $layout -Key 'wrap') -and [bool]$layout.wrap) {
+                $lookup[[string]$columnName] = $false
+                continue
+            }
+            if ((Test-MapHasKey -Map $layout -Key 'nowrap') -and [bool]$layout.nowrap) {
+                $lookup[[string]$columnName] = $true
+                continue
+            }
+        }
+
         $lineLengths = [System.Collections.Generic.List[int]]::new()
         $maxTokenLength = [Math]::Max(1, ([string]$columnName).Length)
         $lineLengths.Add([Math]::Max(1, ([string]$columnName).Length)) | Out-Null
@@ -1258,6 +1271,131 @@ function Get-WordTableNoWrapLookup {
     return $lookup
 }
 
+function Get-WordTableColumnLayoutLookup {
+    param(
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$ProjectionDefinition
+    )
+
+    $lookup = @{}
+    if ($null -eq $ProjectionDefinition -or -not (Test-MapHasKey -Map $ProjectionDefinition -Key 'columns')) {
+        return $lookup
+    }
+
+    foreach ($column in @(ConvertTo-ObjectArray -InputObject $ProjectionDefinition.columns)) {
+        if (-not ($column -is [System.Collections.IDictionary]) -or -not (Test-MapHasKey -Map $column -Key 'name')) { continue }
+
+        $layout = [ordered]@{}
+        foreach ($key in @('widthWeight', 'minWidthPct', 'maxWidthPct', 'nowrap', 'wrap')) {
+            if ((Test-MapHasKey -Map $column -Key $key) -and $null -ne $column[$key]) {
+                $layout[$key] = $column[$key]
+            }
+        }
+
+        if (@($layout.Keys).Count -gt 0) {
+            $lookup[[string]$column.name] = $layout
+        }
+    }
+
+    return $lookup
+}
+
+function Get-WordTableColumnTextWeight {
+    param(
+        [Parameter(Mandatory = $true)][string]$ColumnName,
+        [Parameter(Mandatory = $true)][object[]]$Rows
+    )
+
+    $maxLength = [Math]::Max(1, ([string]$ColumnName).Length)
+    foreach ($row in @($Rows)) {
+        $cellValue = Get-WordTableCellText -Row $row -ColumnName $ColumnName
+        $cellMaxSegmentLength = 1
+        foreach ($segment in @($cellValue -split "`r?`n")) {
+            $cellMaxSegmentLength = [Math]::Max($cellMaxSegmentLength, ([string]$segment).Length)
+        }
+        $maxLength = [Math]::Max($maxLength, $cellMaxSegmentLength)
+    }
+
+    return [Math]::Max(1, $maxLength)
+}
+
+function Get-WordTableColumnWidthPctValues {
+    param(
+        [Parameter(Mandatory = $true)][string[]]$DisplayColumns,
+        [Parameter(Mandatory = $true)][object[]]$Rows,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$ColumnLayout,
+        [Parameter(Mandatory = $false)][System.Collections.IDictionary]$TableLayout,
+        [Parameter(Mandatory = $true)][int]$TableWidthPct
+    )
+
+    $sizing = if ($null -ne $TableLayout -and (Test-MapHasKey -Map $TableLayout -Key 'sizing')) { [string]$TableLayout.sizing } else { 'content-weighted' }
+    $columnWeights = [System.Collections.Generic.List[double]]::new()
+    foreach ($columnName in @($DisplayColumns)) {
+        $layout = if ($null -ne $ColumnLayout -and $ColumnLayout.ContainsKey([string]$columnName)) { $ColumnLayout[[string]$columnName] } else { $null }
+        $hasContractWeight = ($layout -is [System.Collections.IDictionary] -and (Test-MapHasKey -Map $layout -Key 'widthWeight') -and $null -ne $layout.widthWeight)
+
+        $weight = if ($hasContractWeight) {
+            [double]$layout.widthWeight
+        }
+        elseif ($sizing -eq 'balanced') {
+            1.0
+        }
+        else {
+            [double](Get-WordTableColumnTextWeight -ColumnName ([string]$columnName) -Rows $Rows)
+        }
+
+        if ($weight -le 0) { $weight = 1.0 }
+        [void]$columnWeights.Add($weight)
+    }
+
+    $weightTotal = ($columnWeights | Measure-Object -Sum).Sum
+    if ($null -eq $weightTotal -or [double]$weightTotal -le 0) { $weightTotal = @($DisplayColumns).Count }
+
+    $widths = [System.Collections.Generic.List[int]]::new()
+    $pctAssigned = 0
+    for ($columnIndex = 0; $columnIndex -lt @($DisplayColumns).Count; $columnIndex++) {
+        $columnPct = if ($columnIndex -eq (@($DisplayColumns).Count - 1)) {
+            $TableWidthPct - $pctAssigned
+        }
+        else {
+            [Math]::Max(1, [int][Math]::Round(($TableWidthPct * [double]$columnWeights[$columnIndex]) / [double]$weightTotal))
+        }
+
+        $columnName = [string]$DisplayColumns[$columnIndex]
+        $layout = if ($null -ne $ColumnLayout -and $ColumnLayout.ContainsKey($columnName)) { $ColumnLayout[$columnName] } else { $null }
+        if ($layout -is [System.Collections.IDictionary]) {
+            if ((Test-MapHasKey -Map $layout -Key 'minWidthPct') -and $null -ne $layout.minWidthPct) {
+                $columnPct = [Math]::Max($columnPct, [int][Math]::Round($TableWidthPct * ([double]$layout.minWidthPct / 100.0)))
+            }
+            if ((Test-MapHasKey -Map $layout -Key 'maxWidthPct') -and $null -ne $layout.maxWidthPct) {
+                $columnPct = [Math]::Min($columnPct, [int][Math]::Round($TableWidthPct * ([double]$layout.maxWidthPct / 100.0)))
+            }
+        }
+
+        $pctAssigned += $columnPct
+        [void]$widths.Add([Math]::Max(1, $columnPct))
+    }
+
+    $widthTotal = ($widths | Measure-Object -Sum).Sum
+    if ($null -eq $widthTotal -or [int]$widthTotal -le 0) { $widthTotal = $TableWidthPct }
+    if ([int]$widthTotal -ne $TableWidthPct) {
+        $normalized = [System.Collections.Generic.List[int]]::new()
+        $normalizedAssigned = 0
+        for ($columnIndex = 0; $columnIndex -lt $widths.Count; $columnIndex++) {
+            $columnPct = if ($columnIndex -eq ($widths.Count - 1)) {
+                $TableWidthPct - $normalizedAssigned
+            }
+            else {
+                [Math]::Max(1, [int][Math]::Round($TableWidthPct * ([double]$widths[$columnIndex] / [double]$widthTotal)))
+            }
+            $normalizedAssigned += $columnPct
+            [void]$normalized.Add($columnPct)
+        }
+        return @($normalized)
+    }
+
+    return @($widths)
+}
+
 function Convert-TableModelToWordTableXml {
     param(
         [Parameter(Mandatory = $true)][System.Collections.IDictionary]$TableModel,
@@ -1268,38 +1406,17 @@ function Convert-TableModelToWordTableXml {
     $displayColumns = @($TableModel.displayColumns | ForEach-Object { [string]$_ })
     $rows = @($TableModel.rows)
     if (@($displayColumns).Count -eq 0 -or @($rows).Count -eq 0) { return '' }
+    $groupBy = @($TableModel.groupBy)
 
+    $tableLayout = if (Test-MapHasKey -Map $TableModel -Key 'tableLayout') { $TableModel.tableLayout } else { $null }
+    $columnLayout = if (Test-MapHasKey -Map $TableModel -Key 'columnLayout') { $TableModel.columnLayout } else { $null }
     $tableWidthPct = 4783
-    $noWrapByColumn = Get-WordTableNoWrapLookup -DisplayColumns $displayColumns -Rows $rows
-    $columnWeights = [System.Collections.Generic.List[int]]::new()
-    foreach ($columnName in @($displayColumns)) {
-        $maxLength = [Math]::Max(1, ([string]$columnName).Length)
-        foreach ($row in @($rows)) {
-            $cellValue = Get-WordTableCellText -Row $row -ColumnName $columnName
-            $cellMaxSegmentLength = 1
-            foreach ($segment in @($cellValue -split "`r?`n")) {
-                $cellMaxSegmentLength = [Math]::Max($cellMaxSegmentLength, ([string]$segment).Length)
-            }
-            $maxLength = [Math]::Max($maxLength, $cellMaxSegmentLength)
-        }
-        [void]$columnWeights.Add([Math]::Max(1, $maxLength))
+    if ($tableLayout -is [System.Collections.IDictionary] -and (Test-MapHasKey -Map $tableLayout -Key 'widthPct') -and $null -ne $tableLayout.widthPct) {
+        $tableWidthPct = [Math]::Max(1, [Math]::Min(5000, [int]$tableLayout.widthPct))
     }
-
-    $weightTotal = ($columnWeights | Measure-Object -Sum).Sum
-    if ($null -eq $weightTotal -or [int]$weightTotal -le 0) { $weightTotal = @($displayColumns).Count }
-    $columnWidthPctValues = [System.Collections.Generic.List[int]]::new()
-    $pctAssigned = 0
-    for ($columnIndex = 0; $columnIndex -lt @($displayColumns).Count; $columnIndex++) {
-        $weight = [int]$columnWeights[$columnIndex]
-        $columnPct = if ($columnIndex -eq (@($displayColumns).Count - 1)) {
-            $tableWidthPct - $pctAssigned
-        }
-        else {
-            [Math]::Max(1, [int][Math]::Round(($tableWidthPct * $weight) / [double]$weightTotal))
-        }
-        $pctAssigned += $columnPct
-        [void]$columnWidthPctValues.Add($columnPct)
-    }
+    $useFixedLayout = ($tableLayout -is [System.Collections.IDictionary] -and (Test-MapHasKey -Map $tableLayout -Key 'mode') -and [string]$tableLayout.mode -eq 'fixed')
+    $noWrapByColumn = Get-WordTableNoWrapLookup -DisplayColumns $displayColumns -Rows $rows -ColumnLayout $columnLayout
+    $columnWidthPctValues = @(Get-WordTableColumnWidthPctValues -DisplayColumns $displayColumns -Rows $rows -ColumnLayout $columnLayout -TableLayout $tableLayout -TableWidthPct $tableWidthPct)
 
     $sb = [System.Text.StringBuilder]::new()
     [void]$sb.Append('<w:tbl>')
@@ -1308,6 +1425,9 @@ function Convert-TableModelToWordTableXml {
         [void]$sb.Append("<w:tblStyle w:val=`"$(ConvertTo-WordXmlEscapedText -Text $TableStyleId)`"/>")
     }
     [void]$sb.Append("<w:tblW w:w=`"$tableWidthPct`" w:type=`"pct`"/>")
+    if ($useFixedLayout) {
+        [void]$sb.Append('<w:tblLayout w:type="fixed"/>')
+    }
     [void]$sb.Append('<w:tblLook w:firstRow="1" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="0" w:noVBand="1" w:val="0420"/>')
     [void]$sb.Append('</w:tblPr>')
     [void]$sb.Append('<w:tblGrid>')
@@ -1331,7 +1451,39 @@ function Convert-TableModelToWordTableXml {
     }
     [void]$sb.Append('</w:tr>')
 
+    $previousGroupValues = @()
+    for ($groupIndex = 0; $groupIndex -lt @($groupBy).Count; $groupIndex++) {
+        $previousGroupValues += $null
+    }
+
     foreach ($row in $rows) {
+        for ($groupIndex = 0; $groupIndex -lt @($groupBy).Count; $groupIndex++) {
+            $directive = $groupBy[$groupIndex]
+            $source = if ($directive -is [System.Collections.IDictionary] -and (Test-MapHasKey -Map $directive -Key 'source')) { [string]$directive.source } else { [string]$directive }
+            if ([string]::IsNullOrWhiteSpace($source)) { continue }
+
+            $groupValue = Get-ProjectedRowFieldText -Row $row -Field $source
+            if ([string]::IsNullOrWhiteSpace($groupValue)) { $groupValue = 'Unspecified' }
+            if ($previousGroupValues[$groupIndex] -ne $groupValue) {
+                $label = if ($directive -is [System.Collections.IDictionary] -and (Test-MapHasKey -Map $directive -Key 'label')) { [string]$directive.label } else { '' }
+                $heading = if ([string]::IsNullOrWhiteSpace($label)) { $groupValue } else { "${label}: $groupValue" }
+                for ($resetIndex = $groupIndex; $resetIndex -lt @($previousGroupValues).Count; $resetIndex++) {
+                    $previousGroupValues[$resetIndex] = $null
+                }
+                $previousGroupValues[$groupIndex] = $groupValue
+
+                [void]$sb.Append('<w:tr>')
+                [void]$sb.Append("<w:tc><w:tcPr><w:tcW w:w=`"$tableWidthPct`" w:type=`"pct`"/><w:gridSpan w:val=`"$(@($displayColumns).Count)`"/><w:shd w:val=`"clear`" w:color=`"auto`" w:fill=`"E5E7EB`"/></w:tcPr><w:p><w:pPr>")
+                if (-not [string]::IsNullOrWhiteSpace($ParagraphStyleId)) {
+                    [void]$sb.Append("<w:pStyle w:val=`"$(ConvertTo-WordXmlEscapedText -Text $ParagraphStyleId)`"/>")
+                }
+                [void]$sb.Append('</w:pPr><w:r><w:rPr><w:b/></w:rPr><w:t xml:space="preserve">')
+                [void]$sb.Append((ConvertTo-WordXmlEscapedText -Text $heading))
+                [void]$sb.Append('</w:t></w:r></w:p></w:tc>')
+                [void]$sb.Append('</w:tr>')
+            }
+        }
+
         [void]$sb.Append('<w:tr>')
         for ($columnIndex = 0; $columnIndex -lt @($displayColumns).Count; $columnIndex++) {
             $columnName = [string]$displayColumns[$columnIndex]
@@ -3582,7 +3734,7 @@ function Test-ProjectionContractJsonArrayShape {
         $projection = $projectionContract.projections[[string]$projectionTag]
         if (-not ($projection -is [System.Collections.IDictionary])) { continue }
 
-        foreach ($propertyName in @('filter', 'columns', 'rowOrder')) {
+        foreach ($propertyName in @('filter', 'columns', 'rowOrder', 'groupBy')) {
             if ((Test-MapHasKey -Map $projection -Key $propertyName) -and $null -ne $projection[$propertyName] -and -not ($projection[$propertyName] -is [System.Collections.IList])) {
                 return [ordered]@{
                     isValid = $false
@@ -3629,6 +3781,9 @@ function Normalize-ProjectionDefinition {
             'rowOrder' {
                 $normalized.rowOrder = @(ConvertTo-ObjectArray -InputObject $Definition[$key] | Where-Object { $null -ne $_ })
             }
+            'groupBy' {
+                $normalized.groupBy = @(ConvertTo-ObjectArray -InputObject $Definition[$key] | Where-Object { $null -ne $_ })
+            }
             default {
                 $normalized[[string]$key] = $Definition[$key]
             }
@@ -3638,6 +3793,7 @@ function Normalize-ProjectionDefinition {
     if (-not $normalized.Contains('filter')) { $normalized.filter = @() }
     if (-not $normalized.Contains('columns')) { $normalized.columns = @() }
     if (-not $normalized.Contains('rowOrder')) { $normalized.rowOrder = @() }
+    if (-not $normalized.Contains('groupBy')) { $normalized.groupBy = @() }
     if (-not $normalized.Contains('renderMode')) {
         if (@($normalized.columns).Count -gt 0) {
             $normalized.renderMode = 'table'
@@ -4561,7 +4717,7 @@ function Test-ProjectionCondition {
         throw 'Projection condition is missing required field property.'
     }
 
-    $actual = $Row.([string]$Condition.field)
+    $actual = Get-ProjectionRowFieldValue -Row $Row -Field ([string]$Condition.field)
     if (Test-MapHasKey -Map $Condition -Key 'equals') {
         return ([string]$actual -eq [string]$Condition.equals)
     }
@@ -4776,17 +4932,25 @@ function Resolve-ProjectionColumnValue {
     $value = $null
     if (Test-MapHasKey -Map $Column -Key 'source') {
         $sourceField = [string]$Column.source
-        if ($Row -is [System.Collections.IDictionary]) {
-            if ($Row.Contains($sourceField)) {
-                $value = $Row[$sourceField]
+        if (-not [string]::IsNullOrWhiteSpace($sourceField)) {
+            $value = Get-ProjectionRowFieldValue -Row $Row -Field $sourceField
+        }
+    }
+
+    if (($null -eq $value -or [string]::IsNullOrWhiteSpace([string]$value)) -and (Test-MapHasKey -Map $Column -Key 'fallbackSources')) {
+        foreach ($fallbackSource in @(ConvertTo-ObjectArray -InputObject $Column.fallbackSources)) {
+            $fallbackField = [string]$fallbackSource
+            if ([string]::IsNullOrWhiteSpace($fallbackField)) { continue }
+            $fallbackValue = Get-ProjectionRowFieldValue -Row $Row -Field $fallbackField
+            if ($null -ne $fallbackValue -and -not [string]::IsNullOrWhiteSpace([string]$fallbackValue)) {
+                $value = $fallbackValue
+                break
             }
         }
-        else {
-            $property = $Row.PSObject.Properties[$sourceField]
-            if ($null -ne $property) {
-                $value = $property.Value
-            }
-        }
+    }
+
+    if (($null -eq $value -or [string]::IsNullOrWhiteSpace([string]$value)) -and (Test-MapHasKey -Map $Column -Key 'defaultValue')) {
+        $value = $Column.defaultValue
     }
 
     if ((Test-MapHasKey -Map $Column -Key 'lookup') -and $Column.lookup -is [System.Collections.IDictionary]) {
@@ -4858,18 +5022,36 @@ function Get-ProjectionRowFieldValue {
         return $null
     }
 
-    if ($Row -is [System.Collections.IDictionary]) {
-        if ($Row.Contains($Field)) {
-            return $Row[$Field]
+    $segments = @($Field -split '\.' | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
+    if ($segments.Count -eq 0) {
+        return $null
+    }
+
+    $current = $Row
+    foreach ($segment in $segments) {
+        if ($null -eq $current) {
+            return $null
         }
+
+        $segmentText = [string]$segment
+        if ($current -is [System.Collections.IDictionary]) {
+            if ($current.Contains($segmentText)) {
+                $current = $current[$segmentText]
+                continue
+            }
+            return $null
+        }
+
+        $property = $current.PSObject.Properties[$segmentText]
+        if ($null -ne $property) {
+            $current = $property.Value
+            continue
+        }
+
+        return $null
     }
 
-    $property = $Row.PSObject.Properties[$Field]
-    if ($null -ne $property) {
-        return $property.Value
-    }
-
-    return $null
+    return $current
 }
 
 function Get-ProjectionRowOrder {
@@ -5101,6 +5283,64 @@ function Get-DisplayColumnsForTable {
     return $Columns
 }
 
+function Get-ProjectionGroupBy {
+    param([Parameter(Mandatory = $false)][System.Collections.IDictionary]$Definition)
+
+    if ($null -eq $Definition -or -not (Test-MapHasKey -Map $Definition -Key 'groupBy')) {
+        return @()
+    }
+
+    $groupDirectives = @()
+    foreach ($entry in @(ConvertTo-ObjectArray -InputObject $Definition.groupBy)) {
+        if ($entry -is [System.Collections.IDictionary]) {
+            $source = if (Test-MapHasKey -Map $entry -Key 'source') { [string]$entry.source } elseif (Test-MapHasKey -Map $entry -Key 'by') { [string]$entry.by } else { '' }
+            if ([string]::IsNullOrWhiteSpace($source)) { continue }
+
+            $label = if (Test-MapHasKey -Map $entry -Key 'label') { [string]$entry.label } else { '' }
+            $hideColumn = $true
+            if ((Test-MapHasKey -Map $entry -Key 'hideColumn') -and $null -ne $entry.hideColumn) {
+                $hideColumn = [bool]$entry.hideColumn
+            }
+
+            $groupDirectives += [ordered]@{
+                source = $source
+                label = $label
+                hideColumn = $hideColumn
+            }
+            continue
+        }
+
+        $source = [string]$entry
+        if ([string]::IsNullOrWhiteSpace($source)) { continue }
+        $groupDirectives += [ordered]@{
+            source = $source
+            label = ''
+            hideColumn = $true
+        }
+    }
+
+    return @($groupDirectives)
+}
+
+function Get-ProjectedRowFieldText {
+    param(
+        [Parameter(Mandatory = $false)]$Row,
+        [Parameter(Mandatory = $true)][string]$Field
+    )
+
+    if ($null -eq $Row -or [string]::IsNullOrWhiteSpace($Field)) { return '' }
+    $value = $null
+    if ($Row -is [System.Collections.IDictionary]) {
+        if ($Row.Contains($Field)) { $value = $Row[$Field] }
+    }
+    else {
+        $property = $Row.PSObject.Properties[$Field]
+        if ($null -ne $property) { $value = $property.Value }
+    }
+
+    return Convert-CellValueToString -Value $value
+}
+
 function Convert-ValueToTableModel {
     param(
         [Parameter(Mandatory = $false)]$Value,
@@ -5141,6 +5381,10 @@ function Convert-ValueToTableModel {
     if (@($rows).Count -eq 0) {
         if ($projectionEmptyBehavior -eq 'placeholder' -and $null -ne $projectionDefinition -and @($projectionDefinition.columns).Count -gt 0) {
             $placeholderRow = [ordered]@{}
+            $emptyPlaceholder = 'Not configured'
+            if ((Test-MapHasKey -Map $projectionDefinition -Key 'emptyPlaceholder') -and -not [string]::IsNullOrWhiteSpace([string]$projectionDefinition['emptyPlaceholder'])) {
+                $emptyPlaceholder = [string]$projectionDefinition['emptyPlaceholder']
+            }
             $isFirstColumn = $true
             foreach ($column in @($projectionDefinition.columns)) {
                 if (-not ($column -is [System.Collections.IDictionary]) -or -not (Test-MapHasKey -Map $column -Key 'name')) {
@@ -5149,7 +5393,7 @@ function Convert-ValueToTableModel {
 
                 $columnName = [string]$column.name
                 if ($isFirstColumn) {
-                    $placeholderRow[$columnName] = 'Not configured'
+                    $placeholderRow[$columnName] = $emptyPlaceholder
                     $isFirstColumn = $false
                 }
                 else {
@@ -5172,11 +5416,97 @@ function Convert-ValueToTableModel {
     if (@($displayColumns).Count -eq 0) {
         $displayColumns = $allColumns
     }
+    $groupBy = @(Get-ProjectionGroupBy -Definition $projectionDefinition)
+    if (@($groupBy).Count -gt 0) {
+        $hiddenGroupColumns = @($groupBy | Where-Object { [bool]$_['hideColumn'] } | ForEach-Object { [string]$_['source'] })
+        if (@($hiddenGroupColumns).Count -gt 0) {
+            $displayColumns = @($displayColumns | Where-Object { $hiddenGroupColumns -notcontains [string]$_ })
+            if (@($displayColumns).Count -eq 0) {
+                $displayColumns = @($allColumns | Where-Object { $hiddenGroupColumns -notcontains [string]$_ })
+            }
+        }
+    }
+
+    $tableLayout = $null
+    $columnLayout = @{}
+    if ($null -ne $projectionDefinition) {
+        if ((Test-MapHasKey -Map $projectionDefinition -Key 'tableLayout') -and ($projectionDefinition.tableLayout -is [System.Collections.IDictionary])) {
+            $tableLayout = $projectionDefinition.tableLayout
+        }
+        $columnLayout = Get-WordTableColumnLayoutLookup -ProjectionDefinition $projectionDefinition
+    }
 
     return [ordered]@{
         rows = $rows
         displayColumns = $displayColumns
+        groupBy = $groupBy
+        tableLayout = $tableLayout
+        columnLayout = $columnLayout
     }
+}
+
+function Convert-TableRowsToGroupedString {
+    param(
+        [Parameter(Mandatory = $false)][object[]]$Rows,
+        [Parameter(Mandatory = $true)][string[]]$DisplayColumns,
+        [Parameter(Mandatory = $false)][object[]]$GroupBy,
+        [Parameter(Mandatory = $false)][int]$Level = 0
+    )
+
+    $normalizedRows = @(ConvertTo-ObjectArray -InputObject $Rows)
+    $normalizedGroupBy = @(ConvertTo-ObjectArray -InputObject $GroupBy)
+    if (@($normalizedRows).Count -eq 0) { return '' }
+    if (@($normalizedGroupBy).Count -eq 0) {
+        return (($normalizedRows | Format-Table -Property $DisplayColumns -AutoSize | Out-String -Width 4096).TrimEnd())
+    }
+
+    $directive = $normalizedGroupBy[0]
+    $source = if ($directive -is [System.Collections.IDictionary] -and (Test-MapHasKey -Map $directive -Key 'source')) { [string]$directive.source } else { [string]$directive }
+    if ([string]::IsNullOrWhiteSpace($source)) {
+        return (($normalizedRows | Format-Table -Property $DisplayColumns -AutoSize | Out-String -Width 4096).TrimEnd())
+    }
+
+    $label = if ($directive -is [System.Collections.IDictionary] -and (Test-MapHasKey -Map $directive -Key 'label')) { [string]$directive.label } else { '' }
+    $remainingGroupBy = @($normalizedGroupBy | Select-Object -Skip 1)
+    $output = [System.Collections.Generic.List[string]]::new()
+
+    $currentGroupValue = $null
+    $currentGroupRows = [System.Collections.Generic.List[object]]::new()
+
+    $flushGroup = {
+        param([string]$GroupValue, [object[]]$GroupRows)
+        if (@($GroupRows).Count -eq 0) { return }
+        $groupValueForDisplay = [string]$GroupValue
+        if ([string]::IsNullOrWhiteSpace($groupValueForDisplay)) { $groupValueForDisplay = 'Unspecified' }
+        $heading = if ([string]::IsNullOrWhiteSpace($label)) { $groupValueForDisplay } else { "${label}: $groupValueForDisplay" }
+        if ($Level -gt 0) { $heading = ('  ' * $Level) + $heading }
+        $output.Add($heading) | Out-Null
+
+        $block = Convert-TableRowsToGroupedString -Rows @($GroupRows) -DisplayColumns $DisplayColumns -GroupBy $remainingGroupBy -Level ($Level + 1)
+        if (-not [string]::IsNullOrWhiteSpace($block)) {
+            foreach ($line in @($block -split "`r?`n")) {
+                $output.Add($line) | Out-Null
+            }
+        }
+        $output.Add('') | Out-Null
+    }
+
+    foreach ($row in @($normalizedRows)) {
+        $groupValue = Get-ProjectedRowFieldText -Row $row -Field $source
+        if ($null -eq $currentGroupValue) {
+            $currentGroupValue = $groupValue
+        }
+        elseif ([string]$currentGroupValue -ne [string]$groupValue) {
+            & $flushGroup ([string]$currentGroupValue) @($currentGroupRows)
+            $currentGroupRows.Clear()
+            $currentGroupValue = $groupValue
+        }
+
+        $currentGroupRows.Add($row) | Out-Null
+    }
+    & $flushGroup ([string]$currentGroupValue) @($currentGroupRows)
+
+    return (($output -join [Environment]::NewLine).TrimEnd())
 }
 
 function Convert-ValueToTableString {
@@ -5201,6 +5531,10 @@ function Convert-ValueToTableString {
 
     $rows = @($tableModel.rows)
     $displayColumns = @($tableModel.displayColumns)
+    $groupBy = @($tableModel.groupBy)
+    if (@($groupBy).Count -gt 0) {
+        return (Convert-TableRowsToGroupedString -Rows $rows -DisplayColumns $displayColumns -GroupBy $groupBy)
+    }
     return (($rows | Format-Table -Property $displayColumns -AutoSize | Out-String -Width 4096).TrimEnd())
 }
 

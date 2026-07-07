@@ -1,0 +1,406 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.XCC",
+    "module": "LNV.AsBuiltDoc.Lenovo.XCC",
+    "entry_point": "Invoke-AsBuiltDoc.Lenovo.XCC"
+  },
+  "source": {
+    "bundle_id": "0634a81a-4d4d-47f8-9ac6-ad28965741e7",
+    "bundle_root": "C:\\Github\\LNV.AsBuiltDoc.Core\\out\\412f44d4-06fa-4b1b-b1ea-bd0d7ac07ed8",
+    "target_key": "srv01-xcc",
+    "file": "datasets/Lenovo.XCC/core/srv01-xcc/collection-summary.json"
+  },
+  "dataset": "collection-summary",
+  "item_count": 1,
+  "items": [
+    {
+      "targetKey": "srv01-xcc",
+      "displayName": "SE350 XCC",
+      "baseUri": "https://192.168.183.199",
+      "apiType": "redfish",
+      "serviceRootReachable": true,
+      "authenticated": true,
+      "collectionStatus": "partial",
+      "warnings": [
+        "tlsPolicy allowSelfSigned permits self-signed certificates while requiring HTTPS.",
+        "Manager log services failed: Response status code does not indicate success: 404 (Not Found)."
+      ],
+      "errors": [],
+      "endpointResults": [
+        {
+          "name": "Service root",
+          "path": "/redfish/v1/",
+          "statusCode": 200,
+          "success": true,
+          "required": true,
+          "error": null
+        },
+        {
+          "name": "Systems collection",
+          "path": "/redfish/v1/Systems",
+          "statusCode": 200,
+          "success": true,
+          "required": true,
+          "error": null
+        },
+        {
+          "name": "Managers collection",
+          "path": "/redfish/v1/Managers",
+          "statusCode": 200,
+          "success": true,
+          "required": true,
+          "error": null
+        },
+        {
+          "name": "Chassis collection",
+          "path": "/redfish/v1/Chassis",
+          "statusCode": 200,
+          "success": true,
+          "required": true,
+          "error": null
+        },
+        {
+          "name": "Firmware inventory",
+          "path": "/redfish/v1/UpdateService/FirmwareInventory",
+          "statusCode": 200,
+          "success": true,
+          "required": true,
+          "error": null
+        },
+        {
+          "name": "Processors collection",
+          "path": "/redfish/v1/Systems/1/Processors",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Memory collection",
+          "path": "/redfish/v1/Systems/1/Memory",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Ethernet interfaces collection",
+          "path": "/redfish/v1/Systems/1/EthernetInterfaces",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "System network interfaces collection",
+          "path": "/redfish/v1/Systems/1/NetworkInterfaces",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Storage collection",
+          "path": "/redfish/v1/Systems/1/Storage",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Storage drive",
+          "path": "/redfish/v1/Systems/1/Storage/M.2_Slot1/Drives/Drive.M.2_Bay0",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Storage drive",
+          "path": "/redfish/v1/Systems/1/Storage/M.2_Slot1/Drives/Drive.M.2_Bay1",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Storage volumes collection",
+          "path": "/redfish/v1/Systems/1/Storage/M.2_Slot1/Volumes",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "System BIOS",
+          "path": "/redfish/v1/Systems/1/Bios",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Secure Boot",
+          "path": "/redfish/v1/Systems/1/SecureBoot",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "PCIe device",
+          "path": "/redfish/v1/Chassis/1/PCIeDevices/ob_1",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "PCIe functions collection",
+          "path": "/redfish/v1/Chassis/1/PCIeDevices/ob_1/PCIeFunctions",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "PCIe device",
+          "path": "/redfish/v1/Chassis/1/PCIeDevices/ob_2",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "PCIe functions collection",
+          "path": "/redfish/v1/Chassis/1/PCIeDevices/ob_2/PCIeFunctions",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "PCIe device",
+          "path": "/redfish/v1/Chassis/1/PCIeDevices/slot_1",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "PCIe functions collection",
+          "path": "/redfish/v1/Chassis/1/PCIeDevices/slot_1/PCIeFunctions",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "PCIe device",
+          "path": "/redfish/v1/Chassis/1/PCIeDevices/slot_6",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "PCIe functions collection",
+          "path": "/redfish/v1/Chassis/1/PCIeDevices/slot_6/PCIeFunctions",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "System virtual media",
+          "path": "/redfish/v1/Systems/1/VirtualMedia",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Chassis power",
+          "path": "/redfish/v1/Chassis/1/Power",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Chassis thermal",
+          "path": "/redfish/v1/Chassis/1/Thermal",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Chassis sensors",
+          "path": "/redfish/v1/Chassis/1/Sensors",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Chassis network adapters",
+          "path": "/redfish/v1/Chassis/1/NetworkAdapters",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Network adapter ports",
+          "path": "/redfish/v1/Chassis/1/NetworkAdapters/ob-2/Ports",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Network adapter network ports",
+          "path": "/redfish/v1/Chassis/1/NetworkAdapters/ob-2/NetworkPorts",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Network device functions",
+          "path": "/redfish/v1/Chassis/1/NetworkAdapters/ob-2/NetworkDeviceFunctions",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Network adapter ports",
+          "path": "/redfish/v1/Chassis/1/NetworkAdapters/slot-6/Ports",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Network adapter network ports",
+          "path": "/redfish/v1/Chassis/1/NetworkAdapters/slot-6/NetworkPorts",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Network device functions",
+          "path": "/redfish/v1/Chassis/1/NetworkAdapters/slot-6/NetworkDeviceFunctions",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Chassis PCIe slots",
+          "path": "/redfish/v1/Chassis/1/PCIeSlots",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Chassis environment metrics",
+          "path": "/redfish/v1/Chassis/1/EnvironmentMetrics",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Chassis power subsystem",
+          "path": "/redfish/v1/Chassis/1/PowerSubsystem",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Chassis thermal subsystem",
+          "path": "/redfish/v1/Chassis/1/ThermalSubsystem",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Manager log services",
+          "path": "/redfish/v1/Managers/1/LogServices",
+          "statusCode": 404,
+          "success": false,
+          "required": false,
+          "error": "Response status code does not indicate success: 404 (Not Found)."
+        },
+        {
+          "name": "Manager network protocol",
+          "path": "/redfish/v1/Managers/1/NetworkProtocol",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "XCC interfaces",
+          "path": "/redfish/v1/Managers/1/EthernetInterfaces",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Manager host interfaces",
+          "path": "/redfish/v1/Managers/1/HostInterfaces",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Manager serial interfaces",
+          "path": "/redfish/v1/Managers/1/SerialInterfaces",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Manager virtual media",
+          "path": "/redfish/v1/Managers/1/VirtualMedia",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Account service",
+          "path": "/redfish/v1/AccountService",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        },
+        {
+          "name": "Account users collection",
+          "path": "/redfish/v1/AccountService/Accounts",
+          "statusCode": 200,
+          "success": true,
+          "required": false,
+          "error": null
+        }
+      ],
+      "collectedUtc": "2026-07-02T06:32:48.1051256Z",
+      "startedUtc": "2026-07-02T06:30:41.1133407Z",
+      "completedUtc": "2026-07-02T06:32:48.1051256Z",
+      "serverIdentity": "srv01-xcc"
+    }
+  ]
+}

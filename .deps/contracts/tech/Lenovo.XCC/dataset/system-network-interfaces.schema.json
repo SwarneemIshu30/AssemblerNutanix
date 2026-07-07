@@ -1,0 +1,237 @@
+{
+  "$id": "https://lnv-asbuiltdoc.github.io/LNV.AsBuiltDoc.Contracts/tech/Lenovo.XCC/dataset/system-network-interfaces.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "collected_at_utc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "collector": {
+      "type": "object"
+    },
+    "dataset": {
+      "const": "system-network-interfaces"
+    },
+    "item_count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "items": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "collectedUtc": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "collectionStatus": {
+            "enum": [
+              "success",
+              "partial",
+              "failed"
+            ],
+            "type": "string"
+          },
+          "componentId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "componentName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "componentType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "health": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hostName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "machineType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "managerId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "networkAdapterPath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "networkDeviceFunctionsPath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "networkInterfaceId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "networkInterfaceName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "networkPortsPath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "portsPath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "position": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rack": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "row": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "serialNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "serverIdentity": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "site": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "siteSort": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourceEndpoint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourcePath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "systemId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "targetDisplayName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "targetKey": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "xccAddress": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "targetKey",
+          "collectionStatus",
+          "collectedUtc"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "lnv.collector.dataset.v1"
+    },
+    "source": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "collector",
+    "source",
+    "dataset",
+    "item_count",
+    "items"
+  ],
+  "title": "Lenovo.XCC system-network-interfaces dataset",
+  "type": "object"
+}

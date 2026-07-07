@@ -17,6 +17,31 @@ permissions:
 
 jobs:
   publish:
-    uses: LNV-AsBuiltDoc/LNV.AsBuiltDoc.KnowledgeContracts/.github/workflows/publish-contract-state.yml@v2
-    with:
-      role: assembler
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify PowerShell availability
+        shell: bash
+        run: pwsh --version
+
+      - name: Build package evidence
+        shell: pwsh
+        run: ./scripts/New-AssemblerPackage.ps1
+
+      - name: Collect and validate state
+        uses: LNV-AsBuiltDoc/LNV.AsBuiltDoc.KnowledgeContracts/.github/actions/collect-contract-state@v2
+        with:
+          role: assembler
+          output_path: contract-state.json
+
+      - name: Upload contract state
+        uses: actions/upload-artifact@v4
+        with:
+          name: knowledge-contract-state
+          path: contract-state.json
+          retention-days: 14
+          if-no-files-found: error

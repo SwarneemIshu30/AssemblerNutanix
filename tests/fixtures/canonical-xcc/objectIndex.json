@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "collectedUtc": "2026-07-02T06:32:52.9738538Z",
+  "objects": [
+    {
+      "techId": "Lenovo.XCC",
+      "kind": "lenovo.xcc",
+      "key": "srv01-xcc",
+      "displayName": "SE350 XCC"
+    }
+  ]
+}
