@@ -17,500 +17,724 @@
   },
   "mappings": [
     {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.CollectionStatus",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.CollectionStatus"
-      },
+      "required": true,
+      "dataset": "collection-summary",
+      "selectors": [
+        "items"
+      ],
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.CollectionStatus"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.CollectionStatus"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.CollectionStatus"
+    },
+    {
+      "required": true,
+      "dataset": "systems",
       "selectors": [
         "items"
       ],
-      "required": true,
-      "dataset": "collection-summary"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Summary",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Summary"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Summary"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Summary"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Summary"
+    },
+    {
+      "required": true,
+      "dataset": "managers",
       "selectors": [
         "items"
       ],
-      "required": true,
-      "dataset": "systems"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Managers",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Managers"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Managers"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Managers"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Managers"
+    },
+    {
+      "required": true,
+      "dataset": "chassis",
       "selectors": [
         "items"
       ],
-      "required": true,
-      "dataset": "managers"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Chassis",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Chassis"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Chassis"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Chassis"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Chassis"
+    },
+    {
+      "required": true,
+      "dataset": "firmware-inventory",
       "selectors": [
         "items"
       ],
-      "required": true,
-      "dataset": "chassis"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Firmware",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Firmware"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Firmware"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Firmware"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Firmware"
+    },
+    {
+      "required": false,
+      "dataset": "processors",
       "selectors": [
         "items"
       ],
-      "required": true,
-      "dataset": "firmware-inventory"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Processors",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Processors"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Processors"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Processors"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Processors"
+    },
+    {
+      "required": false,
+      "dataset": "memory",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "processors"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Memory",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Memory"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Memory"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Memory"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Memory"
+    },
+    {
+      "required": false,
+      "dataset": "ethernet-interfaces",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "memory"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkInterfaces",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkInterfaces"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkInterfaces"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkInterfaces"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkInterfaces"
+    },
+    {
+      "required": false,
+      "dataset": "system-network-interfaces",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "ethernet-interfaces"
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.SystemNetworkInterfaces"
+      },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.SystemNetworkInterfaces"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.SystemNetworkInterfaces"
     },
     {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageControllers",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageControllers"
+      "required": false,
+      "dataset": "network-adapter-ports",
+      "selectors": [
+        "items"
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkAdapterPorts"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkAdapterPorts"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkAdapterPorts"
+    },
+    {
+      "required": false,
+      "dataset": "network-adapter-network-ports",
+      "selectors": [
+        "items"
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkAdapterNetworkPorts"
+      },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkAdapterNetworkPorts"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkAdapterNetworkPorts"
+    },
+    {
+      "required": false,
+      "dataset": "network-device-functions",
+      "selectors": [
+        "items"
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkDeviceFunctions"
+      },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkDeviceFunctions"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkDeviceFunctions"
+    },
+    {
+      "required": false,
+      "dataset": "storage-controllers",
+      "selectors": [
+        "items"
+      ],
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageControllers"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageControllers"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageControllers"
+    },
+    {
+      "required": false,
+      "dataset": "storage-drives",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "storage-controllers"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageDrives",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageDrives"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageDrives"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageDrives"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageDrives"
+    },
+    {
+      "required": false,
+      "dataset": "storage-volumes",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "storage-drives"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageVolumes",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageVolumes"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageVolumes"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageVolumes"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageVolumes"
+    },
+    {
+      "required": false,
+      "dataset": "power",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "storage-volumes"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Power",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Power"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Power"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Power"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Power"
+    },
+    {
+      "required": false,
+      "dataset": "thermal",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "power"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Thermal",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Thermal"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Thermal"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Thermal"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Thermal"
+    },
+    {
+      "required": false,
+      "dataset": "event-log",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "thermal"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.EventLog",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.EventLog"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.EventLog"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.EventLog"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.EventLog"
+    },
+    {
+      "required": false,
+      "dataset": "security",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "event-log"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Security",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Security"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Security"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Security"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Security"
+    },
+    {
+      "required": false,
+      "dataset": "users-summary",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "security"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Users",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Users"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Users"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Users"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Users"
+    },
+    {
+      "required": false,
+      "dataset": "bios",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "users-summary"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Bios",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Bios"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.Bios"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Bios"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.Bios"
+    },
+    {
+      "required": false,
+      "dataset": "secure-boot",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "bios"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.SecureBoot",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.SecureBoot"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.SecureBoot"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.SecureBoot"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.SecureBoot"
+    },
+    {
+      "required": false,
+      "dataset": "pcie-devices",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "secure-boot"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.PcieDevices",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.PcieDevices"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.PcieDevices"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.PcieDevices"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.PcieDevices"
+    },
+    {
+      "required": false,
+      "dataset": "pcie-functions",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "pcie-devices"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.PcieFunctions",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.PcieFunctions"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.PcieFunctions"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.PcieFunctions"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.PcieFunctions"
+    },
+    {
+      "required": false,
+      "dataset": "manager-network-protocol",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "pcie-functions"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerNetworkProtocol",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerNetworkProtocol"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerNetworkProtocol"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerNetworkProtocol"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerNetworkProtocol"
+    },
+    {
+      "required": false,
+      "dataset": "manager-ethernet-interfaces",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "manager-network-protocol"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerEthernetInterfaces",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerEthernetInterfaces"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerEthernetInterfaces"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerEthernetInterfaces"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerEthernetInterfaces"
+    },
+    {
+      "required": false,
+      "dataset": "manager-host-interfaces",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "manager-ethernet-interfaces"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerHostInterfaces",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerHostInterfaces"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerHostInterfaces"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerHostInterfaces"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerHostInterfaces"
+    },
+    {
+      "required": false,
+      "dataset": "manager-serial-interfaces",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "manager-host-interfaces"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerSerialInterfaces",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerSerialInterfaces"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerSerialInterfaces"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerSerialInterfaces"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerSerialInterfaces"
+    },
+    {
+      "required": false,
+      "dataset": "virtual-media",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "manager-serial-interfaces"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.VirtualMedia",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.VirtualMedia"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.VirtualMedia"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.VirtualMedia"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.VirtualMedia"
+    },
+    {
+      "required": false,
+      "dataset": "chassis-sensors",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "virtual-media"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisSensors",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisSensors"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisSensors"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisSensors"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisSensors"
+    },
+    {
+      "required": false,
+      "dataset": "chassis-network-adapters",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "chassis-sensors"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisNetworkAdapters",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisNetworkAdapters"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisNetworkAdapters"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisNetworkAdapters"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisNetworkAdapters"
+    },
+    {
+      "required": false,
+      "dataset": "chassis-pcie-slots",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "chassis-network-adapters"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPcieSlots",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPcieSlots"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPcieSlots"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPcieSlots"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPcieSlots"
+    },
+    {
+      "required": false,
+      "dataset": "chassis-environment",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "chassis-pcie-slots"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisEnvironment",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisEnvironment"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisEnvironment"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisEnvironment"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisEnvironment"
+    },
+    {
+      "required": false,
+      "dataset": "chassis-power-subsystem",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "chassis-environment"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPowerSubsystem",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPowerSubsystem"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPowerSubsystem"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPowerSubsystem"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPowerSubsystem"
+    },
+    {
+      "required": false,
+      "dataset": "chassis-thermal-subsystem",
       "selectors": [
         "items"
       ],
-      "required": false,
-      "dataset": "chassis-power-subsystem"
-    },
-    {
-      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisThermalSubsystem",
-      "target": {
-        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisThermalSubsystem"
-      },
       "renderHint": {
         "renderAs": "table",
         "renderMode": "table",
         "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisThermalSubsystem"
       },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisThermalSubsystem"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisThermalSubsystem"
+    },
+    {
+      "required": false,
+      "dataset": "host-ethernet-ports",
       "selectors": [
         "items"
       ],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.HostEthernetPorts"
+      },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.HostEthernetPorts"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.HostEthernetPorts"
+    },
+    {
       "required": false,
-      "dataset": "chassis-thermal-subsystem"
+      "dataset": "host-fc-ports",
+      "selectors": [
+        "items"
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.HostFcPorts"
+      },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.HostFcPorts"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.HostFcPorts"
+    },
+    {
+      "required": false,
+      "dataset": "management-ethernet-ports",
+      "selectors": [
+        "items"
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagementEthernetPorts"
+      },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagementEthernetPorts"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagementEthernetPorts"
+    },
+    {
+      "required": false,
+      "dataset": "server-port-inventory",
+      "selectors": [
+        "items"
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Tables.ServerPortInventory"
+      },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ServerPortInventory"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Tables.ServerPortInventory"
+    },
+    {
+      "required": false,
+      "dataset": "diagram-server-port-graph",
+      "selectors": [
+        "items"
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Diagrams.ServerPortGraph"
+      },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Diagrams.ServerPortGraph"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Diagrams.ServerPortGraph"
+    },
+    {
+      "required": false,
+      "dataset": "diagram-storage-connectivity-graph",
+      "selectors": [
+        "items"
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Diagrams.StorageConnectivityGraph"
+      },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Diagrams.StorageConnectivityGraph"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Diagrams.StorageConnectivityGraph"
+    },
+    {
+      "required": false,
+      "dataset": "host-ethernet-ports",
+      "selectors": [
+        "items"
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Appendix.HostEthernetPortEvidence"
+      },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Appendix.HostEthernetPortEvidence"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Appendix.HostEthernetPortEvidence"
+    },
+    {
+      "required": false,
+      "dataset": "server-port-inventory",
+      "selectors": [
+        "items"
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Appendix.ServerPortInventoryEvidence"
+      },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Appendix.ServerPortInventoryEvidence"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Appendix.ServerPortInventoryEvidence"
+    },
+    {
+      "required": false,
+      "dataset": "system-network-interfaces",
+      "selectors": [
+        "items"
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Appendix.SystemNetworkInterfaceEvidence"
+      },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Appendix.SystemNetworkInterfaceEvidence"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Appendix.SystemNetworkInterfaceEvidence"
+    },
+    {
+      "required": false,
+      "dataset": "network-device-functions",
+      "selectors": [
+        "items"
+      ],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Appendix.NetworkDeviceFunctionEvidence"
+      },
+      "target": {
+        "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Appendix.NetworkDeviceFunctionEvidence"
+      },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Appendix.NetworkDeviceFunctionEvidence"
     }
   ]
 }

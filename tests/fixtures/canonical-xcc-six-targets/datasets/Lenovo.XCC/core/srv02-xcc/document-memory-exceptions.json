@@ -1,0 +1,49 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.XCC",
+    "module": "LNV.AsBuiltDoc.Lenovo.XCC",
+    "entry_point": "Invoke-AsBuiltDoc.Lenovo.XCC"
+  },
+  "source": {
+    "bundle_id": "0634a81a-4d4d-47f8-9ac6-ad28965741e7",
+    "bundle_root": "C:\\Github\\LNV.AsBuiltDoc.Core\\out\\412f44d4-06fa-4b1b-b1ea-bd0d7ac07ed8",
+    "target_key": "srv02-xcc",
+    "file": "datasets/Lenovo.XCC/core/srv02-xcc/document-memory-exceptions.json"
+  },
+  "dataset": "document-memory-exceptions",
+  "item_count": 1,
+  "items": [
+    {
+      "targetKey": "srv02-xcc",
+      "targetDisplayName": "VXNODE02 XCC",
+      "systemId": "1",
+      "managerId": "1",
+      "hostName": "VXNODE02-XCC",
+      "serialNumber": "J301DX1L",
+      "machineType": "",
+      "model": "ThinkSystem SE350",
+      "xccAddress": "https://192.168.183.102",
+      "componentType": "memory",
+      "componentId": "2",
+      "componentName": "DIMM 2",
+      "collectionStatus": "success",
+      "collectedUtc": "2026-07-02T06:30:59.1626024Z",
+      "health": "Warning",
+      "state": "Disabled",
+      "sourcePath": "/redfish/v1/Systems/1/Memory/2",
+      "sourceEndpoint": "/redfish/v1/Systems/1/Memory/2",
+      "slot": "DIMM 2",
+      "capacityMiB": 32768,
+      "capacityBytes": null,
+      "memoryType": "DDR4",
+      "operatingSpeedMhz": 21333,
+      "allowedSpeedsMHz": 0,
+      "manufacturer": "Kingston",
+      "partNumber": "LV26D4R9D4ME-32I",
+      "rankCount": 1,
+      "operatingSpeedDisplay": "Disabled",
+      "serverIdentity": "VXNODE02-XCC"
+    }
+  ]
+}

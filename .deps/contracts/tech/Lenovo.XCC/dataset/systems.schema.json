@@ -101,7 +101,19 @@
               "null"
             ]
           },
+          "serverIdentity": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "site": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "siteSort": {
             "type": [
               "string",
               "null"

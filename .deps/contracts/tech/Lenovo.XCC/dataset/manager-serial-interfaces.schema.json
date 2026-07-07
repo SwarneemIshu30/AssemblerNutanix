@@ -71,11 +71,35 @@
               "null"
             ]
           },
+          "interfaceDisplayName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "interfaceEnabled": {
             "type": [
               "boolean",
               "null"
             ]
+          },
+          "interfaceRole": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "interfaceSourceId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ipv4Addresses": {
+            "type": "array"
+          },
+          "ipv6Addresses": {
+            "type": "array"
           },
           "linkStatus": {
             "type": [
@@ -95,6 +119,12 @@
               "null"
             ]
           },
+          "managementMode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "managerId": {
             "type": [
               "string",
@@ -107,7 +137,43 @@
               "null"
             ]
           },
+          "peerIpAddress": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "position": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rack": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "row": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "serialNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "serverIdentity": {
             "type": [
               "string",
               "null"
@@ -116,6 +182,18 @@
           "serviceEnabled": {
             "type": [
               "boolean",
+              "null"
+            ]
+          },
+          "site": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "siteSort": {
+            "type": [
+              "string",
               "null"
             ]
           },

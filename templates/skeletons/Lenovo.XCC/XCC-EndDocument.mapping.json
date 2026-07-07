@@ -1,0 +1,116 @@
+{
+  "schema": "mapping.dataset-to-sdt",
+  "schemaVersion": 2,
+  "techId": "Lenovo.XCC",
+  "displayName": "Lenovo.XCC end-document mapping",
+  "compatibility": {
+    "contracts": {
+      "version": "v2"
+    }
+  },
+  "strictContracts": {
+    "enabled": true,
+    "requireAllMappings": true
+  },
+  "generatedFromContract": {
+    "path": "tech/Lenovo.XCC/mapping.dataset-to-sdt.v1.yaml"
+  },
+  "mappings": [
+    {
+      "required": true,
+      "dataset": "document-vital-product-data",
+      "selectors": ["items"],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Document.VitalProductDataGrouped"
+      },
+      "target": { "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Document.VitalProductDataGrouped" },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Document.VitalProductDataGrouped"
+    },
+    {
+      "required": false,
+      "dataset": "document-firmware-baseline",
+      "selectors": ["items"],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Document.FirmwareSummary"
+      },
+      "target": { "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Document.FirmwareSummary" },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Document.FirmwareSummary"
+    },
+    {
+      "required": false,
+      "dataset": "document-hardware-summary",
+      "selectors": ["items"],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Document.HardwareSummary"
+      },
+      "target": { "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Document.HardwareSummary" },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Document.HardwareSummary"
+    },
+    {
+      "required": false,
+      "dataset": "document-memory-configuration",
+      "selectors": ["items"],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Document.Memory"
+      },
+      "target": { "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Document.Memory" },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Document.Memory"
+    },
+    {
+      "required": false,
+      "dataset": "document-storage-configuration",
+      "selectors": ["items"],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Document.StorageConfiguration"
+      },
+      "target": { "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Document.StorageConfiguration" },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Document.StorageConfiguration"
+    },
+    {
+      "required": false,
+      "dataset": "management-ethernet-ports",
+      "selectors": ["items"],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Document.ManagementEthernetPorts"
+      },
+      "target": { "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Document.ManagementEthernetPorts" },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Document.ManagementEthernetPorts"
+    },
+    {
+      "required": false,
+      "dataset": "host-ethernet-ports",
+      "selectors": ["items"],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Document.HostEthernetPorts"
+      },
+      "target": { "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Document.HostEthernetPorts" },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Document.HostEthernetPorts"
+    },
+    {
+      "required": false,
+      "dataset": "host-fc-ports",
+      "selectors": ["items"],
+      "renderHint": {
+        "renderAs": "table",
+        "renderMode": "table",
+        "projectionRef": "LNV.Lenovo.XCC.Target[TargetName].Document.HostFcPorts"
+      },
+      "target": { "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Document.HostFcPorts" },
+      "sdtTag": "LNV.Lenovo.XCC.Target[TargetName].Document.HostFcPorts"
+    }
+  ]
+}

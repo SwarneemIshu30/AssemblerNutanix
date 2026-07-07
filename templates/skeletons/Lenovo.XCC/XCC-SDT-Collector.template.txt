@@ -1,0 +1,96 @@
+Mode: As-Built Draft
+
+# Lenovo XCC As-Built Configuration Reference
+====================================================================================================
+
+Collection Status
+----------------------------------------------------------------------------------------------------
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Tables.CollectionStatus>>
+
+System Overview
+----------------------------------------------------------------------------------------------------
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Summary>>
+
+Management Controllers
+----------------------------------------------------------------------------------------------------
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Tables.Managers>>
+
+Chassis
+----------------------------------------------------------------------------------------------------
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Tables.Chassis>>
+
+Firmware Baseline
+----------------------------------------------------------------------------------------------------
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Tables.Firmware>>
+
+Processor Inventory
+----------------------------------------------------------------------------------------------------
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Tables.Processors>>
+
+Memory Inventory
+----------------------------------------------------------------------------------------------------
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Tables.Memory>>
+
+Local User Accounts
+----------------------------------------------------------------------------------------------------
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Tables.Users>>
+
+Management Ethernet
+----------------------------------------------------------------------------------------------------
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Tables.ManagementEthernetPorts>>
+
+Host Ethernet Ports
+----------------------------------------------------------------------------------------------------
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Tables.HostEthernetPorts>>
+
+Host Fibre Channel Ports
+----------------------------------------------------------------------------------------------------
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Tables.HostFcPorts>>
+
+Server Port Inventory
+----------------------------------------------------------------------------------------------------
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Tables.ServerPortInventory>>
+
+SE350 Embedded Switch-Board Evidence
+----------------------------------------------------------------------------------------------------
+System Network Interfaces
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Tables.SystemNetworkInterfaces>>
+
+Network Adapter Ports
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkAdapterPorts>>
+
+Network Adapter NetworkPorts
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkAdapterNetworkPorts>>
+
+Network Device Functions
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkDeviceFunctions>>
+
+PCIe Evidence
+----------------------------------------------------------------------------------------------------
+PCIe Devices
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Tables.PcieDevices>>
+
+PCIe Functions
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Tables.PcieFunctions>>
+
+Topology Graph Dataset
+----------------------------------------------------------------------------------------------------
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Diagrams.ServerPortGraph>>
+
+Storage Connectivity Graph Dataset
+----------------------------------------------------------------------------------------------------
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Diagrams.StorageConnectivityGraph>>
+
+Appendix: Redfish Port Evidence
+----------------------------------------------------------------------------------------------------
+Host Ethernet Port Evidence
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Appendix.HostEthernetPortEvidence>>
+
+Server Port Inventory Evidence
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Appendix.ServerPortInventoryEvidence>>
+
+System Network Interface Evidence
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Appendix.SystemNetworkInterfaceEvidence>>
+
+Network Device Function Evidence
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Appendix.NetworkDeviceFunctionEvidence>>

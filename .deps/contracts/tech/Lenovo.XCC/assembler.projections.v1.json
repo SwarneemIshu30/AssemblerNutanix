@@ -1,6 +1,1019 @@
 {
   "displayName": "Lenovo XCC assembler projection definitions",
   "projections": {
+    "LNV.Lenovo.XCC.Target[TargetName].Appendix.HostEthernetPortEvidence": {
+      "columns": [
+        {
+          "name": "Port",
+          "source": "portLabel"
+        },
+        {
+          "name": "Role",
+          "source": "interfaceRole"
+        },
+        {
+          "name": "Source ID",
+          "source": "interfaceSourceId"
+        },
+        {
+          "name": "MAC",
+          "source": "macAddress"
+        },
+        {
+          "name": "Mode",
+          "source": "managementMode"
+        },
+        {
+          "name": "Peer Address",
+          "source": "peerIpAddress"
+        },
+        {
+          "name": "Source Endpoint",
+          "source": "sourceEndpoint"
+        },
+        {
+          "name": "Physical Port",
+          "source": "physicalPortPath"
+        },
+        {
+          "name": "Network Port",
+          "source": "networkPortPath"
+        },
+        {
+          "name": "Function",
+          "source": "networkDeviceFunctionPath"
+        },
+        {
+          "name": "PCIe Function",
+          "source": "pcieFunctionPath"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Appendix.NetworkDeviceFunctionEvidence": {
+      "columns": [
+        {
+          "name": "Adapter",
+          "source": "adapterName"
+        },
+        {
+          "name": "Function",
+          "source": "functionId"
+        },
+        {
+          "name": "MAC",
+          "source": "macAddress"
+        },
+        {
+          "name": "Source Endpoint",
+          "source": "sourceEndpoint"
+        },
+        {
+          "name": "Ethernet Interface",
+          "source": "ethernetInterfacePath"
+        },
+        {
+          "name": "Physical Port",
+          "source": "physicalPortPath"
+        },
+        {
+          "name": "Network Port",
+          "source": "networkPortPath"
+        },
+        {
+          "name": "PCIe Function",
+          "source": "pcieFunctionPath"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Appendix.ServerPortInventoryEvidence": {
+      "columns": [
+        {
+          "name": "Transport",
+          "source": "transport"
+        },
+        {
+          "name": "Role",
+          "source": "interfaceRole"
+        },
+        {
+          "name": "Port",
+          "source": "portLabel"
+        },
+        {
+          "name": "Source ID",
+          "source": "interfaceSourceId"
+        },
+        {
+          "name": "MAC",
+          "source": "macAddress"
+        },
+        {
+          "name": "WWPN",
+          "source": "wwpn"
+        },
+        {
+          "name": "Mode",
+          "source": "managementMode"
+        },
+        {
+          "name": "Peer Address",
+          "source": "peerIpAddress"
+        },
+        {
+          "name": "Source Endpoint",
+          "source": "sourceEndpoint"
+        },
+        {
+          "name": "Physical Port",
+          "source": "physicalPortPath"
+        },
+        {
+          "name": "Network Port",
+          "source": "networkPortPath"
+        },
+        {
+          "name": "Function",
+          "source": "networkDeviceFunctionPath"
+        },
+        {
+          "name": "PCIe Function",
+          "source": "pcieFunctionPath"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Appendix.SystemNetworkInterfaceEvidence": {
+      "columns": [
+        {
+          "name": "Interface",
+          "source": "networkInterfaceName"
+        },
+        {
+          "name": "Source Endpoint",
+          "source": "sourceEndpoint"
+        },
+        {
+          "name": "Adapter Path",
+          "source": "networkAdapterPath"
+        },
+        {
+          "name": "Ports",
+          "source": "portsPath"
+        },
+        {
+          "name": "Network Ports",
+          "source": "networkPortsPath"
+        },
+        {
+          "name": "Functions",
+          "source": "networkDeviceFunctionsPath"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Diagrams.ServerPortGraph": {
+      "columns": [
+        {
+          "name": "Graph",
+          "source": "graphKey"
+        },
+        {
+          "name": "Nodes",
+          "source": "nodeCount"
+        },
+        {
+          "name": "Edges",
+          "source": "edgeCount"
+        },
+        {
+          "name": "Groups",
+          "source": "groupCount"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Diagrams.StorageConnectivityGraph": {
+      "columns": [
+        {
+          "name": "Graph",
+          "source": "graphKey"
+        },
+        {
+          "name": "Nodes",
+          "source": "nodeCount"
+        },
+        {
+          "name": "Edges",
+          "source": "edgeCount"
+        },
+        {
+          "name": "Groups",
+          "source": "groupCount"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Document.FirmwareSummary": {
+      "columns": [
+        {
+          "defaultValue": "Unassigned Site",
+          "fallbackSources": [
+            "site",
+            "_assembler.tags.site",
+            "_assembler.params.site"
+          ],
+          "name": "Site",
+          "source": "_assembler.location.site"
+        },
+        {
+          "name": "Server Type",
+          "source": "serverType",
+          "widthWeight": 1,
+          "wrap": true
+        },
+        {
+          "name": "Component",
+          "source": "component",
+          "widthWeight": 25,
+          "wrap": true
+        },
+        {
+          "name": "State",
+          "nowrap": true,
+          "source": "state",
+          "widthWeight": 9
+        },
+        {
+          "name": "Code",
+          "nowrap": true,
+          "source": "code",
+          "widthWeight": 9
+        },
+        {
+          "name": "Release",
+          "nowrap": true,
+          "source": "release",
+          "widthWeight": 14
+        },
+        {
+          "name": "Date",
+          "nowrap": true,
+          "source": "date",
+          "widthWeight": 11
+        },
+        {
+          "name": "Servers",
+          "source": "servers",
+          "widthWeight": 32,
+          "wrap": true
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "groupBy": [
+        {
+          "hideColumn": true,
+          "source": "Site"
+        },
+        {
+          "hideColumn": true,
+          "source": "Server Type"
+        }
+      ],
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "_assembler.location.siteSort",
+        "siteSort",
+        "machineType",
+        "model",
+        "componentOrder",
+        "component",
+        "state",
+        "code",
+        "release",
+        "date"
+      ],
+      "tableLayout": {
+        "density": "compact",
+        "mode": "auto",
+        "sizing": "contract-weighted"
+      }
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Document.HardwareSummary": {
+      "columns": [
+        {
+          "defaultValue": "Unassigned Site",
+          "fallbackSources": [
+            "site",
+            "_assembler.tags.site",
+            "_assembler.params.site"
+          ],
+          "name": "Site",
+          "source": "_assembler.location.site"
+        },
+        {
+          "name": "Server",
+          "source": "serverIdentity",
+          "widthWeight": 16,
+          "wrap": true
+        },
+        {
+          "name": "Processor",
+          "source": "processor",
+          "widthWeight": 24,
+          "wrap": true
+        },
+        {
+          "name": "Cores",
+          "nowrap": true,
+          "source": "cores",
+          "widthWeight": 6
+        },
+        {
+          "name": "Memory",
+          "nowrap": true,
+          "source": "memory",
+          "widthWeight": 13
+        },
+        {
+          "name": "Disabled DIMMs",
+          "source": "disabledDimms",
+          "widthWeight": 14,
+          "wrap": true
+        },
+        {
+          "name": "Storage",
+          "source": "storageSummary",
+          "widthWeight": 22,
+          "wrap": true
+        },
+        {
+          "name": "Controller",
+          "source": "storageController",
+          "widthWeight": 15,
+          "wrap": true
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "groupBy": [
+        {
+          "hideColumn": true,
+          "source": "Site"
+        }
+      ],
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "_assembler.location.siteSort",
+        "siteSort",
+        "serverIdentity"
+      ],
+      "tableLayout": {
+        "density": "compact",
+        "mode": "auto",
+        "sizing": "contract-weighted"
+      }
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Document.HostEthernetPorts": {
+      "columns": [
+        {
+          "defaultValue": "Unassigned Site",
+          "fallbackSources": [
+            "site",
+            "_assembler.tags.site",
+            "_assembler.params.site"
+          ],
+          "name": "Site",
+          "source": "_assembler.location.site"
+        },
+        {
+          "name": "Server",
+          "source": "server",
+          "widthWeight": 15,
+          "wrap": true
+        },
+        {
+          "name": "Adapter",
+          "source": "adapter",
+          "widthWeight": 30,
+          "wrap": true
+        },
+        {
+          "name": "Slot",
+          "nowrap": true,
+          "source": "slot",
+          "widthWeight": 5
+        },
+        {
+          "name": "Port",
+          "nowrap": true,
+          "source": "portLabel",
+          "widthWeight": 18
+        },
+        {
+          "name": "MAC",
+          "nowrap": true,
+          "source": "macAddress",
+          "widthWeight": 17
+        },
+        {
+          "name": "Speed",
+          "nowrap": true,
+          "source": "speedMbps",
+          "widthWeight": 10
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "filter": [
+        {
+          "field": "interfaceRole",
+          "notEquals": "xcc-usb-host-side"
+        }
+      ],
+      "groupBy": [
+        {
+          "hideColumn": true,
+          "source": "Site"
+        }
+      ],
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "_assembler.location.siteSort",
+        "siteSort",
+        "server",
+        "adapter",
+        "portLabel"
+      ],
+      "tableLayout": {
+        "density": "compact",
+        "mode": "auto",
+        "sizing": "contract-weighted"
+      }
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Document.HostFcPorts": {
+      "columns": [
+        {
+          "defaultValue": "Unassigned Site",
+          "fallbackSources": [
+            "site",
+            "_assembler.tags.site",
+            "_assembler.params.site"
+          ],
+          "name": "Site",
+          "source": "_assembler.location.site"
+        },
+        {
+          "name": "Server",
+          "source": "server",
+          "widthWeight": 14,
+          "wrap": true
+        },
+        {
+          "name": "Adapter",
+          "source": "adapter",
+          "widthWeight": 18,
+          "wrap": true
+        },
+        {
+          "name": "Slot",
+          "nowrap": true,
+          "source": "slot",
+          "widthWeight": 5
+        },
+        {
+          "name": "Port",
+          "nowrap": true,
+          "source": "portLabel",
+          "widthWeight": 6
+        },
+        {
+          "name": "WWPN",
+          "nowrap": true,
+          "source": "wwpn",
+          "widthWeight": 18
+        },
+        {
+          "name": "WWNN",
+          "nowrap": true,
+          "source": "wwnn",
+          "widthWeight": 18
+        },
+        {
+          "name": "Link",
+          "nowrap": true,
+          "source": "linkStatusEffective",
+          "widthWeight": 7
+        },
+        {
+          "name": "Speed",
+          "nowrap": true,
+          "source": "speedMbps",
+          "widthWeight": 7
+        },
+        {
+          "name": "Fabric/Switch",
+          "source": "switchName",
+          "widthWeight": 13,
+          "wrap": true
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "emptyPlaceholder": "No FC adapters discovered",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "_assembler.location.siteSort",
+        "siteSort",
+        "server",
+        "adapter",
+        "portLabel"
+      ],
+      "tableLayout": {
+        "density": "compact",
+        "mode": "auto",
+        "sizing": "contract-weighted"
+      }
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Document.ManagementEthernetPorts": {
+      "columns": [
+        {
+          "defaultValue": "Unassigned Site",
+          "fallbackSources": [
+            "site",
+            "_assembler.tags.site",
+            "_assembler.params.site"
+          ],
+          "name": "Site",
+          "source": "_assembler.location.site"
+        },
+        {
+          "name": "Server",
+          "source": "server",
+          "widthWeight": 16,
+          "wrap": true
+        },
+        {
+          "name": "Interface",
+          "source": "interfaceDisplayName",
+          "widthWeight": 19,
+          "wrap": true
+        },
+        {
+          "name": "MAC",
+          "nowrap": true,
+          "source": "macAddress",
+          "widthWeight": 17
+        },
+        {
+          "name": "Address",
+          "nowrap": true,
+          "source": "ipAddress",
+          "widthWeight": 14
+        },
+        {
+          "name": "Mode",
+          "nowrap": true,
+          "source": "managementMode",
+          "widthWeight": 10
+        },
+        {
+          "name": "Link",
+          "nowrap": true,
+          "source": "linkStatusEffective",
+          "widthWeight": 8
+        },
+        {
+          "name": "Speed",
+          "nowrap": true,
+          "source": "speedMbps",
+          "widthWeight": 7
+        },
+        {
+          "name": "State",
+          "nowrap": true,
+          "source": "state",
+          "widthWeight": 8
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "groupBy": [
+        {
+          "hideColumn": true,
+          "source": "Site"
+        }
+      ],
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "_assembler.location.siteSort",
+        "siteSort",
+        "server",
+        "interfaceSourceId",
+        "interfaceDisplayName"
+      ],
+      "tableLayout": {
+        "density": "compact",
+        "mode": "auto",
+        "sizing": "contract-weighted"
+      }
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Document.Memory": {
+      "columns": [
+        {
+          "defaultValue": "Unassigned Site",
+          "fallbackSources": [
+            "site",
+            "_assembler.tags.site",
+            "_assembler.params.site"
+          ],
+          "name": "Site",
+          "source": "_assembler.location.site"
+        },
+        {
+          "name": "Server",
+          "source": "serverIdentity",
+          "widthWeight": 15,
+          "wrap": true
+        },
+        {
+          "name": "DIMMs",
+          "nowrap": true,
+          "source": "dimmCount",
+          "widthWeight": 7
+        },
+        {
+          "name": "Capacity",
+          "nowrap": true,
+          "source": "capacity",
+          "widthWeight": 10
+        },
+        {
+          "name": "Type",
+          "nowrap": true,
+          "source": "memoryType",
+          "widthWeight": 8
+        },
+        {
+          "name": "Speed",
+          "nowrap": true,
+          "source": "speed",
+          "widthWeight": 9
+        },
+        {
+          "name": "Part Number",
+          "nowrap": true,
+          "source": "partNumber",
+          "widthWeight": 19
+        },
+        {
+          "name": "Status",
+          "source": "status",
+          "widthWeight": 10,
+          "wrap": true
+        },
+        {
+          "name": "Slots",
+          "source": "slots",
+          "widthWeight": 18,
+          "wrap": true
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "groupBy": [
+        {
+          "hideColumn": true,
+          "source": "Site"
+        }
+      ],
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "_assembler.location.siteSort",
+        "siteSort",
+        "serverIdentity",
+        "memoryType",
+        "capacity",
+        "speed",
+        "partNumber",
+        "status"
+      ],
+      "tableLayout": {
+        "density": "compact",
+        "mode": "auto",
+        "sizing": "contract-weighted"
+      }
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Document.MemoryExceptions": {
+      "columns": [
+        {
+          "defaultValue": "Unassigned Site",
+          "fallbackSources": [
+            "site",
+            "_assembler.tags.site",
+            "_assembler.params.site"
+          ],
+          "name": "Site",
+          "source": "_assembler.location.site"
+        },
+        {
+          "name": "Server",
+          "source": "serverIdentity",
+          "widthWeight": 16,
+          "wrap": true
+        },
+        {
+          "name": "Slot",
+          "nowrap": true,
+          "source": "slot",
+          "widthWeight": 9
+        },
+        {
+          "name": "Capacity MiB",
+          "nowrap": true,
+          "source": "capacityMiB",
+          "widthWeight": 10
+        },
+        {
+          "name": "Type",
+          "nowrap": true,
+          "source": "memoryType",
+          "widthWeight": 8
+        },
+        {
+          "name": "Status",
+          "nowrap": true,
+          "source": "operatingSpeedDisplay",
+          "widthWeight": 11
+        },
+        {
+          "name": "Part Number",
+          "nowrap": true,
+          "source": "partNumber",
+          "widthWeight": 20
+        },
+        {
+          "name": "Health",
+          "nowrap": true,
+          "source": "health",
+          "widthWeight": 8
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "emptyPlaceholder": "No memory exceptions discovered",
+      "groupBy": [
+        {
+          "hideColumn": true,
+          "source": "Site"
+        }
+      ],
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "_assembler.location.siteSort",
+        "siteSort",
+        "serverIdentity",
+        "slot"
+      ],
+      "tableLayout": {
+        "density": "compact",
+        "mode": "auto",
+        "sizing": "contract-weighted"
+      }
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Document.StorageConfiguration": {
+      "columns": [
+        {
+          "defaultValue": "Unassigned Site",
+          "fallbackSources": [
+            "site",
+            "_assembler.tags.site",
+            "_assembler.params.site"
+          ],
+          "name": "Site",
+          "source": "_assembler.location.site"
+        },
+        {
+          "name": "Server",
+          "source": "serverIdentity",
+          "widthWeight": 15,
+          "wrap": true
+        },
+        {
+          "name": "Adapter",
+          "source": "adapter",
+          "widthWeight": 18,
+          "wrap": true
+        },
+        {
+          "name": "RAID Level",
+          "nowrap": true,
+          "source": "raidLevel",
+          "widthWeight": 9
+        },
+        {
+          "name": "Drives",
+          "nowrap": true,
+          "source": "driveCount",
+          "widthWeight": 7
+        },
+        {
+          "name": "Drive Type",
+          "source": "driveType",
+          "widthWeight": 12,
+          "wrap": true
+        },
+        {
+          "name": "Drive Capacity",
+          "nowrap": true,
+          "source": "driveCapacity",
+          "widthWeight": 12
+        },
+        {
+          "name": "Health",
+          "nowrap": true,
+          "source": "healthStatus",
+          "widthWeight": 8
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "groupBy": [
+        {
+          "hideColumn": true,
+          "source": "Site"
+        }
+      ],
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "_assembler.location.siteSort",
+        "siteSort",
+        "serverIdentity",
+        "adapter",
+        "raidLevel"
+      ],
+      "tableLayout": {
+        "density": "compact",
+        "mode": "auto",
+        "sizing": "contract-weighted"
+      }
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Document.VitalProductDataGrouped": {
+      "columns": [
+        {
+          "defaultValue": "Unassigned Site",
+          "fallbackSources": [
+            "site",
+            "_assembler.tags.site",
+            "_assembler.params.site"
+          ],
+          "name": "Site",
+          "source": "_assembler.location.site"
+        },
+        {
+          "name": "Component",
+          "nowrap": true,
+          "source": "component",
+          "widthWeight": 11
+        },
+        {
+          "name": "Model Type",
+          "nowrap": true,
+          "source": "machineType",
+          "widthWeight": 12
+        },
+        {
+          "name": "S/N",
+          "nowrap": true,
+          "source": "serialNumber",
+          "widthWeight": 10
+        },
+        {
+          "name": "Name",
+          "source": "name",
+          "widthWeight": 18,
+          "wrap": true
+        },
+        {
+          "name": "Description",
+          "source": "description",
+          "widthWeight": 28,
+          "wrap": true
+        },
+        {
+          "fallbackSources": [
+            "_assembler.location.rack",
+            "rackLocation",
+            "rack",
+            "_assembler.tags.rackLocation",
+            "_assembler.tags.rack",
+            "_assembler.params.rackLocation",
+            "_assembler.params.rack"
+          ],
+          "name": "Rack Location",
+          "source": "_assembler.location.rackLocation",
+          "widthWeight": 18,
+          "wrap": true
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "groupBy": [
+        {
+          "hideColumn": true,
+          "source": "Site"
+        }
+      ],
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "_assembler.location.siteSort",
+        "siteSort",
+        "name",
+        "component"
+      ],
+      "tableLayout": {
+        "density": "compact",
+        "mode": "auto",
+        "sizing": "contract-weighted"
+      }
+    },
     "LNV.Lenovo.XCC.Target[TargetName].Summary": {
       "columns": [
         {
@@ -347,6 +1360,272 @@
         "targetKey"
       ]
     },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentFirmwareSummary": {
+      "columns": [
+        {
+          "name": "Site",
+          "source": "site"
+        },
+        {
+          "name": "Server",
+          "source": "serverIdentity"
+        },
+        {
+          "name": "BMC",
+          "source": "bmc"
+        },
+        {
+          "name": "UEFI",
+          "source": "uefi"
+        },
+        {
+          "name": "LXPM",
+          "source": "lxpm"
+        },
+        {
+          "name": "Adapter FW",
+          "source": "adapterFirmware"
+        },
+        {
+          "name": "Storage FW",
+          "source": "storageFirmware"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentHardwareSummary": {
+      "columns": [
+        {
+          "name": "Site",
+          "source": "site"
+        },
+        {
+          "name": "Server",
+          "source": "serverIdentity"
+        },
+        {
+          "name": "Processor",
+          "source": "processor"
+        },
+        {
+          "name": "Cores",
+          "source": "cores"
+        },
+        {
+          "name": "Memory",
+          "source": "memory"
+        },
+        {
+          "name": "Disabled DIMMs",
+          "source": "disabledDimms"
+        },
+        {
+          "name": "Storage",
+          "source": "storageSummary"
+        },
+        {
+          "name": "Controller",
+          "source": "storageController"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentMemoryConfiguration": {
+      "columns": [
+        {
+          "name": "Site",
+          "source": "site"
+        },
+        {
+          "name": "Server",
+          "source": "serverIdentity"
+        },
+        {
+          "name": "DIMMs",
+          "source": "dimmCount"
+        },
+        {
+          "name": "Capacity",
+          "source": "capacity"
+        },
+        {
+          "name": "Type",
+          "source": "memoryType"
+        },
+        {
+          "name": "Speed",
+          "source": "speed"
+        },
+        {
+          "name": "Part Number",
+          "source": "partNumber"
+        },
+        {
+          "name": "Status",
+          "source": "status"
+        },
+        {
+          "name": "Slots",
+          "source": "slots"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentMemoryExceptions": {
+      "columns": [
+        {
+          "name": "Site",
+          "source": "site"
+        },
+        {
+          "name": "Server",
+          "source": "serverIdentity"
+        },
+        {
+          "name": "Slot",
+          "source": "slot"
+        },
+        {
+          "name": "Capacity MiB",
+          "source": "capacityMiB"
+        },
+        {
+          "name": "Type",
+          "source": "memoryType"
+        },
+        {
+          "name": "Status",
+          "source": "operatingSpeedDisplay"
+        },
+        {
+          "name": "Part Number",
+          "source": "partNumber"
+        },
+        {
+          "name": "Health",
+          "source": "health"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentStorageConfiguration": {
+      "columns": [
+        {
+          "name": "Site",
+          "source": "site"
+        },
+        {
+          "name": "Server",
+          "source": "serverIdentity"
+        },
+        {
+          "name": "Adapter",
+          "source": "adapter"
+        },
+        {
+          "name": "RAID Level",
+          "source": "raidLevel"
+        },
+        {
+          "name": "Drives",
+          "source": "driveCount"
+        },
+        {
+          "name": "Drive Type",
+          "source": "driveType"
+        },
+        {
+          "name": "Drive Capacity",
+          "source": "driveCapacity"
+        },
+        {
+          "name": "Health",
+          "source": "healthStatus"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.DocumentVitalProductData": {
+      "columns": [
+        {
+          "name": "Site",
+          "source": "site"
+        },
+        {
+          "name": "Component",
+          "source": "component"
+        },
+        {
+          "name": "Model Type",
+          "source": "machineType"
+        },
+        {
+          "name": "S/N",
+          "source": "serialNumber"
+        },
+        {
+          "name": "Name",
+          "source": "name"
+        },
+        {
+          "name": "Description",
+          "source": "description"
+        },
+        {
+          "name": "Rack Location",
+          "source": "rackLocation"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
     "LNV.Lenovo.XCC.Target[TargetName].Tables.EventLog": {
       "columns": [
         {
@@ -387,8 +1666,32 @@
           "source": "componentName"
         },
         {
-          "name": "Version",
-          "source": "firmwareVersion"
+          "name": "Display Component",
+          "source": "firmwareComponentDisplayName"
+        },
+        {
+          "name": "Code",
+          "source": "firmwareCode"
+        },
+        {
+          "name": "Release",
+          "source": "firmwareRelease"
+        },
+        {
+          "name": "Date",
+          "source": "firmwareDate"
+        },
+        {
+          "name": "Role",
+          "source": "firmwareRole"
+        },
+        {
+          "name": "State",
+          "source": "firmwareStateDisplay"
+        },
+        {
+          "name": "Raw Version",
+          "source": "rawFirmwareVersion"
         },
         {
           "name": "Updateable",
@@ -397,10 +1700,6 @@
         {
           "name": "Health",
           "source": "health"
-        },
-        {
-          "name": "State",
-          "source": "state"
         }
       ],
       "emptyBehavior": "error",
@@ -413,15 +1712,167 @@
         "targetKey"
       ]
     },
-    "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerEthernetInterfaces": {
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.HostEthernetPorts": {
+      "columns": [
+        {
+          "name": "Adapter",
+          "source": "adapter"
+        },
+        {
+          "name": "Port",
+          "source": "portLabel"
+        },
+        {
+          "name": "MAC",
+          "source": "macAddress"
+        },
+        {
+          "name": "Link",
+          "source": "linkStatusEffective"
+        },
+        {
+          "name": "Source",
+          "source": "linkStatusSource"
+        },
+        {
+          "name": "Conflict",
+          "source": "linkStatusConflict"
+        },
+        {
+          "name": "Speed",
+          "source": "speedMbps"
+        },
+        {
+          "name": "Physical Link",
+          "source": "physicalPortLinkStatus"
+        },
+        {
+          "name": "Network Link",
+          "source": "networkPortLinkStatus"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.HostFcPorts": {
+      "columns": [
+        {
+          "name": "Server",
+          "source": "server"
+        },
+        {
+          "name": "Adapter",
+          "source": "adapter"
+        },
+        {
+          "name": "Slot",
+          "source": "slot"
+        },
+        {
+          "name": "Port",
+          "source": "portLabel"
+        },
+        {
+          "name": "WWPN",
+          "source": "wwpn"
+        },
+        {
+          "name": "WWNN",
+          "source": "wwnn"
+        },
+        {
+          "name": "Link",
+          "source": "linkStatusEffective"
+        },
+        {
+          "name": "Speed",
+          "source": "speedMbps"
+        },
+        {
+          "name": "Fabric/Switch",
+          "source": "switchName"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "emptyPlaceholder": "No FC adapters discovered",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagementEthernetPorts": {
       "columns": [
         {
           "name": "Interface",
-          "source": "componentName"
+          "source": "interfaceDisplayName"
+        },
+        {
+          "name": "Mode",
+          "source": "managementMode"
+        },
+        {
+          "name": "MAC",
+          "source": "macAddress"
+        },
+        {
+          "name": "Address",
+          "source": "ipAddress"
+        },
+        {
+          "name": "Peer Address",
+          "source": "peerIpAddress"
+        },
+        {
+          "name": "Link",
+          "source": "linkStatus"
+        },
+        {
+          "name": "Speed",
+          "source": "speedMbps"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.ManagerEthernetInterfaces": {
+      "columns": [
+        {
+          "name": "XCC Interface",
+          "source": "interfaceDisplayName"
+        },
+        {
+          "name": "Mode",
+          "source": "managementMode"
         },
         {
           "name": "MAC Address",
           "source": "macAddress"
+        },
+        {
+          "name": "Peer Address",
+          "source": "peerIpAddress"
         },
         {
           "name": "Link",
@@ -606,7 +2057,7 @@
         },
         {
           "name": "Speed MHz",
-          "source": "operatingSpeedMhz"
+          "source": "operatingSpeedDisplay"
         },
         {
           "name": "Manufacturer",
@@ -631,11 +2082,150 @@
         "targetKey"
       ]
     },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkAdapterNetworkPorts": {
+      "columns": [
+        {
+          "name": "Adapter",
+          "source": "adapterName"
+        },
+        {
+          "name": "Port",
+          "source": "portId"
+        },
+        {
+          "name": "MAC",
+          "source": "macAddress"
+        },
+        {
+          "name": "Associated MACs",
+          "source": "associatedMacAddresses"
+        },
+        {
+          "name": "Link",
+          "source": "linkStatus"
+        },
+        {
+          "name": "Speed Mbps",
+          "source": "currentLinkSpeedMbps"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Health",
+          "source": "health"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkAdapterPorts": {
+      "columns": [
+        {
+          "name": "Adapter",
+          "source": "adapterName"
+        },
+        {
+          "name": "Port",
+          "source": "portId"
+        },
+        {
+          "name": "MAC",
+          "source": "macAddress"
+        },
+        {
+          "name": "Associated MACs",
+          "source": "associatedMacAddresses"
+        },
+        {
+          "name": "Link",
+          "source": "linkStatus"
+        },
+        {
+          "name": "Speed Mbps",
+          "source": "currentLinkSpeedMbps"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Health",
+          "source": "health"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkDeviceFunctions": {
+      "columns": [
+        {
+          "name": "Adapter",
+          "source": "adapterName"
+        },
+        {
+          "name": "Function",
+          "source": "functionId"
+        },
+        {
+          "name": "Type",
+          "source": "netDevFuncType"
+        },
+        {
+          "name": "MAC",
+          "source": "macAddress"
+        },
+        {
+          "name": "Permanent MAC",
+          "source": "permanentMacAddress"
+        },
+        {
+          "name": "MTU",
+          "source": "mtuSize"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Health",
+          "source": "health"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
     "LNV.Lenovo.XCC.Target[TargetName].Tables.NetworkInterfaces": {
       "columns": [
         {
           "name": "Interface",
-          "source": "interfaceName"
+          "source": "interfaceDisplayName"
+        },
+        {
+          "name": "Role",
+          "source": "interfaceRole"
         },
         {
           "name": "MAC Address",
@@ -890,6 +2480,59 @@
         "targetKey"
       ]
     },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.ServerPortInventory": {
+      "columns": [
+        {
+          "name": "Transport",
+          "source": "transport"
+        },
+        {
+          "name": "Role",
+          "source": "interfaceRole"
+        },
+        {
+          "name": "Adapter",
+          "source": "adapter"
+        },
+        {
+          "name": "Port",
+          "source": "portLabel"
+        },
+        {
+          "name": "MAC",
+          "source": "macAddress"
+        },
+        {
+          "name": "WWPN",
+          "source": "wwpn"
+        },
+        {
+          "name": "Link",
+          "source": "linkStatusEffective"
+        },
+        {
+          "name": "Source",
+          "source": "linkStatusSource"
+        },
+        {
+          "name": "Speed",
+          "source": "speedMbps"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
     "LNV.Lenovo.XCC.Target[TargetName].Tables.StorageControllers": {
       "columns": [
         {
@@ -991,6 +2634,35 @@
         {
           "name": "State",
           "source": "state"
+        }
+      ],
+      "emptyBehavior": "placeholder",
+      "identityKeys": [
+        "targetKey"
+      ],
+      "renderAs": "table",
+      "renderMode": "table",
+      "rowOrder": [
+        "targetKey"
+      ]
+    },
+    "LNV.Lenovo.XCC.Target[TargetName].Tables.SystemNetworkInterfaces": {
+      "columns": [
+        {
+          "name": "Interface",
+          "source": "networkInterfaceName"
+        },
+        {
+          "name": "Adapter",
+          "source": "componentName"
+        },
+        {
+          "name": "State",
+          "source": "state"
+        },
+        {
+          "name": "Health",
+          "source": "health"
         }
       ],
       "emptyBehavior": "placeholder",

@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "1",
+  "solutionId": "lenovo-xcc-direct-v1-live",
+  "contracts": {
+    "version": "2.0.15"
+  },
+  "solution": {
+    "description": "Temporary live capture for XCC port evidence.",
+    "name": "Lenovo XCC Direct-v1 Live Collection"
+  },
+  "targets": [
+    {
+      "params": {
+        "timeoutSeconds": 30,
+        "position": "",
+        "rack": "",
+        "fallbackApi": "xcc-rest",
+        "tlsPolicy": "allowSelfSigned",
+        "preferredApi": "redfish",
+        "retryCount": 2,
+        "row": "",
+        "role": "Compute",
+        "site": "Lab"
+      },
+      "key": "srv01-xcc",
+      "kind": "lenovo.xcc",
+      "endpoints": {
+        "baseUri": "https://192.168.183.199"
+      },
+      "tags": {
+        "platform": "ThinkSystem SE350",
+        "environment": "Lab"
+      },
+      "authRef": "xcc-local-admin",
+      "displayName": "SE350 XCC"
+    }
+  ],
+  "auth": {
+    "xcc-local-admin": {
+      "username": "USERID",
+      "kind": "inline",
+      "type": "basic"
+    }
+  },
+  "collectors": [
+    {
+      "key": "lenovo-xcc-direct-v1",
+      "techId": "Lenovo.XCC",
+      "version": "0.1.0",
+      "targetKeys": [
+        "srv01-xcc"
+      ],
+      "params": {
+        "infoLevel": 3,
+        "redactionProfile": "default",
+        "includeSystem": true,
+        "includePowerThermal": true,
+        "includeManagerNetwork": true,
+        "continueOnEndpointError": true,
+        "healthCheck": true,
+        "failOnTargetError": false,
+        "includeProcessors": true,
+        "includeNetwork": true,
+        "includeRaw": true,
+        "includeUsers": true,
+        "includeStorage": true,
+        "eventLogLimit": 500,
+        "includeChassisSensors": true,
+        "includePciDevices": true,
+        "includeSecurity": true,
+        "includeFirmware": true,
+        "includeEventLog": true,
+        "includeManagers": true,
+        "includeMemory": true,
+        "includeManagerInterfaces": true
+      },
+      "module": "LNV.AsBuiltDoc.Lenovo.XCC",
+      "entryPoint": "Invoke-LnvAsBuiltDoc.Lenovo.XCC"
+    }
+  ]
+}

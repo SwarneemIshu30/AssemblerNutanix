@@ -8,6 +8,13 @@ Target scope uses `TargetName`, resolved from the selected Core target folder.
 
 ## Canonical tags
 
+- `LNV.Lenovo.XCC.Target[TargetName].Document.VitalProductDataGrouped`
+- `LNV.Lenovo.XCC.Target[TargetName].Document.FirmwareSummary`
+- `LNV.Lenovo.XCC.Target[TargetName].Document.HardwareSummary`
+- `LNV.Lenovo.XCC.Target[TargetName].Document.MemoryExceptions`
+- `LNV.Lenovo.XCC.Target[TargetName].Document.ManagementEthernetPorts`
+- `LNV.Lenovo.XCC.Target[TargetName].Document.HostEthernetPorts`
+- `LNV.Lenovo.XCC.Target[TargetName].Document.HostFcPorts`
 - `LNV.Lenovo.XCC.Target[TargetName].Summary`
 - `LNV.Lenovo.XCC.Target[TargetName].Tables.CollectionStatus`
 - `LNV.Lenovo.XCC.Target[TargetName].Tables.Managers`
@@ -39,6 +46,16 @@ Target scope uses `TargetName`, resolved from the selected Core target folder.
 - `LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisEnvironment`
 - `LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisPowerSubsystem`
 - `LNV.Lenovo.XCC.Target[TargetName].Tables.ChassisThermalSubsystem`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.HostEthernetPorts`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.HostFcPorts`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.ManagementEthernetPorts`
+- `LNV.Lenovo.XCC.Target[TargetName].Tables.ServerPortInventory`
+- `LNV.Lenovo.XCC.Target[TargetName].Diagrams.ServerPortGraph`
+- `LNV.Lenovo.XCC.Target[TargetName].Diagrams.StorageConnectivityGraph`
 
 `network-interfaces` remains a compatibility/evidence dataset. The document-facing
 network tag uses `ethernet-interfaces` to avoid duplicate rendered content.
+
+The `Document.*` tags are the preferred customer-facing projection set. The
+`Tables.*`, `Appendix.*`, and raw graph summary tags remain available for
+diagnostic or collector-blueprint skeletons.

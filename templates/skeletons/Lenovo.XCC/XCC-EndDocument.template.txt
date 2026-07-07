@@ -1,0 +1,34 @@
+Mode: As-Built Draft
+
+# Lenovo XCC As-Built Summary
+====================================================================================================
+
+Vital Product Data
+----------------------------------------------------------------------------------------------------
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Document.VitalProductDataGrouped>>
+
+Firmware Summary
+----------------------------------------------------------------------------------------------------
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Document.FirmwareSummary>>
+
+Hardware Configuration
+----------------------------------------------------------------------------------------------------
+Hardware Summary
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Document.HardwareSummary>>
+
+Memory
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Document.Memory>>
+
+Storage Configuration
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Document.StorageConfiguration>>
+
+Network Configuration
+----------------------------------------------------------------------------------------------------
+XCC Interfaces
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Document.ManagementEthernetPorts>>
+
+Host Ethernet Ports
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Document.HostEthernetPorts>>
+
+Host Fibre Channel Ports
+<<SDT:LNV.Lenovo.XCC.Target[TargetName].Document.HostFcPorts>>

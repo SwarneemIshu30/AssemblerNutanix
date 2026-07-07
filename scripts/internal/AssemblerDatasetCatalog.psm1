@@ -14,6 +14,50 @@ function Get-AssemblerMapValue {
     return $null
 }
 
+function ConvertTo-AssemblerContextMap {
+    param([AllowNull()]$Value)
+
+    if ($null -eq $Value) { return @{} }
+    if ($Value -is [System.Collections.IDictionary]) { return $Value }
+
+    $map = [ordered]@{}
+    foreach ($property in @($Value.PSObject.Properties)) {
+        if ($property.MemberType -eq 'NoteProperty' -or $property.MemberType -eq 'Property') {
+            $map[[string]$property.Name] = $property.Value
+        }
+    }
+    return $map
+}
+
+function Get-AssemblerTargetLocation {
+    param([Parameter(Mandatory)][System.Collections.IDictionary]$Target)
+
+    $tags = ConvertTo-AssemblerContextMap -Value (Get-AssemblerMapValue -Map $Target -Key 'tags')
+    $params = ConvertTo-AssemblerContextMap -Value (Get-AssemblerMapValue -Map $Target -Key 'params')
+    $location = ConvertTo-AssemblerContextMap -Value (Get-AssemblerMapValue -Map $Target -Key 'location')
+
+    foreach ($key in @('site','siteSort','facility','building','room','row','rack','rackLocation','position','role')) {
+        if (-not $location.Contains($key)) {
+            if ($tags.Contains($key) -and -not [string]::IsNullOrWhiteSpace([string]$tags[$key])) {
+                $location[$key] = $tags[$key]
+                continue
+            }
+            if ($params.Contains($key) -and -not [string]::IsNullOrWhiteSpace([string]$params[$key])) {
+                $location[$key] = $params[$key]
+            }
+        }
+    }
+
+    if (-not $location.Contains('rackLocation') -and $location.Contains('rack')) {
+        $location.rackLocation = $location.rack
+    }
+    if (-not $location.Contains('rack') -and $location.Contains('rackLocation')) {
+        $location.rack = $location.rackLocation
+    }
+
+    return $location
+}
+
 function New-AssemblerDatasetCatalog {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$BundleRoot)
@@ -103,6 +147,9 @@ function New-AssemblerDatasetCatalog {
         }
 
         $object = if ($scope -eq 'target') { $targetMap[$objectKey] } elseif ($scope -eq 'targetGroup') { $groupMap[$objectKey] } else { $null }
+        $tags = if ($null -ne $object -and $object.Contains('tags')) { ConvertTo-AssemblerContextMap -Value $object.tags } else { @{} }
+        $params = if ($null -ne $object -and $object.Contains('params')) { ConvertTo-AssemblerContextMap -Value $object.params } else { @{} }
+        $location = if ($null -ne $object) { Get-AssemblerTargetLocation -Target $object } else { @{} }
         $identityPaths[$identity] = $relativePath
         $entries.Add([ordered]@{
             identity = $identity
@@ -112,7 +159,9 @@ function New-AssemblerDatasetCatalog {
             objectKey = $objectKey
             objectKind = if ($null -ne $object -and $object.Contains('kind')) { [string]$object.kind } else { $scope }
             displayName = if ($null -ne $object -and $object.Contains('displayName')) { [string]$object.displayName } else { $objectKey }
-            tags = if ($null -ne $object -and $object.Contains('tags')) { $object.tags } else { @{} }
+            tags = $tags
+            params = $params
+            location = $location
             datasetKey = $datasetKey
             relativePath = $relativePath
             path = $fullPath

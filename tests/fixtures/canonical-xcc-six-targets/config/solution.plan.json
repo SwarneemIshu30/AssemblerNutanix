@@ -1,0 +1,217 @@
+{
+  "schemaVersion": "1",
+  "solutionId": "lenovo-xcc-direct-v1-live",
+  "contracts": {
+    "version": "2.0.15"
+  },
+  "solution": {
+    "description": "Synthetic six-target XCC render validation bundle.",
+    "name": "Synthetic Six XCC Server Collection"
+  },
+  "targets": [
+    {
+      "key": "srv01-xcc",
+      "kind": "lenovo.xcc",
+      "displayName": "VXNODE01 XCC",
+      "authRef": "xcc-local-admin",
+      "endpoints": {
+        "baseUri": "https://192.168.183.101"
+      },
+      "params": {
+        "timeoutSeconds": 30,
+        "tlsPolicy": "allowSelfSigned",
+        "preferredApi": "redfish",
+        "fallbackApi": "xcc-rest",
+        "retryCount": 2
+      },
+      "tags": {
+        "platform": "ThinkSystem SE350",
+        "environment": "Synthetic"
+      },
+      "location": {
+        "site": "HO Primary",
+        "siteSort": "10",
+        "rack": "R01-U10",
+        "role": "Compute"
+      }
+    },
+    {
+      "key": "srv02-xcc",
+      "kind": "lenovo.xcc",
+      "displayName": "VXNODE02 XCC",
+      "authRef": "xcc-local-admin",
+      "endpoints": {
+        "baseUri": "https://192.168.183.102"
+      },
+      "params": {
+        "timeoutSeconds": 30,
+        "tlsPolicy": "allowSelfSigned",
+        "preferredApi": "redfish",
+        "fallbackApi": "xcc-rest",
+        "retryCount": 2
+      },
+      "tags": {
+        "platform": "ThinkSystem SE350",
+        "environment": "Synthetic"
+      },
+      "location": {
+        "site": "HO Primary",
+        "siteSort": "10",
+        "rack": "R01-U12",
+        "role": "Compute"
+      }
+    },
+    {
+      "key": "srv03-xcc",
+      "kind": "lenovo.xcc",
+      "displayName": "VXNODE03 XCC",
+      "authRef": "xcc-local-admin",
+      "endpoints": {
+        "baseUri": "https://192.168.183.103"
+      },
+      "params": {
+        "timeoutSeconds": 30,
+        "tlsPolicy": "allowSelfSigned",
+        "preferredApi": "redfish",
+        "fallbackApi": "xcc-rest",
+        "retryCount": 2
+      },
+      "tags": {
+        "platform": "ThinkSystem SE350",
+        "environment": "Synthetic"
+      },
+      "location": {
+        "site": "HO Primary",
+        "siteSort": "10",
+        "rack": "R01-U14",
+        "role": "Compute"
+      }
+    },
+    {
+      "key": "srv04-xcc",
+      "kind": "lenovo.xcc",
+      "displayName": "VXNODE04 XCC",
+      "authRef": "xcc-local-admin",
+      "endpoints": {
+        "baseUri": "https://192.168.183.104"
+      },
+      "params": {
+        "timeoutSeconds": 30,
+        "tlsPolicy": "allowSelfSigned",
+        "preferredApi": "redfish",
+        "fallbackApi": "xcc-rest",
+        "retryCount": 2
+      },
+      "tags": {
+        "platform": "ThinkSystem SE350",
+        "environment": "Synthetic"
+      },
+      "location": {
+        "site": "DR Secondary",
+        "siteSort": "20",
+        "rack": "R02-U10",
+        "role": "Compute"
+      }
+    },
+    {
+      "key": "srv05-xcc",
+      "kind": "lenovo.xcc",
+      "displayName": "VXNODE05 XCC",
+      "authRef": "xcc-local-admin",
+      "endpoints": {
+        "baseUri": "https://192.168.183.105"
+      },
+      "params": {
+        "timeoutSeconds": 30,
+        "tlsPolicy": "allowSelfSigned",
+        "preferredApi": "redfish",
+        "fallbackApi": "xcc-rest",
+        "retryCount": 2
+      },
+      "tags": {
+        "platform": "ThinkSystem SE350",
+        "environment": "Synthetic"
+      },
+      "location": {
+        "site": "DR Secondary",
+        "siteSort": "20",
+        "rack": "R02-U12",
+        "role": "Compute"
+      }
+    },
+    {
+      "key": "srv06-xcc",
+      "kind": "lenovo.xcc",
+      "displayName": "VXNODE06 XCC",
+      "authRef": "xcc-local-admin",
+      "endpoints": {
+        "baseUri": "https://192.168.183.106"
+      },
+      "params": {
+        "timeoutSeconds": 30,
+        "tlsPolicy": "allowSelfSigned",
+        "preferredApi": "redfish",
+        "fallbackApi": "xcc-rest",
+        "retryCount": 2
+      },
+      "tags": {
+        "platform": "ThinkSystem SE350",
+        "environment": "Synthetic"
+      },
+      "location": {
+        "site": "DR Secondary",
+        "siteSort": "20",
+        "rack": "R02-U14",
+        "role": "Compute"
+      }
+    }
+  ],
+  "auth": {
+    "xcc-local-admin": {
+      "username": "USERID",
+      "kind": "inline",
+      "type": "basic"
+    }
+  },
+  "collectors": [
+    {
+      "key": "lenovo-xcc-direct-v1",
+      "techId": "Lenovo.XCC",
+      "version": "0.1.0",
+      "targetKeys": [
+        "srv01-xcc",
+        "srv02-xcc",
+        "srv03-xcc",
+        "srv04-xcc",
+        "srv05-xcc",
+        "srv06-xcc"
+      ],
+      "params": {
+        "infoLevel": 3,
+        "redactionProfile": "default",
+        "includeSystem": true,
+        "includePowerThermal": true,
+        "includeManagerNetwork": true,
+        "continueOnEndpointError": true,
+        "healthCheck": true,
+        "failOnTargetError": false,
+        "includeProcessors": true,
+        "includeNetwork": true,
+        "includeRaw": true,
+        "includeUsers": true,
+        "includeStorage": true,
+        "eventLogLimit": 500,
+        "includeChassisSensors": true,
+        "includePciDevices": true,
+        "includeSecurity": true,
+        "includeFirmware": true,
+        "includeEventLog": true,
+        "includeManagers": true,
+        "includeMemory": true,
+        "includeManagerInterfaces": true
+      },
+      "module": "LNV.AsBuiltDoc.Lenovo.XCC",
+      "entryPoint": "Invoke-LnvAsBuiltDoc.Lenovo.XCC"
+    }
+  ]
+}

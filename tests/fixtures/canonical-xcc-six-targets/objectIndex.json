@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "collectedUtc": "2026-07-03T00:00:00Z",
+  "objects": [
+    {
+      "techId": "Lenovo.XCC",
+      "kind": "lenovo.xcc",
+      "key": "srv01-xcc",
+      "displayName": "VXNODE01 XCC"
+    },
+    {
+      "techId": "Lenovo.XCC",
+      "kind": "lenovo.xcc",
+      "key": "srv02-xcc",
+      "displayName": "VXNODE02 XCC"
+    },
+    {
+      "techId": "Lenovo.XCC",
+      "kind": "lenovo.xcc",
+      "key": "srv03-xcc",
+      "displayName": "VXNODE03 XCC"
+    },
+    {
+      "techId": "Lenovo.XCC",
+      "kind": "lenovo.xcc",
+      "key": "srv04-xcc",
+      "displayName": "VXNODE04 XCC"
+    },
+    {
+      "techId": "Lenovo.XCC",
+      "kind": "lenovo.xcc",
+      "key": "srv05-xcc",
+      "displayName": "VXNODE05 XCC"
+    },
+    {
+      "techId": "Lenovo.XCC",
+      "kind": "lenovo.xcc",
+      "key": "srv06-xcc",
+      "displayName": "VXNODE06 XCC"
+    }
+  ]
+}

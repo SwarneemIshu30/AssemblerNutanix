@@ -1,0 +1,41 @@
+{
+  "schema_version": "lnv.collector.dataset.v1",
+  "collector": {
+    "tech_id": "Lenovo.XCC",
+    "module": "LNV.AsBuiltDoc.Lenovo.XCC",
+    "entry_point": "Invoke-AsBuiltDoc.Lenovo.XCC"
+  },
+  "source": {
+    "bundle_id": "0634a81a-4d4d-47f8-9ac6-ad28965741e7",
+    "bundle_root": "C:\\Github\\LNV.AsBuiltDoc.Core\\out\\412f44d4-06fa-4b1b-b1ea-bd0d7ac07ed8",
+    "target_key": "srv06-xcc",
+    "file": "datasets/Lenovo.XCC/core/srv06-xcc/document-firmware-summary.json"
+  },
+  "dataset": "document-firmware-summary",
+  "item_count": 1,
+  "items": [
+    {
+      "targetKey": "srv06-xcc",
+      "targetDisplayName": "VXNODE06 XCC",
+      "systemId": "1",
+      "managerId": null,
+      "hostName": "VXNODE06-XCC",
+      "serialNumber": "J301DX1Q",
+      "serverIdentity": "VXNODE06-XCC",
+      "machineType": "",
+      "model": "ThinkSystem SE350",
+      "xccAddress": "https://192.168.183.106",
+      "collectionStatus": "success",
+      "collectedUtc": "2026-07-02T06:30:59.1626024Z",
+      "health": "Critical",
+      "state": "Enabled",
+      "sourcePath": "/redfish/v1/Systems/1",
+      "sourceEndpoint": "/redfish/v1/Systems/1",
+      "bmc": "84H-3.50",
+      "uefi": "40C-3.30",
+      "lxpm": "52B-2.13",
+      "adapterFirmware": "1.3141.0",
+      "storageFirmware": "MD56"
+    }
+  ]
+}

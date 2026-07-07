@@ -1,0 +1,233 @@
+{
+  "schemaVersion": 1,
+  "bundleId": "synthetic-xcc-six-targets",
+  "createdUtc": "2026-07-03T00:00:00Z",
+  "files": [
+    {
+      "path": "objectIndex.json",
+      "bytes": 926,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "config/config_used.json",
+      "bytes": 26,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "config/solution.plan.json",
+      "bytes": 5569,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/document-firmware-summary.json",
+      "bytes": 1415,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/document-hardware-summary.json",
+      "bytes": 1499,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/document-memory-exceptions.json",
+      "bytes": 1691,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/document-vital-product-data.json",
+      "bytes": 1431,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/host-ethernet-ports.json",
+      "bytes": 13318,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/host-fc-ports.json",
+      "bytes": 548,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv01-xcc/management-ethernet-ports.json",
+      "bytes": 4363,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv02-xcc/document-firmware-summary.json",
+      "bytes": 1415,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv02-xcc/document-hardware-summary.json",
+      "bytes": 1499,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv02-xcc/document-memory-exceptions.json",
+      "bytes": 1698,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv02-xcc/document-vital-product-data.json",
+      "bytes": 1431,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv02-xcc/host-ethernet-ports.json",
+      "bytes": 13318,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv02-xcc/host-fc-ports.json",
+      "bytes": 548,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv02-xcc/management-ethernet-ports.json",
+      "bytes": 4363,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv03-xcc/document-firmware-summary.json",
+      "bytes": 1415,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv03-xcc/document-hardware-summary.json",
+      "bytes": 1499,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv03-xcc/document-memory-exceptions.json",
+      "bytes": 1691,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv03-xcc/document-vital-product-data.json",
+      "bytes": 1431,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv03-xcc/host-ethernet-ports.json",
+      "bytes": 13318,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv03-xcc/host-fc-ports.json",
+      "bytes": 548,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv03-xcc/management-ethernet-ports.json",
+      "bytes": 4363,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv04-xcc/document-firmware-summary.json",
+      "bytes": 1417,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv04-xcc/document-hardware-summary.json",
+      "bytes": 1501,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv04-xcc/document-memory-exceptions.json",
+      "bytes": 1693,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv04-xcc/document-vital-product-data.json",
+      "bytes": 1433,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv04-xcc/host-ethernet-ports.json",
+      "bytes": 13330,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv04-xcc/host-fc-ports.json",
+      "bytes": 548,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv04-xcc/management-ethernet-ports.json",
+      "bytes": 4367,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv05-xcc/document-firmware-summary.json",
+      "bytes": 1417,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv05-xcc/document-hardware-summary.json",
+      "bytes": 1501,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv05-xcc/document-memory-exceptions.json",
+      "bytes": 1700,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv05-xcc/document-vital-product-data.json",
+      "bytes": 1433,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv05-xcc/host-ethernet-ports.json",
+      "bytes": 13330,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv05-xcc/host-fc-ports.json",
+      "bytes": 548,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv05-xcc/management-ethernet-ports.json",
+      "bytes": 4367,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv06-xcc/document-firmware-summary.json",
+      "bytes": 1417,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv06-xcc/document-hardware-summary.json",
+      "bytes": 1501,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv06-xcc/document-memory-exceptions.json",
+      "bytes": 1693,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv06-xcc/document-vital-product-data.json",
+      "bytes": 1433,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv06-xcc/host-ethernet-ports.json",
+      "bytes": 13330,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv06-xcc/host-fc-ports.json",
+      "bytes": 548,
+      "sha256": "synthetic"
+    },
+    {
+      "path": "datasets/Lenovo.XCC/core/srv06-xcc/management-ethernet-ports.json",
+      "bytes": 4367,
+      "sha256": "synthetic"
+    }
+  ],
+  "results": []
+}

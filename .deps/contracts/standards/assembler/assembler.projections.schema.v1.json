@@ -166,6 +166,16 @@
           "type": "string",
           "minLength": 1
         },
+        "fallbackSources": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "defaultValue": {
+          "$ref": "#/$defs/scalarValue"
+        },
         "format": {
           "type": "string",
           "enum": [
@@ -253,6 +263,59 @@
               }
             }
           ]
+        },
+        "widthWeight": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "minWidthPct": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "maxWidthPct": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "nowrap": {
+          "type": "boolean"
+        },
+        "wrap": {
+          "type": "boolean"
+        }
+      }
+    },
+    "tableLayout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "fixed"
+          ]
+        },
+        "sizing": {
+          "type": "string",
+          "enum": [
+            "content-weighted",
+            "balanced",
+            "contract-weighted"
+          ]
+        },
+        "density": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "compact"
+          ]
+        },
+        "widthPct": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5000
         }
       }
     },
@@ -276,6 +339,9 @@
           "items": {
             "$ref": "#/$defs/columnDirective"
           }
+        },
+        "tableLayout": {
+          "$ref": "#/$defs/tableLayout"
         },
         "renderMode": {
           "type": "string",
@@ -319,43 +385,62 @@
             "error"
           ]
         },
+        "emptyPlaceholder": {
+          "type": "string",
+          "minLength": 1
+        },
         "rowOrder": {
           "type": "array",
           "minItems": 1,
           "items": {
-            "oneOf": [
-              {
+            "type": [
+              "string",
+              "object"
+            ],
+            "properties": {
+              "by": {
                 "type": "string",
                 "minLength": 1
               },
-              {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "by"
-                ],
-                "properties": {
-                  "by": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "direction": {
-                    "type": "string",
-                    "enum": [
-                      "asc",
-                      "desc"
-                    ]
-                  },
-                  "nulls": {
-                    "type": "string",
-                    "enum": [
-                      "first",
-                      "last"
-                    ]
-                  }
-                }
+              "direction": {
+                "type": "string",
+                "enum": [
+                  "asc",
+                  "desc"
+                ]
+              },
+              "nulls": {
+                "type": "string",
+                "enum": [
+                  "first",
+                  "last"
+                ]
               }
-            ]
+            },
+            "additionalProperties": false
+          }
+        },
+        "groupBy": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": [
+              "string",
+              "object"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "label": {
+                "type": "string"
+              },
+              "hideColumn": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
           }
         },
         "identityKeys": {
