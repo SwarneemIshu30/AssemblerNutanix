@@ -1,12 +1,8 @@
 {
   "schemaVersion": 1,
   "dataset": "images",
-  "presentationKind": "table",
+  "presentationKind": "evidence",
   "defaultItemRoot": "items",
-  "preferredProjectionViews": [
-    {
-      "name": "Default",
-      "projectionRef": "LNV.Nutanix.Prism.Target[TargetKey].Tables.Images"
-    }
-  ]
+  "documentFacing": false,
+  "notes": "Evidence-only until an explicit document projection is contracted."
 }

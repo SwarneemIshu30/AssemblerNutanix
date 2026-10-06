@@ -1,10 +1,6 @@
 {
-  "packPath": "C:\\Users\\lforrest\\AppData\\Local\\Temp\\asbuiltdoc-contracts-v2.0.15-7e79366dae474301948a86c4eaa7f086.zip",
-  "version": "2.0.15",
-  "releaseUrl": null,
-  "syncedUtc": "2026-06-16T23:50:34.4709870Z",
+  "source": "local-export-copy",
+  "syncedUtc": "2026-10-05T09:29:34.7969784Z",
   "schemaVersion": 1,
-  "packUrl": "https://github.com/LNV-AsBuiltDoc/LNV.AsBuiltDoc.Contracts/releases/download/v2.0.15/asbuiltdoc-contracts-v2.0.15.zip",
-  "tag": "v2.0.15",
-  "source": "published-pack"
+  "exportContractsPath": "C:\\Users\\nrithika\\Desktop\\LNV.AsBuiltDoc.Assembler\\exports\\LNV.AsBuiltDoc.Contracts"
 }
